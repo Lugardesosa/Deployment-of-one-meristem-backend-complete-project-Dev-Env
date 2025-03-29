@@ -7,7 +7,7 @@ spring:
   cloud:
     config:
       profile: local
-      label: dev
+      label: C1 # TODO: change to the branch being deployed
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
 
