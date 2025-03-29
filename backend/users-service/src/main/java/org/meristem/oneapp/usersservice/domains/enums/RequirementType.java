@@ -8,13 +8,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum RequirementType {
 
-    BVN(1),
-    EMAIL_OTP(2),
-    PHONE_OTP(3),
-    UTILITY_BILL(4),
-    PASSPORT(5),
-    GOVERNMENT_ISSUED_ID(6),
-    SIGNATURE(7);
+    BVN(1, "BVN"),
+    PHONE_OTP(2, "PHONE_OTP"),
+    EMAIL_OTP(3, "EMAIL_OTP"),
+    UTILITY_BILL(4, "UTILITY_BILL"),
+    PASSPORT(5, "PASSPORT"),
+    GOVERNMENT_ISSUED_ID(6, "GOVERNMENT_ISSUED_ID"),
+    SIGNATURE(7, "SIGNATURE");
 
     private final int value;
+    private final String name;
 }

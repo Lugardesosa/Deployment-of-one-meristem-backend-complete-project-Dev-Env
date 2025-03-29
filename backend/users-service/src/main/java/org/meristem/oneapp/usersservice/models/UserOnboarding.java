@@ -16,12 +16,15 @@ import java.util.Objects;
  * <p><strong>PREPOPULATED but new ones can be added</strong></p>
  *
  * This maps each requirement and user combinations, stating
- * whether they have been completed or not.
+ * whether they have been completed the onboarding process or not.
  * This entity is not populated upon registration, the user has to apply
  * for a given service, before the requirements for that service type is
  * used to fetch all the requirements for the service before it is then populated
  * for that user.
- * @see UserFeature
+ * For any requirement that is shared across features like EMAIL_OTP, all features for that requirement
+ * are marked as completed
+ * @see FeatureRequirement
+ * @see Requirements
  */
 @NoArgsConstructor
 @Setter

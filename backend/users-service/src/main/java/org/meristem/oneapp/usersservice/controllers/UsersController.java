@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
+import org.meristem.oneapp.usersservice.domains.responses.UserResponse;
 import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
@@ -37,9 +39,12 @@ public class UsersController {
          return ApiUtil.buildResponse(usersService.createUser(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
+    @Operation(summary = "Gets users.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Created the user.")
+    })
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object getUser() {
-        return AppResponse.builder().data("Hello").status(HttpStatus.CREATED.toString())
-                .message("Successful.").build();
+    public ResponseEntity<AppResponse<UserResponse>> getUser(@RequestParam(name = "email") String email) {
+        return ApiUtil.buildResponse(usersService.getUser(email), HttpStatus.CREATED.toString(), "Successful.");
     }
 }
