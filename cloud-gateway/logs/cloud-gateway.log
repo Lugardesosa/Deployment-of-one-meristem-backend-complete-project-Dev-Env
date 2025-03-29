@@ -1,0 +1,93 @@
+2025-03-25T15:11:10.386+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : Starting CloudGatewayApplication using Java 21.0.6 with PID 35543 (/Users/kingsleygodwin/one-mersitem-app/cloud-gateway/target/classes started by kingsleygodwin in /Users/kingsleygodwin/one-mersitem-app/cloud-gateway)
+2025-03-25T15:11:10.387+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : No active profile set, falling back to 1 default profile: "default"
+2025-03-25T15:11:10.402+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://localhost:20000/config
+2025-03-25T15:11:10.402+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.c.c.ConfigServerConfigDataLoader   : Located environment: name=cloud-gateway, profiles=[local], label=dev, version=c9ac235454f904b389b8c1e2b8872b7d1ef89531, state=
+2025-03-25T15:11:10.403+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-03-25T15:11:10.403+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-03-25T15:11:10.709+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2025-03-25T15:11:10.710+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-03-25T15:11:10.719+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 3 ms. Found 0 Redis repository interfaces.
+2025-03-25T15:11:10.752+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.cloud.context.scope.GenericScope     : BeanFactory id=160f726a-858b-3512-a71b-9a79a43e853f
+2025-03-25T15:11:10.929+01:00 ERROR 35543 --- [cloud-gateway] [restartedMain] i.n.r.d.DnsServerAddressStreamProviders  : Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'. Use DEBUG level to see the full stack: java.lang.UnsatisfiedLinkError: failed to load the required native library
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+2025-03-25T15:11:11.105+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+2025-03-25T15:11:11.106+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+2025-03-25T15:11:11.106+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2025-03-25T15:11:11.106+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+2025-03-25T15:11:11.106+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2025-03-25T15:11:11.165+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/flows'
+2025-03-25T15:11:11.227+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-03-25T15:11:11.263+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 8080 (http)
+2025-03-25T15:11:11.278+01:00  INFO 35543 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : Started CloudGatewayApplication in 3.967 seconds (process running for 4.186)
+2025-03-25T15:15:48.583+01:00  INFO 35543 --- [cloud-gateway] [SpringApplicationShutdownHook] o.s.b.w.embedded.netty.GracefulShutdown  : Commencing graceful shutdown. Waiting for active requests to complete
+2025-03-25T15:15:48.595+01:00  INFO 35543 --- [cloud-gateway] [netty-shutdown] o.s.b.w.embedded.netty.GracefulShutdown  : Graceful shutdown complete
+2025-03-25T15:15:56.053+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : Starting CloudGatewayApplication using Java 21.0.6 with PID 36282 (/Users/kingsleygodwin/one-mersitem-app/cloud-gateway/target/classes started by kingsleygodwin in /Users/kingsleygodwin/one-mersitem-app/cloud-gateway)
+2025-03-25T15:15:56.054+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : No active profile set, falling back to 1 default profile: "default"
+2025-03-25T15:15:56.066+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://localhost:20000/config
+2025-03-25T15:15:56.067+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.c.c.ConfigServerConfigDataLoader   : Located environment: name=cloud-gateway, profiles=[local], label=dev, version=c9ac235454f904b389b8c1e2b8872b7d1ef89531, state=
+2025-03-25T15:15:56.067+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-03-25T15:15:56.067+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-03-25T15:15:56.352+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2025-03-25T15:15:56.353+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-03-25T15:15:56.362+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 3 ms. Found 0 Redis repository interfaces.
+2025-03-25T15:15:56.393+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.cloud.context.scope.GenericScope     : BeanFactory id=160f726a-858b-3512-a71b-9a79a43e853f
+2025-03-25T15:15:56.556+01:00 ERROR 36282 --- [cloud-gateway] [restartedMain] i.n.r.d.DnsServerAddressStreamProviders  : Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'. Use DEBUG level to see the full stack: java.lang.UnsatisfiedLinkError: failed to load the required native library
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+2025-03-25T15:15:56.725+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+2025-03-25T15:15:56.726+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+2025-03-25T15:15:56.726+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2025-03-25T15:15:56.726+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+2025-03-25T15:15:56.726+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2025-03-25T15:15:56.784+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/flows'
+2025-03-25T15:15:56.846+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-03-25T15:15:56.878+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 8080 (http)
+2025-03-25T15:15:56.894+01:00  INFO 36282 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : Started CloudGatewayApplication in 4.321 seconds (process running for 4.526)
+2025-03-25T15:25:11.061+01:00  INFO 36282 --- [cloud-gateway] [SpringApplicationShutdownHook] o.s.b.w.embedded.netty.GracefulShutdown  : Commencing graceful shutdown. Waiting for active requests to complete
+2025-03-25T15:25:11.066+01:00  INFO 36282 --- [cloud-gateway] [netty-shutdown] o.s.b.w.embedded.netty.GracefulShutdown  : Graceful shutdown complete
+2025-03-25T15:25:18.805+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : Starting CloudGatewayApplication using Java 21.0.6 with PID 37850 (/Users/kingsleygodwin/one-mersitem-app/cloud-gateway/target/classes started by kingsleygodwin in /Users/kingsleygodwin/one-mersitem-app/cloud-gateway)
+2025-03-25T15:25:18.806+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : No active profile set, falling back to 1 default profile: "default"
+2025-03-25T15:25:18.820+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.c.c.ConfigServerConfigDataLoader   : Fetching config from server at : http://localhost:20000/config
+2025-03-25T15:25:18.820+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.c.c.ConfigServerConfigDataLoader   : Located environment: name=cloud-gateway, profiles=[local], label=dev, version=82660df49f58742ff1f9bac46800f51b87dff275, state=
+2025-03-25T15:25:18.821+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-03-25T15:25:18.821+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-03-25T15:25:19.115+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2025-03-25T15:25:19.116+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-03-25T15:25:19.125+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 3 ms. Found 0 Redis repository interfaces.
+2025-03-25T15:25:19.158+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.cloud.context.scope.GenericScope     : BeanFactory id=160f726a-858b-3512-a71b-9a79a43e853f
+2025-03-25T15:25:19.329+01:00 ERROR 37850 --- [cloud-gateway] [restartedMain] i.n.r.d.DnsServerAddressStreamProviders  : Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'. Use DEBUG level to see the full stack: java.lang.UnsatisfiedLinkError: failed to load the required native library
+2025-03-25T15:25:19.500+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+2025-03-25T15:25:19.500+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+2025-03-25T15:25:19.501+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+2025-03-25T15:25:19.502+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+2025-03-25T15:25:19.502+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2025-03-25T15:25:19.502+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+2025-03-25T15:25:19.502+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2025-03-25T15:25:19.570+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2025-03-25T15:25:19.638+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-03-25T15:25:19.675+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 8080 (http)
+2025-03-25T15:25:19.695+01:00  INFO 37850 --- [cloud-gateway] [restartedMain] o.m.o.c.CloudGatewayApplication          : Started CloudGatewayApplication in 4.222 seconds (process running for 4.424)
+2025-03-25T15:33:26.251+01:00  INFO 37850 --- [cloud-gateway] [SpringApplicationShutdownHook] o.s.b.w.embedded.netty.GracefulShutdown  : Commencing graceful shutdown. Waiting for active requests to complete
+2025-03-25T15:33:26.268+01:00  INFO 37850 --- [cloud-gateway] [netty-shutdown] o.s.b.w.embedded.netty.GracefulShutdown  : Graceful shutdown complete
