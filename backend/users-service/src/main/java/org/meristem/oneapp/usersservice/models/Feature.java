@@ -17,11 +17,13 @@ import java.util.Objects;
  * This is the service_type table where all the service offerings are stored
  * This table exists so if there is ever a new service offering, it can easily
  * be added to the table.
+ * A user_feature table exists in the db that is a join table for the user and feature tables;
+ * @see Users
  */
 @NoArgsConstructor
 @Setter
 @Getter
-public class FeatureType extends BaseModel<String> {
+public class Feature extends BaseModel<String> {
 
     @Size(max = 100, min = 1, message = "Not more than 100 and less than 1")
     @NotBlank(message = "name cannot be null")
@@ -32,8 +34,8 @@ public class FeatureType extends BaseModel<String> {
     private String code;
 
     @Builder
-    public FeatureType(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
-                       Integer version, String name, String code) {
+    public Feature(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
+                   Integer version, String name, String code) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.name = name;
         this.code = code;
@@ -42,7 +44,7 @@ public class FeatureType extends BaseModel<String> {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        FeatureType that = (FeatureType) o;
+        Feature that = (Feature) o;
         return Objects.equals(getCode(), that.getCode());
     }
 

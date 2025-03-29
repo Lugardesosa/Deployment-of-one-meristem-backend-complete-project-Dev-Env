@@ -11,7 +11,7 @@ spring:
           timeout: 4
           skip-ssl-validation: true
           search-paths:
-            - meriapp-config/
+            - backend/meriapp-config
           clone-on-start: true
         encrypt:
           enabled: true
@@ -39,6 +39,7 @@ logging:
   logback:
     rollingpolicy:
       file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
+  # TODO: delete when going live
   level:
     org.springframework.web: debug
     org.springframework.cloud: debug
