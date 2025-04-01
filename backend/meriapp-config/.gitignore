@@ -33,5 +33,5 @@ build/
 .vscode/
 
 ## Logs
-/logs
-/data
+/logs/
+/data/
