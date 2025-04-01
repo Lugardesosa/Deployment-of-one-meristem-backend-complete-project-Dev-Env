@@ -161,6 +161,7 @@ CREATE TABLE user_onboarding
     version            INTEGER,
     user_id            BIGINT                                  NOT NULL,
     requirement_id     BIGINT                                  NOT NULL,
+    feature_id        BIGINT                                  NOT NULL,
     completed          BOOLEAN                                 NOT NULL,
     CONSTRAINT pk_user_onboarding PRIMARY KEY (id)
 );
@@ -188,6 +189,7 @@ ALTER TABLE otp_verification
 
 CREATE INDEX idx_otpverification_code_user_otp ON otp_verification (code, user_id, otp_type);
 CREATE INDEX idx_otpverification_user_otp ON otp_verification (user_id, otp_type);
+CREATE INDEX idx_user_id_onbaording ON user_onboarding(user_id);
 
 ALTER TABLE feature
     ADD CONSTRAINT uc_feature_code UNIQUE (code);
@@ -230,8 +232,13 @@ ALTER TABLE user_feature
 ALTER TABLE user_feature
     ADD CONSTRAINT FK_USER_FEATURE_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
 
+ALTER TABLE user_feature
+    ADD CONSTRAINT uc_user_and_feature UNIQUE (user_id, feature_id);
+
 ALTER TABLE user_onboarding
     ADD CONSTRAINT FK_USER_ONBOARDING_ON_REQUIREMENT FOREIGN KEY (requirement_id) REFERENCES requirements (id);
+ALTER TABLE user_onboarding
+    ADD CONSTRAINT FK_USER_ONBOARDING_ON_FEATURE FOREIGN KEY (feature_id) REFERENCES feature (id);
 
 ALTER TABLE user_onboarding
     ADD CONSTRAINT FK_USER_ONBOARDING_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
@@ -257,7 +264,7 @@ DECLARE
     f_id1 integer;
     f_id2 integer;
     f_id3 integer;
-    r_id3 integer;
+    r_id1 integer;
 BEGIN
 
     INSERT INTO feature (
@@ -278,37 +285,33 @@ BEGIN
     ) VALUES
         (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 'MUTUAL_FUNDS', 'ONE_APP_MUTUAL_FUNDS') RETURNING id INTO f_id3;
 
-    INSERT INTO requirements (
-        id, created_date, created_by, last_modified_date, last_modified_by, version,
-        requirement_type, requirement_name
-    )
-    VALUES
-        (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'BVN'),
-        (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 2, 'PHONE_OTP');
 
     INSERT INTO requirements (
         id, created_date, created_by, last_modified_date, last_modified_by, version,
         requirement_type, requirement_name
     )
     VALUES
-        (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 'EMAIL_OTP') RETURNING id INTO r_id3;
+        (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'BVN') RETURNING id INTO r_id1;
 
-INSERT INTO requirements (
-    id, created_date, created_by, last_modified_date, last_modified_by, version,
-    requirement_type, requirement_name
-)
-VALUES
-        (4, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 4, 'UTILITY_BILL'),
-        (5, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 5, 'PASSPORT'),
-        (6, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 6, 'GOVERNMENT_ISSUED_ID'),
-        (7, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 7, 'SIGNATURE');
+    INSERT INTO requirements (
+        id, created_date, created_by, last_modified_date, last_modified_by, version,
+        requirement_type, requirement_name
+    )
+    VALUES
+        (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 2, 'UTILITY_BILL'),
+        (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 'PASSPORT'),
+        (4, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 4, 'GOVERNMENT_ISSUED_ID'),
+        (5, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 5, 'SIGNATURE'),
+        (6, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 6, 'PROOF_OF_ADDRESS'),
+        (7, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 7, 'LIVENESS_CHECK'),
+        (8, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 8, 'NEXT_OF_KIN');
 
     INSERT INTO feature_requirement (
         created_date, created_by, last_modified_date, last_modified_by, version,
         requirement_id, feature_id, requirement_stage, mandatory
     )
     VALUES
-        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id3, f_id1, 1, FALSE),
-        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id3, f_id2, 1, FALSE),
-        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  r_id3, f_id3, 1, FALSE);
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id1, f_id1, 1, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id1, f_id2, 1, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  r_id1, f_id3, 1, TRUE);
 END $$;

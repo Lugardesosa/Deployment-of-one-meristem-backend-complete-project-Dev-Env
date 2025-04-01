@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -24,13 +25,14 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
+@Table("user_feature")
 public class UserFeature extends BaseModel<String> {
 
     @NotNull(message = "Mot null.")
     private Long userId;
 
     @NotNull(message = "Mot null.")
-    private Long featureTypeId;
+    private Long featureId;
 
     @Column("completed")
     @NotNull(message = "Cannot be null")
@@ -38,10 +40,10 @@ public class UserFeature extends BaseModel<String> {
 
     @Builder
     public UserFeature(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
-                       Integer version, Long userId, Long featureTypeId, Boolean completed) {
+                       Integer version, Long userId, Long featureId, Boolean completed) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
-        this.featureTypeId = featureTypeId;
+        this.featureId = featureId;
         this.completed = false;
     }
 
@@ -49,11 +51,11 @@ public class UserFeature extends BaseModel<String> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         UserFeature that = (UserFeature) o;
-        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getFeatureTypeId(), that.getFeatureTypeId());
+        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getFeatureId(), that.getFeatureId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUserId(), getFeatureTypeId());
+        return Objects.hash(getUserId(), getFeatureId());
     }
 }

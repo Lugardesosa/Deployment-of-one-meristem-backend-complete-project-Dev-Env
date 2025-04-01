@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.services;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
@@ -24,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -50,6 +51,8 @@ public class NotificationService {
                 .body("This is the code " + otpVerification.getCode() + ".").subject("Registration Otp Mail").build();
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).build();
 
+        // TODO: DELETE the log statement
+        log.info("----> CODE: {}", otpVerification.getCode());
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, AppConstants.KAFKA_OTP_TOPIC));
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient()).build();
     }

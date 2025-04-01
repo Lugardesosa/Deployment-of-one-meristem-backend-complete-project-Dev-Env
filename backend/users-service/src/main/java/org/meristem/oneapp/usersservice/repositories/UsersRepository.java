@@ -8,9 +8,12 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+
+@Transactional(readOnly = true)
 public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @NonNull

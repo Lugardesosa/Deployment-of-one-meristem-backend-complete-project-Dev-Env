@@ -29,7 +29,7 @@ public class FeatureRequirement extends BaseModel<String> implements Serializabl
     @NotNull(message = "Cannot be null")
     private Long requirementId;
 
-    @NotNull(message = "requirementType cannot be null")
+    @NotNull(message = "featureId cannot be null")
     private Long featureId;
 
     @NotNull(message = "requirementStage cannot be null")

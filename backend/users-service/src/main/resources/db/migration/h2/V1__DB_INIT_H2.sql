@@ -108,6 +108,7 @@ CREATE TABLE user_onboarding
     version            INT,
     user_id            BIGINT                                  NOT NULL,
     requirement_id     BIGINT                                  NOT NULL,
+    feature_id         BIGINT                                  NOT NULL,
     completed          BOOLEAN                                 NOT NULL,
     CONSTRAINT pk_user_onboarding PRIMARY KEY (id)
 );
@@ -197,6 +198,8 @@ ALTER TABLE users
 
 CREATE INDEX idx_users_email ON users (email);
 
+CREATE INDEX idx_user_id_onbaording ON user_onboarding(user_id);
+
 ALTER TABLE feature_requirement
     ADD CONSTRAINT FK_REQUIREMENTS_ON_FEATURE FOREIGN KEY (feature_id) REFERENCES feature (id);
 
@@ -215,8 +218,14 @@ ALTER TABLE user_feature
 ALTER TABLE user_feature
     ADD CONSTRAINT FK_USER_FEATURE_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
 
+ALTER TABLE user_feature
+    ADD CONSTRAINT uc_user_and_feature UNIQUE (user_id, feature_id);
+
 ALTER TABLE user_onboarding
     ADD CONSTRAINT FK_USER_ONBOARDING_ON_REQUIREMENT FOREIGN KEY (requirement_id) REFERENCES requirements (id);
+
+ALTER TABLE user_onboarding
+    ADD CONSTRAINT FK_USER_ONBOARDING_ON_FEATURE FOREIGN KEY (feature_id) REFERENCES feature (id);
 
 ALTER TABLE user_onboarding
     ADD CONSTRAINT FK_USER_ONBOARDING_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
@@ -252,18 +261,19 @@ INSERT INTO requirements (
 )
 VALUES
     (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'BVN'),
-    (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 2, 'PHONE_OTP'),
-    (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 'EMAIL_OTP'),
-    (4, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 4, 'UTILITY_BILL'),
-    (5, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 5, 'PASSPORT'),
-    (6, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 6, 'GOVERNMENT_ISSUED_ID'),
-    (7, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 7, 'SIGNATURE');
+    (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 2, 'UTILITY_BILL'),
+    (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 'PASSPORT'),
+    (4, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 4, 'GOVERNMENT_ISSUED_ID'),
+    (5, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 5, 'SIGNATURE'),
+    (6, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 6, 'PROOF_OF_ADDRESS'),
+    (7, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 7, 'LIVENESS_CHECK'),
+    (8, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 8, 'NEXT_OF_KIN');
 
 INSERT INTO feature_requirement (
     id, created_date, created_by, last_modified_date, last_modified_by, version,
     requirement_id, feature_id, requirement_stage, mandatory
 )
 VALUES
-    (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 1, 1, FALSE),
-    (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 2, 1, FALSE),
-    (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  3, 3, 1, FALSE);
+    (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 1, 1, TRUE),
+    (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 2, 1, TRUE),
+    (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  1, 3, 1, TRUE);

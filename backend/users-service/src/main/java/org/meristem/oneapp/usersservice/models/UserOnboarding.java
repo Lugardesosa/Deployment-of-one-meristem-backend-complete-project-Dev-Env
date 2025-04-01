@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
+@Table("user_onboarding")
 public class UserOnboarding extends BaseModel<String> {
 
     @NotNull(message = "Cannot be null")
@@ -37,15 +39,19 @@ public class UserOnboarding extends BaseModel<String> {
     @NotNull(message = "Cannot be null")
     private Long requirementId;
 
+    @NotNull(message = "featureId cannot be null")
+    private Long featureId;
+
     @Column("completed")
     @NotNull(message = "Cannot be null")
     private Boolean completed;
 
     @Builder
     public UserOnboarding(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId,
-                          Long requirementId, Boolean completed) {
+                          Long featureId, Long requirementId, Boolean completed) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
+        this.featureId = featureId;
         this.requirementId = requirementId;
         this.completed = completed;
     }
@@ -54,11 +60,12 @@ public class UserOnboarding extends BaseModel<String> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         UserOnboarding that = (UserOnboarding) o;
-        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getRequirementId(), that.getRequirementId());
+        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getRequirementId(), that.getRequirementId())
+                && Objects.equals(getFeatureId(), that.getFeatureId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUserId(), getRequirementId());
+        return Objects.hash(getUserId(), getRequirementId(), getFeatureId());
     }
 }

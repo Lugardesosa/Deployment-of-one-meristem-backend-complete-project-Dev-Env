@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
+@Table("feature")
 public class Feature extends BaseModel<String> {
 
     @Size(max = 100, min = 1, message = "Not more than 100 and less than 1")

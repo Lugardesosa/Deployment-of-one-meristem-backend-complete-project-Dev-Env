@@ -19,4 +19,8 @@ public interface OtpVerificationRepository extends BaseRepository<OtpVerificatio
     void expireTimeByCode(LocalDateTime time, String userId, Integer otpType);
 
     Optional<OtpVerification> findByOtpTypeAndCodeAndUserId(Integer otpType, Integer code, String userId);
+
+    OtpVerification findByOtpTypeAndUserId(Integer otpType, String userId);
+
+    Optional<OtpVerification> findByOtpTypeAndUserIdAndVerified(Integer otpType, String userId, Boolean verified);
 }

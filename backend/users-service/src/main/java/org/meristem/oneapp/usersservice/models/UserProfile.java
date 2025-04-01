@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.models;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,7 @@ import java.util.Objects;
 @Table("user_profile")
 public class UserProfile extends BaseModel<String> {
 
+    @NotNull(message = "Cannot be null")
     private Long userId;
 
     @Size(max = 500, min = 5, message = "Not more than 500 and less than 5")
