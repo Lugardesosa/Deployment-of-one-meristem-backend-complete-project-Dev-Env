@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global font styles */
+.font-poppins-regular {
+  font-family: "Poppins-Regular";
+}
+
+.font-poppins-medium {
+  font-family: "Poppins-Medium";
+}
+
+.font-poppins-semibold {
+  font-family: "Poppins-SemiBold";
+}
+
+.font-poppins-bold {
+  font-family: "Poppins-Bold";
+}
+
+.font-poppins-light {
+  font-family: "Poppins-Light";
+}
+
+.font-poppins-italic {
+  font-family: "Poppins-Italic";
+}
+
+/* Default text styling */
+Text {
+  font-family: "Poppins-Regular";
+}
