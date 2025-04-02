@@ -1,0 +1,13 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-notification-service
+      
+  mail:
+    host: ${MAILER_HOST}
+    username: ${MAILER_USERNAME}
+    port: 587
+    password: ${MAILER_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true

@@ -1,0 +1,48 @@
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${GITHUB_URL}
+          private-key: ${GITHUB_SSH}
+          timeout: 4
+          skip-ssl-validation: true
+          search-paths:
+            - backend/meriapp-config
+          clone-on-start: true
+        encrypt:
+          enabled: true
+      fail-fast: true
+  security:
+    user:
+      name: ${ADMIN_USERNAME}
+      password: ${ADMIN_PASSWORD}
+
+server:
+  port: 20000
+  servlet:
+    context-path: /config
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,env
+
+logging:
+  file:
+    name: ./logs/${spring.application.name}.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
+  # TODO: delete when going live
+  level:
+    org.springframework.web: debug
+    org.springframework.cloud: debug
+
+encrypt:
+  key: '${ENCRYPTION_KEY}'

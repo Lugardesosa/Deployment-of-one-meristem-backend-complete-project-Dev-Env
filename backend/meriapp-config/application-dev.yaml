@@ -1,0 +1,31 @@
+spring:
+  flyway:
+    locations: classpath:db/migration/postgresql
+
+  datasource:
+    url: ${DB_SERVER}/${DB_NAME}
+    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME}
+    driver-class-name: org.postgresql.Driver
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'bus-refresh,restart,health'        
+  endpoint:
+    restart:
+      enabled: true
+    prometheus:
+      enabled: true
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    health:
+      show-details: always
+      enabled: true
+    shutdown:
+      enabled: true
+
