@@ -1,0 +1,50 @@
+# Stage 1: Build the application for Android
+  # Use the official Node.js image
+  FROM node:18-alpine AS android-builder
+    # Set the working directory
+    WORKDIR /app
+    # Copy the package.json file
+    COPY package*.json./
+    # Install the dependencies
+    RUN npm install
+    # Copy the rest of the application code
+    COPY..
+    # Install the Expo CLI
+    RUN npm install -g expo-cli
+    # Prebuild and build the application for Android
+    RUN npx expo prebuild
+    RUN npx expo build:android
+
+# Stage 2: Build the application for iOS
+  # Use the official Node.js image
+  FROM node:18-alpine AS ios-builder
+    # Set the working directory
+    WORKDIR /app
+    # Copy the package.json file
+    COPY package*.json./
+    # Install the dependencies
+    RUN npm install
+    # Copy the rest of the application code
+    COPY..
+    # Install the Expo CLI
+    RUN npm install -g expo-cli
+    # Prebuild and build the application for iOS
+    RUN npx expo prebuild
+    RUN npx expo build:ios
+
+# Stage 3: Run the application
+  # Use the official Node.js image
+  FROM node:18-alpine AS runner
+    # Set the working directory
+    WORKDIR /app
+    # Copy the Android and iOS builds
+    COPY --from=android-builder /app.
+    COPY --from=ios-builder /app.
+    # Install the Expo Web package
+    RUN npm install expo-web
+    # Expose ports for Android, iOS, and web
+    EXPOSE 19000  # Android
+    EXPOSE 19002  # iOS
+    EXPOSE 8081   # Web
+    # Run the application
+    CMD ["npx", "expo", "start", "--android", "--ios", "--web"]

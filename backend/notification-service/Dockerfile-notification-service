@@ -1,0 +1,26 @@
+# Use a base image with Java 21
+FROM openjdk:21-jdk-alpine
+
+# Set the working directory to the current directory
+WORKDIR /app
+
+# Copy the microservice code
+COPY. /app
+
+# Copy the Maven wrapper files
+COPY mvnw mvnw.cmd.mvn/wrapper/maven-wrapper.properties /app/
+
+# Copy the pom.xml file
+COPY pom.xml /app/
+
+# Download the Maven dependencies
+RUN./mvnw dependency:go-offline
+
+# Build the application
+RUN./mvnw package -Dmaven.test.skip=true
+
+# Expose the port
+EXPOSE 20030
+
+# Run the application
+CMD ["java", "-jar", "target/cloud-gateway-0.0.1-SNAPSHOT.jar"]
