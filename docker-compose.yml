@@ -1,74 +1,92 @@
-version: '3'
+version: '3.8'
+
 services:
-  # Cloud Gateway Service
+  config-server:
+    build:
+      context:  ./backend/config-server
+      dockerfile: Dockerfile-config-server
+    container_name: config-server
+    ports:
+      - "20000:20000"
+    networks:
+      - microservices-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: unless-stopped
+
+  users-service:
+    build:
+      context: ./backend/users-service
+      dockerfile: Dockerfile-users-service
+    container_name: users-service
+    ports:
+      - "20020:20020"
+    networks:
+      - microservices-network
+    depends_on:
+      - config-server
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/users_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=“Lemmisson10%”
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./backend/notification-service
+      dockerfile: Dockerfile-notification-service
+    container_name: notification-service
+    ports:
+      - "20030:20030"
+    networks:
+      - microservices-network
+    depends_on:
+      - config-server
+      - postgres
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=“Lemmisson10%”
+    restart: unless-stopped
+
   cloud-gateway:
     build:
-      context:./backend/cloud-gateway
+      context: ./backend/cloud-gateway
       dockerfile: Dockerfile-cloud-gateway
+    container_name: cloud-gateway
     ports:
-      - "20010:20010"
+      - "80:20010"
+      - "443:20010"
+    networks:
+      - microservices-network
     depends_on:
       - config-server
       - users-service
       - notification-service
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/one_meristem_app
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_PROFILES_ACTIVE=default
+    restart: unless-stopped
 
-  # Config Server
-  config-server:
-    build:
-      context:./backend/config-server
-      dockerfile: Dockerfile-config-server
-    ports:
-      - "20000:20000"
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/one_meristem_app
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: “Lemmisson10%”
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-network
+    restart: unless-stopped
 
-  # Users Service
-  users-service:
-    build:
-      context:./backend/users-service
-      dockerfile: Dockerfile-users-service
-    ports:
-      - "20020:20020"
-    depends_on:
-      - config-server
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/one_meristem_app
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+networks:
+  microservices-network:
+    driver: bridge
 
-  # Notification Service
-  notification-service:
-    build:
-      context:./backend/notification-service
-      dockerfile: Dockerfile-notification-service
-    ports:
-      - "20030:20030"
-    depends_on:
-      - config-server
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/one_meristem_app
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-
-  # Mobile App
-  mobile-app:
-    build:
-      context:./mobile-app
-      dockerfile: Dockerfile-mobile-app
-    ports:
-      - "8081:8081"
-    depends_on:
-      - cloud-gateway
-    environment:
-      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-      - EXPO_DEVTOOLS_PORT=19002
+volumes:
+  postgres-data:
