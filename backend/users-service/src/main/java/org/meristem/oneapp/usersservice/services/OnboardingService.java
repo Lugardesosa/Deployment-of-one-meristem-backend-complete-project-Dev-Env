@@ -36,13 +36,14 @@ public class OnboardingService {
             throw new BadRequestException("User does not exist");
         }
 
-        try {
+        if (userFeatureRepository.existsByUserIdAndFeatureId(request.userId(), request.featureId())) {
+            throw new BadRequestException("User already onboarded on this Feature");
+        }
+
         // TODO: remove userId from the request and get it from the logged in user data
         userFeatureRepository.save(UserFeature.builder()
-                .completed(false).userId(request.userId()).featureId(request.featureId()).build());
-        } catch (DbActionExecutionException e) {
-            e.getCause().printStackTrace();
-        }
+            .completed(false).userId(request.userId()).featureId(request.featureId()).build());
+
 
         frRepository.findAllByFeatureId(request.featureId())
                 .forEach(featureRequirement -> {

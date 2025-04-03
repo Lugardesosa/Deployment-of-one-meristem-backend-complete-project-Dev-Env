@@ -6,6 +6,7 @@ import org.meristem.oneapp.usersservice.domains.responses.UserResponse;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,4 +27,9 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     UserResponse findByEmail(String email);
 
     boolean existsByEmailOrPhoneNumber(String email, String phoneNumber);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE users SET password = :password WHERE email = :userId OR phone_number = :userId ")
+    int updateUsersPassword(String password, String userId);
 }

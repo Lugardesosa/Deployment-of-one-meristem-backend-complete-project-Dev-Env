@@ -8,7 +8,7 @@ import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
-import org.meristem.oneapp.kafka.dtos.SendOtpRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.domains.enums.OtpType;
 import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 @Slf4j
@@ -37,33 +38,37 @@ public class NotificationService {
     @Transactional
     public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
         MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest);
-        int code = AppUtil.randomInt(1000000, 9000000);
+        int code = AppUtil.randomInt(AppConstants.fiveNumbersOtp.getFirst(), AppConstants.fiveNumbersOtp.getSecond());
 
-        otpVerificationRepository.expireTimeByCode(LocalDateTime.now().minusMinutes(3), sendOtpRequest.recipient(), MessageType.OTP.getValue());
+        otpVerificationRepository.expireTimeByCode(LocalDateTime.now().minusMinutes(3), sendOtpRequest.recipient(), sendOtpRequest.otpType());
 
         OtpVerification otpVerification = OtpVerification.builder()
                 .userId(sendOtpRequest.recipient()).expiresAt(LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES))
-                .otpType(OtpType.REGISTRATION.getValue()).code(code).build();
+                .otpType(sendOtpRequest.otpType()).code(code).build();
 
         otpVerificationRepository.save(otpVerification);
 
         MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
-                .body("This is the code " + otpVerification.getCode() + ".").subject("Registration Otp Mail").build();
+                .body("This is the code " + otpVerification.getCode() + ".")
+                .subject(OtpType.getMessageSubject(sendOtpRequest.otpType())).build();
+
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).build();
 
         // TODO: DELETE the log statement
         log.info("----> CODE: {}", otpVerification.getCode());
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, AppConstants.KAFKA_OTP_TOPIC));
-        return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient()).build();
+        return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
+                .timeToExpireInSeconds((short) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerification.getExpiresAt()))
+                .build();
     }
 
     private static MessageMedium validateAndGetMessageMedium(SendOtpRequest sendOtpRequest) {
-        MessageMedium messageMedium = MessageMedium.of(sendOtpRequest.otpType());
+        MessageMedium messageMedium = MessageMedium.of(sendOtpRequest.messageMedium());
 
         switch (messageMedium) {
             case EMAIL -> {
                 if (!sendOtpRequest.recipient().matches(AppConstants.EMAIL_REGEX_PATTERN)) {
-                    throw new BadRequestException("Invalid email format");
+                    throw new BadRequestException("Invalid recipient format");
                 }
             }
             case SMS, WHATSAPP -> {

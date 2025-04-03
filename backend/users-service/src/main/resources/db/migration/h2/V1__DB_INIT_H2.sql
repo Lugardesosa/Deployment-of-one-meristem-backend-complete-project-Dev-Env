@@ -172,7 +172,6 @@ CREATE TABLE otp_verification
 ALTER TABLE otp_verification
     ADD CONSTRAINT uc_otpver_code_uid_ot UNIQUE (code, user_id, otp_type);
 
-CREATE INDEX idx_otpver_code_uid_ot ON otp_verification (code, user_id, otp_type);
 CREATE INDEX idx_otpver_uid_ot ON otp_verification (user_id, otp_type);
 
 ALTER TABLE feature

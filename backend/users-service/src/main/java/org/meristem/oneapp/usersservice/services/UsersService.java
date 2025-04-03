@@ -5,22 +5,21 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.domains.enums.OtpType;
-import org.meristem.oneapp.usersservice.domains.enums.Requirements;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
+import org.meristem.oneapp.usersservice.domains.requests.PasswordResetRequest;
+import org.meristem.oneapp.usersservice.domains.responses.PasswordResetResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UserResponse;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapper;
-import org.meristem.oneapp.usersservice.models.OtpVerification;
-import org.meristem.oneapp.usersservice.models.UserOnboarding;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.models.Users;
-import org.meristem.oneapp.usersservice.repositories.*;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.meristem.oneapp.usersservice.repositories.OtpVerificationRepository;
+import org.meristem.oneapp.usersservice.repositories.UserProfileRepository;
+import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -41,8 +40,9 @@ public class UsersService {
         Users user = usersMapper.createUserRequestToUsers(userRequest);
         user = usersRepository.save(user);
 
-        otpVerificationRepository.findByOtpTypeAndUserIdAndVerified(OtpType.REGISTRATION.getValue(), user.getEmail(), true)
-                .orElseThrow(() -> new BadRequestException("Otp not verified."));
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerified(OtpType.REGISTRATION.getCode(), user.getEmail(), user.getPhoneNumber(), true)) {
+            throw new BadRequestException("Otp not verified.");
+        }
 
         UserProfile profile = UserProfile.builder().userId(user.getId()).build();
         profileRepository.save(profile);
@@ -50,6 +50,17 @@ public class UsersService {
     }
 
     public UserResponse getUser(String email) {
-        return usersRepository.findByEmail(email); //.orElseThrow(() -> new ResourceNotFoundException("User not found", "user", email));
+        return usersRepository.findByEmail(email); //.orElseThrow(() -> new ResourceNotFoundException("User not found", "user", recipient));
+    }
+
+    public PasswordResetResponse resetPassword(PasswordResetRequest request) {
+
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), request.recipient(), true, LocalDateTime.now())) {
+            throw new BadRequestException("Otp not verified.");
+        }
+
+        int updates = usersRepository.updateUsersPassword(request.password(), request.recipient());
+        log.info("----> UPDATES: " + updates);
+        return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 }

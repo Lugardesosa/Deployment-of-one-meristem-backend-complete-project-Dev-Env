@@ -9,8 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
-import org.meristem.oneapp.kafka.dtos.SendOtpRequest;
-import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
@@ -35,7 +34,7 @@ public class NotificationController {
 
     @Operation(summary = "Sends an otp.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Sends an otp to the given number or email.",
+            @ApiResponse(responseCode = "200", description = "Sends an otp to the given number or recipient.",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = SendOtpRequest.class))
                     })
@@ -47,7 +46,7 @@ public class NotificationController {
 
     @Operation(summary = "Verifies an otp.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Verifies an otp sent to the given number or email.",
+            @ApiResponse(responseCode = "200", description = "Verifies an otp sent to the given number or recipient.",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = VerifyOtpRequest.class))
                     })

@@ -141,11 +141,10 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     private ResponseEntity<ErrorDetails> handleExceptionInternal(Exception ex, HttpStatus status, WebRequest request, List<String> errors) {
 
-        System.out.println("---------" + ex.getMessage());
 
         int exceptionMessageLength = ex.getLocalizedMessage().length();
         ErrorDetails apiError =
-                new ErrorDetails(LocalDateTime.now(), (ex.getLocalizedMessage().substring(0, Integer.min(exceptionMessageLength, 30)) + "..."), request.getDescription(false), errors);
+                new ErrorDetails(LocalDateTime.now(), (ex.getLocalizedMessage().substring(0, Integer.min(exceptionMessageLength, 47)) + "..."), request.getDescription(false), errors);
         return new ResponseEntity<>(apiError, status);
     }
 

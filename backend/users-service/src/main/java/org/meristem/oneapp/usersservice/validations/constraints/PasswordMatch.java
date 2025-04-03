@@ -3,17 +3,17 @@ package org.meristem.oneapp.usersservice.validations.constraints;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import org.meristem.oneapp.usersservice.validations.validators.EmailValidator;
+import org.meristem.oneapp.usersservice.validations.validators.PasswordMatchValidator;
 
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = EmailValidator.class)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Email {
+@Target(ElementType.TYPE)
+@Constraint(validatedBy = PasswordMatchValidator.class)
+public @interface PasswordMatch {
 
-    String message() default "recipient is not valid";
+    String message() default "Password does not match";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

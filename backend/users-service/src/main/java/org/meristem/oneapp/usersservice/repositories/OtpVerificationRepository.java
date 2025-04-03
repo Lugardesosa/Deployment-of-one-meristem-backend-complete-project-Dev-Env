@@ -22,5 +22,13 @@ public interface OtpVerificationRepository extends BaseRepository<OtpVerificatio
 
     OtpVerification findByOtpTypeAndUserId(Integer otpType, String userId);
 
-    Optional<OtpVerification> findByOtpTypeAndUserIdAndVerified(Integer otpType, String userId, Boolean verified);
+    @Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM otp_verification o WHERE o.otp_type = :otpType AND (o.user_id = :userId OR o.user_id = :phone) AND (o.verified = :verified)")
+    boolean existsByOtpTypeAndUserIdAndVerified(Integer otpType, String userId, String phone, Boolean verified);
+
+    @Query("SELECT * FROM otp_verification o WHERE o.otp_type = :otpType AND (o.user_id = :userId OR o.user_id = :phone) AND (o.verified = :verified)")
+    Optional<OtpVerification> findByOtpTypeAndUserIdAndVerified(Integer otpType, String userId, String phone, Boolean verified);
+
+    // case when count(c)> 0 then true else false end
+    @Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM otp_verification o WHERE o.otp_type = :otpType AND (o.user_id = :userId) AND (o.verified = :verified) AND (o.expires_at > :expiresAtAfter) ")
+    boolean existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(Integer otpType, String userId, Boolean verified, LocalDateTime expiresAtAfter);
 }
