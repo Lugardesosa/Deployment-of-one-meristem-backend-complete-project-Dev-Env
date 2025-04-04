@@ -19,6 +19,8 @@ services:
     networks:
       - meristem-network
     restart: unless-stopped
+    healthcheck:
+      test: ["redis-cli", "ping"]
 
   # ======================
   # KAFKA SERVICE
@@ -46,9 +48,9 @@ services:
       - "9093:9093"
     networks:
       - meristem-network
-    depends_on:
-      - redis
     restart: unless-stopped
+    healthcheck:
+      test: ["kafka-topics", "--list", "--bootstrap-server", "localhost:9092"]
 
   # ======================
   # CONFIG SERVER
@@ -62,6 +64,13 @@ services:
       - "20000:20000"
     networks:
       - meristem-network
+    depends_on:
+      - redis
+          condition: service_healthy
+      - kafka
+          condition: service_healthy
+      - postgres
+          condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -72,6 +81,8 @@ services:
       - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START=true
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     restart: unless-stopped
+    healthcheck:
+      test: ["curl", "-f", "http://localhost:20000/actuator/health"]
 
   # ======================
   # POSTGRESQL DATABASE
@@ -90,6 +101,8 @@ services:
     networks:
       - meristem-network
     restart: unless-stopped
+    healthcheck:
+      test: ["pg_isready", "-U", "${POSTGRES_USER}"]
 
   # ======================
   # USERS SERVICE
@@ -105,9 +118,13 @@ services:
       - meristem-network
     depends_on:
       - config-server
+          condition: service_healthy
       - postgres
+          condition: service_healthy
       - redis
+          condition: service_healthy
       - kafka
+          condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - DB_SERVER=jdbc:postgresql://postgres:5432
@@ -138,9 +155,13 @@ services:
       - meristem-network
     depends_on:
       - config-server
+          condition: service_healthy
       - postgres
+          condition: service_healthy
       - kafka
+          condition: service_healthy
       - redis
+          condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - DB_SERVER=jdbc:postgresql://postgres:5432
@@ -168,9 +189,17 @@ services:
       - meristem-network
     depends_on:
       - config-server
+          condition: service_healthy
       - users-service
+          condition: service_healthy
       - notification-service
+          condition: service_healthy
       - redis
+          condition: service_healthy
+      - postgres
+          condition: service_healthy
+      - kafka
+          condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=20010
@@ -181,6 +210,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
+    healthcheck:
+      test: ["curl", "-f", "http://localhost:8080/actuator/health"]
 
 # ======================
 # INFRASTRUCTURE
