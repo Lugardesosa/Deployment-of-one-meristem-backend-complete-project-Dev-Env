@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
+import jakarta.validation.constraints.NotNull;
 import org.meristem.oneapp.usersservice.models.Feature;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -17,4 +18,6 @@ public interface FeatureRepository extends BaseRepository<Feature, Long> {
      */
     @Query("SELECT id FROM feature")
     List<Long> findAllIds();
+
+    boolean existsByIdAndStatus(@NotNull(message = "id cannot be null") Long id, @NotNull(message = "Cannot be null") Integer status);
 }

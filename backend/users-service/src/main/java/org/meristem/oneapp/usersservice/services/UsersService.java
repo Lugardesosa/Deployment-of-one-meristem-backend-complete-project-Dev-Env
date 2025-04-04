@@ -53,14 +53,14 @@ public class UsersService {
         return usersRepository.findByEmail(email); //.orElseThrow(() -> new ResourceNotFoundException("User not found", "user", recipient));
     }
 
+    @Transactional
     public PasswordResetResponse resetPassword(PasswordResetRequest request) {
 
         if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), request.recipient(), true, LocalDateTime.now())) {
-            throw new BadRequestException("Otp not verified.");
+            throw new BadRequestException("Otp not verified or expired.");
         }
 
-        int updates = usersRepository.updateUsersPassword(request.password(), request.recipient());
-        log.info("----> UPDATES: " + updates);
+        usersRepository.updateUsersPassword(request.password(), request.recipient());
         return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 }

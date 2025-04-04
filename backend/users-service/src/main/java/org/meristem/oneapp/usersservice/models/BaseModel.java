@@ -4,6 +4,7 @@ package org.meristem.oneapp.usersservice.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.meristem.oneapp.usersservice.domains.enums.Status;
 import org.springframework.data.annotation.*;
 
 import java.io.Serializable;
@@ -14,10 +15,10 @@ import java.time.LocalDateTime;
  * This is the base entity model.
  * @param <U>
  */
-@AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
+@AllArgsConstructor
 public class BaseModel<U> implements Serializable {
 
     @Id
@@ -44,4 +45,17 @@ public class BaseModel<U> implements Serializable {
     @Version
     @NotNull(message = "version cannot be null")
     private Integer version;
+
+    @NotNull(message = "Cannot be null")
+    private Integer status;
+
+    public BaseModel(Long id, LocalDateTime createdDate, U createdBy, LocalDateTime lastModifiedDate, U lastModifiedBy, Integer version) {
+        this.id = id;
+        this.createdDate = createdDate;
+        this.createdBy = createdBy;
+        this.lastModifiedDate = lastModifiedDate;
+        this.lastModifiedBy = lastModifiedBy;
+        this.version = version;
+        this.status = Status.ACTIVE.getValue();
+    }
 }

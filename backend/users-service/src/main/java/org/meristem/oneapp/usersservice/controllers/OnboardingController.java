@@ -4,8 +4,10 @@ package org.meristem.oneapp.usersservice.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
+import org.meristem.oneapp.usersservice.domains.requests.SubmitOnboardingRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OnboardingRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
+import org.meristem.oneapp.usersservice.domains.responses.SubmitOnboardingResponse;
 import org.meristem.oneapp.usersservice.domains.responses.OnboardingResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
@@ -33,5 +35,10 @@ public class OnboardingController {
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<UserOnboardingResponse>>> onboard(@RequestParam(name = "userId") Long userId, @RequestParam(name = "featureId") Long featureId) {
         return ApiUtil.buildResponse(onboardingService.getOnboardingDetails(userId, featureId), HttpStatus.OK.toString(), "User onboarding details request successful");
+    }
+
+    @PostMapping(value = "/requirement/submit", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<SubmitOnboardingResponse>> submit(@RequestBody @Valid SubmitOnboardingRequest request) {
+        return ApiUtil.buildResponse(onboardingService.complete(request), HttpStatus.OK.toString(), "Onboarding flow processed");
     }
 }

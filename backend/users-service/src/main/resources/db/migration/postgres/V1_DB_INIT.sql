@@ -7,6 +7,7 @@ CREATE TABLE users
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     email              VARCHAR(200)                            NOT NULL,
     first_name         VARCHAR(150)                            NOT NULL,
     last_name          VARCHAR(150)                            NOT NULL,
@@ -27,6 +28,7 @@ CREATE TABLE roles
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     name               VARCHAR(255)                            NOT NULL,
     CONSTRAINT pk_roles PRIMARY KEY (id)
 );
@@ -47,6 +49,7 @@ CREATE TABLE permissions
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     name               VARCHAR(255)                            NOT NULL,
     CONSTRAINT pk_permissions PRIMARY KEY (id)
 );
@@ -68,6 +71,7 @@ CREATE TABLE user_profile
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     user_id            BIGINT                                  NOT NULL,
     picture_url        VARCHAR(500),
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
@@ -84,6 +88,7 @@ CREATE TABLE feature
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     name               VARCHAR(100)                            NOT NULL,
     code               VARCHAR(200)                            NOT NULL,
     CONSTRAINT pk_feature PRIMARY KEY (id)
@@ -99,6 +104,7 @@ CREATE TABLE requirements
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     requirement_type   SMALLINT                                 NOT NULL,
     requirement_name   VARCHAR(30)                             NOT NULL,
     CONSTRAINT pk_requirements PRIMARY KEY (id)
@@ -112,6 +118,7 @@ CREATE TABLE feature_requirement
     last_modified_date TIMESTAMP,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INT,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     requirement_id     BIGINT                                     NOT NULL,
     feature_id    BIGINT                                     NOT NULL,
     requirement_stage  SMALLINT                                     NOT NULL,
@@ -128,9 +135,11 @@ CREATE TABLE user_document
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     name               VARCHAR(255)                            NOT NULL,
     url                VARCHAR(1000)                           NOT NULL,
     requirement_id     BIGINT                                  NOT NULL,
+    feature_id         BIGINT                                  NOT NULL,
     user_id            BIGINT                                  NOT NULL,
     CONSTRAINT pk_user_document PRIMARY KEY (id)
 );
@@ -144,6 +153,7 @@ CREATE TABLE user_feature
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     user_id            BIGINT                                  NOT NULL,
     feature_id         BIGINT                                  NOT NULL,
     mandatory          BOOLEAN DEFAULT FALSE                   NOT NULL,
@@ -159,6 +169,7 @@ CREATE TABLE user_onboarding
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     user_id            BIGINT                                  NOT NULL,
     requirement_id     BIGINT                                  NOT NULL,
     feature_id        BIGINT                                  NOT NULL,
@@ -176,6 +187,7 @@ CREATE TABLE otp_verification
     last_modified_date TIMESTAMP WITHOUT TIME ZONE,
     last_modified_by   VARCHAR(255)                            NOT NULL,
     version            INTEGER,
+    status             INTEGER DEFAULT 1                       NOT NULL,
     code               INT                                     NOT NULL,
     user_id            VARCHAR(200)                            NOT NULL,
     otp_type           INTEGER                                 NOT NULL,
@@ -203,7 +215,7 @@ ALTER TABLE user_profile
     ADD CONSTRAINT uc_user_profile_user UNIQUE (user_id);
 
 ALTER TABLE user_document
-    ADD CONSTRAINT uc_user_requirement_document UNIQUE (requirement_id, user_id);
+    ADD CONSTRAINT uc_user_requirement_feature_document UNIQUE (requirement_id, user_id, feature_id);
 
 ALTER TABLE users
     ADD CONSTRAINT uc_users_email UNIQUE (email);
@@ -221,6 +233,9 @@ ALTER TABLE feature_requirement
 
 ALTER TABLE user_document
     ADD CONSTRAINT FK_USER_DOCUMENT_ON_REQUIREMENT FOREIGN KEY (requirement_id) REFERENCES requirements (id);
+
+ALTER TABLE user_document
+    ADD CONSTRAINT FK_USER_DOCUMENT_ON_FEATURE FOREIGN KEY (feature_id) REFERENCES feature (id);
 
 ALTER TABLE user_document
     ADD CONSTRAINT FK_USER_DOCUMENT_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
@@ -263,54 +278,73 @@ DECLARE
     f_id1 integer;
     f_id2 integer;
     f_id3 integer;
-    r_id1 integer;
+    r_id2 integer;
+    r_id3 integer;
+    r_id4 integer;
 BEGIN
 
     INSERT INTO feature (
-        id, created_date, created_by, last_modified_date, last_modified_by, version,
+        id, created_date, created_by, last_modified_date, last_modified_by, version, status,
         name, code
     ) VALUES
-    (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 'STOCK', 'ONE_APP_STOCK') RETURNING id INTO f_id1;
+    (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 0, 'STOCK', 'ONE_APP_STOCK') RETURNING id INTO f_id1;
 
     INSERT INTO feature (
-            id, created_date, created_by, last_modified_date, last_modified_by, version,
+            id, created_date, created_by, last_modified_date, last_modified_by, version, status,
             name, code
     ) VALUES
-            (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 'TREASURY_BILLS', 'ONE_APP_TREASURY_BILLS') RETURNING id INTO f_id2;
+            (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'TREASURY_BILLS', 'ONE_APP_TREASURY_BILLS') RETURNING id INTO f_id2;
 
     INSERT INTO feature (
-        id, created_date, created_by, last_modified_date, last_modified_by, version,
+        id, created_date, created_by, last_modified_date, last_modified_by, version, status,
         name, code
     ) VALUES
-        (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 'MUTUAL_FUNDS', 'ONE_APP_MUTUAL_FUNDS') RETURNING id INTO f_id3;
+        (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'MUTUAL_FUNDS', 'ONE_APP_MUTUAL_FUNDS') RETURNING id INTO f_id3;
 
 
     INSERT INTO requirements (
-        id, created_date, created_by, last_modified_date, last_modified_by, version,
+        id, created_date, created_by, last_modified_date, last_modified_by, version, status,
         requirement_type, requirement_name
     )
     VALUES
-        (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'BVN') RETURNING id INTO r_id1;
+        (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 0, 1, 'BVN'),
+        (5, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 0, 5, 'SIGNATURE'),
+        (6, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 0, 6, 'PROOF_OF_ADDRESS'),
+        (7, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 0, 7, 'LIVENESS_CHECK'),
+        (8, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 0, 8, 'NEXT_OF_KIN');
 
     INSERT INTO requirements (
-        id, created_date, created_by, last_modified_date, last_modified_by, version,
+        id, created_date, created_by, last_modified_date, last_modified_by, version, status,
         requirement_type, requirement_name
     )
     VALUES
-        (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 2, 'UTILITY_BILL'),
-        (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 3, 'PASSPORT'),
-        (4, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 4, 'GOVERNMENT_ISSUED_ID'),
-        (5, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 5, 'SIGNATURE'),
-        (6, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 6, 'PROOF_OF_ADDRESS'),
-        (7, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 7, 'LIVENESS_CHECK'),
-        (8, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 8, 'NEXT_OF_KIN');
+        (2, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 2, 'UTILITY_BILL') RETURNING id INTO r_id2;
+    INSERT INTO requirements (
+        id, created_date, created_by, last_modified_date, last_modified_by, version, status,
+        requirement_type, requirement_name
+    )
+    VALUES
+        (3, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 3, 'PASSPORT')  RETURNING id INTO r_id3;
+    INSERT INTO requirements (
+        id, created_date, created_by, last_modified_date, last_modified_by, version, status,
+        requirement_type, requirement_name
+    )
+    VALUES
+        (4, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 4, 'GOVERNMENT_ISSUED_ID')  RETURNING id INTO r_id4;
+
 
     INSERT INTO feature_requirement (
         created_date, created_by, last_modified_date, last_modified_by, version,
         requirement_id, feature_id, requirement_stage, mandatory
     )
     VALUES
-        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id1, f_id1, 1, TRUE),
-        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id1, f_id2, 1, TRUE),
-        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  r_id1, f_id3, 1, TRUE);
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id2, f_id1, 3, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id2, f_id2, 3, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  r_id2, f_id3, 3, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id3, f_id1, 1, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id3, f_id2, 1, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  r_id3, f_id3, 1, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id4, f_id1, 2, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, r_id4, f_id2, 2, TRUE),
+        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1,  r_id4, f_id3, 2, TRUE);
 END $$;
