@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.protocol.types.Field;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
+import org.meristem.oneapp.usersservice.domains.requests.PasswordResetRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UserResponse;
+import org.meristem.oneapp.usersservice.domains.responses.PasswordResetResponse;
+import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(ApiConstants.CONTEXT_PATH + "base")
+@Tag(name = "Users api", description = "This controller manages everything users")
 public class UsersController {
 
     private final UsersService usersService;
@@ -32,19 +35,30 @@ public class UsersController {
             @ApiResponse(responseCode = "201", description = "Created the user.",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CreateUserRequest.class))
-            })
+            }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
     })
     @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Object>> createUser(@RequestBody @Valid CreateUserRequest userRequest) {
+    public ResponseEntity<AppResponse<UsersResponse>> createUser(@RequestBody @Valid CreateUserRequest userRequest) {
          return ApiUtil.buildResponse(usersService.createUser(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
     @Operation(summary = "Gets users.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Created the user.")
+            @ApiResponse(responseCode = "200", description = "Get a user.")
     })
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UserResponse>> getUser(@RequestParam(name = "email") String email) {
-        return ApiUtil.buildResponse(usersService.getUser(email), HttpStatus.CREATED.toString(), "Successful.");
+    public ResponseEntity<AppResponse<UsersResponse>> getUser(@RequestParam(name = "email") String email) {
+        return ApiUtil.buildResponse(usersService.getUser(email), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Password reset")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to reset their password")
+    })
+    @PostMapping(value = "/password-reset", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<PasswordResetResponse>> resetPassword(@RequestBody @Valid PasswordResetRequest request) {
+        return ApiUtil.buildResponse(usersService.resetPassword(request), HttpStatus.OK.toString(), "Successful");
     }
 }

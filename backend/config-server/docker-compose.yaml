@@ -1,0 +1,55 @@
+#name: meristem-one-app
+#services:
+#  config-server:
+#    container_name: config-server
+#    ports:
+#      - 20000:20000
+#    environment:
+#      - PORT=20000
+#    env_file:
+#      - /Users/kingsleygodwin/otherFiles/mis/one-meristem-app-env.env
+#    image: config-server:latest
+#
+
+name: meristem-one-app
+services:
+  config-server:
+    container_name: config-server
+    ports:
+      - 20000:20000
+    platform: linux/amd64
+#    volumes:
+#      - "/Users/kingsleygodwin/.ssh:/root/.ssh"
+    volumes:
+      - type: bind
+        source: $HOME/.ssh
+        target: /root/.ssh
+#    build: .
+    environment:
+      PORT: 20000
+      GITHUB_URL: git@github.com:realninety5/config-properties.git
+      GITHUB_SSH: |-
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+        QyNTUxOQAAACDx5r9o5cno3IaD531m6yqH6MgUSKG9XUf2G1p1IWocOwAAAKBtPko5bT5K
+        OQAAAAtzc2gtZWQyNTUxOQAAACDx5r9o5cno3IaD531m6yqH6MgUSKG9XUf2G1p1IWocOw
+        AAAEBkP4wLoOyKKt5gYREJLm3Z/fE11ujBJedIDyOfLDeTZPHmv2jlyejchoPnfWbrKofo
+        yBRIob1dR/YbWnUhahw7AAAAFmtpbmdzbGV5b2c5NUBnbWFpbC5jb20BAgMEBQYH
+        -----END OPENSSH PRIVATE KEY-----
+
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: UXgCkbD9yGILhlt
+      ENCRYPTION_KEY: qHZOjcHdrKLrbhH
+      CONFIG_SERVER_URI: http://localhost:20000/config
+      USER_SERVICE_URI: http://localhost:20020
+      KAFKA_HOST_URL: http://localhost:9092
+      MAILER_HOST: smtp.mailersend.net
+      MAILER_USERNAME: MS_ksWCqv@trial-p7kx4xw1oemg9yjr.mlsender.net
+      MAILER_PASSWORD: mssp.d8Y201M.v69oxl5y06x4785k.DoAMuZW
+      REDIS_HOST: localhost
+      REDIS_PASSWORD: AHjsoie67&8*
+      DB_SERVER: jdbc:postgresql://localhost:5432
+      DB_NAME: users-service
+      DB_PASSWORD: root
+      DB_USERNAME: password
+    image: config-server:latest

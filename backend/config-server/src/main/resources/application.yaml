@@ -7,12 +7,13 @@ spring:
       server:
         git:
           uri: ${GITHUB_URL}
-          private-key: ${GITHUB_SSH}
           timeout: 4
           skip-ssl-validation: true
           search-paths:
             - backend/meriapp-config
           clone-on-start: true
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_PASSWORD}
         encrypt:
           enabled: true
       fail-fast: true
@@ -32,6 +33,9 @@ management:
       base-path: /actuator
       exposure:
         include: health,info,env
+  endpoint:
+    refresh:
+      access: read_only
 
 logging:
   file:

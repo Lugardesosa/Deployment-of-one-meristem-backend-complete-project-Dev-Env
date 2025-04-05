@@ -12,14 +12,7 @@ import java.util.Objects;
 
 
 /**
- * This is the user entity, it contains just the basic information that
- * the user shares across all the services, like first_name, last_name, etc.
- * A user_feature table exists in the db that is a join table for the user and feature tables;
- * @see Feature
- * @apiNote <strong>Users</strong> can use multiple <strong>features</strong>, and each feature has their own <strong>requirements</strong> which can
- * be found in the <strong>requirements</strong> table. So for a user to be fully onboarded for a feature, they have to have completed
- * all the requirements for that feature in the <strong>feature requirement</strong> table.
- * If a user fulfils any requirement for a feature, there is a new insert into the <strong>user-onboarding</strong> table.
+ * Represents a user in the system.
  */
 @ToString
 @NoArgsConstructor
@@ -29,7 +22,7 @@ import java.util.Objects;
 public class Users extends BaseModel<String> {
 
     @Size(max = 200, min = 5, message = "Not more than 200 and less than 5")
-    @NotBlank(message = "email cannot be null")
+    @NotBlank(message = "recipient cannot be null")
     private String email;
 
     @Size(max = 150, min = 1, message = "Not more than 150 and less than 1")
@@ -47,7 +40,7 @@ public class Users extends BaseModel<String> {
     @NotBlank(message = "lastName cannot be null")
     private String password;
 
-    // To be saved without the '+'
+    // To be saved without the '08024346767'
     @Size(max = 50, min = 7, message = "Not more than 50 and less than 7")
     @NotBlank(message = "phoneNumber cannot be null")
     private String phoneNumber;
@@ -59,6 +52,23 @@ public class Users extends BaseModel<String> {
     @NotNull(message = "onboardingCompleted cannot be null")
     private Boolean onboardingCompleted = Boolean.FALSE;
 
+    /**
+     * Constructs a new Users instance.
+     *
+     * @param id the ID of the user
+     * @param createdDate the date the user was created
+     * @param createdBy the user who created this user
+     * @param lastModifiedDate the date the user was last modified
+     * @param lastModifiedBy the user who last modified this user
+     * @param version the version of the user
+     * @param email the email of the user
+     * @param firstName the first name of the user
+     * @param lastName the last name of the user
+     * @param middleName the middle name of the user
+     * @param password the password of the user
+     * @param phoneNumber the phone number of the user
+     * @param referralCode the referral code of the user
+     */
     @Builder
     public Users(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String email,
                  String firstName, String lastName, String middleName, String password, String phoneNumber, String referralCode) {
@@ -73,6 +83,13 @@ public class Users extends BaseModel<String> {
         this.onboardingCompleted = Boolean.FALSE;
     }
 
+    /**
+     * Checks if this user is equal to another object.
+     * Two users are considered equal if they have the same email.
+     *
+     * @param o the object to compare to
+     * @return true if the users are equal, false otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -80,6 +97,11 @@ public class Users extends BaseModel<String> {
         return Objects.equals(getEmail(), users.getEmail());
     }
 
+    /**
+     * Returns a hash code value for the user.
+     *
+     * @return a hash code value for this user
+     */
     @Override
     public int hashCode() {
         int hash = 7;

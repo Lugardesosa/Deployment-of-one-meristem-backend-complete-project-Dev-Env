@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.exceptionHandler;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
 import org.springframework.beans.TypeMismatchException;
@@ -31,6 +32,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalControllerAdvice implements MessageSourceAware {
 
@@ -134,18 +136,28 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     }
 
 
-//    @ExceptionHandler(Exception.class)
-//    protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
-//        return handleExceptionInternal(ex, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
-//    }
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
+        // TODO: DELETE THE LOG STATEMENT
+        log.error(ex.getMessage(), ex);
+        String errorMessage = """
+                An error occurred while processing the request:
+                Kindly send a mail to help@oneapp.com.
+                """;
+        return handleExceptionInternal(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
+    }
 
     private ResponseEntity<ErrorDetails> handleExceptionInternal(Exception ex, HttpStatus status, WebRequest request, List<String> errors) {
 
-        System.out.println("---------" + ex.getMessage());
-
         int exceptionMessageLength = ex.getLocalizedMessage().length();
         ErrorDetails apiError =
-                new ErrorDetails(LocalDateTime.now(), (ex.getLocalizedMessage().substring(0, Integer.min(exceptionMessageLength, 30)) + "..."), request.getDescription(false), errors);
+                new ErrorDetails(LocalDateTime.now(), (ex.getLocalizedMessage().substring(0, Integer.min(exceptionMessageLength, 47)) + "..."), request.getDescription(false), errors);
+        return new ResponseEntity<>(apiError, status);
+    }
+
+    private ResponseEntity<ErrorDetails> handleExceptionInternal(String ex, HttpStatus status, WebRequest request, List<String> errors) {
+        ErrorDetails apiError =
+                new ErrorDetails(LocalDateTime.now(), ex + "...", request.getDescription(false), errors);
         return new ResponseEntity<>(apiError, status);
     }
 
