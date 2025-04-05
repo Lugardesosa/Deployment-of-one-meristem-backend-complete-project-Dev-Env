@@ -16,7 +16,6 @@ import java.util.Objects;
  *
  * This entity houses all the possible requirements,
  * mapping each requirement_name like BVN with its type as an integer
- * @see FeatureRequirement
  * @see UserOnboarding
  */
 @NoArgsConstructor
@@ -26,29 +25,33 @@ import java.util.Objects;
 public class Requirements extends BaseModel<String> {
 
 
-    @NotNull(message = "requirementType cannot be null")
-    private Integer requirementType;
+    @NotNull(message = "displayName cannot be null")
+    private String displayName;
 
     @NotNull(message = "requirementName cannot be null")
     private String requirementName;
 
+    @NotNull(message = "Cannot be null")
+    private Boolean mandatory;
+
     @Builder
     public Requirements(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                        Integer requirementType, String requirementName) {
+                        String displayName, String requirementName, Boolean mandatory) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-        this.requirementType = requirementType;
+        this.displayName = displayName;
         this.requirementName = requirementName;
+        this.mandatory = mandatory;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Requirements that = (Requirements) o;
-        return Objects.equals(getRequirementType(), that.getRequirementType()) && Objects.equals(getRequirementName(), that.getRequirementName());
+        return Objects.equals(getDisplayName(), that.getDisplayName()) && Objects.equals(getRequirementName(), that.getRequirementName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getRequirementType(), getRequirementName());
+        return Objects.hash(getDisplayName(), getRequirementName());
     }
 }

@@ -1,122 +1,91 @@
 package org.meristem.oneapp.usersservice.services;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.domains.enums.Requirements;
 import org.meristem.oneapp.usersservice.domains.enums.Status;
 import org.meristem.oneapp.usersservice.domains.requests.SubmitOnboardingRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SubmitOnboardingResponse;
-import org.meristem.oneapp.usersservice.domains.responses.OnboardingResponse;
-import org.meristem.oneapp.usersservice.domains.requests.OnboardingRequest;
 import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
-import org.meristem.oneapp.usersservice.dtos.events.UserOnboardingCompletionEvent;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.models.Address;
 import org.meristem.oneapp.usersservice.models.UserDocument;
-import org.meristem.oneapp.usersservice.models.UserFeature;
-import org.meristem.oneapp.usersservice.models.UserOnboarding;
 import org.meristem.oneapp.usersservice.repositories.*;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import static java.util.Objects.isNull;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OnboardingService {
 
-    private final UserFeatureRepository userFeatureRepository;
     private final UsersRepository usersRepository;
-    private final FeatureRepository featureRepository;
-    private final FeatureRequirementRepository frRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final UserDocumentRepository documentRepository;
+    private final AddressRepository addressRepository;
+    private final RequirementsRepository requirementsRepository;
 
-    /**
-     * Onboards a user to a feature.
-     *
-     * @param request the onboarding request containing user and feature details
-     * @return the response indicating the status of the onboarding process
-     * @throws BadRequestException if the feature or user does not exist, or if the user is already onboarded
-     */
-    @Transactional
-    public OnboardingResponse onboard(OnboardingRequest request) {
-
-        if (!featureRepository.existsByIdAndStatus(request.featureId(), Status.ACTIVE.getValue())) {
-            throw new BadRequestException("Feature does not exist");
-        }
-
-        if (!usersRepository.existsById(request.userId())) {
-            throw new BadRequestException("User does not exist");
-        }
-
-        if (userFeatureRepository.existsByUserIdAndFeatureId(request.userId(), request.featureId())) {
-            throw new BadRequestException("User already onboarded on this Feature");
-        }
-
-        // TODO: remove userId from the request and get it from the logged in user data
-        userFeatureRepository.save(UserFeature.builder()
-            .completed(false).userId(request.userId()).featureId(request.featureId()).build());
-
-
-        frRepository.findAllByFeatureId(request.featureId())
-                .forEach(featureRequirement -> {
-            UserOnboarding userOnboarding = UserOnboarding.builder()
-                    .completed(false).userId(request.userId()).featureId(featureRequirement.getFeatureId())
-                    .requirementId(featureRequirement.getRequirementId()).build();
-            userOnboardingRepository.save(userOnboarding);
-        });
-
-        return OnboardingResponse.builder().featureId(request.featureId()).status(true).build();
-    }
-
-
-    /**
-     * Retrieves the onboarding details for a user and feature.
-     *
-     * @param userId the ID of the user
-     * @param featureId the ID of the feature
-     * @return a list of user onboarding responses
-     * @throws BadRequestException if the user is not onboarded on the feature
-     */
-    public List<UserOnboardingResponse> getOnboardingDetails(Long userId, Long featureId) {
-
-        List<UserOnboardingResponse> responses = userOnboardingRepository.findAllUserOnboardingsByUserIdAndFeatureId(userId, featureId);
-        if (responses.isEmpty()) {
-            throw new BadRequestException("User not onboarded on this Feature");
-        }
-        return responses;
-    }
 
     /**
      * Completes an onboarding requirement for a user.
      *
-     * @param request the onboarding processing request containing user, feature, and requirement details
+     * @param request the onboarding processing request containing user, and requirement details
      * @return the response indicating the status of the onboarding completion process
      * @throws BadRequestException if the requirement is already completed
      */
-    // TODO: MAKE ACCESSIBLE ONLY BY LOGGED IN USERS AND USER ID SHOULD BE GOTTEN FROM SECURITY CONTEXT
     @Transactional
-    public SubmitOnboardingResponse complete(SubmitOnboardingRequest request) {
+    public SubmitOnboardingResponse onboard(SubmitOnboardingRequest request) {
 
-        if (userOnboardingRepository.existsByUserIdAndFeatureIdAndRequirementIdAndCompleted(request.userId(),
-                request.featureId(), request.requirementId(), true)) {
+        // TODO: MAKE ACCESSIBLE ONLY BY LOGGED IN USERS AND USER ID SHOULD BE GOTTEN FROM SECURITY CONTEXT
+
+        org.meristem.oneapp.usersservice.models.Requirements requirements = requirementsRepository.findByIdAndStatus(request.requirementId(), Status.ACTIVE.getValue())
+                .orElseThrow(() -> new BadRequestException("Requirement not found"));
+
+        if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(request.userId(),
+                request.requirementId(), true)) {
             throw new BadRequestException("User already completed this requirement");
         }
-        userOnboardingRepository.completeUserOnboarding(request.userId(), request.featureId(), request.requirementId());
-        UserDocument document = UserDocument.builder().url(request.documentUrl()).requirementId(request.requirementId())
-                .userId(request.userId()).name(request.requirementName()).featureId(request.featureId()).build();
-        documentRepository.save(document);
 
-        Boolean b = userOnboardingRepository.allRequirementsSubmitted(request.userId(), request.featureId());
-
-        if (userOnboardingRepository.allRequirementsSubmitted(request.userId(), request.featureId())) {
-            userFeatureRepository.updateUserFeature(request.userId(), request.featureId());
+        if (userOnboardingRepository.completeUserOnboarding(request.userId(), request.requirementId()) < 1) {
+            throw new BadRequestException("Requirement or user does not exist");
         }
 
-        return SubmitOnboardingResponse.builder().documentUrl(request.documentUrl()).featureId(request.featureId())
-                .status(true).message("This onboarding stage completed").build();
+        UserDocument document = UserDocument.builder().url(request.documentUrl()).requirementId(request.requirementId())
+                .userId(request.userId()).name(requirements.getRequirementName()).build();
+        documentRepository.save(document);
+
+        if (Requirements.of(requirements.getRequirementName()) == Requirements.PROOF_OF_ADDRESS) {
+            if (isNull(request.addressRequest())) {
+                throw new BadRequestException("Address is required");
+            }
+            addressRepository.save(Address.builder().city(request.addressRequest().city())
+                    .postalCode(request.addressRequest().postalCode())
+                    .houseAddress(request.addressRequest().houseAddress())
+                            .userId(request.userId())
+                    .build());
+        }
+
+        if (userOnboardingRepository.allRequirementsSubmitted(request.userId())) {
+            usersRepository.completeOnboarding(request.userId());
+        }
+
+        return SubmitOnboardingResponse.builder().documentUrl(request.documentUrl())
+                .status(true).message(requirements.getRequirementName() + " submission successful.").build();
+
+    }
+
+    /**
+     * Retrieves the onboarding details for a user.
+     *
+     * @param userId the ID of the user
+     * @return a list of user onboarding responses
+     */
+    // TODO: GET FROM SECURITY CONTEXT
+    public List<UserOnboardingResponse> getOnboardingDetails(Long userId) {
+        return userOnboardingRepository.findAllUserOnboardingsByUserId(userId, Status.ACTIVE.getValue());
     }
 }

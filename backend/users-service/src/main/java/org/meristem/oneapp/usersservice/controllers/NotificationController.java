@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -36,8 +37,8 @@ public class NotificationController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sends an otp to the given number or recipient.",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = SendOtpRequest.class))
-                    })
+                            schema = @Schema(implementation = SendOtpResponse.class))
+                    }),
     })
     @PostMapping(value = "/otp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<SendOtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest sendOtpRequest) {
@@ -48,7 +49,7 @@ public class NotificationController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Verifies an otp sent to the given number or recipient.",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = VerifyOtpRequest.class))
+                            schema = @Schema(implementation = VerifyOtpResponse.class))
                     })
     })
     @PostMapping(value = "/otp/verify", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)

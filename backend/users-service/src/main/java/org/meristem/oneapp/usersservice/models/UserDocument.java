@@ -30,28 +30,42 @@ public class UserDocument extends BaseModel<String> {
     @NotBlank(message = "Not null")
     private String url;
 
-    // No feature Id cause the assumption is that one document can be applied to all features
-    @NotNull(message = "Not null")
     private Long requirementId;
-
-    // No feature Id cause the assumption is that one document can be applied to all features
-    @NotNull(message = "Not null")
-    private Long featureId;
 
     @NotNull(message = "Not null")
     private Long userId;
 
+    /**
+     * Constructs a new UserDocument with the specified details.
+     *
+     * @param id the ID of the document
+     * @param createdDate the date the document was created
+     * @param createdBy the user who created the document
+     * @param lastModifiedDate the date the document was last modified
+     * @param lastModifiedBy the user who last modified the document
+     * @param version the version of the document
+     * @param name the name of the document
+     * @param url the URL of the document
+     * @param requirementId the ID of the requirement associated with the document
+     * @param userId the ID of the user who uploaded the document
+     */
     @Builder
     public UserDocument(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                        String name, String url, Long requirementId, Long featureId, Long userId) {
+                        String name, String url, Long requirementId, Long userId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.name = name;
         this.url = url;
         this.requirementId = requirementId;
-        this.featureId = featureId;
         this.userId = userId;
     }
 
+    /**
+     * Checks if this UserDocument is equal to another object.
+     * Two UserDocuments are considered equal if they have the same requirementId and userId.
+     *
+     * @param o the object to compare with
+     * @return true if the objects are equal, false otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -59,6 +73,12 @@ public class UserDocument extends BaseModel<String> {
         return Objects.equals(getRequirementId(), that.getRequirementId()) && Objects.equals(getUserId(), that.getUserId());
     }
 
+    /**
+     * Returns a hash code value for the object.
+     * The hash code is based on the requirementId and userId.
+     *
+     * @return the hash code value
+     */
     @Override
     public int hashCode() {
         return Objects.hash(getRequirementId(), getUserId());

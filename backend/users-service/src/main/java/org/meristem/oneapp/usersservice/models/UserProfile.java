@@ -29,6 +29,19 @@ public class UserProfile extends BaseModel<String> {
     @Size(max = 500, min = 5, message = "Not more than 500 and less than 5")
     private String pictureUrl;
 
+
+    /**
+     * Constructs a new UserOnboarding instance.
+     *
+     * @param id the ID of the entity
+     * @param createdDate the date the entity was created
+     * @param createdBy the user who created the entity
+     * @param lastModifiedDate the date the entity was last modified
+     * @param lastModifiedBy the user who last modified the entity
+     * @param version the version of the entity
+     * @param userId the ID of the user
+     * @param pictureUrl the users profile picture
+     */
     @Builder
     public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String pictureUrl) {
@@ -37,6 +50,12 @@ public class UserProfile extends BaseModel<String> {
         this.pictureUrl = pictureUrl;
     }
 
+    /**
+     * Checks if this UserOnboarding instance is equal to another object.
+     *
+     * @param o the object to compare with
+     * @return true if the objects are equal, false otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -44,6 +63,11 @@ public class UserProfile extends BaseModel<String> {
         return Objects.equals(getUserId(), that.getUserId());
     }
 
+    /**
+     * Returns the hash code of this UserOnboarding instance.
+     *
+     * @return the hash code
+     */
     @Override
     public int hashCode() {
         return Objects.hashCode(getUserId());

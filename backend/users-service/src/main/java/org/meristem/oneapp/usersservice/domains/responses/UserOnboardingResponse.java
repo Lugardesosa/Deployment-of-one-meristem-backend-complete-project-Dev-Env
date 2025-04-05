@@ -6,5 +6,6 @@ import org.springframework.data.relational.core.mapping.Column;
 
 @Builder
 public record UserOnboardingResponse(@Column("id") Long requirementId, @Column("requirement_name") String requirementName, Boolean completed,
-                                     @Column("requirement_stage") Integer requirementStage, Boolean mandatory) {
+                                     @Column("requirement_stage") Integer requirementStage, Boolean mandatory,
+                                     @Column("display_name") String displayName) {
 }
