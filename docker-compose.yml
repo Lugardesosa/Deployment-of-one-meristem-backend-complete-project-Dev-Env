@@ -208,6 +208,7 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - SERVER_ADDRESS=22.345.23.45   # Add this line with your public IP, Use your public endpoint here for the http
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
     healthcheck:
