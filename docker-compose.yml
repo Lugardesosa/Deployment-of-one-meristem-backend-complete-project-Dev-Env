@@ -128,7 +128,7 @@ services:
           condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=default
-      - DB_SERVER=jdbc:postgresql://postgres:5432
+      - DB_SERVER=jdbc:postgresql://<VM_PRIVATE_IP>:5432 #input the private ip here
       - DB_NAME=${POSTGRES_MAIN_DB}
       - DB_USERNAME=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
@@ -165,7 +165,7 @@ services:
           condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=default
-      - DB_SERVER=jdbc:postgresql://postgres:5432
+      - DB_SERVER=jdbc:postgresql://<VM_PRIVATE_IP>:5432 #input the private ip here
       - DB_NAME=${POSTGRES_NOTIFICATION_DB}
       - DB_USERNAME=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
