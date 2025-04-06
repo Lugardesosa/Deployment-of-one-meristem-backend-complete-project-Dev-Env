@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    -- Create Main Database
+    CREATE DATABASE ${POSTGRES_MAIN_DB};
+    
+    -- Create Notification Database
+    CREATE DATABASE ${POSTGRES_NOTIFICATION_DB};
+    
+    -- Grant All Privileges to the Postgres User
+    GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_MAIN_DB} TO ${POSTGRES_USER};
+    GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_NOTIFICATION_DB} TO ${POSTGRES_USER};
+    
+    -- Create Extensions (if needed)
+    \c ${POSTGRES_MAIN_DB}
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    
+    \c ${POSTGRES_NOTIFICATION_DB}
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+EOSQL
