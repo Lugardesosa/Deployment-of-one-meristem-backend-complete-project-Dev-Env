@@ -7,9 +7,14 @@ spring:
   cloud:
     config:
       profile: local
-      label: C1 # TODO: change to the branch being deployed
+      label: observabilityV2 # TODO: change to the branch being deployed
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
+      request-connect-timeout: 10
+      fail-fast: true
+      retry:
+        max-attempts: 6
+        initial-interval: 2000
 
 
   termii:
