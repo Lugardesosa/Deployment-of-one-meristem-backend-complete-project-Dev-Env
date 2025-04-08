@@ -1,4 +1,2 @@
-
-
 server:
-  port: 20010
+  port: 20011
