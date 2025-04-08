@@ -52,9 +52,7 @@ services:
   # CONFIG SERVER (Internal only)
   # ======================
   config-server:
-    build:
-      context: ./backend/config-server
-      dockerfile: Dockerfile-config-server
+    image: config-server
     container_name: config-server
     networks:
       - meristem-network
@@ -98,9 +96,7 @@ services:
   # USERS SERVICE (Internal only)
   # ======================
   users-service:
-    build:
-      context: ./backend/users-service
-      dockerfile: Dockerfile-users-service
+    image: users-service
     container_name: users-service
     networks:
       - meristem-network
@@ -129,9 +125,7 @@ services:
   # NOTIFICATION SERVICE (Internal only)
   # ======================
   notification-service:
-    build:
-      context: ./backend/notification-service
-      dockerfile: Dockerfile-notification-service
+    image: notification-service
     container_name: notification-service
     networks:
       - meristem-network
@@ -158,36 +152,32 @@ services:
   # ======================
   # API GATEWAY (Exposed publicly)
   # ======================
-  #cloud-gateway:
-  #  build:
-  #    context: ./backend/cloud-gateway
-  #    dockerfile: Dockerfile-cloud-gateway
-  #  container_name: cloud-gateway
-  #  ports:
-  #    - "20011:8080"  # Exposed for HTTP
-  #  command: ["java", "-jar", "app.jar", "--server.port=8080"]
-
-  #  networks:
-  #    - meristem-network
-  #  depends_on:
-  #    - config-server
-  #    - users-service
-  #    - notification-service
-  #    - redis
-  #    - postgres
-  #    - kafka
-  #  environment:
-  #    - SPRING_PROFILES_ACTIVE=default
-  #    - SERVER_PORT=20011 #Reinforce the port setting
-  #    - MANAGEMENT_SERVER=-1 #Disable the actuator port
-  #    - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
-  #    - USER_SERVICE_URI=${USER_SERVICE_URI}
-  #    - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
-  #    - REDIS_HOST=${REDIS_HOST}
-  #    - REDIS_PASSWORD=${REDIS_PASSWORD}
-  #    - SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
+  cloud-gateway:
+    image: cloud-gateway
+    container_name: cloud-gateway
+    ports:
+      - "8080:20011"  # Exposed for HTTP
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - users-service
+      - notification-service
+      - redis
+      - postgres
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=20011 #Reinforce the port setting
+        #- MANAGEMENT_SERVER=-1 #Disable the actuator port
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+        #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
      # - JWT_SECRET=${JWT_SECRET}
-     #     restart: unless-stopped
+    restart: unless-stopped
     #healthcheck:
       #test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
 
