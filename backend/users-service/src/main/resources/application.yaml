@@ -5,7 +5,7 @@ spring:
     import: configserver:${CONFIG_SERVER_URI}
   cloud:
     config:
-      label: observabilityV2 # TODO: change to the branch being deployed
+      label: ${GITHUB_BRANCH}
       profile: local
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
