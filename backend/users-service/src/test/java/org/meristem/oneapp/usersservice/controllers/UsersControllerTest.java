@@ -76,7 +76,7 @@ class UsersControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/base")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(
-                        new CreateUserRequest("", "", "", "", "", ""))))
+                        new CreateUserRequest("", "", "", "", "","", ""))))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errors", hasItem("password: cannot be null")));

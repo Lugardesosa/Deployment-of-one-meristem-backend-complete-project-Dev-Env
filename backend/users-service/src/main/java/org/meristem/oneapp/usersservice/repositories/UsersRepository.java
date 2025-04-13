@@ -9,6 +9,8 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 @Transactional(readOnly = true)
 public interface UsersRepository extends BaseRepository<Users, Long> {
@@ -18,9 +20,16 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @CacheEvict(cacheNames = "users", key = "#result.email")
     <S extends Users> S save(@NonNull S entity);
 
+    @Modifying
+    @Query("INSERT INTO users_roles(users_id, roles_id) VALUES (:users_id, :rolesId)")
+    void saveRole(Long users_id, Long rolesId);
+
     @Cacheable(value = "users", key = "#a0")
     @Query("SELECT * FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email ")
-    UsersResponse findByEmail(String email);
+    UsersResponse findUserDetailsByEmail(String email);
+
+    @Query("SELECT * FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email AND u.status = :status ")
+    Optional<UsersResponse> findOneByEmailAndStatus(String email, Integer status);
 
     boolean existsByEmailOrPhoneNumber(String email, String phoneNumber);
 
