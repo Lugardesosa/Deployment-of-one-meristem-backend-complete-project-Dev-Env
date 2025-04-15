@@ -19,10 +19,10 @@ spring:
 
 
 # TODO: DELETE before going live
-logging:
-  level:
-    org.springframework.cloud: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.http: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty.http.client: DEBUG
+#logging:
+#  level:
+#    org.springframework.cloud: DEBUG
+#    org.springframework.web: DEBUG
+#    org.springframework.http: DEBUG
+#    org.springframework.cloud.gateway: DEBUG
+#    reactor.netty.http.client: DEBUG
