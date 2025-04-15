@@ -22,7 +22,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class AsyncEventHandler {
 
-    private final OtpVerificationRepository otpVerificationRepository;
     private final UserProfileRepository profileRepository;
     private final RequirementsRepository requirementsRepository;
     private final UserOnboardingRepository userOnboardingRepository;

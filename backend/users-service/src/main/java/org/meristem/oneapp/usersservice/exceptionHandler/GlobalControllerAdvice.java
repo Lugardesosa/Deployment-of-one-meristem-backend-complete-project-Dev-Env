@@ -4,6 +4,7 @@ package org.meristem.oneapp.usersservice.exceptionHandler;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
 import org.springframework.beans.TypeMismatchException;
@@ -14,8 +15,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.validation.FieldError;
@@ -50,57 +53,41 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<ErrorDetails> handleUserNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+    protected ResponseEntity<ErrorDetails> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
         return handleExceptionInternal(ex.getMessage(), HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePassed() + " with '" + ex.getResourceName() + "' not found"));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     protected ResponseEntity<ErrorDetails> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex, WebRequest request) {
-        return handleExceptionInternal("Http Request Method Not Supported", HttpStatus.METHOD_NOT_ALLOWED, request, List.of(ex.getMethod() + " is not allowed", "Supported methods are: " + Arrays.toString(ex.getSupportedMethods())));
+        return handleExceptionInternal(ErrorMessages.METHOD_NOT_SUPPORTED, HttpStatus.METHOD_NOT_ALLOWED, request, List.of(ex.getMethod() + " is not allowed", "Supported methods are: " + Arrays.toString(ex.getSupportedMethods())));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     protected ResponseEntity<ErrorDetails> handleNoResourceFoundException(NoResourceFoundException ex, WebRequest request) {
-        return handleExceptionInternal("No Resource Found", HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePath() + " is not found"));
+        return handleExceptionInternal(ErrorMessages.NO_RESOURCE_FOUND, HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePath() + " is not found"));
     }
 
     @ExceptionHandler({HttpMediaTypeNotSupportedException.class})
     protected ResponseEntity<ErrorDetails> handlerMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex, WebRequest request) {
-        return handleExceptionInternal("Http MediaType Not Supported", HttpStatus.UNSUPPORTED_MEDIA_TYPE, request, List.of(ex.getContentType() + " is not supported",
+        return handleExceptionInternal(ErrorMessages.MEDIA_TYPES_NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE, request, List.of(ex.getContentType() + " is not supported",
                 "Supported MediaTypes: " + ex.getSupportedMediaTypes()));
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     protected ResponseEntity<ErrorDetails> handleMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException ex,  HttpStatus status, WebRequest request) {
-        return handleExceptionInternal("Http MediaType Not Acceptable", status, request, List.of());
+        return handleExceptionInternal(ErrorMessages.MEDIA_TYPES_NOT_ACCEPTABLE, status, request, List.of());
 
     }
 
     @ExceptionHandler(MissingPathVariableException.class)
     protected ResponseEntity<ErrorDetails> handleMissingPathVariableException(MissingPathVariableException ex,  HttpStatus status, WebRequest request) {
-        return handleExceptionInternal("Missing Path Variable", status, request, List.of(ex.getVariableName() + "is missing"));
+        return handleExceptionInternal(ErrorMessages.MISSING_PATH_VARIABLE, status, request, List.of(ex.getVariableName() + "is missing"));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     protected ResponseEntity<ErrorDetails> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, WebRequest request) {
-        return handleExceptionInternal("Max Upload Size Exceeded", HttpStatus.BAD_REQUEST, request, List.of("Max upload size " + ex.getMaxUploadSize() + ", exceeded"));
+        return handleExceptionInternal(ErrorMessages.MAX_UPLOAD_SIZE_EXCEEDED, HttpStatus.BAD_REQUEST, request, List.of("Max upload size " + ex.getMaxUploadSize() + ", exceeded"));
     }
-
-//    @Order(Ordered.HIGHEST_PRECEDENCE)
-//    @ExceptionHandler(InvalidBearerTokenException.class)
-//    protected ProblemDetail handleInvalidBearerTokenException(InvalidBearerTokenException ex, WebRequest request, HttpStatus status) {
-//        return createProblemDetail(ex, request, HttpStatus.UNAUTHORIZED, Map.of("reason", "Token expired"));
-//    }
-//
-//    @ExceptionHandler(AuthorizationDeniedException.class)
-//    protected ProblemDetail handleAuthorizationDeniedException(AuthorizationDeniedException ex, WebRequest request) {
-//        return createProblemDetail(ex, request, HttpStatus.FORBIDDEN, Map.of("reason", "Access Denied"));
-//    }
-//
-//    @ExceptionHandler(OAuth2AuthenticationException.class)
-//    protected ProblemDetail handleOAuth2AuthenticationException(OAuth2AuthenticationException ex, WebRequest request) {
-//        return createProblemDetail(ex, request, HttpStatus.FORBIDDEN, Map.of("reason", "Authentication Failed"));
-//    }
 
     @ExceptionHandler(TypeMismatchException.class)
     protected ResponseEntity<ErrorDetails> handleTypeMismatch(TypeMismatchException ex, WebRequest request) {
@@ -195,7 +182,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     }
 
     @Override
-    public void setMessageSource(MessageSource messageSource) {
+    public void setMessageSource(@NonNull MessageSource messageSource) {
         this.messageSource = messageSource;
     }
 }

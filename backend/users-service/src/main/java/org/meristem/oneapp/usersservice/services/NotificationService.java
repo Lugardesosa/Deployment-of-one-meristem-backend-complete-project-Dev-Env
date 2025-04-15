@@ -48,7 +48,7 @@ public class NotificationService {
                     .timeToExpireInSeconds((short) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
         }
 
-        int code = AppUtil.randomInt(AppConstants.fiveNumbersOtp.getFirst(), AppConstants.fiveNumbersOtp.getSecond());
+        int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
 
         otpVerificationRepository.expireTimeByCode(LocalDateTime.now().minusMinutes(3), sendOtpRequest.recipient(), sendOtpRequest.otpType());
 

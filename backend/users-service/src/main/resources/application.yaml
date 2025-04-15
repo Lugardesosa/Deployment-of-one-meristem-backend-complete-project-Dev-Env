@@ -18,11 +18,11 @@ spring:
 
 
 # TODO: DELETE
-logging:
-  level:
-    org.springframework.web: DEBUG
-    org.springframework.jdbc: DEBUG
+#logging:
+#  level:
+#    org.springframework.web: DEBUG
+#    org.springframework.jdbc: DEBUG
 #    org.springframework.security: TRACE
-spring.datasource.hikari.data-source-properties.logUnclosedConnections: true
-logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
-logging.level.com.zaxxer.hikari: TRACE
+#spring.datasource.hikari.data-source-properties.logUnclosedConnections: true
+#logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
+#logging.level.com.zaxxer.hikari: TRACE

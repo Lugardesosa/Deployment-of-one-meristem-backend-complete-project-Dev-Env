@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.domains.enums.Status;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Roles;
+import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.PermissionsRepository;
 import org.meristem.oneapp.usersservice.repositories.RolesRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
@@ -28,11 +29,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        UsersResponse user = usersRepository.findOneByEmailAndStatus(email, Status.ACTIVE.getValue()).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
-        List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.id());
+        Users user = usersRepository.findByEmailAndStatus(email, Status.ACTIVE.getValue()).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
+        List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.getId());
         List<String> rolesPermissions = permissionsRepository.findAllByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new AuthenticatedUser(user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), user.referralCode(), user.onboardingCompleted(), authorities);
+        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getMiddleName(), user.getPassword(), user.getPhoneNumber(), user.getReferralCode(), user.getOnboardingCompleted(), authorities);
     }
 }

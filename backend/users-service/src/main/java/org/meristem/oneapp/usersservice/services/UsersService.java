@@ -34,13 +34,13 @@ public class UsersService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
-    public UsersResponse createUser(@Valid CreateUserRequest userRequest) {
+    public UsersResponse createUser(CreateUserRequest userRequest) {
         if (usersRepository.existsByEmailOrPhoneNumber(userRequest.email(), userRequest.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerified(OtpType.REGISTRATION.getCode(), userRequest.email(), userRequest.phoneNumber(), true)) {
-            throw new BadRequestException("Otp not verified.");
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.REGISTRATION.getCode(), userRequest.email(), userRequest.phoneNumber(), true, LocalDateTime.now())) {
+            throw new BadRequestException("Otp not verified or expired.");
         }
 
         Users user = usersMapper.createUserRequestToUsers(userRequest);
@@ -48,6 +48,7 @@ public class UsersService {
         user = usersRepository.save(user);
 
         applicationEventPublisher.publishEvent(new UserOnboardingCompletionEvent(this, user.getId()));
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), OtpType.REGISTRATION.getCode());
         return usersMapper.usersToUserResponse(user);
     }
 
@@ -58,11 +59,16 @@ public class UsersService {
     @Transactional
     public PasswordResetResponse resetPassword(PasswordResetRequest request) {
 
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), request.recipient(), true, LocalDateTime.now())) {
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), request.recipient(), request.recipient(), true, LocalDateTime.now())) {
             throw new BadRequestException("Otp not verified or expired.");
         }
 
-        usersRepository.updateUsersPassword(request.password(), request.recipient());
+        if (passwordEncoder.matches(request.password(), usersRepository.findPasswordByEmailOrPhoneNumber(request.recipient()))) {
+            throw new BadRequestException("Password cannot be the same as the old password.");
+        }
+
+        usersRepository.updateUsersPassword(passwordEncoder.encode(request.password()), request.recipient());
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), OtpType.PASSWORD_RESET.getCode());
         return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 }

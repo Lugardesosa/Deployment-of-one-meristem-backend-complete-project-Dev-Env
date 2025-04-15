@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
+import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,10 +37,6 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    private String username = "";
-    private String password = "";
-    private Set<String> scopes = new HashSet<>();
-
     public CustomCodeGrantAuthenticationProvider(JdbcOAuth2AuthorizationService authorizationService, OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
                                                  CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         Assert.notNull(authorizationService, "oAuth2AuthorizationService must not be null");
@@ -55,14 +52,19 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
         CustomCodeGrantAuthenticationToken token = (CustomCodeGrantAuthenticationToken) authentication;
         OAuth2ClientAuthenticationToken clientPrincipal = getAuthenticatedClientElseThrowInvalidClient(token);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
-        username = token.getUsername();
-        password = token.getPassword();
-        scopes = token.getScopes();
+        String username = token.getUsername();
+        String password = token.getPassword();
+        Set<String> scopes = token.getScopes();
 
-        AuthenticatedUser user = (AuthenticatedUser) userDetailsService.loadUserByUsername(username);
+        AuthenticatedUser user;
+        try {
+            user = (AuthenticatedUser) userDetailsService.loadUserByUsername(username);
+        } catch (UsernameNotFoundException e) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_USERNAME, null));
+        }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.ACCESS_DENIED, "Invalid password", null));
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_PASSWORD, null));
         }
         if (registeredClient == null || !registeredClient.getAuthorizationGrantTypes().contains(token.getGrantType())) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
@@ -85,7 +87,7 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
         OAuth2TokenContext tokenContext = contextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
         OAuth2Token generatedAccessToken = this.tokenGenerator.generate(tokenContext);
         if (isNull(generatedAccessToken)) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR, "Token could not be generated", null));
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR, ErrorMessages.TOKEN_COULD_NOT_BE_GENERATED, null));
         }
 
         OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, generatedAccessToken.getTokenValue(),
@@ -110,7 +112,7 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
                 authorizationBuilder.refreshToken(oAuth2RefreshToken);
                 refreshToken = oAuth2RefreshToken;
             } else {
-                throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, "Refresh token could not be generated", ERROR_URI));
+                throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.REFRESH_TOKEN_COULD_NOT_BE_GENERATED, ERROR_URI));
             }
         }
 

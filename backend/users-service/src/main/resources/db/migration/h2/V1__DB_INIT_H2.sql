@@ -147,7 +147,7 @@ CREATE TABLE address
     status             INT DEFAULT 1                           NOT NULL,
     house_address VARCHAR(150)                            NOT NULL,
     city          VARCHAR(100)                            NOT NULL,
-    postal_code   VARCHAR(10)                             NOT NULL,
+    landmark      VARCHAR(100)                             NOT NULL,
     user_id       BIGINT                                  NOT NULL,
     CONSTRAINT pk_address PRIMARY KEY (id)
 );

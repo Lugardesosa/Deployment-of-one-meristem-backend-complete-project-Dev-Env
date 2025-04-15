@@ -71,7 +71,7 @@ public class OnboardingService {
                 throw new BadRequestException("Address is required");
             }
             addressRepository.save(Address.builder().city(request.addressRequest().city())
-                    .postalCode(request.addressRequest().postalCode())
+                    .landmark(request.addressRequest().landmark())
                     .houseAddress(request.addressRequest().houseAddress())
                             .userId(userId)
                     .build());
