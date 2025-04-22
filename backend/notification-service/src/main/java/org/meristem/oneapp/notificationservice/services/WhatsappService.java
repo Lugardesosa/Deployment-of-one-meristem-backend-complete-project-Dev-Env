@@ -5,12 +5,12 @@ import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.notificationservice.services.interfaces.NotificationService;
 import org.springframework.stereotype.Service;
 
-@Service("SMS")
+@Service("WHATSAPP")
 @Slf4j
-public class SmsService implements NotificationService<MessageDto> {
+public class WhatsappService implements NotificationService<MessageDto> {
 
     @Override
     public void send(MessageDto request) {
-        log.info("Sending SMS");
+        log.info("Sending Whatsapp message");
     }
 }

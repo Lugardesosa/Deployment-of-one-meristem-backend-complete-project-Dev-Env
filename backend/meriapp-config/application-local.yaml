@@ -18,20 +18,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: 'bus-refresh,restart,health,info,metrics,prometheus,shutdown,env,beans,configprops,loggers,heapdump,threaddump.metrics'
+        include: '*'
+        exclude: "env,beans,restart,shutdown"
         
   endpoint:
-    restart:
-      enabled: true
-    prometheus:
-      enabled: true
-    info:
-      enabled: true
-    metrics:
-      enabled: true
     health:
       show-details: always
       enabled: true
-    shutdown:
-      enabled: true
+
 
