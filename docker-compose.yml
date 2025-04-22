@@ -107,6 +107,7 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=default
+      - GITHUB_BRANCH=dev_env
       - USER="System"
       - DB_SERVER=jdbc:postgresql://postgres:5432/users-service # input the private ip here
       - DB_NAME=users-service
@@ -137,6 +138,7 @@ services:
       - redis
     environment:
       - SPRING_PROFILES_ACTIVE=default
+      - GITHUB_BRANCH=dev_env
       - DB_SERVER=jdbc:postgresql://postgres:5432/${DB_NAME_NOTIFICATION_SERVICES} # input the private ip here
       - DB_NAME=${DB_NAME_NOTIFICATION_SERVICES}
       - DB_USERNAME=${DB_USERNAME}
@@ -169,6 +171,7 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=default
+      - GITHUB_BRANCH=dev_env
       - SERVER_PORT=20011 #Reinforce the port setting
         #- MANAGEMENT_SERVER=-1 #Disable the actuator port
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
