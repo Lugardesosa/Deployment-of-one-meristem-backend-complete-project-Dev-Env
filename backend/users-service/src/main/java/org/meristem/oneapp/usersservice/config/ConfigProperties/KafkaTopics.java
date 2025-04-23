@@ -1,4 +1,4 @@
-package org.meristem.oneapp.usersservice.config.configProperties;
+package org.meristem.oneapp.usersservice.config.ConfigProperties;
 
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
