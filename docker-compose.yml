@@ -180,6 +180,8 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - SSL_CERT_PATH=/app/certificate.pem
+      - SSL_CERT_PASSWORD=${CERT_PASSWORD}  
         #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
