@@ -17,7 +17,6 @@ import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +32,6 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to complete an onboarding process")
     })
-    @PreAuthorize("hasRole('ROLE_onboard.onboard')")
     @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<SubmitOnboardingResponse>> onboard(@RequestBody @Valid SubmitOnboardingRequest request) {
         return ApiUtil.buildResponse(onboardingService.onboard(request), HttpStatus.CREATED.toString(), "Onboarding flow processed");
@@ -43,9 +41,9 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get the onboarding flow details for a user ")
     })
-    @PreAuthorize("hasRole('ROLE_onboard.get')")
+    // TODO: REMOVE USER_ID AND REPLACE IT WITH THE ONE GOTTEN FROM THE LOGGED IN USER DETAILS
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<UserOnboardingResponse>>> onboard() {
-        return ApiUtil.buildResponse(onboardingService.getOnboardingDetails(), HttpStatus.OK.toString(), "User onboarding details request successful");
+    public ResponseEntity<AppResponse<List<UserOnboardingResponse>>> onboard(@Parameter(example = "1", description = "Pass the id of the user.") @RequestParam(name = "userId") Long userId) {
+        return ApiUtil.buildResponse(onboardingService.getOnboardingDetails(userId), HttpStatus.OK.toString(), "User onboarding details request successful");
     }
 }

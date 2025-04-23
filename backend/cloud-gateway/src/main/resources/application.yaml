@@ -6,7 +6,7 @@ spring:
     import: configserver:${CONFIG_SERVER_URI}
   cloud:
     config:
-      label: ${GITHUB_BRANCH}
+      label: observabilityV2 # TODO: change to the branch being deployed
       profile: local
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
@@ -19,10 +19,10 @@ spring:
 
 
 # TODO: DELETE before going live
-#logging:
-#  level:
-#    org.springframework.cloud: DEBUG
-#    org.springframework.web: DEBUG
-#    org.springframework.http: DEBUG
-#    org.springframework.cloud.gateway: DEBUG
-#    reactor.netty.http.client: DEBUG
+logging:
+  level:
+    org.springframework.cloud: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.http: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

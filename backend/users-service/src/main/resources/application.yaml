@@ -5,7 +5,7 @@ spring:
     import: configserver:${CONFIG_SERVER_URI}
   cloud:
     config:
-      label: ${GITHUB_BRANCH}
+      label: observabilityV2 # TODO: change to the branch being deployed
       profile: local
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
@@ -18,11 +18,10 @@ spring:
 
 
 # TODO: DELETE
-#logging:
-#  level:
-#    org.springframework.web: DEBUG
-#    org.springframework.jdbc: DEBUG
-#    org.springframework.security: TRACE
-#spring.datasource.hikari.data-source-properties.logUnclosedConnections: true
-#logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
-#logging.level.com.zaxxer.hikari: TRACE
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.jdbc: DEBUG
+spring.datasource.hikari.data-source-properties.logUnclosedConnections: true
+logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
+logging.level.com.zaxxer.hikari: TRACE

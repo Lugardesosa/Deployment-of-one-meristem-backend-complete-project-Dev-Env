@@ -7,10 +7,10 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class UserOnboardingCompletionEvent extends ApplicationEvent {
 
-    private final Long userId;
+    private final SubmitOnboardingRequest object;
 
-    public UserOnboardingCompletionEvent(Object source, Long userId) {
+    public UserOnboardingCompletionEvent(Object source, SubmitOnboardingRequest object) {
         super(source);
-        this.userId = userId;
+        this.object = object;
     }
 }

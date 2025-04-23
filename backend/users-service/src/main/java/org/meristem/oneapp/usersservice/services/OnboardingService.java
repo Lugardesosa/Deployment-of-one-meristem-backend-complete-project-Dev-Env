@@ -11,14 +11,12 @@ import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestEx
 import org.meristem.oneapp.usersservice.models.Address;
 import org.meristem.oneapp.usersservice.models.UserDocument;
 import org.meristem.oneapp.usersservice.repositories.*;
-import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
@@ -42,43 +40,37 @@ public class OnboardingService {
     @Transactional
     public SubmitOnboardingResponse onboard(SubmitOnboardingRequest request) {
 
-        long userId = requireNonNull(AppUtil.getLoggedInUserId(), "User not logged in");
+        // TODO: MAKE ACCESSIBLE ONLY BY LOGGED IN USERS AND USER ID SHOULD BE GOTTEN FROM SECURITY CONTEXT
 
         org.meristem.oneapp.usersservice.models.Requirements requirements = requirementsRepository.findByIdAndStatus(request.requirementId(), Status.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
-        if (Requirements.of(requirements.getRequirementName()) != Requirements.BVN && isNull(request.documentUrl())) {
-            throw new BadRequestException("Document url is required for requirement " + requirements.getDisplayName());
-        }
-
-        if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(userId,
+        if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(request.userId(),
                 request.requirementId(), true)) {
             throw new BadRequestException("User already completed this requirement");
         }
 
-        if (userOnboardingRepository.completeUserOnboarding(userId, request.requirementId()) < 1) {
+        if (userOnboardingRepository.completeUserOnboarding(request.userId(), request.requirementId()) < 1) {
             throw new BadRequestException("Requirement or user does not exist");
         }
 
-        if (Requirements.of(requirements.getRequirementName()) != Requirements.BVN) {
-            UserDocument document = UserDocument.builder().url(request.documentUrl()).requirementId(request.requirementId())
-                    .userId(userId).name(requirements.getRequirementName()).build();
-            documentRepository.save(document);
-        }
+        UserDocument document = UserDocument.builder().url(request.documentUrl()).requirementId(request.requirementId())
+                .userId(request.userId()).name(requirements.getRequirementName()).build();
+        documentRepository.save(document);
 
         if (Requirements.of(requirements.getRequirementName()) == Requirements.PROOF_OF_ADDRESS) {
             if (isNull(request.addressRequest())) {
                 throw new BadRequestException("Address is required");
             }
             addressRepository.save(Address.builder().city(request.addressRequest().city())
-                    .landmark(request.addressRequest().landmark())
+                    .postalCode(request.addressRequest().postalCode())
                     .houseAddress(request.addressRequest().houseAddress())
-                            .userId(userId)
+                            .userId(request.userId())
                     .build());
         }
 
-        if (userOnboardingRepository.allRequirementsSubmitted(userId)) {
-            usersRepository.completeOnboarding(userId);
+        if (userOnboardingRepository.allRequirementsSubmitted(request.userId())) {
+            usersRepository.completeOnboarding(request.userId());
         }
 
         return SubmitOnboardingResponse.builder().documentUrl(request.documentUrl())
@@ -89,9 +81,11 @@ public class OnboardingService {
     /**
      * Retrieves the onboarding details for a user.
      *
+     * @param userId the ID of the user
      * @return a list of user onboarding responses
      */
-    public List<UserOnboardingResponse> getOnboardingDetails() {
-        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), Status.ACTIVE.getValue());
+    // TODO: GET FROM SECURITY CONTEXT
+    public List<UserOnboardingResponse> getOnboardingDetails(Long userId) {
+        return userOnboardingRepository.findAllUserOnboardingsByUserId(userId, Status.ACTIVE.getValue());
     }
 }
