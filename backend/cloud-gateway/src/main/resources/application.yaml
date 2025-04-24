@@ -1,3 +1,4 @@
+
 spring:
   application:
     name: gateway-service
@@ -5,8 +6,8 @@ spring:
     import: configserver:${CONFIG_SERVER_URI}
   cloud:
     config:
-      label: ${GITHUB_BRANCH}
-      profile: dev
+      label: observabilityV2 # TODO: change to the branch being deployed
+      profile: local
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
       request-connect-timeout: 10
