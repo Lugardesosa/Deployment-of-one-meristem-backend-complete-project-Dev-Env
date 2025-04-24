@@ -36,16 +36,6 @@ spring:
       properties:
         spring.json.trusted.packages: 'org.meristem.oneapp.kafka.*'
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          public-key-location: classpath:keys/public.pem
-
-rsa:
-  private-key: classpath:keys/private.pem
-  public-key: classpath:keys/public.pem
-
 logging:
   file:
     max-size: 2MB

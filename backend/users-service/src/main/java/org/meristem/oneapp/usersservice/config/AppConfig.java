@@ -6,13 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
 
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -33,26 +30,4 @@ public class AppConfig {
         mapper.registerModule(module);
         return mapper;
     }
-
-    @Bean
-    public RedisCacheConfiguration defaultCacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(8))
-                .disableCachingNullValues();
-    }
-
-    @Bean
-    public RedisCacheManagerBuilderCustomizer cacheManagerBuilderCustomizer() {
-        return builder -> {
-            builder.withCacheConfiguration("users", defaultCacheConfiguration())
-                    .withCacheConfiguration("settings", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
-        };
-    }
-
-
-    // TODO: FIX UP
-    //    @Bean
-//    public OpenAPI apiDoclet() {
-//        return new OpenAPI();
-//    }
 }

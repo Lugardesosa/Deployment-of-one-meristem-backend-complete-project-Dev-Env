@@ -22,11 +22,17 @@ public class KafkaListenerService {
     @KafkaListener(topicPattern = KafkaListenerConstants.KAFKA_OTP_TOPIC)
     public void sendOtp(ConsumerRecord<String, MessageDto> otpRequest) {
         MessageDto notificationRequest = otpRequest.value();
+        log.info("Received OTP request: {}", notificationRequest);
+//        log.info("OUTPUT OTP request: {}", notificationRequest.message());
+//        log.info("OUTPUT OTP request: {}-, {}-, {}-", notificationRequest.message().body(), notificationRequest.message().subject(), notificationRequest.message().recipient());
+//        log.info("""
+//                -----
+//                -----
+//                ----
+//                -----
+//                """);
         NotificationService<MessageDto> messageDtoNotificationService = notificationServices.get(notificationRequest.medium().getLabel());
-        if (messageDtoNotificationService == null) {
-            log.error("Messaging service not found");
-            return;
-        }
         messageDtoNotificationService.send(notificationRequest);
+
     }
 }

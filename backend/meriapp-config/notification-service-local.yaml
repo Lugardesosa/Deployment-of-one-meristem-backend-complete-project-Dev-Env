@@ -1,4 +1,4 @@
 server:
-  port: 20030
+  port: 20050
   servlet:
     context-path: /api/notification

@@ -7,7 +7,7 @@ spring:
   cloud:
     config:
       profile: local
-      label: ${GITHUB_BRANCH}
+      label: observabilityV2 # TODO: change to the branch being deployed
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
       fail-fast: true

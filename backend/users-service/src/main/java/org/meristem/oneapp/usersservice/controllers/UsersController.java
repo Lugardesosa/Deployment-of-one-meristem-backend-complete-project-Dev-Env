@@ -19,7 +19,6 @@ import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -49,11 +48,9 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get a user.")
     })
-
-    @PreAuthorize("hasAuthority('SCOPE_email') OR hasRole('users.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UsersResponse>> getUser() {
-        return ApiUtil.buildResponse(usersService.getUser(), HttpStatus.OK.toString(), "Successful.");
+    public ResponseEntity<AppResponse<UsersResponse>> getUser(@RequestParam(name = "email") String email) {
+        return ApiUtil.buildResponse(usersService.getUser(email), HttpStatus.OK.toString(), "Successful.");
     }
 
     @Operation(summary = "Password reset")

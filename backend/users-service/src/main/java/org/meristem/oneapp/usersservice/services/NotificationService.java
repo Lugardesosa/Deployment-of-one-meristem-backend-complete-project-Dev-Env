@@ -18,7 +18,6 @@ import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestEx
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.models.OtpVerification;
 import org.meristem.oneapp.usersservice.repositories.OtpVerificationRepository;
-import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
@@ -35,25 +34,16 @@ public class NotificationService {
 
     private final KafkaSenderService<MessageDto> kafkaSenderService;
     private final OtpVerificationRepository otpVerificationRepository;
-    private final UsersRepository usersRepository;
 
     @Transactional
     public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
         MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest);
-
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES);
-
-        if (sendOtpRequest.otpType().equals(OtpType.PASSWORD_RESET.getCode()) && !usersRepository.existsByEmailOrPhoneNumber(sendOtpRequest.recipient(), sendOtpRequest.recipient())) {
-            return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
-                    .timeToExpireInSeconds((short) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
-        }
-
-        int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
+        int code = AppUtil.randomInt(AppConstants.fiveNumbersOtp.getFirst(), AppConstants.fiveNumbersOtp.getSecond());
 
         otpVerificationRepository.expireTimeByCode(LocalDateTime.now().minusMinutes(3), sendOtpRequest.recipient(), sendOtpRequest.otpType());
 
         OtpVerification otpVerification = OtpVerification.builder()
-                .userId(sendOtpRequest.recipient()).expiresAt(expiresAt)
+                .userId(sendOtpRequest.recipient()).expiresAt(LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES))
                 .otpType(sendOtpRequest.otpType()).code(code).build();
 
         otpVerificationRepository.save(otpVerification);

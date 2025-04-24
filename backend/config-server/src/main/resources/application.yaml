@@ -43,11 +43,10 @@ logging:
   logback:
     rollingpolicy:
       file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
-
   # TODO: delete when going live
-#  level:
-#    org.springframework.web: debug
-#    org.springframework.cloud: debug
+  level:
+    org.springframework.web: debug
+    org.springframework.cloud: debug
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
