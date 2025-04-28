@@ -8,11 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
-import org.meristem.oneapp.usersservice.domains.requests.PasswordResetRequest;
-import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
-import org.meristem.oneapp.usersservice.domains.responses.PasswordResetResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.domains.requests.*;
+import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.usersservice.services.NextOfKinService;
 import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
@@ -29,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
 
     private final UsersService usersService;
+    private final NextOfKinService nextOfKinService;
 
 
     @Operation(summary = "Creates a user.")
@@ -40,6 +39,7 @@ public class UsersController {
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
 
     })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
     @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UsersResponse>> createUser(@RequestBody @Valid CreateUserRequest userRequest) {
          return ApiUtil.buildResponse(usersService.createUser(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
@@ -49,19 +49,69 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get a user.")
     })
-
-    @PreAuthorize("hasAuthority('SCOPE_email') OR hasRole('users.get')")
+    @PreAuthorize("hasAuthority('SCOPE_users.get') OR hasRole('ROLE_users.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UsersResponse>> getUser() {
         return ApiUtil.buildResponse(usersService.getUser(), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Update user's phone number")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their phone number")
+    })
+    @PreAuthorize("hasRole('ROLE_users.phone-number.update')")
+    @PutMapping(value = "/phone-number", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdatePhoneNumberResponse>> updatePhoneNumber(@RequestBody @Valid UpdatePhoneNumberRequest request) {
+        return ApiUtil.buildResponse(usersService.updatePhoneNumber(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Update user's avatar")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their avatar")
+    })
+    @PreAuthorize("hasRole('ROLE_users.change.avatar')")
+    @PutMapping(value = "/avatar", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateAvatarUrlResponse>> updateAvatar(@RequestBody @Valid UpdateAvatarUrlRequest request) {
+        return ApiUtil.buildResponse(usersService.updateAvatarUrl(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Password reset")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to reset their password")
     })
-    @PostMapping(value = "/password-reset", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('SCOPE_password_reset')")
+    @PutMapping(value = {"/password-reset", "/admin/password-reset"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<PasswordResetResponse>> resetPassword(@RequestBody @Valid PasswordResetRequest request) {
         return ApiUtil.buildResponse(usersService.resetPassword(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create next of kin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Allows users to create a next of kin")
+    })
+    @PreAuthorize("hasRole('ROLE_users.next_of_kin.create')")
+    @PostMapping(value = "/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<NextOfKinResponse>> createNextOfKin(@RequestBody @Valid CreateNextOfKinRequest request) {
+        return ApiUtil.buildResponse(nextOfKinService.createNextOfKin(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Password update")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their password")
+    })
+    @PreAuthorize("hasAnyRole('ROLE_users.change-password', 'ROLE_admin.change.password')")
+    @PutMapping(value = {"/password-update", "/admin/password-update"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdatePasswordResponse>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
+        return ApiUtil.buildResponse(usersService.updatePassword(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Pin update")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their pin")
+    })
+    @PreAuthorize("hasRole('ROLE_users.change.pin')")
+    @PutMapping(value = "/pin-update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<PinResponse>> updatePin(@RequestBody @Valid PinRequest request) {
+        return ApiUtil.buildResponse(usersService.updatePin(request), HttpStatus.OK.toString(), "Successful");
     }
 }

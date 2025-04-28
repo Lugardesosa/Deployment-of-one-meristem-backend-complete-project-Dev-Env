@@ -22,7 +22,7 @@ import java.util.Objects;
 @Setter
 @Getter
 @Table("permissions")
-public class Permissions extends BaseModel<String> implements Serializable {
+public class Permissions extends BaseModel<String> {
 
     private String name;
 

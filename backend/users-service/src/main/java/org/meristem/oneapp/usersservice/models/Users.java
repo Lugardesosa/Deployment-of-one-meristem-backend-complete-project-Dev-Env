@@ -49,13 +49,6 @@ public class Users extends BaseModel<String> {
     @NotBlank(message = "phoneNumber cannot be null")
     private String phoneNumber;
 
-    @Size(max = 100, min = 1, message = "Not more than 50 and less than 1")
-    private String referralCode;
-
-    @Column("onboarding_completed")
-    @NotNull(message = "onboardingCompleted cannot be null")
-    private Boolean onboardingCompleted = Boolean.FALSE;
-
     /**
      * Constructs a new Users instance.
      *
@@ -75,7 +68,7 @@ public class Users extends BaseModel<String> {
      */
     @Builder
     public Users(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String email,
-                 String firstName, String lastName, String middleName, String password, String phoneNumber, String referralCode) {
+                 String firstName, String lastName, String middleName, String password, String phoneNumber) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.email = email;
         this.firstName = firstName;
@@ -83,8 +76,6 @@ public class Users extends BaseModel<String> {
         this.middleName = middleName;
         this.password = password;
         this.phoneNumber = phoneNumber;
-        this.referralCode = referralCode;
-        this.onboardingCompleted = Boolean.FALSE;
     }
 
     /**

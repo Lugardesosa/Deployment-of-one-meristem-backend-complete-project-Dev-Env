@@ -33,14 +33,22 @@ public class Address extends BaseModel<String> {
     @NotNull(message = "Cannot be null")
     private Long userId;
 
+    @NotBlank(message = "Cannot be null")
+    private Integer approved;
+
+    @NotBlank(message = "Cannot be null")
+    private Integer processing;
+
     @Builder
     public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                   String houseAddress, String city, String landmark, Long userId) {
+                   String houseAddress, String city, String landmark, Long userId, Integer approved, Integer processing) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.houseAddress = houseAddress;
         this.city = city;
         this.landmark = landmark;
         this.userId = userId;
+        this.approved = approved;
+        this.processing = processing;
     }
 
     @Override

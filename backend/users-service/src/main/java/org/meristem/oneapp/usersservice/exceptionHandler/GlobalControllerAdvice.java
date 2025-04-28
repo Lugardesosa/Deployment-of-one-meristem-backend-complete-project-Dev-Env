@@ -11,16 +11,11 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.ErrorResponse;
@@ -143,17 +138,21 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return handleExceptionInternal("Invalid request", HttpStatus.BAD_REQUEST, request, List.of("There is error in the request body"));
     }
 
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    protected ResponseEntity<ErrorDetails> handleAuthorizationDeniedException(AuthorizationDeniedException ex, WebRequest request) {
+        return handleExceptionInternal("Unauthorized request", HttpStatus.UNAUTHORIZED, request, List.of("Your are not authorized to make this call"));
+    }
 
-//    @ExceptionHandler(Exception.class)
-//    protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
-//        // TODO: DELETE THE LOG STATEMENT
-////        log.error(ex.getMessage(), ex);
-//        String errorMessage = """
-//                An error occurred while processing the request:
-//                Kindly send a mail to help@oneapp.com.
-//                """;
-//        return handleExceptionInternal(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
-//    }
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
+        // TODO: DELETE THE LOG STATEMENT
+        log.error(ex.getMessage(), ex);
+        String errorMessage = """
+                An error occurred while processing the request:
+                Kindly send a mail to help@one-meristem-app.com.
+                """;
+        return handleExceptionInternal(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
+    }
 
     private ResponseEntity<ErrorDetails> handleExceptionInternal(String ex, HttpStatus status, WebRequest request, List<String> errors) {
         ErrorDetails apiError =
@@ -161,10 +160,10 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return new ResponseEntity<>(apiError, status);
     }
 
-    private ProblemDetail createProblemDetail(Exception ex, WebRequest request, HttpStatus status, Map<String, Object> properties) {
+    private ResponseEntity<ProblemDetail> createProblemDetail(Exception ex, WebRequest request, HttpStatus status, Map<String, Object> properties) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         detail.setProperties(properties);
-        return detail;
+        return new ResponseEntity<>(detail, status);
     }
 
     private ProblemDetail createProblemDetail(

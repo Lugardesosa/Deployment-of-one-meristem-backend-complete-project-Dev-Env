@@ -9,7 +9,9 @@ public enum MessageType {
 
     OTP(1),
     MARKETING(2),
-    NOTIFICATION(3);
+    NOTIFICATION(3),
+    PASSWORD_RESET(4),
+    ADMIN_ACCOUNT_CREATED(5);
 
     private final int value;
 }

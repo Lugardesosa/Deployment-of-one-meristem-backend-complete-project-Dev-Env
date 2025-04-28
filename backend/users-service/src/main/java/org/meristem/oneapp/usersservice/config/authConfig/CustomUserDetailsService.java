@@ -34,6 +34,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         List<String> rolesPermissions = permissionsRepository.findAllByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getMiddleName(), user.getPassword(), user.getPhoneNumber(), user.getReferralCode(), user.getOnboardingCompleted(), authorities);
+        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getMiddleName(), user.getPassword(), user.getPhoneNumber(), authorities, user.getStatus());
     }
 }

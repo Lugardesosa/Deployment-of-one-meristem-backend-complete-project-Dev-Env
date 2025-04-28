@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
 import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
@@ -45,11 +46,12 @@ public class NotificationService {
 
         if (sendOtpRequest.otpType().equals(OtpType.PASSWORD_RESET.getCode()) && !usersRepository.existsByEmailOrPhoneNumber(sendOtpRequest.recipient(), sendOtpRequest.recipient())) {
             return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
-                    .timeToExpireInSeconds((short) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
+                    .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
         }
 
         int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
 
+        // Expire old OTP for this user and the OTP type
         otpVerificationRepository.expireTimeByCode(LocalDateTime.now().minusMinutes(3), sendOtpRequest.recipient(), sendOtpRequest.otpType());
 
         OtpVerification otpVerification = OtpVerification.builder()
@@ -65,10 +67,10 @@ public class NotificationService {
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).build();
 
         // TODO: DELETE the log statement
-        log.info("----> CODE: {}", otpVerification.getCode());
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, AppConstants.KAFKA_OTP_TOPIC));
+        log.info("OTP CODE ----> : {}", otpVerification.getCode());
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC));
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
-                .timeToExpireInSeconds((short) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerification.getExpiresAt()))
+                .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerification.getExpiresAt()))
                 .build();
     }
 
@@ -78,7 +80,7 @@ public class NotificationService {
         switch (messageMedium) {
             case EMAIL -> {
                 if (!sendOtpRequest.recipient().matches(AppConstants.EMAIL_REGEX_PATTERN)) {
-                    throw new BadRequestException("Invalid recipient format");
+                    throw new BadRequestException("Invalid email format");
                 }
             }
             case SMS, WHATSAPP -> {
@@ -86,7 +88,7 @@ public class NotificationService {
                     throw new BadRequestException("Invalid phone number format");
                 }
             }
-            case null -> throw new BadRequestException("Invalid otp type");
+            case null -> throw new BadRequestException("Invalid OTP type");
         }
         return messageMedium;
     }
@@ -94,16 +96,16 @@ public class NotificationService {
     public VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest request) {
 
         OtpVerification otpVerification = otpVerificationRepository.findByOtpTypeAndCodeAndUserId(request.otpType(), request.otp(), request.recipient())
-                .orElseThrow(() -> new ResourceNotFoundException("Otp not found", "otp", request.otp().toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("OTP not found", "OTP", request.otp().toString()));
 
         if (otpVerification.getVerified()) {
-            return VerifyOtpResponse.builder().status(false).message("Otp already used").build();
+            return VerifyOtpResponse.builder().status(false).message("OTP already used").build();
         }
         if (otpVerification.getExpiresAt().isBefore(LocalDateTime.now())) {
-            return VerifyOtpResponse.builder().status(false).message("Otp expired").build();
+            return VerifyOtpResponse.builder().status(false).message("OTP expired").build();
         }
         otpVerification.setVerified(true);
         otpVerificationRepository.save(otpVerification);
-        return VerifyOtpResponse.builder().status(true).message("Otp verified").build();
+        return VerifyOtpResponse.builder().status(true).message("OTP verified").build();
     }
 }
