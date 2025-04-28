@@ -1,2 +1,9 @@
+
 server:
-  port: 20011
+  port: 20010
+  ssl:
+    key-store: classpath:keys/one-meristem-app.com-keystore.pkcs12
+    key-store-password: ${KEY_STORE_PASSWORD}
+    key-store-type: JKS
+    key-alias: ${SSL_KEY_ALIAS}
+    enabled: true
