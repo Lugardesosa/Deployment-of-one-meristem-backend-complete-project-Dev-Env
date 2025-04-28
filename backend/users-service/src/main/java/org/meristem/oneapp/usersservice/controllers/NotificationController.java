@@ -20,6 +20,7 @@ import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +41,7 @@ public class NotificationController {
                             schema = @Schema(implementation = SendOtpResponse.class))
                     }),
     })
+    @PreAuthorize("hasAuthority('SCOPE_send_otp')")
     @PostMapping(value = "/otp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<SendOtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest sendOtpRequest) {
         return ApiUtil.buildResponse(notificationService.sendOtp(sendOtpRequest), HttpStatus.OK.toString(), "Otp sent to ".concat(sendOtpRequest.recipient()));
@@ -52,6 +54,7 @@ public class NotificationController {
                             schema = @Schema(implementation = VerifyOtpResponse.class))
                     })
     })
+    @PreAuthorize("hasAuthority('SCOPE_verify_otp')")
     @PostMapping(value = "/otp/verify", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<VerifyOtpResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest verifyOtpRequest) {
         return ApiUtil.buildResponse(notificationService.verifyOtp(verifyOtpRequest), HttpStatus.OK.toString(), "Otp request verification processed.");

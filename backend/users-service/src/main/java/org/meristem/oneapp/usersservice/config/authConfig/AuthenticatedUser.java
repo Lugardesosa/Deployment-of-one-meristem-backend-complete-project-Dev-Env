@@ -38,12 +38,10 @@ public class AuthenticatedUser implements UserDetails {
     private String middleName;
     private String password;
     private String phoneNumber;
-    private String referralCode;
-    private Boolean onboardingCompleted;
-    private String pictureUrl;
+    private int status;
     private List<GrantedAuthority> authorities;
 
-    public AuthenticatedUser(Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, String referralCode, Boolean onboardingCompleted, List<GrantedAuthority> authorities) {
+    public AuthenticatedUser(Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -51,9 +49,8 @@ public class AuthenticatedUser implements UserDetails {
         this.middleName = middleName;
         this.password = password;
         this.phoneNumber = phoneNumber;
-        this.referralCode = referralCode;
-        this.onboardingCompleted = onboardingCompleted;
         this.authorities = authorities;
+        this.status = status;
     }
 
 

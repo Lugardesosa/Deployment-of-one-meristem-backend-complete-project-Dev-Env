@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ContainsEnum {
 
-    String message() default "Pass a valid requirement name";
+    String message() default "Pass a valid enum value";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
     Class<? extends Enum<?>> enumClass();

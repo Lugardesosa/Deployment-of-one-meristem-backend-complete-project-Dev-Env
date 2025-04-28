@@ -23,7 +23,7 @@ import java.util.Objects;
 @Setter
 @Getter
 @Table("roles")
-public class Roles extends BaseModel<String> implements Serializable {
+public class Roles extends BaseModel<String> {
 
     @NotNull
     @Column("name")

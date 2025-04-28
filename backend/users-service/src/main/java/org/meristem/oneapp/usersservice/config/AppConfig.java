@@ -43,10 +43,10 @@ public class AppConfig {
 
     @Bean
     public RedisCacheManagerBuilderCustomizer cacheManagerBuilderCustomizer() {
-        return builder -> {
-            builder.withCacheConfiguration("users", defaultCacheConfiguration())
-                    .withCacheConfiguration("settings", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
-        };
+        return builder -> builder
+
+                .withCacheConfiguration("users", defaultCacheConfiguration())
+                .withCacheConfiguration("settings", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
 
 

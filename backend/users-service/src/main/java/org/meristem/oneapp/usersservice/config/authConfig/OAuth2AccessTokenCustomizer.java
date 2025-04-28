@@ -35,12 +35,11 @@ public class OAuth2AccessTokenCustomizer implements OAuth2TokenCustomizer<JwtEnc
                     claim.put("firstName", users.getFirstName());
                     claim.put("lastName", users.getLastName());
                     claim.put("id", users.getId());
+                    claim.put("phoneNumber", users.getPhoneNumber());
+                    claim.put("status", users.getStatus());
                 } else if (principal instanceof String) {
                     RegisteredClient rc = requireNonNull(registeredClientRepository.findByClientId((String) principal), "Client not found");
-                    String query = "SELECT aud_id FROM audiences LEFT JOIN client_audiences ca on audiences.id = ca.audience_id WHERE ca.client_id = ?";
-                    List<String> aud = jdbcTemplate.queryForList(query, String.class, rc.getId());
                     claim.put("client_id", rc.getClientId());
-                    claim.put("aud", aud);
                     claim.put("scope", rc.getScopes());
                 }
             });

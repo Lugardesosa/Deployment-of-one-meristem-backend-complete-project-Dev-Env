@@ -11,6 +11,7 @@ import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestEx
 import org.meristem.oneapp.usersservice.models.UserOnboarding;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.repositories.*;
+import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,8 @@ public class AsyncEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserSignUpCompletionEvent(UserOnboardingCompletionEvent event) {
 
-        UserProfile profile = UserProfile.builder().userId(event.getUserId()).build();
+        UserProfile profile = UserProfile.builder().userId(event.getUserId()).referralCode(AppUtil.generateReferralCode(event.getFirstName())).build();
+
         profileRepository.save(profile);
         requirementsRepository.findAllByStatus(Status.ACTIVE.getValue())
                 .forEach(rId -> {

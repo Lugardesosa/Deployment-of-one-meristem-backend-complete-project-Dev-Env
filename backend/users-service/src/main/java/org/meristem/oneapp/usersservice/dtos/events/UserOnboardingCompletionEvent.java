@@ -8,9 +8,11 @@ import org.springframework.context.ApplicationEvent;
 public class UserOnboardingCompletionEvent extends ApplicationEvent {
 
     private final Long userId;
+    private final String firstName;
 
-    public UserOnboardingCompletionEvent(Object source, Long userId) {
+    public UserOnboardingCompletionEvent(Object source, Long userId, String firstName) {
         super(source);
         this.userId = userId;
+        this.firstName = firstName;
     }
 }

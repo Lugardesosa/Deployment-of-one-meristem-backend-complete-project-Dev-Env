@@ -1,13 +1,16 @@
 package org.meristem.oneapp.usersservice.models;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -27,8 +30,23 @@ public class UserProfile extends BaseModel<String> {
     private Long userId;
 
     @Size(max = 500, min = 5, message = "Not more than 500 and less than 5")
-    private String pictureUrl;
+    private String avatarUrl;
 
+    @Size(max = 200, message = "Cannot be larger than 200")
+    @NotBlank(message = "cannot be null")
+    private String pin;
+
+    private LocalDate dateOfBirth;
+
+    private String gender;
+
+    @NotBlank(message = "Cannot be empty")
+    @Size(max = 15, min = 1, message = "Not more than 50 and less than 1")
+    private String referralCode;
+
+    @Column("onboarding_completed")
+    @NotNull(message = "onboardingCompleted cannot be null")
+    private Boolean onboardingCompleted = Boolean.FALSE;
 
     /**
      * Constructs a new UserOnboarding instance.
@@ -40,14 +58,19 @@ public class UserProfile extends BaseModel<String> {
      * @param lastModifiedBy the user who last modified the entity
      * @param version the version of the entity
      * @param userId the ID of the user
-     * @param pictureUrl the users profile picture
+     * @param avatarUrl the users profile picture
      */
     @Builder
     public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
-                       Integer version, Long userId, String pictureUrl) {
+                       Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
-        this.pictureUrl = pictureUrl;
+        this.avatarUrl = avatarUrl;
+        this.pin = pin;
+        this.dateOfBirth = dateOfBirth;
+        this.gender = gender;
+        this.referralCode = referralCode;
+        this.onboardingCompleted = Boolean.FALSE;
     }
 
     /**

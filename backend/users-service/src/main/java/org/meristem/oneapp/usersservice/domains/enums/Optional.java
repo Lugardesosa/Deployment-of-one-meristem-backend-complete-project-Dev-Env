@@ -11,5 +11,5 @@ public enum Optional {
     OPTIONAL(0),
     MANDATORY(1);
 
-    private final Integer value;
+    private final int value;
 }
