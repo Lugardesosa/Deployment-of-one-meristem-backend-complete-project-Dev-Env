@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.config;
 
+import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -13,6 +14,6 @@ public class AuditingConfig {
 
     @Bean
     public AuditorAware<String> auditorProvider() {
-        return () -> Optional.of(System.getenv("USER"));
+        return () -> Optional.of(AppUtil.getLoggedInSubject());
     }
 }

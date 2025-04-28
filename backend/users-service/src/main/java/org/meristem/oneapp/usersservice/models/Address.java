@@ -28,18 +28,18 @@ public class Address extends BaseModel<String> {
 
     @NotBlank(message = "Cannot be blank")
     @Size(max = 10, message = "Not more than 10 chars")
-    private String postalCode;
+    private String landmark;
 
     @NotNull(message = "Cannot be null")
     private Long userId;
 
     @Builder
     public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                   String houseAddress, String city, String postalCode, Long userId) {
+                   String houseAddress, String city, String landmark, Long userId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.houseAddress = houseAddress;
         this.city = city;
-        this.postalCode = postalCode;
+        this.landmark = landmark;
         this.userId = userId;
     }
 

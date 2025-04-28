@@ -31,4 +31,13 @@ public enum OtpType {
         }
         return null;
     }
+
+    public static OtpType valueOf(int code) {
+        for (OtpType messageSubject : OtpType.values()) {
+            if (messageSubject.getCode() == code) {
+                return messageSubject;
+            }
+        }
+        return null;
+    }
 }
