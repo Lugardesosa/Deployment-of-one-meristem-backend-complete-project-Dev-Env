@@ -4,15 +4,23 @@ package org.meristem.oneapp.usersservice.exceptionHandler;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.ErrorResponse;
@@ -41,44 +49,44 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorDetails> handleBadRequestException(BadRequestException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, List.of());
+        return handleExceptionInternal(ex.getMessage(), HttpStatus.BAD_REQUEST, request, List.of());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<ErrorDetails> handleUserNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePassed() + " with '" + ex.getResourceName() + "' not found"));
+    protected ResponseEntity<ErrorDetails> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+        return handleExceptionInternal(ex.getMessage(), HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePassed() + " with '" + ex.getResourceName() + "' not found"));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     protected ResponseEntity<ErrorDetails> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.METHOD_NOT_ALLOWED, request, List.of(ex.getMethod() + " is not allowed", "Supported methods are: " + Arrays.toString(ex.getSupportedMethods())));
+        return handleExceptionInternal(ErrorMessages.METHOD_NOT_SUPPORTED, HttpStatus.METHOD_NOT_ALLOWED, request, List.of(ex.getMethod() + " is not allowed", "Supported methods are: " + Arrays.toString(ex.getSupportedMethods())));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     protected ResponseEntity<ErrorDetails> handleNoResourceFoundException(NoResourceFoundException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePath() + " is not found"));
+        return handleExceptionInternal(ErrorMessages.NO_RESOURCE_FOUND, HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePath() + " is not found"));
     }
 
     @ExceptionHandler({HttpMediaTypeNotSupportedException.class})
     protected ResponseEntity<ErrorDetails> handlerMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.UNSUPPORTED_MEDIA_TYPE, request, List.of(ex.getContentType() + " is not supported",
+        return handleExceptionInternal(ErrorMessages.MEDIA_TYPES_NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE, request, List.of(ex.getContentType() + " is not supported",
                 "Supported MediaTypes: " + ex.getSupportedMediaTypes()));
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     protected ResponseEntity<ErrorDetails> handleMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException ex,  HttpStatus status, WebRequest request) {
-        return handleExceptionInternal(ex, status, request, List.of());
+        return handleExceptionInternal(ErrorMessages.MEDIA_TYPES_NOT_ACCEPTABLE, status, request, List.of());
 
     }
 
     @ExceptionHandler(MissingPathVariableException.class)
     protected ResponseEntity<ErrorDetails> handleMissingPathVariableException(MissingPathVariableException ex,  HttpStatus status, WebRequest request) {
-        return handleExceptionInternal(ex, status, request, List.of(ex.getVariableName() + "is missing"));
+        return handleExceptionInternal(ErrorMessages.MISSING_PATH_VARIABLE, status, request, List.of(ex.getVariableName() + "is missing"));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     protected ResponseEntity<ErrorDetails> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, List.of("Max upload size " + ex.getMaxUploadSize() + ", exceeded"));
+        return handleExceptionInternal(ErrorMessages.MAX_UPLOAD_SIZE_EXCEEDED, HttpStatus.BAD_REQUEST, request, List.of("Max upload size " + ex.getMaxUploadSize() + ", exceeded"));
     }
 
     @ExceptionHandler(TypeMismatchException.class)
@@ -88,7 +96,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         String defaultDetail = "Failed to convert '" + args[0] + "' with value: '" + args[1] + "'";
         String messageCode = ErrorResponse.getDefaultDetailMessageCode(TypeMismatchException.class, null);
         ProblemDetail body = createProblemDetail(ex, defaultDetail, messageCode, args, request);
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, List.of(defaultDetail, messageCode, body.toString()));
+        return handleExceptionInternal("Type Mismatch", HttpStatus.BAD_REQUEST, request, List.of(defaultDetail, messageCode, body.toString()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -101,7 +109,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
             errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
         }
 
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, errors);
+        return handleExceptionInternal("Method Argument Not Valid", HttpStatus.BAD_REQUEST, request, errors);
     }
 
 
@@ -109,7 +117,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     protected ResponseEntity<ErrorDetails> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, WebRequest request) {
         List<String> errors = List.of(ex.getParameterName() + " parameter is missing");
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, errors);
+        return handleExceptionInternal("Missing Servlet Request Parameter", HttpStatus.BAD_REQUEST, request, errors);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -120,45 +128,43 @@ public class GlobalControllerAdvice implements MessageSourceAware {
                     violation.getPropertyPath() + ": " + violation.getMessage());
         }
 
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, errors);
+        return handleExceptionInternal("Entered wrong values", HttpStatus.BAD_REQUEST, request, errors);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     protected ResponseEntity<ErrorDetails> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex, WebRequest request) {
 
         List<String> errors = List.of(ex.getName() + " should be of type " + Objects.requireNonNull(ex.getRequiredType()).getName());
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, errors);
+        return handleExceptionInternal("Entered the wrong type", HttpStatus.BAD_REQUEST, request, errors);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     protected ResponseEntity<ErrorDetails> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
-        return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, List.of("There is error in the request body"));
+        return handleExceptionInternal("Invalid request", HttpStatus.BAD_REQUEST, request, List.of("There is error in the request body"));
     }
 
 
-    @ExceptionHandler(Exception.class)
-    protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
-        // TODO: DELETE THE LOG STATEMENT
-        log.error(ex.getMessage(), ex);
-        String errorMessage = """
-                An error occurred while processing the request:
-                Kindly send a mail to help@oneapp.com.
-                """;
-        return handleExceptionInternal(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
-    }
-
-    private ResponseEntity<ErrorDetails> handleExceptionInternal(Exception ex, HttpStatus status, WebRequest request, List<String> errors) {
-
-        int exceptionMessageLength = ex.getLocalizedMessage().length();
-        ErrorDetails apiError =
-                new ErrorDetails(LocalDateTime.now(), (ex.getLocalizedMessage().substring(0, Integer.min(exceptionMessageLength, 47)) + "..."), request.getDescription(false), errors);
-        return new ResponseEntity<>(apiError, status);
-    }
+//    @ExceptionHandler(Exception.class)
+//    protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
+//        // TODO: DELETE THE LOG STATEMENT
+////        log.error(ex.getMessage(), ex);
+//        String errorMessage = """
+//                An error occurred while processing the request:
+//                Kindly send a mail to help@oneapp.com.
+//                """;
+//        return handleExceptionInternal(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
+//    }
 
     private ResponseEntity<ErrorDetails> handleExceptionInternal(String ex, HttpStatus status, WebRequest request, List<String> errors) {
         ErrorDetails apiError =
                 new ErrorDetails(LocalDateTime.now(), ex + "...", request.getDescription(false), errors);
         return new ResponseEntity<>(apiError, status);
+    }
+
+    private ProblemDetail createProblemDetail(Exception ex, WebRequest request, HttpStatus status, Map<String, Object> properties) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+        detail.setProperties(properties);
+        return detail;
     }
 
     private ProblemDetail createProblemDetail(
@@ -176,7 +182,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     }
 
     @Override
-    public void setMessageSource(MessageSource messageSource) {
+    public void setMessageSource(@NonNull MessageSource messageSource) {
         this.messageSource = messageSource;
     }
 }
