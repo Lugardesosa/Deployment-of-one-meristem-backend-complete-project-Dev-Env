@@ -43,7 +43,6 @@ logging:
   logback:
     rollingpolicy:
       file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
-
   # TODO: delete when going live
 #  level:
 #    org.springframework.web: debug

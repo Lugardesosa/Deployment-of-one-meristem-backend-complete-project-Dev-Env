@@ -6,6 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,9 +20,19 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Configuration
 public class AppConfig {
+
+    @Value("${one-app.server-url:http://localhost:20010/}")
+    private String serverUrl;
+
+    @Value("${one-app.email}")
+    private String email;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -50,9 +65,14 @@ public class AppConfig {
     }
 
 
-    // TODO: FIX UP
-    //    @Bean
-//    public OpenAPI apiDoclet() {
-//        return new OpenAPI();
-//    }
+    @Bean
+    public OpenAPI apiDoclet() {
+        Server server = new Server();
+        server.setUrl(serverUrl.concat(contextPath));
+        server.description("API Documentation");
+
+        Contact contact = new Contact().url(serverUrl).email(email).name("One App");
+        Info info = new Info().title("One App").version("1.0").contact(contact).description("This API exposes endpoints to manage users.");
+        return new OpenAPI().info(info).servers(List.of(server));
+    }
 }

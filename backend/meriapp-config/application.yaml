@@ -46,6 +46,10 @@ rsa:
   private-key: classpath:keys/private.pem
   public-key: classpath:keys/public.pem
 
+one-app:
+  server-url: ${ONE_APP_SERVER_URL}
+  email: ${ONE_APP_EMAIL}
+
 logging:
   file:
     max-size: 2MB
