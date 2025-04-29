@@ -49,6 +49,8 @@ rsa:
 one-app:
   server-url: ${ONE_APP_SERVER_URL}
   email: ${ONE_APP_EMAIL}
+  server-version: 1.0
+  server-app-name: "One App"
 
 logging:
   file:
