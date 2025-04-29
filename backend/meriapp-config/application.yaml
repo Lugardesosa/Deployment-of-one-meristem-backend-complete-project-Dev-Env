@@ -51,6 +51,8 @@ one-app:
   email: ${ONE_APP_EMAIL}
   server-version: 1.0
   server-app-name: "One App"
+  users-service:
+    context-path: /api/users
 
 logging:
   file:

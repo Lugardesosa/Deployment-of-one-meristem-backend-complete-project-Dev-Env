@@ -1,4 +1,4 @@
 server:
   port: 20020
   servlet:
-    context-path: /api/users
+    context-path: ${one-app.users-service.context-path}

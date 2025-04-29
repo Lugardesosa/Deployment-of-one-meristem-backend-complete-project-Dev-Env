@@ -42,7 +42,7 @@ public class AppConfig {
     @Value("${one-app.email}")
     private String email;
 
-    @Value("${server.servlet.context-path}")
+    @Value("${one-app.users-service.context-path}")
     private String contextPath;
 
     @Bean
@@ -93,7 +93,7 @@ public class AppConfig {
                     .scheme("bearer")
                     .bearerFormat("JWT")
                     .description("This API uses OAuth 2 with the implicit grant flow.")
-                    .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat("/api/users/oauth2/token"))))
+                    .flows(new OAuthFlows().clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat("/api/users/oauth2/token"))))
                 )
             ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
     }
