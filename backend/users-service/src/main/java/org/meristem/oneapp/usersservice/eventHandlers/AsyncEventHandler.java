@@ -33,15 +33,20 @@ public class AsyncEventHandler {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserSignUpCompletionEvent(UserOnboardingCompletionEvent event) {
 
-        UserProfile profile = UserProfile.builder().userId(event.getUserId()).referralCode(AppUtil.generateReferralCode(event.getFirstName())).build();
+        try {
 
-        profileRepository.save(profile);
-        requirementsRepository.findAllByStatus(Status.ACTIVE.getValue())
-                .forEach(rId -> {
-                    UserOnboarding userOnboarding = UserOnboarding.builder()
-                            .completed(false).userId(event.getUserId()).requirementId(rId).build();
-                    userOnboardingRepository.save(userOnboarding);
-                });
-        usersRepository.saveRole(event.getUserId(), rolesRepository.findIdByName(Roles.USER.getName()));
+            UserProfile profile = UserProfile.builder().userId(event.getUserId()).referralCode(AppUtil.generateReferralCode(event.getFirstName())).build();
+
+            profileRepository.save(profile);
+            requirementsRepository.findAllByStatus(Status.ACTIVE.getValue())
+                    .forEach(rId -> {
+                        UserOnboarding userOnboarding = UserOnboarding.builder()
+                                .completed(false).userId(event.getUserId()).requirementId(rId).build();
+                        userOnboardingRepository.save(userOnboarding);
+                    });
+            usersRepository.saveRole(event.getUserId(), rolesRepository.findIdByName(Roles.USER.getName()));
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+        }
     }
 }

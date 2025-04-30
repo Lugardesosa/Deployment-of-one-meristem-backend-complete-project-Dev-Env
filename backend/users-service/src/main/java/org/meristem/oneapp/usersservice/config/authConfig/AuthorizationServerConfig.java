@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
 
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -10,6 +11,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -25,12 +27,14 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
@@ -40,6 +44,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -48,6 +54,12 @@ import java.util.UUID;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class AuthorizationServerConfig {
+
+    @Value("${one-app.server-url:http://localhost:20010/}")
+    private String serverUrl;
+
+    @Value("${one-app.users-service.context-path}")
+    private String usersServiceContextPath;
 
     private final ObjectMapper mapper;
     private final CustomUserDetailsService userDetailsService;
@@ -134,12 +146,25 @@ public class AuthorizationServerConfig {
 
     @Bean
     AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().build();
+        return AuthorizationServerSettings.builder().issuer(serverUrl.concat(usersServiceContextPath)).build();
     }
 
     @Bean
     JdbcOAuth2AuthorizationService oAuth2AuthorizationService() {
-        return new JdbcOAuth2AuthorizationService(jdbcOperations, clientRepository());
+        var jdbcOAuth2AuthorizationService = new JdbcOAuth2AuthorizationService(jdbcOperations, clientRepository());
+
+        JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper rowMapper = new JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper(clientRepository());
+        ObjectMapper mapper1 = new ObjectMapper();
+        ClassLoader classLoader = JdbcOAuth2AuthorizationService.class.getClassLoader();
+        List<Module> securityModule = SecurityJackson2Modules.getModules(classLoader);
+        mapper1.registerModules(securityModule);
+        mapper1.registerModule(new OAuth2AuthorizationServerJackson2Module());
+
+        mapper1.addMixIn(Long.class, LongMixin.class);
+
+        rowMapper.setObjectMapper(mapper1);
+        jdbcOAuth2AuthorizationService.setAuthorizationRowMapper(rowMapper);
+        return jdbcOAuth2AuthorizationService;
     }
 
     @Bean
@@ -159,7 +184,7 @@ public class AuthorizationServerConfig {
 //                .scopes(e -> e.addAll(List.of("user.read", "user.write")))
 //                .scope(OidcScopes.PROFILE)
 //                .scope(OidcScopes.EMAIL)
-//                .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofHours(16))
+//                .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(15))
 //                        .reuseRefreshTokens(false).accessTokenTimeToLive(Duration.ofMinutes(5)).build())
 //                .build();
 //        RegisteredClient users = RegisteredClient
@@ -171,7 +196,7 @@ public class AuthorizationServerConfig {
 //                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
 //                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 //                .scope(OidcScopes.OPENID)
-//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(5)).build())
+//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
 //                .build();
 //        RegisteredClient notifications = RegisteredClient
 //                .withId(UUID.randomUUID().toString())
@@ -184,7 +209,7 @@ public class AuthorizationServerConfig {
 //                .scope(OidcScopes.OPENID)
 //                .scope(OidcScopes.PROFILE)
 //                .scope(OidcScopes.EMAIL)
-//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(5)).build())
+//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
 //                .build();
 
         JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
