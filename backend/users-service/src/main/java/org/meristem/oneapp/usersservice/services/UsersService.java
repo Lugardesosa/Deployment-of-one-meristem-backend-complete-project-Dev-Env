@@ -12,7 +12,6 @@ import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.domains.enums.OtpType;
-import org.meristem.oneapp.usersservice.domains.enums.Status;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.events.UserOnboardingCompletionEvent;
@@ -38,7 +37,6 @@ import static java.util.Objects.requireNonNull;
 @RequiredArgsConstructor
 public class UsersService {
 
-    private final ObjectMapper objectMapper;
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
     private final OtpVerificationRepository otpVerificationRepository;
@@ -69,7 +67,7 @@ public class UsersService {
     }
 
     public UsersResponse getUser() {
-        return usersRepository.findUserDetailsByEmailAndStatus(AppUtil.getLoggedInSubject(), Status.ACTIVE.getValue());
+        return usersRepository.findUserDetailsByEmail(AppUtil.getLoggedInSubject()).orElseThrow(() -> new BadRequestException("User not found."));
     }
 
     @Transactional
@@ -87,7 +85,7 @@ public class UsersService {
         }
 
         // Update the password and expire otp
-        usersRepository.updateUsersPassword(passwordEncoder.encode(request.password()), request.recipient());
+        usersRepository.updateUsersPassword(usersResponse.email(), passwordEncoder.encode(request.password()));
         otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), OtpType.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
@@ -110,7 +108,7 @@ public class UsersService {
         }
 
         // Update password and return
-        usersRepository.updateUsersPassword(passwordEncoder.encode(request.password()), userEmail);
+        usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.password()));
         return UpdatePasswordResponse.builder().success(true).message("Password successfully updated.").build();
     }
 

@@ -10,7 +10,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum Status {
+public enum EntityStatus {
 
     /**
      * Represents an <strong>inactive/false/not approved</strong> status with a value of 0.

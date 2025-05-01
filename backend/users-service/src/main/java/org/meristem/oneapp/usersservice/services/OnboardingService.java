@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.IdCardType;
 import org.meristem.oneapp.usersservice.domains.enums.Requirements;
-import org.meristem.oneapp.usersservice.domains.enums.Status;
+import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
 import org.meristem.oneapp.usersservice.domains.requests.AddressOnboardRequest;
 import org.meristem.oneapp.usersservice.domains.requests.ProcessAddressRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SubmitOnboardingRequest;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
@@ -66,7 +65,7 @@ public class OnboardingService {
         String message = null;
         long userId = requireNonNull(AppUtil.getLoggedInUserId(), "User not logged in");
 
-        org.meristem.oneapp.usersservice.models.Requirements requirements = requirementsRepository.findByIdAndStatus(request.requirementId(), Status.ACTIVE.getValue())
+        org.meristem.oneapp.usersservice.models.Requirements requirements = requirementsRepository.findByIdAndStatus(request.requirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
         // Ensure document url is passed for non bvn verification
@@ -96,12 +95,12 @@ public class OnboardingService {
             Address address = addressRepository.findByUserId(userId).orElse(Address.builder().city(request.addressRequest().city())
                     .landmark(request.addressRequest().landmark())
                     .houseAddress(request.addressRequest().houseAddress())
-                    .userId(userId).approved(Status.INACTIVE.getValue())
-                    .processing(Status.INACTIVE.getValue())
+                    .userId(userId).approved(EntityStatus.INACTIVE.getValue())
+                    .processing(EntityStatus.INACTIVE.getValue())
                     .build());
 
             // Users should not be able to change their address if it is being processed (that is address is being validated
-            if (address.getProcessing().equals(Status.ACTIVE.getValue())) {
+            if (address.getProcessing().equals(EntityStatus.ACTIVE.getValue())) {
                 throw new BadRequestException("User has already submitted address");
             }
 
@@ -163,7 +162,7 @@ public class OnboardingService {
      * @return a list of user onboarding responses
      */
     public List<UserOnboardingResponse> getOnboardingDetails() {
-        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), Status.ACTIVE.getValue());
+        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue());
     }
 
 
@@ -182,11 +181,11 @@ public class OnboardingService {
     public AddressOnboardingResponse approveAddress(AddressOnboardRequest request) {
 
         Address address = addressRepository.findByUserId(request.userId()).orElseThrow(() -> new BadRequestException("Address not found"));
-        if (Status.INACTIVE.getValue().equals(address.getProcessing())) {
+        if (EntityStatus.INACTIVE.getValue().equals(address.getProcessing())) {
             throw new BadRequestException("Mark address for processing first");
         }
         if (request.approve()) {
-            address.setApproved(Status.ACTIVE.getValue());
+            address.setApproved(EntityStatus.ACTIVE.getValue());
             addressRepository.save(address);
             userOnboardingRepository.completeUserOnboarding(request.userId(), request.requirementId());
             if (userOnboardingRepository.allRequirementsSubmitted(request.userId())) {
@@ -194,8 +193,8 @@ public class OnboardingService {
             }
             return new AddressOnboardingResponse(true);
         } else {
-            address.setApproved(Status.INACTIVE.getValue());
-            address.setProcessing(Status.INACTIVE.getValue());
+            address.setApproved(EntityStatus.INACTIVE.getValue());
+            address.setProcessing(EntityStatus.INACTIVE.getValue());
             addressRepository.save(address);
             // TODO: NOTIFY THE USER ABOUT IT
             return new AddressOnboardingResponse(false);

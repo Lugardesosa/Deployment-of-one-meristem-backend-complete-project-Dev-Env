@@ -1,13 +1,8 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,8 +35,9 @@ public class AuthenticatedUser implements UserDetails {
     private String phoneNumber;
     private int status;
     private List<GrantedAuthority> authorities;
+    private int passwordAttempt;
 
-    public AuthenticatedUser(Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status) {
+    public AuthenticatedUser(Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status, int passwordAttempt) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -51,6 +47,7 @@ public class AuthenticatedUser implements UserDetails {
         this.phoneNumber = phoneNumber;
         this.authorities = authorities;
         this.status = status;
+        this.passwordAttempt = passwordAttempt;
     }
 
 

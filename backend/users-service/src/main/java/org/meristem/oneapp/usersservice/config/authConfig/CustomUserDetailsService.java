@@ -1,7 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
 import lombok.RequiredArgsConstructor;
-import org.meristem.oneapp.usersservice.domains.enums.Status;
+import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Roles;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -29,11 +29,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        Users user = usersRepository.findByEmailAndStatus(email, Status.ACTIVE.getValue()).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
-        List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.getId());
+        UsersResponse user = usersRepository.findUserDetailsByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
+        List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.id());
         List<String> rolesPermissions = permissionsRepository.findAllByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getMiddleName(), user.getPassword(), user.getPhoneNumber(), authorities, user.getStatus());
+        return new AuthenticatedUser(user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt());
     }
 }

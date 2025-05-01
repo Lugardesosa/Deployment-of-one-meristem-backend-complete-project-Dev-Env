@@ -6,7 +6,9 @@ import lombok.experimental.UtilityClass;
 public final class ErrorMessages {
 
     public static final String INVALID_USERNAME = "Invalid username";
-    public static final String INVALID_PASSWORD = "Invalid password";
+    public static final String INVALID_PASSWORD = "Invalid password. %d attempts remaining";
+    public static final String ACCOUNT_LOCKED = "Account is locked, kindly use the reset password link to reset your password";
+    public static final String ACCOUNT_DEACTIVATED = "Account is deactivated, kindly reactivate your account.";
     public static final String TOKEN_COULD_NOT_BE_GENERATED = "Token could not be generated";
     public static final String REFRESH_TOKEN_COULD_NOT_BE_GENERATED = "Refresh token could not be generated";
     public static final String METHOD_NOT_SUPPORTED = "Http Request Method Not Supported";

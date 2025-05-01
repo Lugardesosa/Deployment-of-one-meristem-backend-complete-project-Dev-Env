@@ -1,6 +1,10 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
+import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.ErrorMessages;
+import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
+import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,11 +27,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.security.Principal;
-import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Objects.isNull;
 
+@Slf4j
 @Component
 public class CustomCodeGrantAuthenticationProvider implements AuthenticationProvider {
 
@@ -36,15 +40,17 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final UsersRepository usersRepository;
 
     public CustomCodeGrantAuthenticationProvider(JdbcOAuth2AuthorizationService authorizationService, OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
-                                                 CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+                                                 CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, UsersRepository usersRepository) {
         Assert.notNull(authorizationService, "oAuth2AuthorizationService must not be null");
         Assert.notNull(tokenGenerator, "oAuth2TokenGenerator must not be null");
         this.authorizationService = authorizationService;
         this.tokenGenerator = tokenGenerator;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.usersRepository = usersRepository;
     }
 
     @Override
@@ -63,8 +69,24 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_USERNAME, null));
         }
 
+        if (user.getStatus() == UserStatus.LOCKED.getValue()) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.ACCOUNT_LOCKED, null));
+        }
+
+        if (user.getStatus() == UserStatus.DEACTIVATED.getValue()) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.ACCOUNT_DEACTIVATED, null));
+        }
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_PASSWORD, null));
+            usersRepository.incrementPasswordAttempt(user.getEmail());
+
+            if (user.getPasswordAttempt() + 1 == AppConstants.PASSWORD_ATTEMPTS) {
+                usersRepository.updateStatus( user.getEmail(), UserStatus.LOCKED.getValue());
+            }
+
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
+                    String.format(ErrorMessages.INVALID_PASSWORD, (AppConstants.PASSWORD_ATTEMPTS - (user.getPasswordAttempt() + 1))),
+                    null));
         }
         if (registeredClient == null || !registeredClient.getAuthorizationGrantTypes().contains(token.getGrantType())) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);

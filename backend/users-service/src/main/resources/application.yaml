@@ -6,7 +6,7 @@ spring:
   cloud:
     config:
       label: ${GITHUB_BRANCH}
-      profile: local
+      profile: ${GITHUB_PROFILE}
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
       request-connect-timeout: 10

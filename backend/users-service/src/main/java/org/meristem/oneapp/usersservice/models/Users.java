@@ -4,15 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -49,6 +44,9 @@ public class Users extends BaseModel<String> {
     @NotBlank(message = "phoneNumber cannot be null")
     private String phoneNumber;
 
+    @NotNull(message = "passwordAttempt cannot be null")
+    private Integer passwordAttempt;
+
     /**
      * Constructs a new Users instance.
      *
@@ -64,7 +62,6 @@ public class Users extends BaseModel<String> {
      * @param middleName the middle name of the user
      * @param password the password of the user
      * @param phoneNumber the phone number of the user
-     * @param referralCode the referral code of the user
      */
     @Builder
     public Users(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String email,
@@ -76,6 +73,7 @@ public class Users extends BaseModel<String> {
         this.middleName = middleName;
         this.password = password;
         this.phoneNumber = phoneNumber;
+        this.passwordAttempt = 0;
     }
 
     /**
@@ -102,10 +100,5 @@ public class Users extends BaseModel<String> {
         int hash = 7;
         hash = 31 * hash + Objects.hashCode(getEmail());
         return hash;
-    }
-
-    @TimeToLive(unit = TimeUnit.HOURS)
-    public long getTimeToLive() {
-        return 5L;
     }
 }

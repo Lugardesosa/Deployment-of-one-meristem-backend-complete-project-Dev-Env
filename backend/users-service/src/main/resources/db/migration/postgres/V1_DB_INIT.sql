@@ -110,6 +110,7 @@ CREATE TABLE users
     middle_name          VARCHAR(150),
     password             VARCHAR(200)                            NOT NULL,
     phone_number         VARCHAR(50)                             NOT NULL,
+    password_attempt     INT DEFAULT 0                           NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY (id)
 );
 

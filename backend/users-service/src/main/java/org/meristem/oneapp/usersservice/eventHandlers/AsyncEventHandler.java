@@ -1,22 +1,32 @@
 package org.meristem.oneapp.usersservice.eventHandlers;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.domains.enums.OtpType;
 import org.meristem.oneapp.usersservice.domains.enums.Roles;
-import org.meristem.oneapp.usersservice.domains.enums.Status;
+import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
+import org.meristem.oneapp.usersservice.dtos.events.RequestAndResponseLogEvent;
 import org.meristem.oneapp.usersservice.dtos.events.UserOnboardingCompletionEvent;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.UserOnboarding;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -38,7 +48,7 @@ public class AsyncEventHandler {
             UserProfile profile = UserProfile.builder().userId(event.getUserId()).referralCode(AppUtil.generateReferralCode(event.getFirstName())).build();
 
             profileRepository.save(profile);
-            requirementsRepository.findAllByStatus(Status.ACTIVE.getValue())
+            requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
                     .forEach(rId -> {
                         UserOnboarding userOnboarding = UserOnboarding.builder()
                                 .completed(false).userId(event.getUserId()).requirementId(rId).build();

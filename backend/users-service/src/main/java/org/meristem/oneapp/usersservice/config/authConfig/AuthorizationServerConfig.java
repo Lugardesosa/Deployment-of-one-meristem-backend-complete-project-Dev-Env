@@ -11,6 +11,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
+import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,7 +46,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,6 +68,7 @@ public class AuthorizationServerConfig {
     private final JdbcOperations jdbcOperations;
     private final RsaKeys rsaKeys;
     private final CustomJwtConverter customJwtConverter;
+    private final UsersRepository usersRepository;
 
     @Order(1)
     @Bean
@@ -77,7 +79,7 @@ public class AuthorizationServerConfig {
                         cfgr.oidc(Customizer.withDefaults())
                                 .tokenEndpoint(te -> te.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
                                         .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(),
-                                                tokenGenerator(), userDetailsService, passwordEncoder())
+                                                tokenGenerator(), userDetailsService, passwordEncoder(), usersRepository)
                                         )
                                 )
                 );
@@ -91,7 +93,7 @@ public class AuthorizationServerConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/oauth/token", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**")
-                        .permitAll().requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "base/password-reset").permitAll().anyRequest().authenticated())
+                        .permitAll().requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "/base/password-reset").permitAll().anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> {
                     oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtConverter));
                     oauth2.authenticationEntryPoint(new RestAuthenticationEntryPoint(mapper));
@@ -111,6 +113,14 @@ public class AuthorizationServerConfig {
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
         return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator, refreshTokenGenerator);
+    }
+
+    @Bean
+    DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        return daoAuthenticationProvider;
     }
 
     @Bean

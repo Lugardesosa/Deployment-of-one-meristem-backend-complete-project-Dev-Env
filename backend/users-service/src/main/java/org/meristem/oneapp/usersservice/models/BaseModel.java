@@ -4,7 +4,7 @@ package org.meristem.oneapp.usersservice.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.meristem.oneapp.usersservice.domains.enums.Status;
+import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
 import org.springframework.data.annotation.*;
 
 import java.io.Serializable;
@@ -56,6 +56,6 @@ public class BaseModel<U> implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
         this.lastModifiedBy = lastModifiedBy;
         this.version = version;
-        this.status = Status.ACTIVE.getValue();
+        this.status = EntityStatus.ACTIVE.getValue();
     }
 }
