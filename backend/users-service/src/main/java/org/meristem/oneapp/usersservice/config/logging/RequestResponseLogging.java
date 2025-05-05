@@ -57,7 +57,7 @@ public class RequestResponseLogging extends OncePerRequestFilter {
             headers.put(headerName, requestWrapper.getHeader(headerName));
         }
         applicationEventPublisher.publishEvent(new RequestAndResponseLogEvent(this, requestBody, responseBody, endTime - startTime, requestWrapper.getRequestURI(),
-                requestWrapper.getMethod(), requestWrapper.getParameterMap(), headers));
+                requestWrapper.getMethod(), requestWrapper.getParameterMap(), headers, responseWrapper.getStatus()));
 
         responseWrapper.copyBodyToResponse();
     }

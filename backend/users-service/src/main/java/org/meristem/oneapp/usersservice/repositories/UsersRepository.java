@@ -27,7 +27,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     void saveRole(Long users_id, Long rolesId);
 
     // TODO: INCREASE up COLUMNS AS THE TABLE INCREASES
-    @Cacheable(value = "users", key = "#a0")
+    @Cacheable(value = "users", key = "#a0", unless = "#result == null")
     @Query("SELECT u.*, up.avatar_url, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email ")
     Optional<UsersResponse> findUserDetailsByEmail(String email);
 

@@ -5,6 +5,6 @@ spring:
         - id: user-service
           uri: ${USER_SERVICE_URI}
           predicates:
-            - Path=/api/users/**
+            - Path=${one-app.users-service.context-path}/**
 #          filters:
 #            - PrefixPath=/api

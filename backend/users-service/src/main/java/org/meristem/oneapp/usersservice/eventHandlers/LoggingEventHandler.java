@@ -19,10 +19,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class LoggingEventHandler {
 
+    public static final String REDACTED = "[REDACTED]";
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> parametersToSkip = List.of("password", "pin");
+    private final List<String> parametersToSanitize = List.of("password", "pin");
 
     private final ObjectMapper objectMapper;
 
@@ -37,16 +38,10 @@ public class LoggingEventHandler {
         HashMap<String, Object> bodyRequest = objectMapper.readValue(requestMap, new TypeReference<>() {});
         HashMap<String, Object> bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {});
 
-        if (event.getRequestURI().startsWith(contextPath.concat("/oauth2/token"))) {
-            bodyResponse.replace("access_token", "[REDACTED]");
-            bodyResponse.replace("refresh_token", "[REDACTED]");
-        }
+        sanitize(event, bodyResponse, bodyRequest);
 
-        if (event.getRequestURI().startsWith(contextPath.concat("/base")) && event.getMethod().equals("POST")) {
-            bodyRequest.replace("password", "[REDACTED]");
-        }
-
-        log.info("{\"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
+        log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
+                event.getStatus(),
                 event.getMethod(),
                 event.getRequestURI(),
                 getRequestHeaders(event.getHeaders()),
@@ -55,6 +50,21 @@ public class LoggingEventHandler {
                 event.getDuration(),
                 getRequestParameters(event.getParameters())
         );
+    }
+
+    private void sanitize(RequestAndResponseLogEvent event, HashMap<String, Object> bodyResponse, HashMap<String, Object> bodyRequest) {
+        if (event.getRequestURI().startsWith(contextPath.concat("/oauth2/token"))) {
+            bodyResponse.replace("access_token", REDACTED);
+            bodyResponse.replace("refresh_token", REDACTED);
+        }
+
+        if (event.getRequestURI().startsWith(contextPath.concat("/base")) && event.getMethod().equals("POST")) {
+            bodyRequest.replace("password", REDACTED);
+        }
+
+        if (event.getRequestURI().startsWith(contextPath.concat("/base/pin-update"))) {
+            bodyRequest.replace("pin", REDACTED);
+        }
     }
 
     private String getRequestHeaders(Map<String, String> requestHeaders) {
@@ -76,8 +86,8 @@ public class LoggingEventHandler {
         parameters.append("{");
 
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            if (parametersToSkip.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
-                parameters.append("\"").append(entry.getKey()).append("\": ").append("\"").append("[REDACTED]").append("\",");
+            if (parametersToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
+                parameters.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
                 continue;
             }
             parameters.append("\"").append(entry.getKey()).append("\": ").append("\"").append(Arrays.toString(entry.getValue())).append("\",");

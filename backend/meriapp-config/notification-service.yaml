@@ -11,3 +11,10 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+
+
+server:
+  port: 20030
+  servlet:
+    context-path: ${one-app.notification-service.context-path}
+

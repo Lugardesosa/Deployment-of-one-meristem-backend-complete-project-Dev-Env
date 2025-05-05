@@ -53,6 +53,9 @@ one-app:
   server-app-name: "One App"
   users-service:
     context-path: /api/users
+  notification-service:
+    context-path: /api/notification
+
 
 logging:
   file:

@@ -15,9 +15,10 @@ public class RequestAndResponseLogEvent extends ApplicationEvent {
     private final String method;
     private final Map<String, String[]> parameters;
     private final Map<String, String> headers;
+    private final int status;
 
 
-    public RequestAndResponseLogEvent(Object source, byte[] requestBody, byte[] responseBody, Long duration, String requestURI, String method, Map<String, String[]> parameters, Map<String, String> headers) {
+    public RequestAndResponseLogEvent(Object source, byte[] requestBody, byte[] responseBody, Long duration, String requestURI, String method, Map<String, String[]> parameters, Map<String, String> headers, int status) {
         super(source);
         this.requestBody = requestBody;
         this.responseBody = responseBody;
@@ -26,5 +27,6 @@ public class RequestAndResponseLogEvent extends ApplicationEvent {
         this.method = method;
         this.parameters = parameters;
         this.headers = headers;
+        this.status = status;
     }
 }
