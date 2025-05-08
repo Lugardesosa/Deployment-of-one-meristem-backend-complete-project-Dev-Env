@@ -216,6 +216,15 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
 
+  consul:
+    container_name: consul
+    command: "agent -server -bootstrap-expect 1 -ui -client 0.0.0.0"
+    networks:
+      - backend
+    ports:
+      - "8500:8500"
+    restart: unless-stopped
+    image: consul:1.15.4
 
 # VOLUMES
 volumes:
