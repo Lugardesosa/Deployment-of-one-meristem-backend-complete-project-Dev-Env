@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.services;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
@@ -32,6 +31,12 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Service class for managing user-related operations.
+ * Provides methods for creating users, updating user details, and handling user authentication and profile updates.
+ *
+ * @author Kingsley
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -47,6 +52,13 @@ public class UsersService {
     private final AvatarsRepository avatarsRepository;
     private final CacheManager cacheManager;
 
+    /**
+     * Creates a new user after validating the request and OTP.
+     *
+     * @param userRequest the request containing user details
+     * @return the created user's response
+     * @throws BadRequestException if the email or phone number already exists or OTP is invalid/expired
+     */
     @Transactional
     public UsersResponse createUser(CreateUserRequest userRequest) {
         if (usersRepository.existsByEmailOrPhoneNumber(userRequest.email(), userRequest.phoneNumber())) {
@@ -66,10 +78,23 @@ public class UsersService {
         return usersMapper.usersToUserResponse(user);
     }
 
+    /**
+     * Retrieves the currently logged-in user's details.
+     *
+     * @return the user's response
+     * @throws BadRequestException if the user is not found
+     */
     public UsersResponse getUser() {
         return usersRepository.findUserDetailsByEmail(AppUtil.getLoggedInSubject()).orElseThrow(() -> new BadRequestException("User not found."));
     }
 
+    /**
+     * Resets the user's password after validating the OTP and ensuring the new password is different.
+     *
+     * @param request the password reset request
+     * @return the password reset response
+     * @throws BadRequestException if OTP is invalid/expired or the new password matches the old one
+     */
     @Transactional
     public PasswordResetResponse resetPassword(PasswordResetRequest request) {
 
@@ -98,6 +123,13 @@ public class UsersService {
         return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
+    /**
+     * Updates the logged-in user's password after ensuring it is different from the old one.
+     *
+     * @param request the update password request
+     * @return the update password response
+     * @throws BadRequestException if the new password matches the old one
+     */
     @Transactional
     public UpdatePasswordResponse updatePassword(UpdatePasswordRequest request) {
 
@@ -112,6 +144,12 @@ public class UsersService {
         return UpdatePasswordResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
+    /**
+     * Updates the logged-in user's phone number.
+     *
+     * @param request the update phone number request
+     * @return the update phone number response
+     */
     public UpdatePhoneNumberResponse updatePhoneNumber(UpdatePhoneNumberRequest request) {
 
         String userEmail = AppUtil.getLoggedInUserEmail();
@@ -120,6 +158,13 @@ public class UsersService {
         return UpdatePhoneNumberResponse.builder().status(true).message("User phone number updated").build();
     }
 
+    /**
+     * Updates the logged-in user's avatar URL after validating it.
+     *
+     * @param request the update avatar URL request
+     * @return the update avatar URL response
+     * @throws BadRequestException if the avatar URL is invalid
+     */
     public UpdateAvatarUrlResponse updateAvatarUrl(UpdateAvatarUrlRequest request) {
 
         Long userId = AppUtil.getLoggedInUserId();
@@ -133,6 +178,13 @@ public class UsersService {
         return UpdateAvatarUrlResponse.builder().status(true).message("User avatar updated").build();
     }
 
+    /**
+     * Updates the logged-in user's PIN after ensuring it is different from the old one.
+     *
+     * @param request the update PIN request
+     * @return the update PIN response
+     * @throws BadRequestException if the new PIN matches the old one
+     */
     public PinResponse updatePin(PinRequest request) {
 
         Long userId = AppUtil.getLoggedInUserId();

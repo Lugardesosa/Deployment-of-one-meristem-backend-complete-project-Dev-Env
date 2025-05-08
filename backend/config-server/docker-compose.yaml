@@ -39,6 +39,7 @@ services:
     image: gateway-service:latest
     depends_on:
       - config-server
+      - redis
     networks:
       - backend
     environment:
@@ -63,6 +64,9 @@ services:
     image: users-service:latest
     depends_on:
       - config-server
+      - consul
+      - broker
+      - redis
     networks:
       - backend
     environment:
@@ -89,6 +93,8 @@ services:
     restart: unless-stopped
     depends_on:
       - config-server
+      - consul
+      - broker
     networks:
       - backend
     environment:
@@ -201,7 +207,7 @@ services:
   redis:
     image: redis:7.4.2-alpine
     container_name: redis
-    command: redis-server --requirepass 'AHjsoie67&8*'
+    command: redis-server --requirepass '${REDIS_PASSWORD}'
     volumes:
       - redis_data:/data
     networks:

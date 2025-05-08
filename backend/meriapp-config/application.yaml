@@ -51,10 +51,14 @@ one-app:
   email: ${ONE_APP_EMAIL}
   server-version: 1.0
   server-app-name: "One App"
+#  USERS SERVICE
   users-service:
     context-path: /api/users
+    application-name: users-service
+#  NOTIFICATION SERVICE
   notification-service:
     context-path: /api/notification
+    application-name: notification-service
 
 
 logging:

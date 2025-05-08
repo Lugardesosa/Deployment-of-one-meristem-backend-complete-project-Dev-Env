@@ -29,6 +29,13 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
+
+/**
+ * Service class for handling notification-related operations, such as sending and verifying OTPs.
+ * This class interacts with Kafka for message delivery and manages OTP verification logic.
+ *
+ * @author Kingsley
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,6 +45,15 @@ public class NotificationService {
     private final OtpVerificationRepository otpVerificationRepository;
     private final UsersRepository usersRepository;
 
+
+    /**
+     * Sends an OTP to the specified recipient via the chosen medium (e.g., email, SMS, WhatsApp).
+     * Validates the recipient's format and ensures old OTPs are expired before generating a new one.
+     *
+     * @param sendOtpRequest the request containing recipient details and OTP type
+     * @return a {@link SendOtpResponse} containing the OTP expiration time and recipient details
+     * @throws BadRequestException if the recipient format is invalid or OTP type is invalid
+     */
     @Transactional
     public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
         MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest);
@@ -74,6 +90,13 @@ public class NotificationService {
                 .build();
     }
 
+    /**
+     * Validates the recipient's format based on the message medium and returns the corresponding {@link MessageMedium}.
+     *
+     * @param sendOtpRequest the request containing recipient details and message medium
+     * @return the validated {@link MessageMedium}
+     * @throws BadRequestException if the recipient format is invalid or OTP type is invalid
+     */
     private static MessageMedium validateAndGetMessageMedium(SendOtpRequest sendOtpRequest) {
         MessageMedium messageMedium = MessageMedium.of(sendOtpRequest.messageMedium());
 
@@ -93,6 +116,14 @@ public class NotificationService {
         return messageMedium;
     }
 
+    /**
+     * Verifies the provided OTP for the specified recipient and OTP type.
+     * Ensures the OTP is not expired or already used.
+     *
+     * @param request the request containing OTP details and recipient information
+     * @return a {@link VerifyOtpResponse} indicating the verification status
+     * @throws ResourceNotFoundException if the OTP is not found
+     */
     public VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest request) {
 
         OtpVerification otpVerification = otpVerificationRepository.findByOtpTypeAndCodeAndUserId(request.otpType(), request.otp(), request.recipient())

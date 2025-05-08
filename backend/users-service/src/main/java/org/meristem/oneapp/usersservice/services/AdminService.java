@@ -26,6 +26,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
+
+/**
+ * Service class for managing administrative operations.
+ * Provides functionality for creating admin users and updating next-of-kin details for users.
+ * This service ensures that admin users are created with appropriate roles and notifies them of their credentials.
+ * It also includes a placeholder for updating next-of-kin details, which is restricted to admin users.
+ * Note: The `updateNextOfKin` method is yet to be implemented.
+ *
+ * @author Kingsley
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -37,6 +47,14 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
     private final RolesRepository rolesRepository;
 
+
+    /**
+     * Creates a new admin user with a randomly generated password.
+     * Assigns the admin role to the user and notifies them of their credentials via email.
+     *
+     * @param request the request containing admin user details
+     * @return a {@link UsersResponse} containing the created admin user's details
+     */
     @Transactional
     public UsersResponse create(CreateAdminRequest request) {
 
@@ -56,6 +74,13 @@ public class AdminService {
         return usersMapper.usersToUserResponse(users);
     }
 
+    /**
+     * Updates the next-of-kin details for a user.
+     * This method is restricted to admin users and is currently a placeholder for future implementation.
+     *
+     * @param request the request containing next-of-kin details
+     * @return a {@link NextOfKinResponse} containing the updated next-of-kin details
+     */
     // TODO: COMPLETE THIS METHOD
     // ALLOW ADMINS UPDATE USER'S NEXT IF KIN
     public NextOfKinResponse updateNextOfKin(CreateNextOfKinRequest request) {

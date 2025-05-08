@@ -318,6 +318,14 @@ ALTER TABLE users_roles
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_users FOREIGN KEY (users_id) REFERENCES users (id);
 
+CREATE INDEX idx_roles_permissions_permissions_id ON roles_permissions(permissions_id);
+
+CREATE INDEX idx_roles_permissions_roles_id ON roles_permissions(roles_id);
+
+CREATE INDEX idx_users_roles_user_id ON users_roles(users_id);
+
+CREATE INDEX idx_users_roles_roles_id ON users_roles(roles_id);
+
 ALTER TABLE next_of_kin
     ADD CONSTRAINT fk_user_on_next_of_kin FOREIGN KEY (user_id) REFERENCES users (id);
 
