@@ -1,0 +1,22 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-users-service
+
+  cloud:
+    consul:
+      discovery:
+        health-check-path: ${one-app.users-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${USER_SERVICE_HOSTNAME}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+server:
+  port: 20020
+  servlet:
+    context-path: ${one-app.users-service.context-path}
