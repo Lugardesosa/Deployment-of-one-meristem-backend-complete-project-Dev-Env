@@ -1,6 +1,7 @@
 spring:
   flyway:
     locations: classpath:db/migration/postgres
+    validate-migration-naming: true
 
 management:
   endpoints:

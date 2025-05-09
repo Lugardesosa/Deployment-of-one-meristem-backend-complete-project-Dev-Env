@@ -13,6 +13,7 @@ spring:
         web-allow-others: true
   flyway:
     locations: classpath:db/migration/h2
+    validate-migration-naming: true
 
 management:
   endpoints:
