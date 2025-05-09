@@ -2,13 +2,6 @@ spring:
   flyway:
     locations: classpath:db/migration/postgresql
 
-  datasource:
-    url: ${DB_SERVER}/${DB_NAME}
-    password: ${DB_PASSWORD}
-    username: ${DB_USERNAME}
-    driver-class-name: org.postgresql.Driver
-
-
 management:
   endpoints:
     web:
