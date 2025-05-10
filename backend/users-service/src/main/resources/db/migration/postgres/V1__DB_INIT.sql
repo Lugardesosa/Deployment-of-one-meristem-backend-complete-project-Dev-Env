@@ -286,8 +286,9 @@ ALTER TABLE users
 
 CREATE INDEX idx_users_email ON users (email);
 
-CREATE INDEX idx_user_id_onbaording ON user_onboarding(user_id);
+CREATE UNIQUE INDEX idx_onbaording_user_requirement_id ON user_onboarding(user_id, requirement_id);
 
+CREATE INDEX idx_oauth2_registered_client_client_id ON oauth2_registered_client(client_id);
 
 ALTER TABLE user_document
     ADD CONSTRAINT FK_USER_DOCUMENT_ON_REQUIREMENT FOREIGN KEY (requirement_id) REFERENCES requirements (id);

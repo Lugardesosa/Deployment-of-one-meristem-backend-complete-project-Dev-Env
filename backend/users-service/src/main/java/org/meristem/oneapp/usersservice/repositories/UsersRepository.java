@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
-import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cache.annotation.CacheEvict;

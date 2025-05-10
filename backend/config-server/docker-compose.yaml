@@ -1,16 +1,3 @@
-x-logging:
-  &default-logging
-  driver: "json-file"
-  options:
-    max-size: "1m"
-    max-file: "1"
-    tag: "{{.Name}}"
-
-x-labels:
-  &default-labels
-  logging: "promtail"
-  logging_jobname: "containerlogs"
-
 name: meristem-one-app
 
 services:
@@ -139,7 +126,7 @@ services:
     restart: unless-stopped
     networks:
       - backend
-    logging: *default-logging
+
 
   tempo:
     image: grafana/tempo:latest
@@ -150,7 +137,7 @@ services:
     restart: unless-stopped
     networks:
       - backend
-    logging: *default-logging
+
 
   loki:
     image: grafana/loki:latest
@@ -159,7 +146,7 @@ services:
     networks:
       - backend
     restart: unless-stopped
-    logging: *default-logging
+
 
   prometheus:
     image: prom/prometheus:latest
@@ -175,7 +162,7 @@ services:
       - "9090:9090"
     networks:
       - backend
-    logging: *default-logging
+
 
   # KAFKA
   broker:
@@ -200,7 +187,6 @@ services:
     restart: unless-stopped
     networks:
       - backend
-    logging: *default-logging
 
 # REDIS
 

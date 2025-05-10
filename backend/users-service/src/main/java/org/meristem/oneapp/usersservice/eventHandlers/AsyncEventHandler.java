@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -39,6 +41,7 @@ public class AsyncEventHandler {
     private final UsersRepository usersRepository;
     private final RolesRepository rolesRepository;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserSignUpCompletionEvent(UserOnboardingCompletionEvent event) {
