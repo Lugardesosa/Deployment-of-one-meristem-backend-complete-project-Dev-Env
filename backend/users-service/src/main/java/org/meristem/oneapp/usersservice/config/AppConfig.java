@@ -65,6 +65,7 @@ public class AppConfig {
     @Bean
     public RedisCacheConfiguration defaultCacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
+                .disableCachingNullValues()
                 .entryTtl(Duration.ofHours(8))
                 .disableCachingNullValues();
     }

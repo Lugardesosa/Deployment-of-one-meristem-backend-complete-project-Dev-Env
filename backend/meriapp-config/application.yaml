@@ -61,7 +61,10 @@ one-app:
   notification-service:
     context-path: /api/notification
     application-name: notification-service
-
+#    WALLET
+  wallet-service:
+    context-path: /api/wallet
+    application-name: wallet-service
 
 logging:
   file:
