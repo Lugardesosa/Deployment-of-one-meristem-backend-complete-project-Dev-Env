@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
@@ -22,14 +23,31 @@ import java.util.Objects;
 @Table("user_document")
 public class UserDocument extends BaseModel<String> {
 
-    @Size(max = 200)
+    @Size(max = 50)
     @NotBlank(message = "Not null")
-    private String name;
+    private String idType;
 
     @Size(max = 1000)
     @NotBlank(message = "Not null")
-    private String url;
+    @Column("additional_url")
+    private String additionalUrl;
 
+    @Size(max = 1000)
+    @NotBlank(message = "Not null")
+    @Column("id_card_front_url")
+    private String idCardFront;
+
+    @Size(max = 1000)
+    @NotBlank(message = "Not null")
+    @Column("id_card_back_url")
+    private String idCardBack;
+
+    @Size(max = 1000)
+    @NotBlank(message = "Not null")
+    @Column("selfie_image_url")
+    private String selfieImage;
+
+    @NotNull(message = "Not null")
     private Long requirementId;
 
     @NotNull(message = "Not null")
@@ -44,19 +62,25 @@ public class UserDocument extends BaseModel<String> {
      * @param lastModifiedDate the date the document was last modified
      * @param lastModifiedBy the user who last modified the document
      * @param version the version of the document
-     * @param name the name of the document
-     * @param url the URL of the document
+     * @param idType the name of the document
      * @param requirementId the ID of the requirement associated with the document
      * @param userId the ID of the user who uploaded the document
+     * @param additionalUrl the url of the kyc receipt
+     * @param idCardFront the url of the front of the id card
+     * @param idCardBack the url of the back of the id card
+     * @param selfieImage the url of the selfie of the user
      */
     @Builder
     public UserDocument(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                        String name, String url, Long requirementId, Long userId) {
+                        String idType, Long requirementId, Long userId, String additionalUrl, String idCardFront, String idCardBack, String selfieImage) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-        this.name = name;
-        this.url = url;
+        this.idType = idType;
         this.requirementId = requirementId;
         this.userId = userId;
+        this.idCardFront = idCardFront;
+        this.idCardBack = idCardBack;
+        this.selfieImage = selfieImage;
+        this.additionalUrl = additionalUrl;
     }
 
     /**

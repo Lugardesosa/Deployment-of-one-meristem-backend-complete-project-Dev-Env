@@ -1,0 +1,6 @@
+one-app:
+  users-service:
+    smile-id:
+      server-ips: ${SMILE_ID_DEV_SERVER_IPS}
+      url: ${SMILE_ID_TEST_LAMBDA_URL}
+      callback-url: ${SMILE_ID_DEV_CALLBACK_URL}

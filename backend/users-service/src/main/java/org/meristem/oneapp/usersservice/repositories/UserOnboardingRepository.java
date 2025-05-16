@@ -26,6 +26,11 @@ public interface UserOnboardingRepository extends BaseRepository<UserOnboarding,
             "AND requirement_id = :requirementId AND completed = :completed ")
     boolean existsByUserIdAndRequirementIdAndCompleted(Long userId, Long requirementId, boolean completed);
 
-    @Query("SELECT COUNT(*) = SUM(CASE WHEN completed = TRUE THEN 1 ELSE 0 END) FROM user_onboarding WHERE user_id = :userId ")
-    boolean allRequirementsSubmitted(@NotNull Long userId);
+    @Query("SELECT COUNT(uo) = SUM(CASE WHEN completed = TRUE THEN 1 ELSE 0 END) FROM user_onboarding uo LEFT JOIN requirements r on r.id = ur.requirement_id WHERE user_id = :userId AND r.mandatory = TRUE")
+    boolean allRequirementsSubmitted(Long userId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_onboarding SET status = :value WHERE user_id = :userId AND requirement_id = :requirementId ")
+    void markOnboardingAsFailed(String userId, Long requirementId, Integer value);
 }

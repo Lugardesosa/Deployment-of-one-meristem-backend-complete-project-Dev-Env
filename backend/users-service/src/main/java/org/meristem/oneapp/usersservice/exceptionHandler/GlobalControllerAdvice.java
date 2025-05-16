@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
+import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.UpstreamServiceException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -137,6 +138,11 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     protected ResponseEntity<ErrorDetails> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
         return handleExceptionInternal("Invalid request", HttpStatus.BAD_REQUEST, request, List.of("There is error in the request body"));
+    }
+
+    @ExceptionHandler(UpstreamServiceException.class)
+    protected ResponseEntity<ErrorDetails> handleUpstreamServiceException(UpstreamServiceException ex, WebRequest request) {
+        return handleExceptionInternal("Bad gateway", HttpStatus.BAD_GATEWAY, request, List.of("Request could not be processed"));
     }
 
     @ExceptionHandler({AuthorizationDeniedException.class, OAuth2AuthorizationException.class})

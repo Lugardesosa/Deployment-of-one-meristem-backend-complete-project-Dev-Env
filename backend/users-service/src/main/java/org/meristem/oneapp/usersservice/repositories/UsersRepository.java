@@ -1,5 +1,7 @@
 package org.meristem.oneapp.usersservice.repositories;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -56,4 +58,6 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @UsersQueryModifier
     @Query("UPDATE users SET status = :userStatus WHERE email = :email ")
     void updateStatus(String email, Integer userStatus);
+
+    Users findOneByEmail(String email);
 }
