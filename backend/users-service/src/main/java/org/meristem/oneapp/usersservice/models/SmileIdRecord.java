@@ -15,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table("users")
+@Table("smile_id_record")
 public class SmileIdRecord extends BaseModel<String> {
 
     /**
@@ -65,6 +65,7 @@ public class SmileIdRecord extends BaseModel<String> {
     /**
      * The requirement id associated with the Smile ID job.
      */
+    @NotNull(message = "requirementId cannot be null")
     @Column("requirement_id")
     private Long requirementId;
 

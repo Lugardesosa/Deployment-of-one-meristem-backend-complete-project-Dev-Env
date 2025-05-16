@@ -3,4 +3,5 @@ one-app:
     smile-id:
       server-ips: ${SMILE_ID_DEV_SERVER_IPS}
       url: ${SMILE_ID_TEST_LAMBDA_URL}
+      api-key: ${SMILE_ID_DEV_API_KEY}
       callback-url: ${SMILE_ID_DEV_CALLBACK_URL}

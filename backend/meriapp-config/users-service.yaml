@@ -25,7 +25,7 @@ one-app:
   users-service:
     smile-id:
       server-ips: ${SMILE_ID_PROD_SERVER_IPS}
-      api-key: ${SMILE_ID_API_KEY}
+      api-key: ${SMILE_ID_PROD_API_KEY}
       partner-id: ${SMILE_ID_PARTNER_ID}
       url: ${SMILE_ID_PROD_LAMBDA_URL}
       callback-url: ${SMILE_ID_PROD_CALLBACK_URL}

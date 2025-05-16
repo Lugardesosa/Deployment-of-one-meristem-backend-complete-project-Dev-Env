@@ -45,7 +45,7 @@ public class SmileIdService {
     private final CacheManager cacheManager;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @Value("${spring.profiles.active}")
+    @Value("${spring.cloud.config.profile}")
     private String activeProfile;
 
     private final SmileIdProperties smileIdProperties;
@@ -61,6 +61,7 @@ public class SmileIdService {
         try {
             String userId = AppUtil.getLoggedInUserEmail();
 
+            log.info("Getting token for user 1 {}", requirementId);
             Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
                     .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
@@ -81,17 +82,20 @@ public class SmileIdService {
             String defaultCallback = smileIdProperties.callbackUrl();
             String apiKey = smileIdProperties.apiKey();
             // Use '0' for the sandbox server, use '1' for the production server
-            String sidServer = List.of("dev", "local").contains(activeProfile) ? "0" : "1";
+            String isProd = List.of("dev", "local").contains(activeProfile) ? "0" : "1";
 
-            WebApi connection = new WebApi(partnerId, apiKey, defaultCallback, sidServer);
+            WebApi connection = new WebApi(partnerId, apiKey, defaultCallback, isProd);
 
             String timestamp = Instant.now().toString();
 
-            smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirementId).userId(userId)
+            log.info("Getting token for user 2 {}", requirementId);
+            log.info("Getting token for user 2 {}", requirements.getId());
+            smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
                     .timestamp(timestamp).jobType(jobType).build());
             return new SmileIdTokenResponse(connection.getWebToken(timestamp, userId, jobId, product), jobId, signature);
         } catch (Exception e) {
-            throw new UpstreamServiceException("Can not generate token. Error: " + e.getMessage());
+            e.printStackTrace();
+            throw new UpstreamServiceException("Can not generate token.");
         }
     }
 
@@ -178,7 +182,6 @@ public class SmileIdService {
         Signature signature = new Signature(smileIdProperties.partnerId(), smileIdProperties.apiKey());
         String isoTimestamp = Instant.now().toString();
         SignatureKey key = signature.getSignatureKey(isoTimestamp);
-        smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).userId(userId).timestamp(key.getTimestamp()).jobType(jobType).build());
         return key.getSignature();
     }
 
