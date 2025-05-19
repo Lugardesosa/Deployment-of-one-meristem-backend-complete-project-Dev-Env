@@ -75,14 +75,17 @@ public class SmileIdService {
             String userId = AppUtil.getLoggedInUserEmail();
             String timestamp = new SimpleDateFormat(DATE_TIME_FORMAT).format(System.currentTimeMillis());
             String jobId = UUID.randomUUID().toString();
+            String signature = generateSignature(timestamp);
+            String expiresAt = LocalDate.now().plusDays(smileIdProperties.expiresAt()).atStartOfDay(ZoneId.systemDefault()).toInstant().toString();
 
             SmileIdSmileLinkRequest request = SmileIdSmileLinkRequest.builder()
-                    .partnerId(smileIdProperties.partnerId()).signature(generateSignature(timestamp))
+                    .partnerId(smileIdProperties.partnerId()).signature(signature)
+                    .name(AppUtil.getLoggedInUserFullName())
                     .timestamp(timestamp).callbackUrl(smileIdProperties.callbackUrl())
                     .companyName(oneAppProperties.companyName()).dataPrivacyPolicyUrl(oneAppProperties.dataPrivacyPolicyUrl())
                     .logoUrl(oneAppProperties.logoUrl()).isSingleUse(smileIdProperties.isSingleUse())
-                    .expiresAt(LocalDate.now().plusDays(smileIdProperties.expiresAt()).atStartOfDay(ZoneId.systemDefault()).toInstant().toString())
-                    .idTypes(smileRequest.idTypes()).partnerParams(Map.of("job_id", jobId)).build();
+                    .expiresAt(expiresAt).userId(userId)
+                    .idTypes(smileRequest.smileRequest()).partnerParams(Map.of("job_id", jobId)).build();
 
             Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
                     .orElseThrow(() -> new BadRequestException("Requirement not found"));
@@ -92,10 +95,8 @@ public class SmileIdService {
 
             SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
 
-            log.info("Token: {}", response.link());
             return new SmileIdTokenResponse(response.link(), response.refId());
         } catch (Exception e) {
-            log.error(e.getMessage());
             throw new UpstreamServiceException("Can not generate token.");
         }
     }

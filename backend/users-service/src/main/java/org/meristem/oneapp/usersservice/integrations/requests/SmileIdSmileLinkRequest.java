@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
+import org.meristem.oneapp.usersservice.domains.requests.IdTypesRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,7 @@ public record SmileIdSmileLinkRequest(
         String companyName,
 
         @JsonProperty("id_types")
-        List<IdType> idTypes,
+        List<IdTypesRequest> idTypes,
 
         @JsonProperty("callback_url")
         String callbackUrl,
@@ -44,13 +46,4 @@ public record SmileIdSmileLinkRequest(
         @JsonProperty("expires_at")
         String expiresAt
 ) {
-
-    public record IdType(
-            @Schema(name = "country", example = "NG", description = "Pass the country code") @NotBlank(message = "Cannot be null") String country,
-            @Schema(name = "idType", example = "PASSPORT", description = "Pass the id type") @NotBlank(message = "Cannot be null") @JsonProperty("id_type")
-            String idType,
-
-            @Schema(name = "verificationMethod", example = "doc_verification", description = "Pass the verification method") @JsonProperty("verification_method")
-            String verificationMethod
-    ) {}
 }

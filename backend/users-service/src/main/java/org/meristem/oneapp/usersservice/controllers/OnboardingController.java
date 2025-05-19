@@ -68,7 +68,7 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_users.get_smile_id_token')")
     @PostMapping(value = "/smile-id/smart-link", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<SmileIdTokenResponse>> getSmileIdToken(@RequestBody SmileIdIdTypeRequest idType, @RequestParam(name = "requirement-id") Long requirementId) {
+    public ResponseEntity<AppResponse<SmileIdTokenResponse>> getSmileIdToken(@RequestBody @Valid SmileIdIdTypeRequest idType, @RequestParam(name = "requirement-id") Long requirementId) {
         return ApiUtil.buildResponse(smileIdService.getSmileLink(idType, requirementId), HttpStatus.OK.toString(), "Token successfully generated");
     }
 

@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 
 import java.util.Random;
 
+import static java.util.Objects.nonNull;
 import static org.meristem.oneapp.usersservice.constants.AppConstants.specialChars;
 
 @Slf4j
@@ -48,6 +49,18 @@ public final class AppUtil {
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
             return jwt.getClaim("email").toString();
+        }
+        throw new BadRequestException("User is not logged in");
+    }
+
+
+    public static String getLoggedInUserFullName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            String firstName = nonNull(jwt.getClaim("firstName")) ? jwt.getClaim("firstName").toString() : "";
+            String lastName = nonNull(jwt.getClaim("lastName")) ? jwt.getClaim("lastName").toString() : "";
+            return firstName + " " + lastName;
         }
         throw new BadRequestException("User is not logged in");
     }
