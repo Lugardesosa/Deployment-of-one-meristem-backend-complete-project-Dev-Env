@@ -29,3 +29,5 @@ one-app:
       partner-id: ${SMILE_ID_PARTNER_ID}
       url: ${SMILE_ID_PROD_LAMBDA_URL}
       callback-url: ${SMILE_ID_PROD_CALLBACK_URL}
+      is-single-use: true
+      expires-at: 2 # in days

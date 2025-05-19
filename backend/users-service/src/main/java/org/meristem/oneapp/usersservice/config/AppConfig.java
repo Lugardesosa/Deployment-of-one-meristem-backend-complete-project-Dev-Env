@@ -6,6 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -15,17 +19,25 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+@RequiredArgsConstructor
 @Configuration
 public class AppConfig {
 
@@ -41,11 +53,10 @@ public class AppConfig {
     @Value("${one-app.email}")
     private String email;
 
-    @Value("${one-app.users-service.context-path}")
-    private String usersServiceContextPath;
-
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    private final OneAppProperties oneAppProperties;
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -96,9 +107,31 @@ public class AppConfig {
                     .scheme("bearer")
                     .bearerFormat("JWT")
                     .description("This API uses OAuth 2 with the implicit grant flow.")
-                    .flows(new OAuthFlows().clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
+                    .flows(new OAuthFlows().clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppProperties.contextPath())
                             .concat("/oauth2/token"))))
                 )
             ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
+    }
+
+
+    @Bean
+    public WebClient.Builder webClientBuilder() {
+
+        ConnectionProvider connectionProvider = ConnectionProvider.builder("webclient-pool")
+                .maxConnections(100)
+                .pendingAcquireTimeout(Duration.ofSeconds(60))
+                .maxIdleTime(Duration.ofMinutes(30))
+                .maxLifeTime(Duration.ofMinutes(60))
+                .evictInBackground(Duration.ofMinutes(5))
+                .build();
+
+        HttpClient httpClient = HttpClient.create(connectionProvider).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .resolver(DefaultAddressResolverGroup.INSTANCE)
+                .responseTimeout(Duration.ofMillis(5000))
+                .doOnConnected(connection ->
+                        connection.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
+                                .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
+
+        return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient));
     }
 }

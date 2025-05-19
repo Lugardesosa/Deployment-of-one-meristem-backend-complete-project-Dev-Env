@@ -278,7 +278,7 @@ CREATE TABLE smile_id_record
     user_id            VARCHAR(150)                            NOT NULL,
     message            VARCHAR(300),
     timestamp          VARCHAR(40)                             NOT NULL,
-    job_type           INT                                     NOT NULL,
+    job_type           INT,
     requirement_id     BIGINT                                  NOT NULL,
     CONSTRAINT pk_smile_id_record PRIMARY KEY (id)
 );

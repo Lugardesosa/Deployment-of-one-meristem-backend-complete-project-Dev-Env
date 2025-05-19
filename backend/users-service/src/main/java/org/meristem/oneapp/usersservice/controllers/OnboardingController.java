@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressOnboardRequest;
 import org.meristem.oneapp.usersservice.domains.requests.ProcessAddressRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
-import org.meristem.oneapp.usersservice.domains.requests.SubmitOnboardingRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.SmileIdService;
@@ -21,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import smile.identity.core.enums.Product;
 
 import java.util.List;
 
@@ -68,9 +67,9 @@ public class OnboardingController {
             @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
     })
     @PreAuthorize("hasRole('ROLE_users.get_smile_id_token')")
-    @GetMapping(value = "/smile-id/token", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<SmileIdTokenResponse>> getSmileIdToken(@RequestParam(name = "product-type") Product product, @RequestParam(name = "requirement-id") Long requirementId) {
-        return ApiUtil.buildResponse(smileIdService.getToken(product, requirementId), HttpStatus.OK.toString(), "Token successfully generated");
+    @PostMapping(value = "/smile-id/smart-link", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<SmileIdTokenResponse>> getSmileIdToken(@RequestBody SmileIdIdTypeRequest idType, @RequestParam(name = "requirement-id") Long requirementId) {
+        return ApiUtil.buildResponse(smileIdService.getSmileLink(idType, requirementId), HttpStatus.OK.toString(), "Token successfully generated");
     }
 
     @Operation(summary = "Smile Id webhook")

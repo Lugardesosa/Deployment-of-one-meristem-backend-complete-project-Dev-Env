@@ -57,6 +57,9 @@ one-app:
   users-service:
     context-path: /api/users
     application-name: users-service
+    company-name: ${COMPANY_NAME}
+    data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
+    logo-url: ${LOGO_URL}
 #  NOTIFICATION SERVICE
   notification-service:
     context-path: /api/notification

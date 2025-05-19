@@ -2,31 +2,37 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdTokenResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.UpstreamServiceException;
+import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
+import org.meristem.oneapp.usersservice.integrations.requests.SmileIdSmileLinkRequest;
+import org.meristem.oneapp.usersservice.integrations.responses.SmileIdSmileLinkResponse;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import smile.identity.core.Signature;
-import smile.identity.core.WebApi;
-import smile.identity.core.enums.Product;
-import smile.identity.core.keys.SignatureKey;
 
-import java.time.Instant;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.time.ZoneId;
+import java.util.*;
 
 import static java.util.Objects.*;
 
@@ -35,6 +41,7 @@ import static java.util.Objects.*;
 @Service
 public class SmileIdService {
 
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private final SmileIdRecordRepository smileIdRecordRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
@@ -44,11 +51,11 @@ public class SmileIdService {
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
     private final SimpMessagingTemplate messagingTemplate;
+    private final SmileIdClient smileIdClient;
 
-    @Value("${spring.cloud.config.profile}")
-    private String activeProfile;
 
     private final SmileIdProperties smileIdProperties;
+    private final OneAppProperties oneAppProperties;
 
     List<String> dataStatus = List.of("1012");
     List<String> actionStatus = List.of("1210", "0810");
@@ -56,45 +63,39 @@ public class SmileIdService {
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
 
     @Transactional
-    public SmileIdTokenResponse getToken(Product product, Long requirementId) {
+    public SmileIdTokenResponse getSmileLink(SmileIdIdTypeRequest smileRequest, Long requirementId) {
 
         try {
-            String userId = AppUtil.getLoggedInUserEmail();
-
-            log.info("Getting token for user 1 {}", requirementId);
-            Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
-                    .orElseThrow(() -> new BadRequestException("Requirement not found"));
-
             // Check if user has already completed this requirement
             if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
                     requirementId, true)) {
                 throw new BadRequestException("User has already completed this requirement");
             }
 
-
+            String userId = AppUtil.getLoggedInUserEmail();
+            String timestamp = new SimpleDateFormat(DATE_TIME_FORMAT).format(System.currentTimeMillis());
             String jobId = UUID.randomUUID().toString();
 
-            Integer jobType = product.compareTo(Product.DOC_VERIFICATION) == 0 ? 6 : 1;
+            SmileIdSmileLinkRequest request = SmileIdSmileLinkRequest.builder()
+                    .partnerId(smileIdProperties.partnerId()).signature(generateSignature(timestamp))
+                    .timestamp(timestamp).callbackUrl(smileIdProperties.callbackUrl())
+                    .companyName(oneAppProperties.companyName()).dataPrivacyPolicyUrl(oneAppProperties.dataPrivacyPolicyUrl())
+                    .logoUrl(oneAppProperties.logoUrl()).isSingleUse(smileIdProperties.isSingleUse())
+                    .expiresAt(LocalDate.now().plusDays(smileIdProperties.expiresAt()).atStartOfDay(ZoneId.systemDefault()).toInstant().toString())
+                    .idTypes(smileRequest.idTypes()).partnerParams(Map.of("job_id", jobId)).build();
 
-            String signature = generateSignature(jobId, jobType, userId);
+            Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
+                    .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
-            String partnerId = smileIdProperties.partnerId();
-            String defaultCallback = smileIdProperties.callbackUrl();
-            String apiKey = smileIdProperties.apiKey();
-            // Use '0' for the sandbox server, use '1' for the production server
-            String isProd = List.of("dev", "local").contains(activeProfile) ? "0" : "1";
-
-            WebApi connection = new WebApi(partnerId, apiKey, defaultCallback, isProd);
-
-            String timestamp = Instant.now().toString();
-
-            log.info("Getting token for user 2 {}", requirementId);
-            log.info("Getting token for user 2 {}", requirements.getId());
             smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
-                    .timestamp(timestamp).jobType(jobType).build());
-            return new SmileIdTokenResponse(connection.getWebToken(timestamp, userId, jobId, product), jobId, signature);
+                    .timestamp(timestamp).build());
+
+            SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
+
+            log.info("Token: {}", response.link());
+            return new SmileIdTokenResponse(response.link(), response.refId());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             throw new UpstreamServiceException("Can not generate token.");
         }
     }
@@ -104,7 +105,7 @@ public class SmileIdService {
 
         try {
             SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.partnerParams().jobId());
-            if (!confirmSignature(record)) {
+            if (!confirmSignature(request.signature(), request.timestamp())) {
                 return new SmileIdWebhookResponse("Failed", false);
             }
             if (rejectionsStatus.contains(request.resultCode())) {
@@ -177,16 +178,34 @@ public class SmileIdService {
 
     }
 
-    private String generateSignature(String jobId, Integer jobType, String userId) {
-
-        Signature signature = new Signature(smileIdProperties.partnerId(), smileIdProperties.apiKey());
-        String isoTimestamp = Instant.now().toString();
-        SignatureKey key = signature.getSignatureKey(isoTimestamp);
-        return key.getSignature();
+    private String generateSignature(String timestamp) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
+            mac.update(timestamp.getBytes(StandardCharsets.UTF_8));
+            mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
+            mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(mac.doFinal());
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new UpstreamServiceException("Can not generate token.");
+        }
     }
 
-    private boolean confirmSignature(SmileIdRecord smileIdRecord) {
-        Signature signature = new Signature(smileIdProperties.partnerId(), smileIdProperties.apiKey());
-        return signature.confirmSignature(smileIdRecord.getTimestamp(), "receivedSignatureString");
+    private boolean confirmSignature(String receivedSignature, String receivedTimestamp) {
+
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
+            mac.update(receivedTimestamp.getBytes(StandardCharsets.UTF_8));
+            mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
+            mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
+
+            String generatedSignature = Base64.getEncoder().encodeToString(mac.doFinal());
+
+            return generatedSignature.equals(receivedSignature);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
+        }
     }
 }
