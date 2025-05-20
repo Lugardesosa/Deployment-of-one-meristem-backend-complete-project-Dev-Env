@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Objects.nonNull;
+
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
@@ -49,7 +51,7 @@ public class RequestResponseLogging extends OncePerRequestFilter {
         long endTime = System.currentTimeMillis();
 
         List<String> contentTypeToSkipForBody = List.of(MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE);
-        byte[] requestBody = contentTypeToSkipForBody.contains(requestWrapper.getHeader("content-type")) ? new byte[0] : requestWrapper.getContentAsByteArray();
+        byte[] requestBody = nonNull(requestWrapper.getHeader("content-type")) && contentTypeToSkipForBody.contains(requestWrapper.getHeader("content-type")) ? new byte[0] : requestWrapper.getContentAsByteArray();
         byte[] responseBody = responseWrapper.getContentAsByteArray();
 
         Map<String, String> headers = new HashMap<>();

@@ -29,10 +29,10 @@ public class IdCard extends BaseModel<String> {
 
     @Column("issued_date")
     @NotNull(message = "cannot be null")
-    LocalDate issuedDate;
+    String issuedDate;
 
     @Column("expiry_date")
-    LocalDate expiryDate;
+    String expiryDate;
 
     @Column("user_id")
     @NotNull(message = "User id cannot be null")
@@ -40,7 +40,7 @@ public class IdCard extends BaseModel<String> {
 
     @Builder
     public IdCard(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                  String idCardType, String idValue, LocalDate issuedDate, LocalDate expiryDate, Long userId) {
+                  String idCardType, String idValue, String issuedDate, String expiryDate, Long userId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.idCardType = idCardType;
         this.idValue = idValue;

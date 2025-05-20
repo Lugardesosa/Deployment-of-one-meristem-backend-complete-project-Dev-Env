@@ -35,8 +35,15 @@ public class LoggingEventHandler {
         requestMap = requestMap.isBlank() ? "{}" : requestMap;
         String responseMap = new String(event.getResponseBody(), StandardCharsets.UTF_8);
 
-        HashMap<String, Object> bodyRequest = objectMapper.readValue(requestMap, new TypeReference<>() {});
-        HashMap<String, Object> bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {});
+        HashMap<String, Object> bodyRequest;
+        HashMap<String, Object> bodyResponse;
+        try {
+            bodyRequest = objectMapper.readValue(requestMap, new TypeReference<>() {});
+            bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+            return;
+        }
 
         sanitize(event, bodyResponse, bodyRequest);
 
