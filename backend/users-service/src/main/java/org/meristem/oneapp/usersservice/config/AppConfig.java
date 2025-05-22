@@ -10,10 +10,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.OAuthFlow;
-import io.swagger.v3.oas.models.security.OAuthFlows;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,8 +97,10 @@ public class AppConfig {
                     .scheme("bearer")
                     .bearerFormat("JWT")
                     .description("This API uses OAuth 2 with the implicit grant flow.")
-                    .flows(new OAuthFlows().clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppProperties.contextPath())
-                            .concat("/oauth2/token"))))
+                    .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppProperties.contextPath())
+                            .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
+                            .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppProperties.contextPath())
+                                    .concat("/oauth2/token"))))
                 )
             ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
     }
