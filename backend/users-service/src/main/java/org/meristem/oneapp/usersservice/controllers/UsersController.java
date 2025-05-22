@@ -20,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(ApiConstants.CONTEXT_PATH + "base")
@@ -113,5 +115,26 @@ public class UsersController {
     @PutMapping(value = "/pin-update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<PinResponse>> updatePin(@RequestBody @Valid PinRequest request) {
         return ApiUtil.buildResponse(usersService.updatePin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+
+    @Operation(summary = "Get Avatars")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to get all avatars")
+    })
+    @PreAuthorize("hasRole('ROLE_users.get.avatars')")
+    @GetMapping(value = "/avatars", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<AvatarUrls>>> getAvatars() {
+        return ApiUtil.buildResponse(usersService.getAvatarUrls(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Deactivate users account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to deactivate their accounts")
+    })
+    @PreAuthorize("hasRole('ROLE_users.deactivate.account')")
+    @PutMapping(value = "/deactivate", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AccountDeactivationResponse>> deactivateUser() {
+        return ApiUtil.buildResponse(usersService.deactivateUser(), HttpStatus.OK.toString(), "Successful");
     }
 }

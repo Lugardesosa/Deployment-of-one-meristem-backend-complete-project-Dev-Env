@@ -51,9 +51,9 @@ public class UserOnboarding extends BaseModel<String> {
      * @param completed whether the onboarding process is completed
      */
     @Builder
-    public UserOnboarding(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId,
+    public UserOnboarding(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, Long userId,
                           Long requirementId, Boolean completed) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.requirementId = requirementId;
         this.completed = completed;

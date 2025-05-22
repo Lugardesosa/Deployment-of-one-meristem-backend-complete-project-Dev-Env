@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.domains.enums.OnboardingStatus;
 import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
 import org.meristem.oneapp.usersservice.dtos.events.RequestAndResponseLogEvent;
@@ -53,7 +54,7 @@ public class AsyncEventHandler {
             profileRepository.save(profile);
             requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
                     .forEach(rId -> {
-                        UserOnboarding userOnboarding = UserOnboarding.builder()
+                        UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.PENDING.getValue())
                                 .completed(false).userId(event.getUserId()).requirementId(rId).build();
                         userOnboardingRepository.save(userOnboarding);
                     });

@@ -42,6 +42,10 @@ import static java.util.Objects.*;
 public class SmileIdService {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    private static final String DOCUMENT_APPROVED_STATUS = "0810";
+    private static final Integer DOCUMENT_JOB_TYPE = 6;
+    private static final Integer ENHANCED_JOB_TYPE = 5;
+    private static final List<Integer> DOC_AND_ENHANCED_JOB_TYPES = List.of(DOCUMENT_JOB_TYPE, ENHANCED_JOB_TYPE);
     private final SmileIdRecordRepository smileIdRecordRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
@@ -58,19 +62,23 @@ public class SmileIdService {
     private final OneAppProperties oneAppProperties;
 
     List<String> dataStatus = List.of("1012");
-    List<String> actionStatus = List.of("1210", "0810");
+    List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
 
     @Transactional
     public SmileIdTokenResponse getSmileLink(SmileIdIdTypeRequest smileRequest, Long requirementId) {
 
+        // Check if user has already completed this requirement
+        if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
+                requirementId, true)) {
+            throw new BadRequestException("User has already completed this requirement");
+        }
+
+        Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
+                .orElseThrow(() -> new BadRequestException("Requirement not found"));
+
         try {
-            // Check if user has already completed this requirement
-            if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
-                    requirementId, true)) {
-                throw new BadRequestException("User has already completed this requirement");
-            }
 
             String userId = AppUtil.getLoggedInUserEmail();
             String timestamp = new SimpleDateFormat(DATE_TIME_FORMAT).format(System.currentTimeMillis());
@@ -87,15 +95,12 @@ public class SmileIdService {
                     .expiresAt(expiresAt).userId(userId)
                     .idTypes(smileRequest.smileRequest()).partnerParams(Map.of("job_id", jobId)).build();
 
-            Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
-                    .orElseThrow(() -> new BadRequestException("Requirement not found"));
-
             smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
                     .timestamp(timestamp).build());
 
             SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
 
-            return new SmileIdTokenResponse(response.link(), response.refId());
+            return new SmileIdTokenResponse(response.link(), jobId);
         } catch (Exception e) {
             throw new UpstreamServiceException("Can not generate token.");
         }
@@ -103,6 +108,7 @@ public class SmileIdService {
 
     @Transactional
     public SmileIdWebhookResponse handleWebhook(SmileIdWebhookNotification request) {
+        SmileIdWebhookResponse response = new SmileIdWebhookResponse("Failed", false);
 
         try {
             SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.partnerParams().jobId());
@@ -110,47 +116,57 @@ public class SmileIdService {
                 return new SmileIdWebhookResponse("Failed", false);
             }
             if (rejectionsStatus.contains(request.resultCode())) {
-                handleFailedNotification(request, record, record.getUserId());
+                handleFailedNotification(request, record);
             } else if (actionStatus.contains(request.resultCode()) || dataStatus.contains(request.resultCode())) {
-                handleSuccessfulNotification(request, record, record.getUserId());
+                handleSuccessfulNotification(request, record);
+                response = new SmileIdWebhookResponse("Success", true);
+                messagingTemplate.convertAndSend("/topic/smile-id/" + request.partnerParams().jobId(), response);
+                return response;
             }
         } catch (RuntimeException e) {
+            messagingTemplate.convertAndSend("/topic/smile-id/" + request.partnerParams().jobId(), response);
+            log.error(e.getMessage(), e);
             return new SmileIdWebhookResponse("Failed", false);
         }
-        SmileIdWebhookResponse response = new SmileIdWebhookResponse("Success", true);
         messagingTemplate.convertAndSend("/topic/smile-id/" + request.partnerParams().jobId(), response);
 
         return response;
     }
 
-    private void handleFailedNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, String userId) {
+    private void handleFailedNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
         smileIdRecord.setMessage(notification.resultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.FAILED.getValue());
-        userOnboardingRepository.markOnboardingAsFailed(userId, smileIdRecord.getRequirementId(), OnboardingStatus.REJECTED.getValue());
+        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.REJECTED.getValue(), false);
         smileIdRecordRepository.save(smileIdRecord);
     }
 
-    private void handleSuccessfulNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, String userId) {
-        if (actionStatus.contains(notification.resultCode())) {
-            handleAction(notification, smileIdRecord, userId);
+    private void handleSuccessfulNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
+        if (actionStatus.contains(notification.resultCode()) && !DOC_AND_ENHANCED_JOB_TYPES.contains(notification.partnerParams().jobType())) {
+            handleAction(notification, smileIdRecord);
         } else {
-            handleData(notification, smileIdRecord, userId);
+            handleData(notification, smileIdRecord);
         }
     }
 
-    private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, String userId) {
+    private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
         smileIdRecord.setMessage(notification.resultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.APPROVED.getValue());
-        userOnboardingRepository.markOnboardingAsFailed(userId, smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue());
+        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
+        // Check if all requirement has been completed, mark the user as completed onboarding
+        if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
+            userProfileRepository.completeOnboarding(loggedInUser.getId());
+        }
         smileIdRecordRepository.save(smileIdRecord);
     }
 
-    private void handleData(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, String userId) {
+    private void handleData(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         Requirements requirements = requirementsRepository.findByIdAndStatus(smileIdRecord.getRequirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
         // Save document url for non bvn requirement
-        Users loggedInUser = usersRepository.findOneByEmail(userId);
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
         UserDocument document = UserDocument.builder().userId(loggedInUser.getId()).requirementId(smileIdRecord.getRequirementId())
                 .idType(notification.idType()).additionalUrl(notification.kycReceipt()).build();
         if (nonNull(notification.imageLinks())) {
@@ -160,32 +176,32 @@ public class SmileIdService {
         }
         userDocumentRepository.save(document);
 
-        idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
-                .idCardType(notification.idType())
-                .expiryDate(notification.expirationDate())
-                .issuedDate(notification.issuanceDate())
-                .userId(loggedInUser.getId())
-                .build());
+        if (AppUtil.nonIsNull(notification.idNumber(), notification.idType())) {
+            idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
+                    .idCardType(notification.idType())
+                    .expiryDate(notification.expirationDate())
+                    .issuedDate(notification.issuanceDate())
+                    .userId(loggedInUser.getId())
+                    .build());
+        }
 
         if (OnboardingRequirements.of(notification.idType()) == OnboardingRequirements.BVN) {
             userProfileRepository.updateUsersDobAndGender(notification.gender(), LocalDate.parse(notification.dob()), loggedInUser.getId());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getEmail());
         }
 
-        // Check if all requirement has been completed, mark the user as completed onboarding
-        if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
-            userProfileRepository.completeOnboarding(loggedInUser.getId());
+        if (DOCUMENT_APPROVED_STATUS.equals(notification.resultCode())) {
+            userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
+            // Check if all requirement has been completed, mark the user as completed onboarding
+            if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
+                userProfileRepository.completeOnboarding(loggedInUser.getId());
+            }
         }
-
     }
 
     private String generateSignature(String timestamp) {
         try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
-            mac.update(timestamp.getBytes(StandardCharsets.UTF_8));
-            mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
-            mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
+            Mac mac = getMac(timestamp);
             return Base64.getEncoder().encodeToString(mac.doFinal());
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new UpstreamServiceException("Can not generate token.");
@@ -195,18 +211,21 @@ public class SmileIdService {
     private boolean confirmSignature(String receivedSignature, String receivedTimestamp) {
 
         try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
-            mac.update(receivedTimestamp.getBytes(StandardCharsets.UTF_8));
-            mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
-            mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
-
+            Mac mac = getMac(receivedTimestamp);
             String generatedSignature = Base64.getEncoder().encodeToString(mac.doFinal());
-
             return generatedSignature.equals(receivedSignature);
         } catch (Exception e) {
             log.error(e.getMessage());
             return false;
         }
+    }
+
+    private Mac getMac(String timestamp) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac mac = AppUtil.getHmacSHA256();
+        mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
+        mac.update(timestamp.getBytes(StandardCharsets.UTF_8));
+        mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
+        mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
+        return mac;
     }
 }

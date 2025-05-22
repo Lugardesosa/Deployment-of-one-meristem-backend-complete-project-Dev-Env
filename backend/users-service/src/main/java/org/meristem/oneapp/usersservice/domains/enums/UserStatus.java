@@ -6,7 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum UserStatus {
-
+    ACTIVE(1),
     LOCKED(2),
     DEACTIVATED(3);
 

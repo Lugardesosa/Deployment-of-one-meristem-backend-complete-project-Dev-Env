@@ -22,7 +22,7 @@ public enum OnboardingRequirements {
             case "BVN" -> BVN;
             case "PROOF_OF_ADDRESS" -> PROOF_OF_ADDRESS;
             case "NIN" -> NIN;
-            case "GOVERNMENT_ISSUED_ID" -> GOVERNMENT_ISSUED_ID;
+            case "GOVERNMENT_ISSUED_ID", "NATIONAL_ID", "PASSPORT", "DRIVERS_LICENSE", "IDENTITY_CARD", "VOTER_ID" -> GOVERNMENT_ISSUED_ID;
             default -> throw new BadRequestException("Invalid requirement: " + name);
         };
     }

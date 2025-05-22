@@ -7,5 +7,5 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 public interface AvatarsRepository extends BaseRepository<Avatars, Long> {
-    boolean existsByUrl(@Size(max = 500, message = "cannot be more than 300") @NotBlank(message = "cannot be null") String url);
+    boolean existsByUrl(String url);
 }
