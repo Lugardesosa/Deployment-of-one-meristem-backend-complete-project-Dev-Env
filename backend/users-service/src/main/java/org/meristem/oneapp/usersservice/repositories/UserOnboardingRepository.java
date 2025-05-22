@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.repositories;
 
-import jakarta.validation.constraints.NotNull;
 import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
 import org.meristem.oneapp.usersservice.models.UserOnboarding;
 import org.springframework.data.jdbc.repository.query.Modifying;
@@ -22,15 +21,18 @@ public interface UserOnboardingRepository extends BaseRepository<UserOnboarding,
     @Query("UPDATE user_onboarding SET completed = TRUE WHERE user_id = :userId AND requirement_id = :requirementId ")
     int completeUserOnboarding(Long userId, Long requirementId);
 
-    @Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM user_onboarding WHERE user_id = :userId " +
-            "AND requirement_id = :requirementId AND completed = :completed ")
     boolean existsByUserIdAndRequirementIdAndCompleted(Long userId, Long requirementId, boolean completed);
 
-    @Query("SELECT COUNT(uo) = SUM(CASE WHEN completed = TRUE THEN 1 ELSE 0 END) FROM user_onboarding uo LEFT JOIN requirements r on r.id = ur.requirement_id WHERE user_id = :userId AND r.mandatory = TRUE")
+    @Query("SELECT COUNT(uo.id) = SUM(CASE WHEN completed = TRUE THEN 1 ELSE 0 END) FROM user_onboarding uo LEFT JOIN requirements r on r.id = uo.requirement_id WHERE user_id = :userId AND r.mandatory = TRUE")
     boolean allRequirementsSubmitted(Long userId);
 
     @Modifying
     @Transactional
-    @Query("UPDATE user_onboarding SET status = :value WHERE user_id = :userId AND requirement_id = :requirementId ")
-    void markOnboardingAsFailed(String userId, Long requirementId, Integer value);
+    @Query("UPDATE user_onboarding SET status = :value, completed = :completed WHERE user_id = :userId AND requirement_id = :requirementId ")
+    void updateUserOnboardingStatus(Long userId, Long requirementId, Integer value, boolean completed);
+
+
+    @Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM user_onboarding WHERE user_id = :userId " +
+            "AND requirement_id = :requirementId AND completed = :completed ")
+    boolean userOnboardingCompleted(Long userId, Long requirementId, boolean completed);
 }

@@ -142,7 +142,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(UpstreamServiceException.class)
     protected ResponseEntity<ErrorDetails> handleUpstreamServiceException(UpstreamServiceException ex, WebRequest request) {
-        return handleExceptionInternal("Bad gateway", HttpStatus.BAD_GATEWAY, request, List.of("Request could not be processed"));
+        return handleExceptionInternal("Bad gateway", HttpStatus.SERVICE_UNAVAILABLE, request, List.of("Request could not be processed"));
     }
 
     @ExceptionHandler({AuthorizationDeniedException.class, OAuth2AuthorizationException.class})

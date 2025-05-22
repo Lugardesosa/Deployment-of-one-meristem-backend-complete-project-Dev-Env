@@ -13,6 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import javax.crypto.Mac;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 import static java.util.Objects.nonNull;
@@ -41,7 +45,7 @@ public final class AppUtil {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
             return jwt.getClaim("id");
         }
-        return null;
+        throw new BadRequestException("User is not logged in");
     }
 
     public static String getLoggedInUserEmail() {
@@ -96,5 +100,13 @@ public final class AppUtil {
         password[rand.nextInt(size)] = specialChars[rand.nextInt(specialChars.length)];
         password[rand.nextInt(size)] = specialChars[rand.nextInt(specialChars.length)];
         return new String(password);
+    }
+
+    public static Mac getHmacSHA256() throws NoSuchAlgorithmException {
+        return Mac.getInstance("HmacSHA256");
+    }
+
+    public static boolean nonIsNull(Object... s) {
+        return Arrays.stream(s).allMatch(Objects::nonNull);
     }
 }

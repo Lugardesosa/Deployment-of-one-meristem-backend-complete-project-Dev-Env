@@ -11,11 +11,14 @@ import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.domains.enums.OtpType;
+import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.events.UserOnboardingCompletionEvent;
 import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
+import org.meristem.oneapp.usersservice.models.Avatars;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
@@ -27,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
@@ -41,6 +46,7 @@ import static java.util.Objects.requireNonNull;
 @Service
 @RequiredArgsConstructor
 public class UsersService {
+    private final AvatarMapping avatarMapping = AvatarMapping.INSTANCE;
 
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
@@ -169,11 +175,9 @@ public class UsersService {
 
         Long userId = AppUtil.getLoggedInUserId();
 
-        if (!avatarsRepository.existsByUrl(request.avatarUrl())) {
-            throw new BadRequestException("Avatar URL is not valid.");
-        }
+        Avatars avatars = avatarsRepository.findById(request.avatarId()).orElseThrow(() -> new BadRequestException("Avatar not found."));
 
-        userProfileRepository.updateUsersAvatar(request.avatarUrl(), userId);
+        userProfileRepository.updateUsersAvatar(avatars.getUrl(), userId);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
         return UpdateAvatarUrlResponse.builder().status(true).message("User avatar updated").build();
     }
@@ -198,5 +202,18 @@ public class UsersService {
         userProfileRepository.updateUsersPin(passwordEncoder.encode(request.pin()), userId);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
         return PinResponse.builder().status(true).message("Pin successfully updated.").build();
+    }
+
+    public List<AvatarUrls> getAvatarUrls() {
+        List<AvatarUrls> avatars = new ArrayList<>();
+        avatarsRepository.findAll().forEach(av ->
+                avatars.add(avatarMapping.avatarsToAvatarUrls(av)));
+        return avatars;
+    }
+
+    public AccountDeactivationResponse deactivateUser() {
+        Long userId = AppUtil.getLoggedInUserId();
+        int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
+        return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
     }
 }

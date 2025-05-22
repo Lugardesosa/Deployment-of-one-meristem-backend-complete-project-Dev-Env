@@ -59,7 +59,9 @@ one-app:
     application-name: users-service
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
-    logo-url: ${LOGO_URL}
+    logo-url: ${GREEN_LOGO_URL}
+    white-logo-url: ${WHITE_LOGO_URL}
+    finance-logo-url: ${FINANCE_LOGO_URL}
 #  NOTIFICATION SERVICE
   notification-service:
     context-path: /api/notification

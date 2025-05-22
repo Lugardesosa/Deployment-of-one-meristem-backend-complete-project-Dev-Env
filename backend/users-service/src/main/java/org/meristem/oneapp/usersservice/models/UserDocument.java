@@ -33,17 +33,14 @@ public class UserDocument extends BaseModel<String> {
     private String additionalUrl;
 
     @Size(max = 1000)
-    @NotBlank(message = "Not null")
     @Column("id_card_front_url")
     private String idCardFront;
 
     @Size(max = 1000)
-    @NotBlank(message = "Not null")
     @Column("id_card_back_url")
     private String idCardBack;
 
     @Size(max = 1000)
-    @NotBlank(message = "Not null")
     @Column("selfie_image_url")
     private String selfieImage;
 

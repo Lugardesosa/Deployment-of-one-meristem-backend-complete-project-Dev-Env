@@ -28,7 +28,6 @@ public class IdCard extends BaseModel<String> {
     String idValue;
 
     @Column("issued_date")
-    @NotNull(message = "cannot be null")
     String issuedDate;
 
     @Column("expiry_date")

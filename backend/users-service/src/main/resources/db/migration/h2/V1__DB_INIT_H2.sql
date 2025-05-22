@@ -57,9 +57,9 @@ CREATE TABLE user_document
     status             INT DEFAULT 1                           NOT NULL,
     id_type            VARCHAR(50)                             NOT NULL,
     additional_url     VARCHAR(1000)                           NOT NULL,
-    id_card_front_url  VARCHAR(1000)                           NOT NULL,
-    id_card_back_url   VARCHAR(1000)                           NOT NULL,
-    selfie_image_url   VARCHAR(1000)                           NOT NULL,
+    id_card_front_url  VARCHAR(1000),
+    id_card_back_url   VARCHAR(1000),
+    selfie_image_url   VARCHAR(1000),
     requirement_id     BIGINT                                  NOT NULL,
     user_id            BIGINT                                  NOT NULL,
     CONSTRAINT pk_user_document PRIMARY KEY (id)
@@ -148,8 +148,8 @@ CREATE TABLE id_card
     status               INT DEFAULT 1                           NOT NULL,
     id_card_type         VARCHAR(30)                             NOT NULL,
     id_value             VARCHAR(30)                             NOT NULL,
-    issued_date          DATE                                    NOT NULL,
-    expiry_date          DATE,
+    issued_date          VARCHAR(20),
+    expiry_date          VARCHAR(20),
     user_id             BIGINT                                  NOT NULL,
     CONSTRAINT pk_id_card PRIMARY KEY (id)
 );
@@ -204,7 +204,7 @@ CREATE TABLE avatars
     created_by         VARCHAR(255)                            NOT NULL,
     last_modified_date TIMESTAMP,
     last_modified_by   VARCHAR(255)                            NOT NULL,
-    version            INT,
+    version            INT DEFAULT 0,
     status             INT DEFAULT 1                           NOT NULL,
     url                VARCHAR(500)                            NOT NULL,
     CONSTRAINT pk_avatars PRIMARY KEY (id)
@@ -403,6 +403,8 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.avatar'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.pin'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.deactivate.account'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get.avatars'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'super_admin.admin.create');
 
 
@@ -419,6 +421,8 @@ SET @UsersPhoneNumberUpdateID = (SELECT id FROM permissions WHERE name = 'users.
 SET @AdminChangePasswordID = (SELECT id FROM permissions WHERE name = 'admin.change.password');
 SET @UsersChangeAvatarID = (SELECT id FROM permissions WHERE name = 'users.change.avatar');
 SET @UsersChangePinID = (SELECT id FROM permissions WHERE name = 'users.change.pin');
+SET @UsersDeactivateAccountID = (SELECT id FROM permissions WHERE name = 'users.deactivate.account');
+SET @UsersGetAvatarID = (SELECT id FROM permissions WHERE name = 'users.get.avatars');
 SET @SuperAdminAdminCreateID = (SELECT id FROM permissions WHERE name = 'super_admin.admin.create');
 
 INSERT INTO roles_permissions (roles_id, permissions_id)
@@ -435,6 +439,8 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesAdminID, @AdminChangePasswordID),
        (@RolesUserID, @UsersChangeAvatarID),
        (@RolesUserID, @UsersChangePinID),
+       (@RolesUserID, @UsersDeactivateAccountID),
+       (@RolesUserID, @UsersGetAvatarID),
        (@RolesSuperAdminID, @SuperAdminAdminCreateID);
 
 INSERT INTO oauth2_registered_client
@@ -442,3 +448,15 @@ VALUES
         ('b4c1e3f7-7238-4453-a68e-8a52faf61834', 'mobile-service', NOW(), '$2a$10$BayFPa39DOsXHezSVcWIrONwom81s46vDs6js4AK1fx/hRR37Rx7S', NULL, 'Mobile Service', 'client_secret_post,client_secret_basic', 'refresh_token,password,client_credentials', '', '', 'user.read,user.write,profile,send_otp,verify_otp,create_user,users.get,password_reset', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":false,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",57600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}'),
         ('38463a9b-55ef-4df0-a319-63f5c60475d8', 'users-service', NOW(), '$2a$10$I0HYSs94VokxDXX77ubhsudZSrz96lyfOTLetGwyTHotmJo6cX9YS', NULL, 'Users Service', 'client_secret_post,client_secret_basic', 'refresh_token,client_credentials', '', '', '', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":true,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}'),
         ('8705d10f-81b1-4095-9424-955b03e47d4a', 'notification-service', NOW(), '$2a$10$T929snsP.zmaysL7Byji1.6Y2yOvkFWniUcGl0Cb3dt3HWdXLb83a', NULL, 'Notification Service', 'client_secret_post,client_secret_basic', 'refresh_token,client_credentials', '', '', '', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":true,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}');
+
+INSERT INTO avatars (created_date, created_by, last_modified_date, last_modified_by, url)
+VALUES
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/1.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/2.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/3.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/4.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/5.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/6.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/7.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/8.svg'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 'https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/avatar_files/9.svg');

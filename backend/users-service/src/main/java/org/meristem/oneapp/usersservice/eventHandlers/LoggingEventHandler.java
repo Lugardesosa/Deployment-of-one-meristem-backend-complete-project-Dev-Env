@@ -31,32 +31,33 @@ public class LoggingEventHandler {
     @Async
     public void handleLogging(RequestAndResponseLogEvent event) throws JsonProcessingException {
 
-        String requestMap = new String(event.getRequestBody(), StandardCharsets.UTF_8).trim();
-        requestMap = requestMap.isBlank() ? "{}" : requestMap;
-        String responseMap = new String(event.getResponseBody(), StandardCharsets.UTF_8);
-
-        HashMap<String, Object> bodyRequest;
-        HashMap<String, Object> bodyResponse;
         try {
-            bodyRequest = objectMapper.readValue(requestMap, new TypeReference<>() {});
-            bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {});
+
+            String requestMap = new String(event.getRequestBody(), StandardCharsets.UTF_8).trim();
+            requestMap = requestMap.isBlank() ? "{}" : requestMap;
+            String responseMap = new String(event.getResponseBody(), StandardCharsets.UTF_8);
+
+            HashMap<String, Object> bodyRequest = objectMapper.readValue(requestMap, new TypeReference<>() {
+            });
+            HashMap<String, Object> bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {
+            });
+
+            sanitize(event, bodyResponse, bodyRequest);
+
+            log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
+                    event.getStatus(),
+                    event.getMethod(),
+                    event.getRequestURI(),
+                    getRequestHeaders(event.getHeaders()),
+                    objectMapper.writeValueAsString(bodyRequest),
+                    objectMapper.writeValueAsString(bodyResponse),
+                    event.getDuration(),
+                    getRequestParameters(event.getParameters())
+            );
+
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
-            return;
         }
-
-        sanitize(event, bodyResponse, bodyRequest);
-
-        log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
-                event.getStatus(),
-                event.getMethod(),
-                event.getRequestURI(),
-                getRequestHeaders(event.getHeaders()),
-                objectMapper.writeValueAsString(bodyRequest),
-                objectMapper.writeValueAsString(bodyResponse),
-                event.getDuration(),
-                getRequestParameters(event.getParameters())
-        );
     }
 
     private void sanitize(RequestAndResponseLogEvent event, HashMap<String, Object> bodyResponse, HashMap<String, Object> bodyRequest) {
