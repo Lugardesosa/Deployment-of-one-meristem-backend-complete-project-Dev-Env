@@ -1,13 +1,8 @@
 package org.meristem.oneapp.usersservice.utils;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.meristem.oneapp.usersservice.constants.AppConstants;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.models.OtpVerification;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;

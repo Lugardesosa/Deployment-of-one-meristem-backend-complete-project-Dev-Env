@@ -18,3 +18,8 @@ server:
   servlet:
     context-path: ${one-app.notification-service.context-path}
 
+one-app:
+
+  notification-service:
+    context-path: /api/notification
+    application-name: notification-service

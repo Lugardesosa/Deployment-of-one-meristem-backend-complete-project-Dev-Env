@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.usersservice.domains.enums.NextOfKins;
 import org.meristem.oneapp.usersservice.domains.requests.CreateNextOfKinRequest;
 import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.NextOfKinMapping;
 import org.meristem.oneapp.usersservice.models.NextOfKin;
 import org.meristem.oneapp.usersservice.repositories.NextOfKinRepository;

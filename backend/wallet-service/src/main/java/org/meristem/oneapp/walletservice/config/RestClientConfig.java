@@ -1,18 +1,15 @@
-package org.meristem.oneapp.usersservice.config;
-
+package org.meristem.oneapp.walletservice.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
-import org.meristem.oneapp.usersservice.dtos.configs.BufferingClientHttpResponseWrapper;
-import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
-import org.springframework.context.annotation.Bean;
+import org.meristem.oneapp.walletservice.dtos.config.BufferingClientHttpResponseWrapper;
+import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.walletservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,6 +23,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
+import io.micrometer.observation.ObservationRegistry;
 
 import java.io.IOException;
 import java.net.URI;
@@ -45,15 +43,14 @@ public class RestClientConfig {
     public static final String REDACTED = "[REDACTED]";
     private final List<String> bodyToSanitize = List.of("password", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN");
 
-    @Bean
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
+
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(200);
         connectionManager.setDefaultMaxPerRoute(5);
 
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
-                .evictIdleConnections(TimeValue.of(Duration.ofSeconds(30)))
-                .build();
+                .evictIdleConnections(TimeValue.of(Duration.ofSeconds(60))).build();
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         requestFactory.setConnectTimeout(Duration.ofSeconds(3));
@@ -61,7 +58,6 @@ public class RestClientConfig {
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }
-
 
     ResponseErrorHandler errorHandler() {
         return new ResponseErrorHandler() {
@@ -139,6 +135,7 @@ public class RestClientConfig {
         }
     }
 
+
     private void sanitizeBody(HashMap<String, Object> bodyRequest, HashMap<String, Object> bodyResponse) {
         bodyToSanitize.forEach(k -> {
             if (bodyRequest.containsKey(k)) {
@@ -153,4 +150,5 @@ public class RestClientConfig {
     private String sanitizeHeaders(Map<String, String> requestHeaders) {
         return "";
     }
+
 }
