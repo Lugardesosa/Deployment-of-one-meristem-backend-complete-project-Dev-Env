@@ -54,6 +54,16 @@ one-app:
   server-version: 1.0
   server-app-name: "Meristem One App"
 
+#  USERS SERVICE
+  users-service:
+    context-path: /api/users
+    application-name: users-service
+
+#  WALLET SERVICE
+  wallet-service:
+    context-path: /api/wallets
+    application-name: wallet-service
+
 logging:
   file:
     max-size: 2MB
