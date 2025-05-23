@@ -52,24 +52,7 @@ one-app:
   server-url: ${ONE_APP_SERVER_URL}
   email: ${ONE_APP_EMAIL}
   server-version: 1.0
-  server-app-name: "One App"
-#  USERS SERVICE
-  users-service:
-    context-path: /api/users
-    application-name: users-service
-    company-name: ${COMPANY_NAME}
-    data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
-    logo-url: ${GREEN_LOGO_URL}
-    white-logo-url: ${WHITE_LOGO_URL}
-    finance-logo-url: ${FINANCE_LOGO_URL}
-#  NOTIFICATION SERVICE
-  notification-service:
-    context-path: /api/notification
-    application-name: notification-service
-#    WALLET
-  wallet-service:
-    context-path: /api/wallet
-    application-name: wallet-service
+  server-app-name: "Meristem One App"
 
 logging:
   file:

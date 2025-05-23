@@ -66,7 +66,6 @@ public class AppConfig {
     @Bean
     public RedisCacheConfiguration defaultCacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
-                .disableCachingNullValues()
                 .entryTtl(Duration.ofHours(8))
                 .disableCachingNullValues();
     }
@@ -84,7 +83,7 @@ public class AppConfig {
     public OpenAPI apiDoclet() {
         Server server = new Server();
         server.setUrl(serverUrl.concat(contextPath));
-        server.description("API Documentation");
+        server.description("Users API Documentation");
 
         Contact contact = new Contact().url(serverUrl).email(email).name(serverAppName);
         Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage users.");

@@ -15,7 +15,7 @@ import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.events.UserOnboardingCompletionEvent;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.Avatars;

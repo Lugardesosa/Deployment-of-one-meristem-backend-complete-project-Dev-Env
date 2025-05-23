@@ -20,3 +20,8 @@ server:
   port: 20040
   servlet:
     context-path: ${one-app.wallet-service.context-path}
+
+one-app:
+  wallet-service:
+    context-path: /api/wallets
+    application-name: wallet-service

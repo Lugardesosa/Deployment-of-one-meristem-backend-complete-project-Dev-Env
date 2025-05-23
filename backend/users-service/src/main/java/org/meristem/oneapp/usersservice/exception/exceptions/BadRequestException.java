@@ -1,4 +1,4 @@
-package org.meristem.oneapp.usersservice.exceptionHandler.exceptions;
+package org.meristem.oneapp.usersservice.exception.exceptions;
 
 public class BadRequestException extends RuntimeException{
 

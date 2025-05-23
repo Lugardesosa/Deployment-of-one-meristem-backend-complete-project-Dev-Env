@@ -1,18 +1,20 @@
-package org.meristem.oneapp.usersservice.exceptionHandler;
+package org.meristem.oneapp.walletservice.exception;
 
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.constants.ErrorMessages;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.ResourceNotFoundException;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.UpstreamServiceException;
+import org.meristem.oneapp.walletservice.constants.ErrorMessages;
+import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.walletservice.exception.exceptions.ResourceNotFoundException;
+import org.meristem.oneapp.walletservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;

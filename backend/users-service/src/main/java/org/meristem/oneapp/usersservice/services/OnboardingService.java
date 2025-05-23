@@ -8,7 +8,7 @@ import org.meristem.oneapp.usersservice.domains.requests.AddressOnboardRequest;
 import org.meristem.oneapp.usersservice.domains.requests.ProcessAddressRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AddressOnboardingResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
-import org.meristem.oneapp.usersservice.exceptionHandler.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.Address;
 import org.meristem.oneapp.usersservice.repositories.AddressRepository;
 import org.meristem.oneapp.usersservice.repositories.UserOnboardingRepository;
