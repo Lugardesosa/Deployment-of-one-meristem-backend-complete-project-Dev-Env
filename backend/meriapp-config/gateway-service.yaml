@@ -10,6 +10,6 @@ spring:
 #            - PrefixPath=/api
 
         - id: ${one-app.wallet-service.application-name}/
-          uri: ${USER_SERVICE_URI}
+          uri: ${WALLET_SERVICE_URI}
           predicates:
             - Path=${one-app.wallet-service.context-path}/**
