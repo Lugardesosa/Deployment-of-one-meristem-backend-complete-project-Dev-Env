@@ -25,3 +25,4 @@ one-app:
   wallet-service:
     wema:
       integration-name: 'Wema Integration'
+      url: ${WEMA_API_URL}

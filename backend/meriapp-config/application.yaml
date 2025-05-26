@@ -53,6 +53,7 @@ one-app:
   email: ${ONE_APP_EMAIL}
   server-version: 1.0
   server-app-name: "Meristem One App"
+  default-header-name: "X-ONE-APP-CLIENT-NAME"
 
 #  USERS SERVICE
   users-service:
