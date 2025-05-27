@@ -143,7 +143,7 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - GITHUB_PROFILE=local
-      - GITHUB_BRANCH=dev_env
+      - GITHUB_BRANCH=wallet
       - USER="System"
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -183,7 +183,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=dev_env
+      - GITHUB_BRANCH=wallet
       - GITHUB_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -232,7 +232,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=dev_env
+      - GITHUB_BRANCH=wallet
       - GITHUB_PROFILE=local
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -242,6 +242,7 @@ services:
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
+      - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SSL_KEY_ALIAS=one-meristem-app
