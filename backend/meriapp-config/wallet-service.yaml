@@ -23,5 +23,6 @@ server:
 
 one-app:
   wallet-service:
-    context-path: /api/wallets
-    application-name: wallet-service
+    wema:
+      integration-name: 'Wema Integration'
+      url: ${WEMA_API_URL}

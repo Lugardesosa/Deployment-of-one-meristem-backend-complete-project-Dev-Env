@@ -31,8 +31,6 @@ one-app:
       callback-url: ${SMILE_ID_PROD_CALLBACK_URL}
       is-single-use: true
       expires-at: 2 # in days
-    context-path: /api/users
-    application-name: users-service
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
     logo-url: ${GREEN_LOGO_URL}

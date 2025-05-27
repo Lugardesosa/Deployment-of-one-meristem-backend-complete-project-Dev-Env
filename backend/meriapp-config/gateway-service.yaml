@@ -2,9 +2,14 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: user-service
+        - id: ${one-app.users-service.application-name}/
           uri: ${USER_SERVICE_URI}
           predicates:
             - Path=${one-app.users-service.context-path}/**
 #          filters:
 #            - PrefixPath=/api
+
+        - id: ${one-app.wallet-service.application-name}/
+          uri: ${WALLET_SERVICE_URI}
+          predicates:
+            - Path=${one-app.wallet-service.context-path}/**
