@@ -386,6 +386,7 @@ DO $$
         UsersOnboardOnboardID integer;
         UsersOnboardGetID integer;
         UsersNextOfKinCreateID integer;
+        UsersNextOfKinGetID integer;
         UsersGetSmileIdTokenID integer;
         AdminApproveAddressID integer;
         AdminNextOfKinUpdateID integer;
@@ -431,6 +432,9 @@ BEGIN
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.create') RETURNING id INTO UsersNextOfKinCreateID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.get') RETURNING id INTO UsersNextOfKinGetID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_smile_id_token') RETURNING id INTO UsersGetSmileIdTokenID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
@@ -473,6 +477,7 @@ BEGIN
            (RolesUserID, UsersOnboardOnboardID),
            (RolesUserID, UsersOnboardGetID),
            (RolesUserID, UsersNextOfKinCreateID),
+           (RolesUserID, UsersNextOfKinGetID),
            (RolesUserID, UsersGetSmileIdTokenID),
            (RolesAdminID, AdminNextOfKinUpdateID),
            (RolesAdminID, AdminOnboardProcessAddressID), -- TODO: SWITCH TO OKHI AND DELETE

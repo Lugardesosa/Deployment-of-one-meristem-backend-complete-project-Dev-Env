@@ -395,6 +395,7 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.onboard'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.create'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_smile_id_token'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.next_of_kin.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.onboard.approve_address'), -- TODO: SWITCH TO OKHI AND DELETE
@@ -413,6 +414,7 @@ SET @UsersChangePasswordID = (SELECT id FROM permissions WHERE name = 'users.cha
 SET @UsersOnboardOnboardID = (SELECT id FROM permissions WHERE name = 'users.onboard.onboard');
 SET @UsersOnboardGetID = (SELECT id FROM permissions WHERE name = 'users.onboard.get');
 SET @UsersNextOfKinCreateID = (SELECT id FROM permissions WHERE name = 'users.next_of_kin.create');
+SET @UsersNextOfKinGetID = (SELECT id FROM permissions WHERE name = 'users.next_of_kin.get');
 SET @UsersGetSmileIdTokenID = (SELECT id FROM permissions WHERE name = 'users.get_smile_id_token');
 SET @AdminNextOfKinUpdateID = (SELECT id FROM permissions WHERE name = 'admin.next_of_kin.update');
 SET @AdminOnboardProcessAddressID = (SELECT id FROM permissions WHERE name = 'admin.onboard.approve_address'); -- TODO: SWITCH TO OKHI AND DELETE
@@ -431,6 +433,7 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersOnboardOnboardID),
        (@RolesUserID, @UsersOnboardGetID),
        (@RolesUserID, @UsersNextOfKinCreateID),
+       (@RolesUserID, @UsersNextOfKinGetID),
        (@RolesUserID, @UsersGetSmileIdTokenID),
        (@RolesAdminID, @AdminNextOfKinUpdateID),
        (@RolesAdminID, @AdminOnboardProcessAddressID), -- TODO: SWITCH TO OKHI AND DELETE

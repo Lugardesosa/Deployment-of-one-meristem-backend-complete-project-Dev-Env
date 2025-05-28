@@ -2,9 +2,11 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
@@ -19,6 +21,7 @@ import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +59,7 @@ public class SmileIdService {
     private final CacheManager cacheManager;
     private final SimpMessagingTemplate messagingTemplate;
     private final SmileIdClient smileIdClient;
+    private final KafkaSenderService kafkaSenderService;
 
 
     private final SmileIdProperties smileIdProperties;
@@ -160,6 +164,7 @@ public class SmileIdService {
         // Check if all requirement has been completed, mark the user as completed onboarding
         if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
             userProfileRepository.completeOnboarding(loggedInUser.getId());
+            kafkaSenderService.send(KycCompletedDto.builder().userId(loggedInUser.getId()).fullName(AppUtil.getUserFullName(loggedInUser)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
         }
         smileIdRecordRepository.save(smileIdRecord);
     }
@@ -198,6 +203,7 @@ public class SmileIdService {
             // Check if all requirement has been completed, mark the user as completed onboarding
             if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
                 userProfileRepository.completeOnboarding(loggedInUser.getId());
+                kafkaSenderService.send(KycCompletedDto.builder().userId(loggedInUser.getId()).fullName(AppUtil.getUserFullName(loggedInUser)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
             }
         }
     }

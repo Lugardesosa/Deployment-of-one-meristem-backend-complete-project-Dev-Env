@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
-import org.meristem.oneapp.kafka.dtos.UserCreatedDto;
+import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -13,7 +13,6 @@ import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.Avatars;
@@ -94,7 +93,6 @@ public class UsersService {
                     userOnboardingRepository.save(userOnboarding);
                 });
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
-        kafkaSenderService.send(UserCreatedDto.builder().userId(userId).fullName(AppUtil.getUserFullName(user)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_USER_CREATED));
         return usersMapper.usersToUserResponse(user);
     }
 
