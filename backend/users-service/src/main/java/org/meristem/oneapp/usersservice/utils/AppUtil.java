@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.utils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -62,6 +63,10 @@ public final class AppUtil {
             return firstName + " " + lastName;
         }
         throw new BadRequestException("User is not logged in");
+    }
+
+    public static String getUserFullName(Users user) {
+        return user.getFirstName() + " " + (nonNull(user.getMiddleName()) ? user.getMiddleName() : "") + user.getLastName();
     }
 
     public static String getLoggedInUserPhone() {

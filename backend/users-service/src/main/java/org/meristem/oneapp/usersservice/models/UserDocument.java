@@ -27,20 +27,20 @@ public class UserDocument extends BaseModel<String> {
     @NotBlank(message = "Not null")
     private String idType;
 
-    @Size(max = 1000)
+    @Size(max = 2000)
     @NotBlank(message = "Not null")
     @Column("additional_url")
     private String additionalUrl;
 
-    @Size(max = 1000)
+    @Size(max = 2000)
     @Column("id_card_front_url")
     private String idCardFront;
 
-    @Size(max = 1000)
+    @Size(max = 2000)
     @Column("id_card_back_url")
     private String idCardBack;
 
-    @Size(max = 1000)
+    @Size(max = 2000)
     @Column("selfie_image_url")
     private String selfieImage;
 

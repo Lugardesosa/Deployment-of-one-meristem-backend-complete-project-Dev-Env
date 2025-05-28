@@ -5,4 +5,5 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 public interface IdCardRepository extends BaseRepository<IdCard, Long> {
+    boolean existsByIdValue(String idValue);
 }

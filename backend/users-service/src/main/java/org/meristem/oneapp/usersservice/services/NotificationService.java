@@ -41,7 +41,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final KafkaSenderService<MessageDto> kafkaSenderService;
+    private final KafkaSenderService kafkaSenderService;
     private final OtpVerificationRepository otpVerificationRepository;
     private final UsersRepository usersRepository;
 

@@ -43,7 +43,7 @@ public class AdminService {
 
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
-    private final KafkaSenderService<MessageDto> kafkaSenderService;
+    private final KafkaSenderService kafkaSenderService;
     private final PasswordEncoder passwordEncoder;
     private final RolesRepository rolesRepository;
 
