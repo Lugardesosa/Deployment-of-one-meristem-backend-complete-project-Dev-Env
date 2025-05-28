@@ -5,5 +5,5 @@ import lombok.Builder;
 
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record UserCreatedDto(Long userId, String fullName) {
+public record KycCompletedDto(Long userId, String fullName) {
 }

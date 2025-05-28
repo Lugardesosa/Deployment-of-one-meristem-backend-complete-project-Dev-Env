@@ -1,7 +1,5 @@
 package org.meristem.oneapp.usersservice.repositories;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -52,8 +50,8 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     void updateUsersPhoneNumber(String email, String phoneNumber);
 
     @UsersQueryModifier
-    @Query("UPDATE users SET password_attempt = password_attempt + 1 WHERE email = :email ")
-    void incrementPasswordAttempt(String email);
+    @Query("UPDATE users SET password_attempt = :attempt WHERE email = :email ")
+    void updatePasswordAttempt(String email, Integer attempt);
 
     @UsersQueryModifier
     @Query("UPDATE users SET status = :userStatus WHERE email = :email ")

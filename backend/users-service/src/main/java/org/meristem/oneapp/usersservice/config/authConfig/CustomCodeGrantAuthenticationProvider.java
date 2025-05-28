@@ -78,7 +78,7 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            usersRepository.incrementPasswordAttempt(user.getEmail());
+            usersRepository.updatePasswordAttempt(user.getEmail(), user.getPasswordAttempt() + 1);
 
             if (user.getPasswordAttempt() + 1 == AppConstants.PASSWORD_ATTEMPTS) {
                 usersRepository.updateStatus( user.getEmail(), UserStatus.LOCKED.getValue());
@@ -87,6 +87,8 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST,
                     String.format(ErrorMessages.INVALID_PASSWORD, (AppConstants.PASSWORD_ATTEMPTS - (user.getPasswordAttempt() + 1))),
                     null));
+        } else {
+            usersRepository.updatePasswordAttempt(user.getEmail(), 0);
         }
         if (registeredClient == null || !registeredClient.getAuthorizationGrantTypes().contains(token.getGrantType())) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);

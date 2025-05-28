@@ -137,4 +137,14 @@ public class UsersController {
     public ResponseEntity<AppResponse<AccountDeactivationResponse>> deactivateUser() {
         return ApiUtil.buildResponse(usersService.deactivateUser(), HttpStatus.OK.toString(), "Successful");
     }
+
+    @Operation(summary = "Get next of kin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to get their next of kin")
+    })
+    @PreAuthorize("hasRole('ROLE_users.next_of_kin.get')")
+    @GetMapping(value = "/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<NextOfKinResponse>> getNextOfKin() {
+        return ApiUtil.buildResponse(nextOfKinService.getNextOfKin(), HttpStatus.OK.toString(), "Successful");
+    }
 }

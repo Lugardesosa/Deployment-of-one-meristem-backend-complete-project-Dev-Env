@@ -66,7 +66,7 @@ public final class AppUtil {
     }
 
     public static String getUserFullName(Users user) {
-        return user.getFirstName() + " " + (nonNull(user.getMiddleName()) ? user.getMiddleName() : "") + user.getLastName();
+        return user.getFirstName() + " " + (nonNull(user.getMiddleName()) ? (user.getMiddleName() + " "): "") + user.getLastName();
     }
 
     public static String getLoggedInUserPhone() {

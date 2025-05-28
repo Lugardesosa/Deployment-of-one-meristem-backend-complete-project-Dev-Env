@@ -6,5 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 public interface NextOfKinRepository extends BaseRepository<NextOfKin, Long> {
-    boolean existsByUserId(@NotNull(message = "User id cannot be null") Long userId);
+    boolean existsByUserId(Long userId);
+
+    NextOfKin findByUserId(Long loggedInUserId);
 }

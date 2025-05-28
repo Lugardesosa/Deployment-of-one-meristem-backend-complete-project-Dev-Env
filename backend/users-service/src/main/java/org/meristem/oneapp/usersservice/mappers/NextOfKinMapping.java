@@ -14,4 +14,6 @@ public interface NextOfKinMapping {
 
     NextOfKin createNextOfKinRequestToNextOfKin(CreateNextOfKinRequest nextOfKinRequest);
     NextOfKinResponse NextOfKinToCreateNextOfKindResponse(NextOfKin nextOfKin);
+
+    NextOfKinResponse nextOfKinToNextOfKinResponse(NextOfKin nextOfKin);
 }

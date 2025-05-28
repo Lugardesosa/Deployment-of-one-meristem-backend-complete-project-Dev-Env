@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import static java.util.Objects.isNull;
+
 
 /**
  * Service class for managing next-of-kin-related operations.
@@ -71,6 +73,11 @@ public class NextOfKinService {
         nextOfKin.setUserId(AppUtil.getLoggedInUserId());
         nextOfKinRepository.save(nextOfKin);
         return nextOfKinMapping.NextOfKinToCreateNextOfKindResponse(nextOfKin);
+    }
+
+    public NextOfKinResponse getNextOfKin() {
+        NextOfKin nextOfKin = nextOfKinRepository.findByUserId(AppUtil.getLoggedInUserId());
+        return isNull(nextOfKin) ? NextOfKinResponse.builder().build() : nextOfKinMapping.nextOfKinToNextOfKinResponse(nextOfKin);
     }
 
     // TODO: CREATE AN UPDATE ENDPOINT THAT CAN ONLY BE USED BY ADMINS
