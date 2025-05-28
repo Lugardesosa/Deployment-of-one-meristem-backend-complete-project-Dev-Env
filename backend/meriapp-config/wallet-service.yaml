@@ -26,3 +26,4 @@ one-app:
     wema:
       integration-name: 'Wema Integration'
       url: ${WEMA_API_URL}
+      account-prefix: ${WEMA_ACCOUNT_PREFIX}
