@@ -14,7 +14,7 @@ import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +46,7 @@ public class AppConfig {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final OneAppProperties oneAppProperties;
+    private final OneAppUsersProperties oneAppUsersProperties;
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -96,9 +96,9 @@ public class AppConfig {
                     .scheme("bearer")
                     .bearerFormat("JWT")
                     .description("This API uses OAuth 2 with the implicit grant flow.")
-                    .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppProperties.contextPath())
+                    .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppUsersProperties.contextPath())
                             .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
-                            .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppProperties.contextPath())
+                            .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppUsersProperties.contextPath())
                                     .concat("/oauth2/token"))))
                 )
             ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));

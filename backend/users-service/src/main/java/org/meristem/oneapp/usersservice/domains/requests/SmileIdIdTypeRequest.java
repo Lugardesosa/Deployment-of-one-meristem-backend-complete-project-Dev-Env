@@ -5,5 +5,5 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record SmileIdIdTypeRequest(@NotEmpty(message = "Cannot be empty") List<@Valid IdTypesRequest> smileRequest) {
+public record SmileIdIdTypeRequest(@NotEmpty(message = "Cannot be empty") List<@Valid IdTypesRequest> smileRequest, @NotEmpty(message = "Cannot be empty") String idNumber) {
 }

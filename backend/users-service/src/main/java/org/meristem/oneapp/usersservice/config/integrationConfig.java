@@ -2,6 +2,8 @@ package org.meristem.oneapp.usersservice.config;
 
 
 import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.springframework.context.annotation.Bean;
@@ -15,11 +17,13 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 public class integrationConfig {
 
     private final SmileIdProperties smileIdProperties;
+    private final OneAppProperties oneAppProperties;
 
     @Bean
     SmileIdClient smileIdClient(RestClient.Builder restClientBuilder) {
         return HttpServiceProxyFactory
-                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(smileIdProperties.url()).build()))
+                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(smileIdProperties.url())
+                        .defaultHeader(oneAppProperties.defaultHeaderName(), "SmileIdClient").build()))
                 .build().createClient(SmileIdClient.class);
     }
 }

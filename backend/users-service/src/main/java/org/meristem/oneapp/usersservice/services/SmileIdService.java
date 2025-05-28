@@ -2,7 +2,7 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.*;
@@ -59,7 +59,7 @@ public class SmileIdService {
 
 
     private final SmileIdProperties smileIdProperties;
-    private final OneAppProperties oneAppProperties;
+    private final OneAppUsersProperties oneAppUsersProperties;
 
     List<String> dataStatus = List.of("1012");
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
@@ -69,6 +69,9 @@ public class SmileIdService {
     @Transactional
     public SmileIdTokenResponse getSmileLink(SmileIdIdTypeRequest smileRequest, Long requirementId) {
 
+        if (idCardRepository.existsByIdValue(smileRequest.idNumber())) {
+            throw new BadRequestException("Id card already exists");
+        }
         // Check if user has already completed this requirement
         if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
                 requirementId, true)) {
@@ -90,8 +93,8 @@ public class SmileIdService {
                     .partnerId(smileIdProperties.partnerId()).signature(signature)
                     .name(AppUtil.getLoggedInUserFullName())
                     .timestamp(timestamp).callbackUrl(smileIdProperties.callbackUrl())
-                    .companyName(oneAppProperties.companyName()).dataPrivacyPolicyUrl(oneAppProperties.dataPrivacyPolicyUrl())
-                    .logoUrl(oneAppProperties.logoUrl()).isSingleUse(smileIdProperties.isSingleUse())
+                    .companyName(oneAppUsersProperties.companyName()).dataPrivacyPolicyUrl(oneAppUsersProperties.dataPrivacyPolicyUrl())
+                    .logoUrl(oneAppUsersProperties.logoUrl()).isSingleUse(smileIdProperties.isSingleUse())
                     .expiresAt(expiresAt).userId(userId)
                     .idTypes(smileRequest.smileRequest()).partnerParams(Map.of("job_id", jobId)).build();
 

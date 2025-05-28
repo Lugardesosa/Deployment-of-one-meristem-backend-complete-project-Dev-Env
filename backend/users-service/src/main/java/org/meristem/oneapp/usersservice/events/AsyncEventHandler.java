@@ -23,31 +23,4 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class AsyncEventHandler {
 
-    private final UserProfileRepository profileRepository;
-    private final RequirementsRepository requirementsRepository;
-    private final UserOnboardingRepository userOnboardingRepository;
-    private final UsersRepository usersRepository;
-    private final RolesRepository rolesRepository;
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserSignUpCompletionEvent(UserOnboardingCompletionEvent event) {
-
-        try {
-
-            UserProfile profile = UserProfile.builder().userId(event.getUserId()).referralCode(AppUtil.generateReferralCode(event.getFirstName())).build();
-
-            profileRepository.save(profile);
-            requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
-                    .forEach(rId -> {
-                        UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.PENDING.getValue())
-                                .completed(false).userId(event.getUserId()).requirementId(rId).build();
-                        userOnboardingRepository.save(userOnboarding);
-                    });
-            usersRepository.saveRole(event.getUserId(), rolesRepository.findIdByName(Roles.USER.getName()));
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-        }
-    }
 }

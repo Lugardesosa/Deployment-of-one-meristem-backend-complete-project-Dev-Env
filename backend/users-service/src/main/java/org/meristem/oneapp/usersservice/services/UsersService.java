@@ -5,25 +5,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
+import org.meristem.oneapp.kafka.dtos.UserCreatedDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
-import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
-import org.meristem.oneapp.usersservice.domains.enums.MessageType;
-import org.meristem.oneapp.usersservice.domains.enums.OtpType;
-import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
+import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.usersservice.dtos.events.UserOnboardingCompletionEvent;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.Avatars;
+import org.meristem.oneapp.usersservice.models.UserOnboarding;
+import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,11 +51,14 @@ public class UsersService {
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
     private final OtpVerificationRepository otpVerificationRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ApplicationEventPublisher applicationEventPublisher;
-    private final KafkaSenderService<MessageDto> kafkaSenderService;
+    private final KafkaSenderService kafkaSenderService;
     private final UserProfileRepository userProfileRepository;
     private final AvatarsRepository avatarsRepository;
     private final CacheManager cacheManager;
+    private final UserProfileRepository profileRepository;
+    private final RequirementsRepository requirementsRepository;
+    private final UserOnboardingRepository userOnboardingRepository;
+    private final RolesRepository rolesRepository;
 
     /**
      * Creates a new user after validating the request and OTP.
@@ -80,7 +82,19 @@ public class UsersService {
         user = usersRepository.save(user);
 
         otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), OtpType.REGISTRATION.getCode());
-        applicationEventPublisher.publishEvent(new UserOnboardingCompletionEvent(this, user.getId(), user.getFirstName()));
+
+        UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(AppUtil.generateReferralCode(user.getFirstName())).build();
+
+        profileRepository.save(profile);
+        Long userId = user.getId();
+        requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
+                .forEach(rId -> {
+                    UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.PENDING.getValue())
+                            .completed(false).userId(userId).requirementId(rId).build();
+                    userOnboardingRepository.save(userOnboarding);
+                });
+        usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
+        kafkaSenderService.send(UserCreatedDto.builder().userId(userId).fullName(AppUtil.getUserFullName(user)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_USER_CREATED));
         return usersMapper.usersToUserResponse(user);
     }
 
