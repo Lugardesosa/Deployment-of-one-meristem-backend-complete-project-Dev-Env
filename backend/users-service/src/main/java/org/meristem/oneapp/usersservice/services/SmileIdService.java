@@ -160,12 +160,7 @@ public class SmileIdService {
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
         smileIdRecord.setMessage(notification.resultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.APPROVED.getValue());
-        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
-        // Check if all requirement has been completed, mark the user as completed onboarding
-        if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
-            userProfileRepository.completeOnboarding(loggedInUser.getId());
-            kafkaSenderService.send(KycCompletedDto.builder().userId(loggedInUser.getId()).fullName(AppUtil.getUserFullName(loggedInUser)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
-        }
+        completeOnboarding(smileIdRecord, loggedInUser);
         smileIdRecordRepository.save(smileIdRecord);
     }
 
@@ -199,12 +194,17 @@ public class SmileIdService {
         }
 
         if (DOCUMENT_APPROVED_STATUS.equals(notification.resultCode())) {
-            userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
-            // Check if all requirement has been completed, mark the user as completed onboarding
-            if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
-                userProfileRepository.completeOnboarding(loggedInUser.getId());
-                kafkaSenderService.send(KycCompletedDto.builder().userId(loggedInUser.getId()).fullName(AppUtil.getUserFullName(loggedInUser)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
-            }
+            completeOnboarding(smileIdRecord, loggedInUser);
+        }
+    }
+
+    private void completeOnboarding(SmileIdRecord smileIdRecord, Users loggedInUser) {
+        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
+        // Check if all requirement has been completed, mark the user as completed onboarding
+        if (userOnboardingRepository.allRequirementsSubmitted(loggedInUser.getId())) {
+            userProfileRepository.completeOnboarding(loggedInUser.getId());
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+            kafkaSenderService.send(KycCompletedDto.builder().userId(loggedInUser.getId()).fullName(AppUtil.getUserFullName(loggedInUser)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
         }
     }
 

@@ -1,11 +1,11 @@
 package org.meristem.oneapp.usersservice.services;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
-import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -89,7 +89,7 @@ public class UsersService {
         requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
                 .forEach(rId -> {
                     UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.PENDING.getValue())
-                            .completed(false).userId(userId).requirementId(rId).build();
+                            .completed(false).userId(userId).requirementId(rId).type(RequirementType.DEFAULT.getId()).build();
                     userOnboardingRepository.save(userOnboarding);
                 });
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
@@ -152,13 +152,18 @@ public class UsersService {
     public UpdatePasswordResponse updatePassword(UpdatePasswordRequest request) {
 
         String userEmail = AppUtil.getLoggedInUserEmail();
-        // Ensure password is not the same as old one
-        if (passwordEncoder.matches(request.password(), usersRepository.findPasswordByEmailOrPhoneNumber(userEmail))) {
-            throw new BadRequestException("Password cannot be the same as your old password.");
+        String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
+
+        if (!passwordEncoder.matches(request.oldPassword(), userPassword)) {
+            throw new BadRequestException("Wrong oldPassword entered.");
+        }
+
+        if (passwordEncoder.matches(request.newPassword(), userPassword)) {
+            throw new BadRequestException("Password cannot be the same as your old oldPassword.");
         }
 
         // Update password and return
-        usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.password()));
+        usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
         return UpdatePasswordResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
@@ -227,5 +232,13 @@ public class UsersService {
         Long userId = AppUtil.getLoggedInUserId();
         int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
         return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
+    }
+
+    public ProfilePictureUploadResponse uploadProfilePicture(@Valid ProfilePictureUploadRequest request) {
+
+        int updated = profileRepository.updateUsersAvatar(request.pictureUrl(), AppUtil.getLoggedInUserId());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        return ProfilePictureUploadResponse.builder().status(updated == 1 ? "True" : "False")
+                .url(request.pictureUrl()).build();
     }
 }

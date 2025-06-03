@@ -13,7 +13,7 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Modifying
     @Transactional
     @Query("UPDATE user_profile SET avatar_url = :url WHERE user_id = :userId  ")
-    void updateUsersAvatar(String url, Long userId);
+    int updateUsersAvatar(String url, Long userId);
 
     @Modifying
     @Transactional

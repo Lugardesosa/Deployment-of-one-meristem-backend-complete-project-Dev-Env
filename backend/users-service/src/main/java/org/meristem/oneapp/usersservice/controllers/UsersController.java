@@ -147,4 +147,14 @@ public class UsersController {
     public ResponseEntity<AppResponse<NextOfKinResponse>> getNextOfKin() {
         return ApiUtil.buildResponse(nextOfKinService.getNextOfKin(), HttpStatus.OK.toString(), "Successful");
     }
+
+    @Operation(summary = "Upload profile picture")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
+    })
+    @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
+    @GetMapping(value = "/upload-picture", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<ProfilePictureUploadResponse>> uploadProfilePicture(@RequestBody @Valid ProfilePictureUploadRequest request) {
+        return ApiUtil.buildResponse(usersService.uploadProfilePicture(request), HttpStatus.OK.toString(), "Successful");
+    }
 }

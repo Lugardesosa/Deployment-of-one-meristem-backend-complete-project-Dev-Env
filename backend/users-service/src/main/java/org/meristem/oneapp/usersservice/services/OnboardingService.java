@@ -2,8 +2,9 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
-import org.meristem.oneapp.usersservice.domains.enums.OnboardingStatus;
+import org.meristem.oneapp.usersservice.domains.enums.RequirementType;
 import org.meristem.oneapp.usersservice.domains.requests.AddressOnboardRequest;
 import org.meristem.oneapp.usersservice.domains.requests.ProcessAddressRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AddressOnboardingResponse;
@@ -14,10 +15,13 @@ import org.meristem.oneapp.usersservice.repositories.AddressRepository;
 import org.meristem.oneapp.usersservice.repositories.UserOnboardingRepository;
 import org.meristem.oneapp.usersservice.repositories.UserProfileRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
@@ -27,6 +31,7 @@ public class OnboardingService {
     private final UserOnboardingRepository userOnboardingRepository;
     private final AddressRepository addressRepository;
     private final UserProfileRepository userProfileRepository;
+    private final CacheManager cacheManager;
 
 
     /**
@@ -35,7 +40,7 @@ public class OnboardingService {
      * @return a list of user onboarding responses
      */
     public List<UserOnboardingResponse> getOnboardingDetails() {
-        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), OnboardingStatus.APPROVED.getValue());
+        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.DEFAULT.getId());
     }
 
 
@@ -63,6 +68,7 @@ public class OnboardingService {
             userOnboardingRepository.completeUserOnboarding(request.userId(), request.requirementId());
             if (userOnboardingRepository.allRequirementsSubmitted(request.userId())) {
                 userProfileRepository.completeOnboarding(request.userId());
+                requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
             }
             return new AddressOnboardingResponse(true);
         } else {

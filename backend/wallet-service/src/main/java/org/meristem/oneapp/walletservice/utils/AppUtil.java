@@ -1,10 +1,15 @@
 package org.meristem.oneapp.walletservice.utils;
 
 import lombok.experimental.UtilityClass;
+import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @UtilityClass
 public final class AppUtil {
@@ -18,4 +23,34 @@ public final class AppUtil {
         return "SYSTEM.AUTO";
     }
 
+    public static String generateTransactionReference(Long walletVirtualId) {
+
+        final int RANDOM_LENGTH = 6;
+        final String PREFIX = "MER";
+        final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+        String timestamp = LocalDateTime.now().format(FORMATTER);
+        String randomPart = randomAlphanumeric(RANDOM_LENGTH);
+        return String.format("%s-%s-%s-%s", PREFIX, timestamp, walletVirtualId, randomPart);
+    }
+
+    private static String randomAlphanumeric(int length) {
+        final SecureRandom RANDOM = new SecureRandom();
+        final char[] ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(ALPHANUM[RANDOM.nextInt(ALPHANUM.length)]);
+        }
+        return sb.toString();
+    }
+
+    public static String generateVirtualAccountReference(AccountProvider provider, Long userId) {
+
+        final int RANDOM_LENGTH = 4;
+        final String PREFIX = "MER";
+        final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+        String randomPart = randomAlphanumeric(RANDOM_LENGTH);
+        return String.format("%s-%s-%s-%s", PREFIX, provider.getValue().substring(Integer.min(provider.getValue().length(), 4)), userId, randomPart);
+    }
 }

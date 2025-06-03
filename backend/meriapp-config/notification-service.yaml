@@ -23,3 +23,9 @@ one-app:
   notification-service:
     context-path: /api/notification
     application-name: notification-service
+
+credit-switch:
+  login-id: ${CREDIT_SWITCH_LOGIN_ID}
+  public-key: ${CREDIT_SWITCH_PUBLIC_KEY}
+  private-key: ${CREDIT_SWITCH_PRIVATE_KEY}
+  sender-id: ${CREDIT_SWITCH_SMS_SENDER_ID}

@@ -13,3 +13,18 @@ spring:
         max-attempts: 10
         initial-interval: 3000
         max-interval: 3500
+
+
+## TODO: DELETE
+#logging:
+#  level:
+##    org.springframework.web: DEBUG
+#    org.springframework.jdbc: DEBUG
+#    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+#    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+#    org.springframework.security: TRACE
+#spring.datasource.hikari.data-source-properties.logUnclosedConnections: true
+#logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
+#logging.level.com.zaxxer.hikari: TRACE
+#logging.level.org.springframework.jdbc.core.namedparam: DEBUG
+#logging.level.org.springframework.jdbc.datasource: DEBUG

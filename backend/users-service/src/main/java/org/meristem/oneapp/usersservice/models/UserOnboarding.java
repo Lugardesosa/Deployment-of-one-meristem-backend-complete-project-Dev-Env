@@ -37,6 +37,10 @@ public class UserOnboarding extends BaseModel<String> {
     @NotNull(message = "Cannot be null")
     private Boolean completed;
 
+    @Column("type")
+    @NotNull(message = "Cannot be null")
+    private Integer type;
+
     /**
      * Constructs a new UserOnboarding instance.
      *
@@ -52,11 +56,12 @@ public class UserOnboarding extends BaseModel<String> {
      */
     @Builder
     public UserOnboarding(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, Long userId,
-                          Long requirementId, Boolean completed) {
+                          Long requirementId, Boolean completed, Integer type) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.requirementId = requirementId;
         this.completed = completed;
+        this.type = type;
     }
 
     /**
