@@ -12,9 +12,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 public interface UserOnboardingRepository extends BaseRepository<UserOnboarding, Long> {
 
-    @Query("SELECT rr.id, rr.requirement_name, uo.completed, rr.mandatory, rr.display_name FROM user_onboarding uo " +
-            "LEFT JOIN requirements rr ON rr.id = uo.requirement_id WHERE uo.user_id = :userId AND rr.status = :status ")
-    List<UserOnboardingResponse> findAllUserOnboardingsByUserId(Long userId, Integer status);
+    @Query("SELECT rr.id, rr.requirement_name, uo.completed, rr.mandatory, rr.display_name, uo.type FROM user_onboarding uo " +
+            "LEFT JOIN requirements rr ON rr.id = uo.requirement_id WHERE uo.user_id = :userId AND rr.status = :status AND rr.type = :type")
+    List<UserOnboardingResponse> findAllUserOnboardingsByUserId(Long userId, Integer status, Integer type);
 
     @Modifying
     @Transactional

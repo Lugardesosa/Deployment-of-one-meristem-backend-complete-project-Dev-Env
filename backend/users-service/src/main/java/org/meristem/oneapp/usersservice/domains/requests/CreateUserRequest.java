@@ -1,12 +1,10 @@
 package org.meristem.oneapp.usersservice.domains.requests;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.validations.constraints.Email;
 import org.meristem.oneapp.usersservice.validations.constraints.Name;
 import org.meristem.oneapp.usersservice.validations.constraints.Password;

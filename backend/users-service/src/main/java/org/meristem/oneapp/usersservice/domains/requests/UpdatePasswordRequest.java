@@ -6,6 +6,6 @@ import lombok.Builder;
 import org.meristem.oneapp.usersservice.validations.constraints.Password;
 
 @Builder
-public record UpdatePasswordRequest(@Schema(name = "password", minLength = 8, description = "Pass a valid password, 8 or more characters with upper case and special characters '?=.*[@#$%^&+=]'", maxLength = 20) @Password @NotBlank String password,
-                                    @Schema(name = "confirmPassword", minLength = 8, description = "Pass a valid password, 8 or more characters with upper case and special characters '?=.*[@#$%^&+=]', must match the first password", maxLength = 20) @Password @NotBlank String confirmPassword) {
+public record UpdatePasswordRequest(@Schema(name = "oldPassword", minLength = 8, description = "Pass a valid old password, 8 or more characters with upper case and special characters '?=.*[@#$%^&+=]'", maxLength = 20) @Password @NotBlank String oldPassword,
+                                    @Schema(name = "newPassword", minLength = 8, description = "Pass a valid new password, 8 or more characters with upper case and special characters '?=.*[@#$%^&+=]'", maxLength = 20) @Password @NotBlank String newPassword) {
 }
