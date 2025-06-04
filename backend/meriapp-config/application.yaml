@@ -92,4 +92,5 @@ huawei:
   access_secret_id: ${HUAWEI_SECRET_ACCESS_KEY_ID}
   obs_endpoint: ${HUAWEI_OBS_ENDPOINT}
   signed_url_ttl_sec: 300
-  images_bucket_name: ${HUAWEI_OBS_BUCKET}
+  images_bucket_name: ${HUAWEI_OBS_IMAGES_BUCKET}
+  document_bucket_name: ${HUAWEI_OBS_DOC_BUCKET}
