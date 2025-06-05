@@ -1,0 +1,81 @@
+# deployment of one_meristem_app on Huawei Cloud ECS
+name: Deployment of One_Meristem_App
+
+on:
+  pull_request:
+    branches:
+      - dev_env
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: subsequent microservices change
+        id: check change
+        run: |
+          echo "CHANGED_SERVICES<<EOF" >> $GITHUB_ENV"
+          git fetch origin dev_env
+          CHANGED_SERVICES=$(git diff --name-only origin/dev_env | grep -E 'backend/(cloud-gateway|users-service|config-server|notification-service|wallet-service)/' | cut -d'/' -f3 | sort -u)
+          if [ -z "$CHANGED_SERVICES" ]; then
+            echo "No microservices in backend/."
+            echo "CHANGED_SERVICES=none" >> $GITHUB_ENV
+          else
+            echo "Changed microservices in backend/: $CHANGED_SERVICES"
+            echo "CHANGED_SERVICES=$CHANGED_SERVICES" >> $GITHUB_ENV
+          fi
+          echo "EOF" >> $GITHUB_ENV
+      - name: start SSH agent
+        uses: webfactory/ssh-gaent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ECS_SSH_KEY }}
+
+      - name: Deploy to Huawei Cloud ECS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} << 'EOF'
+          set -e
+
+          echo "pulling latest code from repository..."
+          rm -rf one_meristem_app || true
+          git clone https://github.com/Meristem-Innovation-Team/one_meristem_app.git
+          cd one_meristem_app/backend
+
+          echo "Building only changed microservices..."
+
+          # Function to build a service with Pack CLI
+          build_service() {
+            cd "$1" || { echo "Failed to enter directory $1"; exit 1; }
+            echo "Building $1..."
+            sudo pack build "$1" --builder paketobuildpacks/builder-jammy-base --path .
+            cd .. || return
+          }
+
+          # Dynamically rebuild only changed services
+          CHANGED_SERVICES="${{ env.CHANGED_SERVICES }}"
+          [ -z "$CHANGED_SERVICES" ] && exit 0  # Exit if no changes
+
+          for svc in \$CHANGED_SERVICES; do
+            case \$svc in
+              cloud-gateway|users-service|config-server|notification-service|wallet-service)
+                if [ -d "$svc" ]; then
+                build_service \$svc
+                else
+                  echo "Directory $svc not found!"
+                fi
+                ;;
+              *)
+                echo "Skipping \$svc (not a tracked service)"
+                ;;
+            esac
+          done
+
+          echo "Restarting Docker Compose services..."
+          sudo docker-compose down
+          sudo docker volume prune -f
+          sudo docker-compose up -d --build
+
+          echo "Deployment completed!"
+          EOF
+      
