@@ -96,7 +96,7 @@ jobs:
   deploy:
     name: Deploy to Huawei Cloud ECS
     runs-on: ubuntu-latest
-    needs: test
+    needs: [ build, test ]
     if: needs.build.outputs.changed_services != 'none'
 
     steps:
