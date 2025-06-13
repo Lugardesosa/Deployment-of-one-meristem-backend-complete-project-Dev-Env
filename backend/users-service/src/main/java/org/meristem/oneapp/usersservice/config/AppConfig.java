@@ -12,10 +12,10 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,30 +23,14 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.TimeZone;
 
 @Slf4j
-@RequiredArgsConstructor
 @Configuration
 public class AppConfig {
-
-    @Value("${one-app.server-url:http://localhost:20010/}")
-    private String serverUrl;
-
-    @Value("${one-app.server-version}")
-    private String serverVersion;
-
-    @Value("${one-app.server-app-name}")
-    private String serverAppName;
-
-    @Value("${one-app.email}")
-    private String email;
-
-    @Value("${server.servlet.context-path}")
-    private String contextPath;
-
-    private final OneAppUsersProperties oneAppUsersProperties;
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -81,7 +65,9 @@ public class AppConfig {
 
 
     @Bean
-    public OpenAPI apiDoclet() {
+    public OpenAPI apiDoclet(OneAppUsersProperties oneAppUsersProperties, @Value("${one-app.server-url:http://localhost:20010/}")
+                             String serverUrl, @Value("${one-app.server-version}") String serverVersion, @Value("${one-app.server-app-name}") String serverAppName,
+                             @Value("${one-app.email}") String email, @Value("${server.servlet.context-path}") String contextPath) {
         Server server = new Server();
         server.setUrl(serverUrl.concat(contextPath));
         server.description("Users API Documentation");
@@ -90,6 +76,8 @@ public class AppConfig {
         Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage users.");
 
         final String securitySchemeName = "OAuth2 Security";
+        String url = serverUrl.concat(oneAppUsersProperties.contextPath())
+                .concat("/oauth2/token");
         return new OpenAPI().info(info).servers(List.of(server))
                 .components(new Components().addSecuritySchemes(securitySchemeName, new SecurityScheme()
                         .name(securitySchemeName)
@@ -97,11 +85,14 @@ public class AppConfig {
                     .scheme("bearer")
                     .bearerFormat("JWT")
                     .description("This API uses OAuth 2 with the implicit grant flow.")
-                    .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppUsersProperties.contextPath())
-                            .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
-                            .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(oneAppUsersProperties.contextPath())
-                                    .concat("/oauth2/token"))))
+                    .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(url).scopes(new Scopes().addString("profile", "profile")))
+                            .clientCredentials(new OAuthFlow().tokenUrl(url)))
                 )
             ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
+    }
+
+    @Bean
+    public BeanFactoryPostProcessor beanFactoryPostProcessor() {
+        return beanFactory -> TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Africa/Lagos")));
     }
 }
