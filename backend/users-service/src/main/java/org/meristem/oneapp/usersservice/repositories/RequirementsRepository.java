@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.repositories;
 
-import jakarta.validation.constraints.NotNull;
 import org.meristem.oneapp.usersservice.models.Requirements;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,10 +10,12 @@ import java.util.Optional;
 public interface RequirementsRepository extends BaseRepository<Requirements, Long> {
 
     @Query("SELECT id FROM requirements WHERE requirement_name = :requirementName")
-    Long findIdByRequirementName(@NotNull(message = "requirementName cannot be null") String requirementName);
+    Long findIdByRequirementName(String requirementName);
 
     @Query("SELECT id FROM requirements WHERE status = :status ")
-    Iterable<Long> findAllByStatus(@NotNull(message = "Cannot be null") Integer status);
+    Iterable<Long> findAllByStatus(Integer status);
 
-    Optional<Requirements> findByIdAndStatus(@NotNull(message = "id cannot be null") Long id, @NotNull(message = "Cannot be null") Integer status);
+    Optional<Requirements> findByIdAndStatus(Long id, Integer status);
+
+    Requirements findByRequirementNameAndStatus(String requirementName, Integer status);
 }

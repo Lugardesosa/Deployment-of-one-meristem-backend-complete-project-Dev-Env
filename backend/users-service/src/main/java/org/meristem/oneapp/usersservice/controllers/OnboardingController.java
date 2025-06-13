@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressOnboardRequest;
+import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.requests.ProcessAddressRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
@@ -42,26 +43,6 @@ public class OnboardingController {
         return ApiUtil.buildResponse(onboardingService.getOnboardingDetails(), HttpStatus.OK.toString(), "User onboarding details request successful");
     }
 
-    @Operation(summary = "Approve or reject Address")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows admins to either approve or reject a user's adress ")
-    })
-    @PreAuthorize("hasRole('ROLE_admin.onboard.approve_address')")
-    @PutMapping(value = "/address/approve", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<AddressOnboardingResponse>> approve(@RequestBody @Valid AddressOnboardRequest request) {
-        return ApiUtil.buildResponse(onboardingService.approveAddress(request), HttpStatus.OK.toString(), "Address approval request successful");
-    }
-
-    @Operation(summary = "Mark an address for processing")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows admins to mark a user's adress for processing")
-    })
-    @PreAuthorize("hasRole('ROLE_admin.onboard.process_address')")
-    @PutMapping(value = "/address/process", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<AddressOnboardingResponse>> process(@RequestBody @Valid ProcessAddressRequest request) {
-        return ApiUtil.buildResponse(onboardingService.processAddress(request), HttpStatus.OK.toString(), "Address processing request successful");
-    }
-
     @Operation(summary = "Get smile id token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
@@ -77,7 +58,16 @@ public class OnboardingController {
             @ApiResponse(responseCode = "200", description = "Allows Smile Id to send webhook notifications to us")
     })
     @PostMapping(value = "/smile-id/webhook", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<SmileIdWebhookResponse>> smileIdWebhook(@RequestBody @NotNull(message = "Cannot be null") SmileIdWebhookNotification request) {
+    public ResponseEntity<AppResponse<SmileIdWebhookResponse>> smileIdWebhook(@RequestBody @Valid SmileIdWebhookNotification request) {
         return ApiUtil.buildResponse(smileIdService.handleWebhook(request), HttpStatus.OK.toString(), "Request successful");
+    }
+
+    @Operation(summary = "Ok Hi webhook")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows OkHi to send webhook notifications to us")
+    })
+    @PostMapping(value = "/okhi/webhook", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<OkHiWebhookResponse>> okhiWebhook(@RequestBody @Valid OkHiWebhookRequest request) {
+        return ApiUtil.buildResponse(onboardingService.handleOkhiWebhook(request), HttpStatus.OK.toString(), "Request successful");
     }
 }

@@ -30,7 +30,7 @@ public enum RequirementType {
         return switch(name) {
             case "DEFAULT" -> RequirementType.DEFAULT;
             case "MUTUAL_FUNDS" -> RequirementType.MUTUAL_FUNDS;
-            case "TREASURY_BILLS" -> RequirementType.TRUSTIES;
+            case "TREASURY_BILLS" -> RequirementType.TREASURY_BILLS;
             case "TRUSTIES" -> RequirementType.TRUSTIES;
             default -> null;
         };

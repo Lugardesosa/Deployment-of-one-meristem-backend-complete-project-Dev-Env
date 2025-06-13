@@ -16,7 +16,7 @@ public record CreateNextOfKinRequest(@Schema(example = "johndoe@gmail.com", desc
                                      @Schema(example = "John Doe", description = "Users full name") @Pattern(regexp = "([A-Za-z]+\\s[A-Za-z]+)+", message = "alphabets allowed") @NotBlank(message = "cannot be blank") @Size(min = 1, max = 150, message = "cannot be less than 3 and more than 150") String fullName,
                                      @Schema(example = "+2349098989876", description = "Pass the user's phone number. can be 08123456545, 2348123456545, +2348123456545") @NotBlank(message = "cannot be null") @PhoneNumberNG @Size(min = 11, max = 14, message = "cannot be less than 1 and more than 14") String phoneNumber,
                                      @Schema(anyOf = {NextOfKins.class}, example = "FATHER", description = "Pass a valid enum, FATHER for example") @ContainsEnum(enumClass = NextOfKins.class) @NotNull(message = "Cannot be null") String nextOfKins,
-                                     @Schema(example = "Grand Father", description = "Pass this value if OTHER was chosen as relationship type") String relationship) {
+                                     @Schema(example = "Grand Father", description = "Pass this value if OTHERS was chosen as nextOfKins type") String relationship) {
     @Override
     public String phoneNumber() {
         return phoneNumber.replace("+", "").replaceAll("^234", "0");

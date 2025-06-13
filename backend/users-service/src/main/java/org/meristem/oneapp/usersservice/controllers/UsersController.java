@@ -67,14 +67,20 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updatePhoneNumber(request), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Operation(summary = "Update user's avatar")
+//    @Operation(summary = "Update user's avatar")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Allows users to update their avatar")
+//    })
+//    @PreAuthorize("hasRole('ROLE_users.change.avatar')")
+
+    @Operation(summary = "Upload profile picture")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows users to update their avatar")
+            @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
     })
-    @PreAuthorize("hasRole('ROLE_users.change.avatar')")
-    @PutMapping(value = "/avatar", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateAvatarUrlResponse>> updateAvatar(@RequestBody @Valid UpdateAvatarUrlRequest request) {
-        return ApiUtil.buildResponse(usersService.updateAvatarUrl(request), HttpStatus.OK.toString(), "Successful");
+    @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
+    @PutMapping(value = "/image", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateAvatarUrlResponse>> updateImage(@RequestBody @Valid UpdateImageRequest request) {
+        return ApiUtil.buildResponse(usersService.updateImage(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Password reset")
@@ -122,9 +128,9 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to get all avatars")
     })
-    @PreAuthorize("hasRole('ROLE_users.get.avatars')")
+    @PreAuthorize("hasRole('ROLE_users.get.images')")
     @GetMapping(value = "/avatars", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<AvatarUrls>>> getAvatars() {
+    public ResponseEntity<AppResponse<List<SignedUrlResponse>>> getAvatars() {
         return ApiUtil.buildResponse(usersService.getAvatarUrls(), HttpStatus.OK.toString(), "Successful");
     }
 
@@ -148,13 +154,15 @@ public class UsersController {
         return ApiUtil.buildResponse(nextOfKinService.getNextOfKin(), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Operation(summary = "Upload profile picture")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
-    })
-    @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
-    @GetMapping(value = "/upload-picture", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<ProfilePictureUploadResponse>> uploadProfilePicture(@RequestBody @Valid ProfilePictureUploadRequest request) {
-        return ApiUtil.buildResponse(usersService.uploadProfilePicture(request), HttpStatus.OK.toString(), "Successful");
-    }
+
+
+//    @Operation(summary = "Upload profile picture")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
+//    })
+//    @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
+//    @GetMapping(value = "/upload-picture", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<AppResponse<ProfilePictureUploadResponse>> uploadProfilePicture(@RequestBody @Valid ProfilePictureUploadRequest request) {
+//        return ApiUtil.buildResponse(usersService.uploadProfilePicture(request), HttpStatus.OK.toString(), "Successful");
+//    }
 }

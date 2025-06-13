@@ -76,10 +76,13 @@ public class RestClientConfig {
                 HttpStatusCode status = response.getStatusCode();
 
                 if (status.is4xxClientError()) {
+                    log.error(response.getStatusText());
                     throw new BadRequestException("Check your request body");
                 } else if (status.is5xxServerError()) {
+                    log.error(response.getStatusText());
                     throw new UpstreamServiceException("Upstream Server error");
                 } else {
+                    log.error(response.getStatusText());
                     throw new RuntimeException("Unexpected error");
                 }
             }

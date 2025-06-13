@@ -30,7 +30,7 @@ public class UserProfile extends BaseModel<String> {
     private Long userId;
 
     @Size(max = 500, min = 5, message = "Not more than 500 and less than 5")
-    private String avatarUrl;
+    private String imageKey;
 
     @Size(max = 200, message = "Cannot be larger than 200")
     @NotBlank(message = "cannot be null")
@@ -39,6 +39,12 @@ public class UserProfile extends BaseModel<String> {
     private LocalDate dateOfBirth;
 
     private String gender;
+
+    private String stateOfOrigin;
+
+    private String countryOfOrigin;
+
+    private String maritalStatus;
 
     @NotBlank(message = "Cannot be empty")
     @Size(max = 15, min = 1, message = "Not more than 50 and less than 1")
@@ -65,7 +71,7 @@ public class UserProfile extends BaseModel<String> {
                        Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
-        this.avatarUrl = avatarUrl;
+        this.imageKey = avatarUrl;
         this.pin = pin;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;

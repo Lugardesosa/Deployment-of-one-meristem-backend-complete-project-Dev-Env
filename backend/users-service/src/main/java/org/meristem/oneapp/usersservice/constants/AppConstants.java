@@ -12,7 +12,7 @@ public final class AppConstants {
 
     public static final int ADMIN_PASSWORD_LENGTH = 10;
     public static final char[] specialChars = {'@', '#', '$', '%', '^', '&', '+', '=', '(', ')', '\''};
-    public static final String NAME_REGEX = "^[a-zA-Z]{0,150}$";
+    public static final String NAME_REGEX = "^[a-zA-Z']{0,150}$";
     public static final String URL_REGEX_PATTERN = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,1000}\\.[a-zA-Z0-9()]{1,20}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$";
     public static final String EMAIL_REGEX_PATTERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
     public static final String PHONE_NG_REGEX_PATTERN = "^(?:\\+234|234|0)(70[1-9]|80[2-9]|81[0-9]|90[1-9]|91[0-6])\\d{7}$";

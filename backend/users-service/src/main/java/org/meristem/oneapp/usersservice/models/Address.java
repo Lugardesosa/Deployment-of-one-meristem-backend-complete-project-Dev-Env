@@ -22,33 +22,47 @@ public class Address extends BaseModel<String> {
     @Size(max = 150, message = "Not more than 150 chars")
     private String houseAddress;
 
-    @NotBlank(message = "Cannot be blank")
-    @Size(max = 100, message = "Not more than 100 chars")
     private String city;
 
-    @NotBlank(message = "Cannot be blank")
-    @Size(max = 10, message = "Not more than 10 chars")
+    private String street;
+
+    private String number;
+
+    private String state;
+
+    private String country;
+
     private String landmark;
 
     @NotNull(message = "Cannot be null")
     private Long userId;
 
-    @NotBlank(message = "Cannot be null")
-    private Integer approved;
-
-    @NotBlank(message = "Cannot be null")
-    private Integer processing;
+//    @Builder
+//    public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
+//                   String houseAddress, String city, String street, String number, String state, String country, String landmark, Long userId) {
+//        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+//        this.houseAddress = houseAddress;
+//        this.city = city;
+//        this.street = street;
+//        this.number = number;
+//        this.state = state;
+//        this.country = country;
+//        this.landmark = landmark;
+//        this.userId = userId;
+//    }
 
     @Builder
-    public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                   String houseAddress, String city, String landmark, Long userId, Integer approved, Integer processing) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status,
+                   String houseAddress, String city, String street, String number, String state, String country, String landmark, Long userId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.houseAddress = houseAddress;
         this.city = city;
+        this.street = street;
+        this.number = number;
+        this.state = state;
+        this.country = country;
         this.landmark = landmark;
         this.userId = userId;
-        this.approved = approved;
-        this.processing = processing;
     }
 
     @Override

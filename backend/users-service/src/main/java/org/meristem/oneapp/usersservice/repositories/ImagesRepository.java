@@ -13,4 +13,6 @@ public interface ImagesRepository extends BaseRepository<Images, Long> {
     Optional<Images> findByImageKey(String imageKey);
 
     List<Images> findAllByImageType(Integer imageType);
+
+    Optional<Images> findByImageKeyAndImageType(String imageKey, Integer imageType);
 }

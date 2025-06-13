@@ -35,4 +35,6 @@ public interface UserOnboardingRepository extends BaseRepository<UserOnboarding,
     @Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM user_onboarding WHERE user_id = :userId " +
             "AND requirement_id = :requirementId AND completed = :completed ")
     boolean userOnboardingCompleted(Long userId, Long requirementId, boolean completed);
+
+    UserOnboarding findAllUserOnboardingsByUserIdAndRequirementId(Long userId, Long requirementId);
 }

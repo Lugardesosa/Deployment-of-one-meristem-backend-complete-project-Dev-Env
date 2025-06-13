@@ -75,6 +75,7 @@ public class AppConfig {
         return builder -> builder
 
                 .withCacheConfiguration("users", defaultCacheConfiguration())
+                .withCacheConfiguration("avatars", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(50)))
                 .withCacheConfiguration("settings", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
 
