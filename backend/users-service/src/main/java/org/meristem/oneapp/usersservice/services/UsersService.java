@@ -24,7 +24,6 @@ import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +70,7 @@ public class UsersService {
      * @throws BadRequestException if the email or phone number already exists or OTP is invalid/expired
      */
     @Transactional
-    public  UsersResponse createUser(@Nullable CreateUserRequest userRequest) {
+    public  UsersResponse createUser(CreateUserRequest userRequest) {
         if (usersRepository.existsByEmailOrPhoneNumber(userRequest.email(), userRequest.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }

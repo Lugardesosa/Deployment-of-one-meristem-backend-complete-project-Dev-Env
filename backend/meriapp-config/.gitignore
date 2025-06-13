@@ -36,3 +36,4 @@ build/
 /logs/
 /data/
 /src/main/resources/keys/
+/qodana.yaml

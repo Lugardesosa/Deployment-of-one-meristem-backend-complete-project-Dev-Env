@@ -13,35 +13,20 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.TimeZone;
 
 @Configuration
 public class AppConfig {
-
-    @Value("${one-app.server-url:http://localhost:20010/}")
-    private String serverUrl;
-
-    @Value("${one-app.server-version}")
-    private String serverVersion;
-
-    @Value("${one-app.server-app-name}")
-    private String serverAppName;
-
-    @Value("${one-app.email}")
-    private String email;
-
-    @Value("${server.servlet.context-path}")
-    private String contextPath;
-
-    @Value("${one-app.users-service.context-path}")
-    private String usersServiceContextPath;
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -68,7 +53,11 @@ public class AppConfig {
     }
 
     @Bean
-    public OpenAPI apiDoclet() {
+    public OpenAPI apiDoclet(@Value("${one-app.server-url:http://localhost:20010/}") String serverUrl,
+                             @Value("${one-app.server-version}") String serverVersion, @Value("${one-app.server-app-name}")
+                             String serverAppName, @Value("${one-app.email}") String email, @Value("${server.servlet.context-path}")
+                             String contextPath, @Value("${one-app.users-service.context-path}") String usersServiceContextPath
+    ) {
         Server server = new Server();
         server.setUrl(serverUrl.concat(contextPath));
         server.description("Wallet API Documentation");
@@ -90,5 +79,10 @@ public class AppConfig {
                                                 .concat("/oauth2/token"))))
                         )
                 ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
+    }
+
+    @Bean
+    public BeanFactoryPostProcessor beanFactoryPostProcessor() {
+        return beanFactory -> TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Africa/Lagos")));
     }
 }

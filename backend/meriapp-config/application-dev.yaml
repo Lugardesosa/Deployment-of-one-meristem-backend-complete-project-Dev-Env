@@ -11,4 +11,6 @@ management:
     health:
       show-details: always
       enabled: true
-
+  health:
+    mail:
+      enabled: false

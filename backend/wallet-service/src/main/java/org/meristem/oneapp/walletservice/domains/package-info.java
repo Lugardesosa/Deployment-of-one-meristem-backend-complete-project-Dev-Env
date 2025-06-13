@@ -1,0 +1,1 @@
+package org.meristem.oneapp.walletservice.domains;
