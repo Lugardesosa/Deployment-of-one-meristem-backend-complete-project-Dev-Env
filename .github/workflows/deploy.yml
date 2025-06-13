@@ -21,7 +21,7 @@ env:
 jobs:
   build:
     name: Build Changed Microservices
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     outputs:
       changed_services: ${{ steps.check_change.outputs.changed_services }}
@@ -51,7 +51,7 @@ jobs:
 # =====================================================
   test:
     name: Java Static Code Analysis
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     if: needs.build.outputs.changed_services != 'none'
 
@@ -95,7 +95,7 @@ jobs:
 # =====================================================
   deploy:
     name: Deploy to Huawei Cloud ECS
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build
     if: needs.build.outputs.changed_services != 'none'
 
