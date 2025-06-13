@@ -3,6 +3,7 @@ package org.meristem.oneapp.notificationservice.integrations;
 
 import org.meristem.oneapp.notificationservice.integrations.requests.SmsNotificationRequest;
 import org.meristem.oneapp.notificationservice.integrations.responses.SmsNotificationResponse;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
@@ -10,5 +11,5 @@ import org.springframework.web.service.annotation.PostExchange;
 public interface CreditSwitchClient {
 
     @PostExchange(url = "sendsms")
-    SmsNotificationResponse sendSms(SmsNotificationRequest request);
+    SmsNotificationResponse sendSms(@RequestBody SmsNotificationRequest request);
 }

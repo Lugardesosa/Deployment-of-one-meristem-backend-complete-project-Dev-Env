@@ -1,6 +1,5 @@
 package org.meristem.oneapp.notificationservice.integrations.requests;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 @Builder
