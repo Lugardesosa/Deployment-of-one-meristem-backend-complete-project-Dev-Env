@@ -56,13 +56,17 @@ public class NotificationService {
      */
     @Transactional
     public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
-        MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest);
+        MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest.messageMedium(), sendOtpRequest.recipient());
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES);
 
         if (sendOtpRequest.otpType().equals(OtpType.PASSWORD_RESET.getCode()) && !usersRepository.existsByEmailOrPhoneNumber(sendOtpRequest.recipient(), sendOtpRequest.recipient())) {
             return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
                     .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
+        }
+
+        if (sendOtpRequest.otpType().equals(OtpType.BVN_VERIFICATION.getCode())) {
+            messageMedium = validateAndGetMessageMedium(MessageMedium.SMS.getValue(), sendOtpRequest.recipient());
         }
 
         int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
@@ -93,21 +97,22 @@ public class NotificationService {
     /**
      * Validates the recipient's format based on the message medium and returns the corresponding {@link MessageMedium}.
      *
-     * @param sendOtpRequest the request containing recipient details and message medium
+     * @param requestMedium the request message medium
+     * @param recipient the request recipient
      * @return the validated {@link MessageMedium}
      * @throws BadRequestException if the recipient format is invalid or OTP type is invalid
      */
-    private static MessageMedium validateAndGetMessageMedium(SendOtpRequest sendOtpRequest) {
-        MessageMedium messageMedium = MessageMedium.of(sendOtpRequest.messageMedium());
+    private static MessageMedium validateAndGetMessageMedium(Integer requestMedium, String recipient) {
+        MessageMedium messageMedium = MessageMedium.of(requestMedium);
 
         switch (messageMedium) {
             case EMAIL -> {
-                if (!sendOtpRequest.recipient().matches(AppConstants.EMAIL_REGEX_PATTERN)) {
+                if (!recipient.matches(AppConstants.EMAIL_REGEX_PATTERN)) {
                     throw new BadRequestException("Invalid email format");
                 }
             }
             case SMS, WHATSAPP -> {
-                if (!sendOtpRequest.recipient().matches(AppConstants.PHONE_NG_REGEX_PATTERN)) {
+                if (!recipient.matches(AppConstants.PHONE_NG_REGEX_PATTERN)) {
                     throw new BadRequestException("Invalid phone number format");
                 }
             }

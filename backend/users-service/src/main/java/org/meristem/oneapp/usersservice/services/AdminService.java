@@ -12,19 +12,27 @@ import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
 import org.meristem.oneapp.usersservice.domains.requests.CreateNextOfKinRequest;
+import org.meristem.oneapp.usersservice.domains.requests.DobRequest;
+import org.meristem.oneapp.usersservice.domains.requests.GenderRequest;
+import org.meristem.oneapp.usersservice.domains.responses.DobResponse;
+import org.meristem.oneapp.usersservice.domains.responses.GenderResponse;
 import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.RolesRepository;
+import org.meristem.oneapp.usersservice.repositories.UserProfileRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.cache.CacheManager;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+
+import static java.util.Objects.requireNonNull;
 
 
 /**
@@ -46,6 +54,8 @@ public class AdminService {
     private final KafkaSenderService kafkaSenderService;
     private final PasswordEncoder passwordEncoder;
     private final RolesRepository rolesRepository;
+    private final CacheManager cacheManager;
+    private final UserProfileRepository userProfileRepository;
 
 
     /**
@@ -86,5 +96,19 @@ public class AdminService {
     public NextOfKinResponse updateNextOfKin(CreateNextOfKinRequest request) {
 
         return NextOfKinResponse.builder().build();
+    }
+
+    public DobResponse updateDob(DobRequest request) {
+        Long userId = AppUtil.getLoggedInUserId();
+        int updated = userProfileRepository.updateDob(userId, request.dob());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        return DobResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
+    }
+
+    public GenderResponse updateGender(GenderRequest request) {
+        Long userId = AppUtil.getLoggedInUserId();
+        int updated = userProfileRepository.updateGender(userId, request.gender().name());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        return GenderResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
     }
 }

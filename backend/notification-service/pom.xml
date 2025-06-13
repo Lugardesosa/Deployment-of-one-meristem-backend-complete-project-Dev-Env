@@ -44,6 +44,7 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+            <version>3.3.5</version>
         </dependency>
 
         <dependency>
@@ -60,6 +61,7 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
+            <version>4.0.0-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

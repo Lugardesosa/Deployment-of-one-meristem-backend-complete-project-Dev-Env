@@ -10,6 +10,7 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 
@@ -27,7 +28,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     // TODO: INCREASE up COLUMNS AS THE TABLE INCREASES
     @Cacheable(value = "users", key = "#a0", unless = "#result == null")
-    @Query("SELECT u.*, up.avatar_url, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email ")
+    @Query("SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email ")
     Optional<UsersResponse> findUserDetailsByEmail(String email);
 
     boolean existsByEmailOrPhoneNumber(String email, String phoneNumber);
@@ -62,4 +63,6 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @UsersQueryModifier
     @Query("UPDATE users SET status = :status WHERE id = :id ")
     int updateUsersStatus(long id, Integer status);
+
+    Long findIdByEmail(String email);
 }

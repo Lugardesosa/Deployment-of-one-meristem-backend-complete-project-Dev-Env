@@ -1,7 +1,7 @@
 package org.meristem.oneapp.usersservice.services;
 
 
-import jakarta.validation.Valid;
+import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
@@ -15,17 +15,20 @@ import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
-import org.meristem.oneapp.usersservice.models.Avatars;
+import org.meristem.oneapp.usersservice.models.Images;
 import org.meristem.oneapp.usersservice.models.UserOnboarding;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,12 +55,13 @@ public class UsersService {
     private final PasswordEncoder passwordEncoder;
     private final KafkaSenderService kafkaSenderService;
     private final UserProfileRepository userProfileRepository;
-    private final AvatarsRepository avatarsRepository;
+    private final ImagesRepository imagesRepository;
     private final CacheManager cacheManager;
     private final UserProfileRepository profileRepository;
     private final RequirementsRepository requirementsRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RolesRepository rolesRepository;
+    private final HuaweiService huaweiService;
 
     /**
      * Creates a new user after validating the request and OTP.
@@ -67,7 +71,7 @@ public class UsersService {
      * @throws BadRequestException if the email or phone number already exists or OTP is invalid/expired
      */
     @Transactional
-    public UsersResponse createUser(CreateUserRequest userRequest) {
+    public  UsersResponse createUser(@Nullable CreateUserRequest userRequest) {
         if (usersRepository.existsByEmailOrPhoneNumber(userRequest.email(), userRequest.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
@@ -103,7 +107,15 @@ public class UsersService {
      * @throws BadRequestException if the user is not found
      */
     public UsersResponse getUser() {
-        return usersRepository.findUserDetailsByEmail(AppUtil.getLoggedInSubject()).orElseThrow(() -> new BadRequestException("User not found."));
+        UsersResponse response =  usersRepository.findUserDetailsByEmail(AppUtil.getLoggedInSubject()).orElseThrow(() -> new BadRequestException("User not found."));
+        String signedUrl = null;
+        if (StringUtils.hasText(response.image())) {
+            SignedUrlResponse signedUrlResponse = huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(response.image())
+                    .type(SignedUrlType.IMAGE).build());
+            signedUrl = signedUrlResponse.signedUrl();
+        }
+        return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted());
     }
 
     /**
@@ -188,18 +200,30 @@ public class UsersService {
      * @return the update avatar URL response
      * @throws BadRequestException if the avatar URL is invalid
      */
-    public UpdateAvatarUrlResponse updateAvatarUrl(UpdateAvatarUrlRequest request) {
+    public UpdateAvatarUrlResponse updateImage(UpdateImageRequest request) {
 
         Long userId = AppUtil.getLoggedInUserId();
 
-        Avatars avatars = avatarsRepository.findById(request.avatarId()).orElseThrow(() -> new BadRequestException("Avatar not found."));
+        String imageKey;
+        if (request.imageType() == ImageType.AVATAR) {
+            Images avatars = imagesRepository.findByImageKeyAndImageType(request.imageKey(), ImageType.AVATAR.getValue()).orElseThrow(() -> new BadRequestException("Avatar not found."));
+            imageKey = avatars.getImageKey();
+        } else {
+            if (request.contentType() == null) {
+                throw new BadRequestException("Content type not found.");
+            }
+            imageKey = request.imageKey();
+            imagesRepository.save(Images.builder().imageKey(imageKey).contentType(request.contentType()).imageType(ImageType.PROFILE_PICTURE.getValue()).build());
+        }
 
-        userProfileRepository.updateUsersAvatar(avatars.getUrl(), userId);
+        userProfileRepository.updateUsersImage(imageKey, userId);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
-        return UpdateAvatarUrlResponse.builder().status(true).message("User avatar updated").build();
+        return UpdateAvatarUrlResponse.builder().status(true).message("User image updated").build();
     }
 
     /**
+     * This is only for updating the user's pin when they still know their old pin.
+     * If thwey
      * Updates the logged-in user's PIN after ensuring it is different from the old one.
      *
      * @param request the update PIN request
@@ -221,24 +245,19 @@ public class UsersService {
         return PinResponse.builder().status(true).message("Pin successfully updated.").build();
     }
 
-    public List<AvatarUrls> getAvatarUrls() {
-        List<AvatarUrls> avatars = new ArrayList<>();
-        avatarsRepository.findAll().forEach(av ->
-                avatars.add(avatarMapping.avatarsToAvatarUrls(av)));
-        return avatars;
+    @Cacheable("avatars")
+    public List<SignedUrlResponse> getAvatarUrls() {
+        List<SignedUrlResponse> responses = new ArrayList<>();
+        for (Images images : imagesRepository.findAllByImageType(ImageType.AVATAR.getValue())) {
+            responses.add(huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(images.getImageKey())
+                    .type(SignedUrlType.IMAGE).build()));
+        }
+        return responses;
     }
 
     public AccountDeactivationResponse deactivateUser() {
         Long userId = AppUtil.getLoggedInUserId();
         int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
         return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
-    }
-
-    public ProfilePictureUploadResponse uploadProfilePicture(@Valid ProfilePictureUploadRequest request) {
-
-        int updated = profileRepository.updateUsersAvatar(request.pictureUrl(), AppUtil.getLoggedInUserId());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
-        return ProfilePictureUploadResponse.builder().status(updated == 1 ? "True" : "False")
-                .url(request.pictureUrl()).build();
     }
 }

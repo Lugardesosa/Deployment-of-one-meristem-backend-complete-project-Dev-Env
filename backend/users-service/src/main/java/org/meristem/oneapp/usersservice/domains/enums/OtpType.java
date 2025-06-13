@@ -12,7 +12,8 @@ import lombok.Getter;
 public enum OtpType {
 
     REGISTRATION(1, "Registration OTP received "),
-    PASSWORD_RESET(2, "Password reset OTP received ");
+    PASSWORD_RESET(2, "Password reset OTP received "),
+    BVN_VERIFICATION (3, "BVN Verification OTP received ");
 
     private final int code;
     private final String message;

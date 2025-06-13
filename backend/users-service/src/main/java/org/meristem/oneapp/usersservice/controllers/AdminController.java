@@ -49,6 +49,26 @@ public class AdminController {
         return ApiUtil.buildResponse(adminService.updateNextOfKin(request), HttpStatus.OK.toString(), "Successful");
     }
 
+    @Operation(summary = "DOB update")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their dob")
+    })
+    @PreAuthorize("hasRole('ROLE_admin.change.dob')")
+    @PutMapping(value = "/users/dob-update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<DobResponse>> updateDob(@RequestBody @Valid DobRequest request) {
+        return ApiUtil.buildResponse(adminService.updateDob(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Gender update")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their gender")
+    })
+    @PreAuthorize("hasRole('ROLE_admin.change.gender')")
+    @PutMapping(value = "/users/gender-update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GenderResponse>> updateDob(@RequestBody @Valid GenderRequest request) {
+        return ApiUtil.buildResponse(adminService.updateGender(request), HttpStatus.OK.toString(), "Successful");
+    }
+
 //    @Operation(summary = "Password reset")
 //    @ApiResponses(value = {
 //            @ApiResponse(responseCode = "200", description = "Allows admins to reset their password")

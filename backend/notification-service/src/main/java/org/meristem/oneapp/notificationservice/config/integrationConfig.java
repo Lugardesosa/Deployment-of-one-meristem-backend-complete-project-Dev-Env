@@ -21,7 +21,7 @@ public class integrationConfig {
     @Bean
     CreditSwitchClient smileIdClient(RestClient.Builder restClientBuilder) {
         return HttpServiceProxyFactory
-                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(creditSwitchProperties.url())
+                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(creditSwitchProperties.baseUrl())
                         .defaultHeader(oneAppProperties.defaultHeaderName(), "CreditSwitchClient").build()))
                 .build().createClient(CreditSwitchClient.class);
     }
