@@ -34,3 +34,4 @@ build/
 
 ## Logs
 /logs/
+/qodana.yaml
