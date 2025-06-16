@@ -136,8 +136,8 @@ services:
       - SMILE_ID_DEV_API_KEY=3d64d61d-6d64-402d-a5f0-fa288507ec8f
       - SMILE_ID_PROD_LAMBDA_URL=https://api.smileidentity.com/v1/
       - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com/v1/
-      - SMILE_ID_PROD_SERVER_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
-      - SMILE_ID_DEV_SERVER_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141
+      - SMILE_ID_PROD_WHITELIST_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
+      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141
       - SMILE_ID_DEV_CALLBACK_URL=https://www.onemerristem.merristem.com/api/users/onboard/smile-id/webhook
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -159,6 +159,12 @@ services:
       - MAILER_USERNAME=${MAILER_USERNAME}
       - MAILER_PASSWORD=${MAILER_PASSWORD}
       - CONSUL_HOST=consul
+      - HUAWEI_ACCESS_KEY_ID=HPUAM5DHA70WCCJGFNK7
+      - HUAWEI_SECRET_ACCESS_KEY_ID=rpI0upf6nnHNnLze4DLkXXofufV70EuqwfJIIukx
+      - HUAWEI_OBS_ENDPOINT='obs.af-south-1.myhuaweicloud.com'
+      - HUAWEI_OBS_IMAGES_BUCKET='obs-image-storage-one-meristem-dev-env'
+      - HUAWEI_OBS_DOC_BUCKET='obs-documents-one-meristem-dev-env'
+      - OKHI_DEV_AND_PROD_WHITELIST_IP=52.18.220.93,18.202.96.242
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
@@ -204,6 +210,13 @@ services:
       - MAILER_HOST=${MAILER_HOST}
       - MAILER_USERNAME=${MAILER_USERNAME}
       - MAILER_PASSWORD=${MAILER_PASSWORD}
+      - CREDIT_SWITCH_LOGIN_ID=315497
+      - CREDIT_SWITCH_PUBLIC_KEY=1kepf1KlXc9EUjPSMcqBvQf5EIqLWnXuEEz58XbiMyfLQEDfOpDltmMRHG88M3tmcSARuW9G6iMc9ExYMjfJwfI3MI
+      - CREDIT_SWITCH_PRIVATE_KEY=UNlYfANQ5hfpEjuaSIFjXOSK97NAX6NI0pT2ACpa5aPIi04Lc3swpj8XzscxJZPrzjUb1Yd1EFM5Z5yp8Tx5HwaIs9
+      - CREDIT_SWITCH_SMS_MERCHANT_NAME='Meristem Securities Limited'
+      - CREDIT_SWITCH_SMS_PASSWORD='@wMJ=otlD3(b'
+      - CREDIT_SWITCH_SMS_BASEURL='http://176.58.99.160:9014/api/v1/'
+      - CREDIT_SWITCH_SMS_SENDER_ID=Meristem
     restart: unless-stopped
 
   # ======================
