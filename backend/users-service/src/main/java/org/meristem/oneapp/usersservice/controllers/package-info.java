@@ -6,4 +6,4 @@
  * @version 1.0
  * @since 1.0
  */
-package org.meristem.oneapp.walletservice.models;
+package org.meristem.oneapp.usersservice.controllers;
