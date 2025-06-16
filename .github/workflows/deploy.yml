@@ -152,8 +152,9 @@ jobs:
           # -----------------------------
           echo "Backing up Docker state..."
           TIMESTAMP=\$(date +%s)
+          rm -f /one_meristem_app/docker-compose.backup.*.yml || true
           sudo cp ../docker-compose.yml ../docker-compose.backup.\$TIMESTAMP.yml || true
-          sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.last-known-good.yml || true
+          sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.backup.yml || true
 
           # -----------------------------
           # Build each changed microservice
