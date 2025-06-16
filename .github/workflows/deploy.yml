@@ -132,17 +132,17 @@ jobs:
           echo "Cloning latest repo..."
           rm -rf one_meristem_app || true
           git clone https://${{ secrets.GH_PAT }}@github.com/${{ env.REPO_NAME }}.git
-          echo "Cloning completed..."
-
           cd one_meristem_app
-
-          echo "Checking out target branch..."
-          git fetch origin dev_env
-          git checkout -b dev_env origin/dev_env || { echo "Branch checkout failed."; exit 1; }
           
-          echo "Switched to 'dev_env' branch."
-          echo "Listing folders..."
+          echo "Switching to 'dev_env' branch..."
+          git checkout dev_env || git checkout -b dev_env origin/dev_env
+          
+          # Pull latest changes just in case
+          git pull origin dev_env
+          
+          echo "Switched to 'dev_env' branch with latest code."
           ls -l
+
           
           # -----------------------------
           # Enter the backend folder
