@@ -117,7 +117,7 @@ jobs:
       # SSH into ECS and deploy with rollback logic
       - name: SSH and Deploy with Rollback Support
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} <<EOF
           set -e
 
           # -----------------------------
