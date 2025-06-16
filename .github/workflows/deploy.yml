@@ -9,6 +9,9 @@ on:
   pull_request:
     branches:
       - dev_env
+  push:
+    branches:
+      - dev_env
 
 # Global environment variables
 env:
