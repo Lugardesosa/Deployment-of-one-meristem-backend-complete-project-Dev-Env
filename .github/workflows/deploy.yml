@@ -117,7 +117,7 @@ jobs:
       # SSH into ECS and deploy with rollback logic
       - name: SSH and Deploy with Rollback Support
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} << EOF
           set -e
 
           # -----------------------------
@@ -149,8 +149,8 @@ jobs:
           # -----------------------------
           echo "Backing up Docker state..."
           TIMESTAMP=$(date +%s)
-          sudo cp /one_meristem_app/docker-compose.yml /one_meristem_app/docker-compose.backup.\$TIMESTAMP.yml || true
-          sudo docker-compose -f /one_meristem_app/docker-compose.yml config > /one_meristem_app/docker-compose.last-known-good.yml || true
+          sudo cp ../docker-compose.yml ../docker-compose.backup.\$TIMESTAMP.yml || true
+          sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.last-known-good.yml || true
 
           # -----------------------------
           # Build each changed microservice
