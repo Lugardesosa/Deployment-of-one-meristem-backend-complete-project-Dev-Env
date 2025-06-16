@@ -125,7 +125,7 @@ jobs:
           # -----------------------------
           echo "Cloning latest repo..."
           rm -rf one_meristem_app || true
-          git clone https://github.com/${{ env.REPO_NAME }}.git
+          git clone https://${{ secrets.GH_PAT }}@github.com/${{ env.REPO_NAME }}.git
           cd one_meristem_app/${{ env.SERVICES_DIR }}
 
           # -----------------------------
