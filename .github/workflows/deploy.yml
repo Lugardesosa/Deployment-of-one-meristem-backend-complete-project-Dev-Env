@@ -148,7 +148,7 @@ jobs:
           # Backup current Docker state
           # -----------------------------
           echo "Backing up Docker state..."
-          TIMESTAMP=$(date +%s)
+          TIMESTAMP=\$(date +%s)
           sudo cp ../docker-compose.yml ../docker-compose.backup.\$TIMESTAMP.yml || true
           sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.last-known-good.yml || true
 
@@ -158,9 +158,9 @@ jobs:
           echo "Building changed microservices..."
 
           build_service() {
-            cd "$1" || { echo "Missing directory: $1"; exit 1; }
-            echo "Building $1..."
-            sudo pack build "$1" --builder paketobuildpacks/builder-jammy-base --path .
+            cd "\$1" || { echo "Missing directory: \$1"; exit 1; }
+            echo "Building \$1..."
+            sudo pack build "\$1" --builder paketobuildpacks/builder-jammy-base --path .
             cd ..
           }
 
