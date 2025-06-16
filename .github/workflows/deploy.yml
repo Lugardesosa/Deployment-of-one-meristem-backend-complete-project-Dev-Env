@@ -38,7 +38,7 @@ jobs:
       - name: Detect Changed Microservices
         id: check_change
         run: |
-          git fetch origin dev_env
+          git pull origin dev_env
           CHANGED=$(git diff --name-only origin/dev_env | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service)/" | cut -d'/' -f2 | sort -u | xargs)
           echo "Changed services: $CHANGED"
 
