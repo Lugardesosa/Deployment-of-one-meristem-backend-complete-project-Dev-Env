@@ -130,7 +130,7 @@ jobs:
           echo "Checking directory..."
           ls -l
           echo "Changing directory..."
-          cd backend || { echo "Backend folder not found. Check repo structure."; exit 1; }
+          cd one_meristem_app/${{ env.SERVICES_DIR }} || { echo "Backend folder not found. Check repo structure."; exit 1; }
 
           # -----------------------------
           # Backup current Docker state
