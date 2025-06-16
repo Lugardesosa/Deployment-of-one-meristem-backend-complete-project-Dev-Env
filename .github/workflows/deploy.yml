@@ -100,6 +100,13 @@ jobs:
     if: needs.build.outputs.changed_services != 'none'
 
     steps:
+      - name: Debug SSH vars
+        env:
+          ECS_USER: ${{ secrets.ECS_USER }}
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+        run: |
+          echo "ECS_USER: $ECS_USER"
+          echo "ECS_HOST: $ECS_HOST"
       # Start SSH agent with ECS private key
       - name: Start SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
