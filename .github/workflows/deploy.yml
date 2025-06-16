@@ -6,9 +6,9 @@
 name: Deployment of One_Meristem_App
 
 on:
-  pull_request:
-    branches:
-      - dev_env
+  #pull_request:
+    #branches:
+      #- dev_env
   push:
     branches:
       - dev_env
