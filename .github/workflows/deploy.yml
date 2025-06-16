@@ -126,7 +126,11 @@ jobs:
           echo "Cloning latest repo..."
           rm -rf one_meristem_app || true
           git clone https://${{ secrets.GH_PAT }}@github.com/${{ env.REPO_NAME }}.git
-          cd one_meristem_app/${{ env.SERVICES_DIR }}
+
+          echo "Checking directory..."
+          ls -l
+          echo "Changing directory..."
+          cd one_meristem_app/backend || { echo "Backend folder not found. Check repo structure."; exit 1; }
 
           # -----------------------------
           # Backup current Docker state
