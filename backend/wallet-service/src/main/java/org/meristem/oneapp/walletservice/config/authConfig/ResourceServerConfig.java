@@ -1,4 +1,4 @@
-package org.meristem.oneapp.walletservice.config.AuthConfig;
+package org.meristem.oneapp.walletservice.config.authConfig;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;

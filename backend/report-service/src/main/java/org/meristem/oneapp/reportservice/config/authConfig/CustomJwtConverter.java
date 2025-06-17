@@ -1,4 +1,4 @@
-package org.meristem.oneapp.walletservice.config.AuthConfig;
+package org.meristem.oneapp.reportservice.config.authConfig;
 
 
 import org.springframework.core.convert.converter.Converter;
