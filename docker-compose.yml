@@ -76,6 +76,7 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT=30  # Default is 5s (often too short)
       - SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE=10  # Check for updates every 10s
+      - H2_PASSWORD=${H2_PASSWORD} 
     restart: unless-stopped
 
   # --------------------
