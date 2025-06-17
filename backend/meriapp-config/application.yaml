@@ -65,6 +65,11 @@ one-app:
     context-path: /api/wallets
     application-name: wallet-service
 
+#  WALLET SERVICE
+  report-service:
+    context-path: /api/reports
+    application-name: report-service
+
 logging:
   file:
     max-size: 2MB

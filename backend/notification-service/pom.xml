@@ -40,7 +40,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-
 <!--        DEVTOOLS-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
