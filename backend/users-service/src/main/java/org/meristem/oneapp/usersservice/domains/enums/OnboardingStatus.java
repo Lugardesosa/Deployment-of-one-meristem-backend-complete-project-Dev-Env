@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 public enum OnboardingStatus {
 
+    NOT_STARTED(3),
     PENDING(2),
     APPROVED(1),
     REJECTED(0);

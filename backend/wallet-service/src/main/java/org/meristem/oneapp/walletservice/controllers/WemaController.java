@@ -15,6 +15,7 @@ import org.meristem.oneapp.walletservice.domains.requests.WemaTransactionNotific
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.WemaAccountQueryResponse;
 import org.meristem.oneapp.walletservice.domains.responses.WemaTransactionResponse;
+import org.meristem.oneapp.walletservice.services.TransactionService;
 import org.meristem.oneapp.walletservice.services.VirtualAccountService;
 import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WemaController {
 
     private final VirtualAccountService virtualAccountService;
+    private final TransactionService transactionService;
 
     @Operation(summary = "Queries Wema account details")
     @ApiResponses(value = {@ApiResponse(
@@ -50,6 +52,6 @@ public class WemaController {
     )})
     @PostMapping(value = "/webhook/transaction", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WemaTransactionResponse transactionWebhook(@RequestBody @Valid WemaTransactionNotificationRequest request) {
-        return virtualAccountService.handleTransaction(request);
+        return transactionService.handleTransaction(request);
     }
 }

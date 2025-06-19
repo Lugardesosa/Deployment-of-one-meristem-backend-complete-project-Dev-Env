@@ -51,35 +51,6 @@ public class VirtualAccountService {
     }
 
 
-    @Transactional
-    public WemaTransactionResponse handleTransaction(WemaTransactionNotificationRequest request) {
-
-        VirtualAccounts virtualAccounts = virtualAccountRepository.findByAccountNumberAndBankCode(request.creditAccount(), AccountProvider.WEMA.getBankCode());
-
-        Wallets wallets = walletRepository.findWalletsById(virtualAccounts.getWalletId());
-
-        Transactions transactions = transactionsMapper.wemaTransactionsToTransactions(request);
-        transactions.setWalletId(wallets.getId());
-        transactions.setVirtualAccountId(virtualAccounts.getId());
-        transactions.setPreviousBalance(wallets.getBalance());
-
-        virtualAccounts.setBalance(virtualAccounts.getBalance().add(request.amount()));
-        wallets.setBalance(wallets.getBalance().add(request.amount()));
-
-        transactions.setNewBalance(wallets.getBalance());
-        transactions.setType(TransactionType.DEPOSIT.getValue());
-        transactions.setMethod(TransactionMethod.BANK_TRANSFER.getValue());
-        transactions.setReference(AppUtil.generateTransactionReference(wallets.getId() + virtualAccounts.getId()));
-        walletRepository.save(wallets);
-        virtualAccountRepository.save(virtualAccounts);
-
-        transactionsRepository.save(transactions);
-
-        return WemaTransactionResponse.builder().transactionReference(transactions.getReference()).status("00")
-                .statusDesc("Successful").build();
-
-    }
-
     public void createWemaAccount(KycCompletedDto value, Long walletId) {
 
         AccountProvider WEMA = AccountProvider.WEMA;

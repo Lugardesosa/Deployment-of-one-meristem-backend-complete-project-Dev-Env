@@ -91,7 +91,7 @@ public class UsersService {
         Long userId = user.getId();
         requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
                 .forEach(rId -> {
-                    UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.PENDING.getValue())
+                    UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.NOT_STARTED.getValue())
                             .completed(false).userId(userId).requirementId(rId).type(RequirementType.DEFAULT.getId()).build();
                     userOnboardingRepository.save(userOnboarding);
                 });
