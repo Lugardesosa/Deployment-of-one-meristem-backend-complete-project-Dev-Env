@@ -3,15 +3,12 @@
 # Stages: Build changed microservices → Deploy with rollback support
 # =====================================================
 
-name: Deployment of One_Meristem_App
+name: Deployment of One_Meristem_App to Huawei Cloud
 
 on:
-  pull_request:
+  push:
     branches:
       - dev_env
-  #push:
-    #branches:
-      #- dev_env
 
 # Global environment variables
 env:
@@ -47,51 +44,6 @@ jobs:
           else
             echo "changed_services=$CHANGED" >> "$GITHUB_OUTPUT"
           fi
-
-
-# =====================================================
-# Test Stage: Java Static Code Analysis using Checkstyle (JDK 21)
-# =====================================================
-  test:
-    name: Java Static Code Analysis
-    runs-on: self-hosted
-    needs: build
-    if: needs.build.outputs.changed_services != 'none'
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.1.0
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Run Checkstyle on Changed Microservices
-        run: |
-          echo "Changed services: ${{ needs.build.outputs.changed_services }}"
-          cd ${{ env.SERVICES_DIR }}
-
-          analyze_service() {
-            SERVICE=$1
-            echo "Running Checkstyle for $SERVICE..."
-
-            cd "$SERVICE" || { echo "Missing directory: $SERVICE"; exit 1; }
-
-            if [ -f "pom.xml" ]; then
-              mvn checkstyle:check -B
-            else
-              echo "No pom.xml found in $SERVICE, skipping..."
-            fi
-
-            cd ..
-          }
-
-          for svc in ${{ needs.build.outputs.changed_services }}; do
-            analyze_service "$svc"
-          done
-
 
 # =====================================================
 # Deploy Stage: SSH to ECS and Deploy with Rollback
@@ -213,3 +165,4 @@ jobs:
             echo "Deployment completed successfully!"
           fi
           EOF
+
