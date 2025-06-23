@@ -562,10 +562,10 @@ SET @AddressID = (SELECT id
                   WHERE requirement_name = 'PROOF_OF_ADDRESS');
 
 INSERT INTO user_onboarding (completed, CREATED_BY, CREATED_DATE, LAST_MODIFIED_BY, LAST_MODIFIED_DATE, REQUIREMENT_ID,
-                             type, USER_ID, VERSION)
-VALUES (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @BvnID, 1, @MosesID, 0),
-       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @NinID, 1, @MosesID, 0),
-       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @AddressID, 1, @MosesID, 0),
-       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @BvnID, 1, @ImehID, 0),
-       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @NinID, 1, @ImehID, 0),
-       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @AddressID, 1, @ImehID, 0);
+                             type, USER_ID, VERSION, status)
+VALUES (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @BvnID, 1, @MosesID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @NinID, 1, @MosesID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @AddressID, 1, @MosesID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @BvnID, 1, @ImehID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @NinID, 1, @ImehID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @AddressID, 1, @ImehID, 0, 3);

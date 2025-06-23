@@ -12,4 +12,4 @@ LABEL maintainer="Kingsley Godwin <kingsleygodwin@meristemng.com>"
 WORKDIR /app
 COPY --from=MAVEN_BUILD /build/target/cloud-gateway*.jar /app/cloud-gateway.jar
 EXPOSE 20011 
-ENTRYPOINT ["java", "-Dspring.lifecycle.timeout-per-shutdown-phase=10s", "-jar", "cloud-gateway.jar",]
+ENTRYPOINT ["java", "-Dspring.lifecycle.timeout-per-shutdown-phase=10s", "-jar", "cloud-gateway.jar"]
