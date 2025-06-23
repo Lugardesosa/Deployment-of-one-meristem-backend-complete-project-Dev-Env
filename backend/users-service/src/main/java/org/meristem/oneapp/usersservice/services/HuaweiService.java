@@ -27,9 +27,6 @@ public class HuaweiService {
 
     public SignedUrlResponse getSignedUrl(SignedUrlRequest signedUrlRequest) {
 
-        // TODO: DELETE THIS LINE
-        log.error("HuaweiService getSignedUrl {}", signedUrlRequest);
-
         try (ObsClient obsClient = new ObsClient(huaweiConfigProperties.accessKeyId(), huaweiConfigProperties.accessSecretId(), huaweiConfigProperties.obsEndpoint())) {
 
             String userEmail = (AppUtil.getLoggedInUserEmail().split("@")[0]).replaceAll("[!#$%&'*+-/=?^_`{|}~]", "");
@@ -42,8 +39,6 @@ public class HuaweiService {
             request.setBucketName(bucketName);
             request.setObjectKey(objectKey);
 
-            // TODO: DELETE THIS LINE
-            log.error("HuaweiService getSignedUrl {}", request);
             if (HttpMethodEnum.PUT == signedUrlRequest.method()) {
                 if (signedUrlRequest.contentType() == null) {
                     throw new BadRequestException("Content type is required");

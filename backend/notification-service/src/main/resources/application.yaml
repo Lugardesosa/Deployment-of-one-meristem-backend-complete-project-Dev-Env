@@ -16,8 +16,5 @@ spring:
         initial-interval: 3000
         max-interval: 3500
 
-
-  termii:
-    baseUrl: https://v3.api.termii.com
-    apiKey: TLXeXGvxErNgYvvqZxOCQYvbIGCTTiJctbjWxhODZlCtlSauFQrJpzCeGjLRlh
-    apiSecret: tsk_okU2kft3QCk7tJC2jMxi16oZUN
+encrypt:
+  key: '${ENCRYPTION_KEY}'

@@ -1,0 +1,22 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-report-service
+
+  cloud:
+    consul:
+      discovery:
+        health-check-path: ${one-app.report-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${REPORT_SERVICE_HOSTNAME}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+server:
+  port: 20040
+  servlet:
+    context-path: ${one-app.report-service.context-path}

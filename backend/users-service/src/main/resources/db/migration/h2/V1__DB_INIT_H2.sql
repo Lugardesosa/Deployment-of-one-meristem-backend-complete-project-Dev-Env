@@ -530,3 +530,42 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', '7.svg', 'image/svg+xml', 1),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', '8.svg', 'image/svg+xml', 1),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', '9.svg', 'image/svg+xml', 1);
+
+
+INSERT INTO users (created_by, created_date, email, first_name, last_modified_by, last_modified_date, last_name,
+                   password, phone_number, version)
+VALUES ('SYSTEM', NOW(), 'amaechimoses8@gmail.com', 'Moses', 'SYSTEM', NOW(), 'Amaechi',
+        '$2a$10$dHk0kblZPJVTvdFzvO2XPeRhR9ELlKRhKZ/Rz7C.FKQPo3gCg2ZfK', '08124546576', 0),
+       ('SYSTEM', NOW(), 'imeh@yopmail.com', 'Imeh', 'SYSTEM', NOW(), 'Usoro',
+        '$2a$10$Zi0labbD92W.Dm/l./rftuCDwSbnpGiBdGvssgc1xg1u13NvWzXFe', '08124546176', 0);
+
+SET @MosesID = (SELECT id
+                FROM users
+                WHERE email = 'amaechimoses8@gmail.com');
+SET @ImehID = (SELECT id
+               FROM users
+               WHERE email = 'imeh@yopmail.com');
+
+INSERT INTO user_profile (created_by, created_date, gender, last_modified_by, last_modified_date, onboarding_completed,
+                          referral_code, USER_ID, VERSION)
+VALUES ('SYSTEM', NOW(), 'MALE', 'SYSTEM', NOW(), FALSE, 'MER-MOSES90', @MosesID, 0),
+       ('SYSTEM', NOW(), 'MALE', 'SYSTEM', NOW(), FALSE, 'MER-IMEH90', @ImehID, 0);
+
+SET @BvnID = (SELECT id
+              FROM requirements
+              WHERE requirement_name = 'BVN');
+SET @NinID = (SELECT id
+              FROM requirements
+              WHERE requirement_name = 'NIN');
+SET @AddressID = (SELECT id
+                  FROM requirements
+                  WHERE requirement_name = 'PROOF_OF_ADDRESS');
+
+INSERT INTO user_onboarding (completed, CREATED_BY, CREATED_DATE, LAST_MODIFIED_BY, LAST_MODIFIED_DATE, REQUIREMENT_ID,
+                             type, USER_ID, VERSION, status)
+VALUES (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @BvnID, 1, @MosesID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @NinID, 1, @MosesID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @AddressID, 1, @MosesID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @BvnID, 1, @ImehID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @NinID, 1, @ImehID, 0, 3),
+       (FALSE, 'SYSTEM', NOW(), 'SYSTEM', NOW(), @AddressID, 1, @ImehID, 0, 3);

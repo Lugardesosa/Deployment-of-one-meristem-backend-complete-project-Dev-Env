@@ -37,3 +37,10 @@ build/
 /data/
 /src/main/resources/keys/
 /qodana.yaml
+
+mvnw
+mvnw.cmd
+../../.DS_Store
+../.DS_Store
+
+../observability/env/one-meristem-app-env.env
