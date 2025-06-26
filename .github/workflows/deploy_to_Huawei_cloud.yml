@@ -62,7 +62,9 @@ jobs:
         run: |
           echo "ECS_USER: ${ECS_USER:0:3}***"
           echo "ECS_HOST: ${ECS_HOST:0:5}***"
-
+      - name: Log Changed Services
+        run: |
+          echo "Services to build: ${{ needs.build.outputs.changed_services }}"
       # Start SSH agent with ECS private key
       - name: Start SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
