@@ -170,7 +170,7 @@ services:
       - HUAWEI_OBS_IMAGES_BUCKET=obs-image-storage-one-meristem-dev-env
       - HUAWEI_OBS_DOC_BUCKET=obs-documents-one-meristem-dev-env
       - OKHI_DEV_AND_PROD_WHITELIST_IP=52.18.220.93,18.202.96.242
-      - H2_PASSWORD={cipher}ccbb9e1abeb6dbf37b41169d0f8baf0504412cabf7948961db30b3e15bfb74d1
+      - H2_PASSWORD=${H2_PASSWORD}
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
@@ -223,7 +223,7 @@ services:
       - CREDIT_SWITCH_SMS_PASSWORD=${CREDIT_SWITCH_SMS_PASSWORD} 
       - CREDIT_SWITCH_SMS_BASEURL=http://176.58.99.160:9014/api/v1/
       - CREDIT_SWITCH_SMS_SENDER_ID=Meristem
-      - H2_PASSWORD={cipher}ccbb9e1abeb6dbf37b41169d0f8baf0504412cabf7948961db30b3e15bfb74d1
+      - H2_PASSWORD=${H2_PASSWORD}
     restart: unless-stopped
 
 
@@ -267,7 +267,7 @@ services:
       - KAFKA_HOST_URL=${KAFKA_HOST}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD} 
-      - H2_PASSWORD={cipher}ccbb9e1abeb6dbf37b41169d0f8baf0504412cabf7948961db30b3e15bfb74d1
+      - H2_PASSWORD=${H2_PASSWORD}
 
 
 
@@ -310,7 +310,7 @@ services:
       - PROVIDUS_API_SECRET_KEY=${PROVIDUS_API_SECRET_KEY} 
       - WEMA_API_URL='https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/'
       - WEMA_ACCOUNT_PREFIX=733
-      - H2_PASSWORD={cipher}ccbb9e1abeb6dbf37b41169d0f8baf0504412cabf7948961db30b3e15bfb74d1
+      - H2_PASSWORD=${H2_PASSWORD}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
     
   # ======================
