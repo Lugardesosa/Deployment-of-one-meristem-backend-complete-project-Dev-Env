@@ -30,6 +30,11 @@ jobs:
       # Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 2
+      #Add git log for debugging
+      - name: Show Commit History
+        run: git log --oneline -n 5
 
       # Detect changed services in backend/
       - name: Detect Changed Microservices
@@ -62,6 +67,10 @@ jobs:
         run: |
           echo "ECS_USER: ${ECS_USER:0:3}***"
           echo "ECS_HOST: ${ECS_HOST:0:5}***"
+      - name: Log Changed Services
+        run: |
+          echo "Services to build: ${{ needs.build.outputs.changed_services }}"
+
       - name: Log Changed Services
         run: |
           echo "Services to build: ${{ needs.build.outputs.changed_services }}"
