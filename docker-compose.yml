@@ -163,9 +163,9 @@ services:
       - CONSUL_HOST=consul
       - HUAWEI_ACCESS_KEY_ID=HPUAM5DHA70WCCJGFNK7
       - HUAWEI_SECRET_ACCESS_KEY_ID=rpI0upf6nnHNnLze4DLkXXofufV70EuqwfJIIukx
-      - HUAWEI_OBS_ENDPOINT: obs.af-south-1.myhuaweicloud.com
-      - HUAWEI_OBS_IMAGES_BUCKET: obs-image-storage-one-meristem-dev-env
-      - HUAWEI_OBS_DOC_BUCKET: obs-documents-one-meristem-dev-env
+      - HUAWEI_OBS_ENDPOINT=obs.af-south-1.myhuaweicloud.com
+      - HUAWEI_OBS_IMAGES_BUCKET=obs-image-storage-one-meristem-dev-env
+      - HUAWEI_OBS_DOC_BUCKET=obs-documents-one-meristem-dev-env
       - OKHI_DEV_AND_PROD_WHITELIST_IP=52.18.220.93,18.202.96.242
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
