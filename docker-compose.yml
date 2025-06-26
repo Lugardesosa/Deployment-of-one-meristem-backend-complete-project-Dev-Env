@@ -311,6 +311,7 @@ services:
       - WEMA_API_URL='https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/'
       - WEMA_ACCOUNT_PREFIX=733
       - H2_PASSWORD={cipher}ccbb9e1abeb6dbf37b41169d0f8baf0504412cabf7948961db30b3e15bfb74d1
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
     
   # ======================
   # API GATEWAY (Exposed publicly)
