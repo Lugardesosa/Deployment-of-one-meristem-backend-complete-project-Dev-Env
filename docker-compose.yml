@@ -70,6 +70,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - GITHUB_URL=${GITHUB_URL}
+      - GITHUB_BRANCH=dev_env
       - GITHUB_USERNAME=${GITHUB_USERNAME}
       - GITHUB_PASSWORD=${GITHUB_PASSWORD}
       - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START=true
@@ -144,7 +145,7 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - GITHUB_PROFILE=local
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - USER="System"
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -190,7 +191,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - GITHUB_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -242,7 +243,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - GITHUB_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -261,6 +262,55 @@ services:
       - KAFKA_HOST_URL=${KAFKA_HOST}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD} 
+
+
+
+
+
+    # ======================
+  # REPORT SERVICE (Internal only)
+  # ======================
+  wallet-service:
+    image: wallet-service
+    container_name: wallet-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+    environment:
+      - COMPANY_NAME="Meristem Securities Limited"
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Green%20Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
+      - SPRING_PROFILES_ACTIVE=default
+      - GITHUB_BRANCH=dev_env
+      - GITHUB_PROFILE=local
+      - ONE_APP_SERVER_URL=http://110.238.74.43:8080
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - WALLET_DB_NAME=${DB_NAME_WALLET_SERVICE}
+      - WALLET_DB_PASSWORD=${DB_WALLET_PASSWORD}
+      - WALLET_DB_USERNAME=${DB_WALLET_USERNAME}
+      - PROVIDUS_BASE_URL='https://payment.xpress-wallet.com/api/v1/'
+      - PROVIDUS_API_PUBLIC_KEY=${PROVIDUS_API_PUBLIC_KEY}
+      - PROVIDUS_API_SECRET_KEY=${PROVIDUS_API_SECRET_KEY} 
+      - WEMA_API_URL='https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/'
+      - WEMA_ACCOUNT_PREFIX=733
+      
+
+  
+
+
+
+    
   # ======================
   # API GATEWAY (Exposed publicly)
   # ======================
@@ -287,7 +337,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - GITHUB_PROFILE=local
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
