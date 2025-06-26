@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
+        with: 
+          fetch-depth: 2
 
       - name: Detect Changed Microservices
         id: check_change
