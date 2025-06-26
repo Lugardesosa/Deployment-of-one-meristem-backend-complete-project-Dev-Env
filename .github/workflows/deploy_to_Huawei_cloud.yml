@@ -117,10 +117,16 @@ jobs:
           # Backup current Docker state
           # -----------------------------
           echo "Backing up Docker state..."
-          TIMESTAMP=\$(date +%s)
+          TIMESTAMP=$(date +%s)
+          
+          # Optional: Clean up old backup files
           rm -f /one_meristem_app/docker-compose.backup.*.yml || true
-          sudo cp ../docker-compose.yml ../docker-compose.backup.\$TIMESTAMP.yml || true
-          sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.backup.yml || true
+
+          # Generate a valid config and store it for rollback
+          sudo docker-compose -f ../docker-compose.yml config > /one_meristem_app/docker-compose.last-known-good.yml || {
+            echo "Failed to create rollback config. Aborting deployment."
+            exit 1
+          }
 
           # -----------------------------
           # Build each changed microservice
