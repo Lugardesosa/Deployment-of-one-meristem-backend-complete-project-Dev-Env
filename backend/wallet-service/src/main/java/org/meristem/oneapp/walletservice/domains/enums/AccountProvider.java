@@ -8,25 +8,18 @@ import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestExceptio
 @Getter
 public enum AccountProvider {
 
-    WEMA("WEMA", "035"),
-    PROVIDUS("PROVIDUS", "101");
+    WEMA("WEMA", "Wema", "035"),
+    PROVIDUS("PROVIDUS", "Xpresswallet","101");
 
     private final String value;
+    private final String bankName;
     private final String bankCode;
 
-    public static AccountProvider fromValue(String value) {
+    public static AccountProvider of(String value) {
         return switch (value) {
-            case "WEMA" -> WEMA;
-            case "PROVIDUS" -> PROVIDUS;
+            case "WEMA", "Wema", "035" -> WEMA;
+            case "PROVIDUS", "Xpresswallet", "101" -> PROVIDUS;
             default -> throw new BadRequestException("Invalid account provider value: " + value);
-        };
-    }
-
-    public static AccountProvider fromBankCode(String bankCode) {
-        return switch (bankCode) {
-            case "035" -> WEMA;
-            case "101" -> PROVIDUS;
-            default -> throw new BadRequestException("Invalid account provider bank code: " + bankCode);
         };
     }
 }

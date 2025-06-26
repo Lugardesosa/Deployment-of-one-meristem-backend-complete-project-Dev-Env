@@ -18,3 +18,10 @@ spring:
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
+
+
+#logging:
+#  level:
+#    root: WARN
+#    org.apache.kafka.streams: DEBUG
+#    org.springframework.kafka.listener: DEBUG

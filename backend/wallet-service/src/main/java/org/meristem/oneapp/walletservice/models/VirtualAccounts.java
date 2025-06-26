@@ -46,8 +46,8 @@ public class VirtualAccounts extends BaseModel<String> {
 
     @Size(min = 8, max = 20)
     @NotBlank(message = "Cannot be blank")
-    @Column("provider")
-    private String provider;
+    @Column("provider_wallet_id")
+    private String providerWalletId;
 
     @Digits(integer = 20, fraction = 4, message = "Enter a valid decimal number")
     @Column("balance")
@@ -59,14 +59,14 @@ public class VirtualAccounts extends BaseModel<String> {
 
     @Builder
     public VirtualAccounts(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                           String bankCode, String bankName, String accountNumber, String accountName, String provider, BigDecimal balance, Long walletId,
+                           String bankCode, String bankName, String accountNumber, String accountName, String providerWalletId, BigDecimal balance, Long walletId,
                            String reference) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.bankCode = bankCode;
         this.bankName = bankName;
         this.accountNumber = accountNumber;
         this.accountName = accountName;
-        this.provider = provider;
+        this.providerWalletId = providerWalletId;
         this.balance = balance;
         this.walletId = walletId;
         this.reference = reference;

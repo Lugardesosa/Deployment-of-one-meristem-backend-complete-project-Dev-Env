@@ -2,27 +2,21 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
-import org.meristem.oneapp.usersservice.constants.AppConstants;
-import org.meristem.oneapp.usersservice.constants.KafkaTopics;
-import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
+import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.responses.OkHiWebhookResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.models.*;
+import org.meristem.oneapp.usersservice.models.Address;
+import org.meristem.oneapp.usersservice.models.Requirements;
+import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
-import org.springframework.cache.CacheManager;
-import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
@@ -32,10 +26,8 @@ public class OnboardingService {
     private final UsersRepository usersRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final AddressRepository addressRepository;
-    private final UserProfileRepository userProfileRepository;
-    private final CacheManager cacheManager;
     private final RequirementsRepository requirementsRepository;
-    private final KafkaSenderService kafkaSenderService;
+    private final UsersService usersService;
 
     /**
      * Retrieves the onboarding details for a user.
@@ -90,18 +82,22 @@ public class OnboardingService {
 
                 Requirements requirements = requirementsRepository.findByRequirementNameAndStatus(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), EntityStatus.ACTIVE.getValue());
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId());
+                if ("verified".equals(request.data().addressVerification().status())) {
 
-                Long userId = users.getId();
-                userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), true);
-                addressRepository.findByUserId(users.getId()).ifPresent(address -> {
-                    address.setStatus(AddressStatus.APPROVED.getValue());
-                    addressRepository.save(address);
-                });
+                    userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), true);
+                    addressRepository.findByUserId(users.getId()).ifPresent(address -> {
+                        address.setStatus(AddressStatus.APPROVED.getValue());
+                        addressRepository.save(address);
+                        usersService.completeUserOnboarding(users.getEmail());
+                    });
+                } else {
 
-                if (userOnboardingRepository.allRequirementsSubmitted(userId)) {
-                    userProfileRepository.completeOnboarding(userId);
-                    requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
-                    kafkaSenderService.send(KycCompletedDto.builder().userId(userId).fullName(AppUtil.getUserFullName(users)).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
+                    userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.REJECTED.getValue(), false);
+
+                    addressRepository.findByUserId(users.getId()).ifPresent(address -> {
+                        address.setStatus(AddressStatus.FAILED.getValue());
+                        addressRepository.save(address);
+                    });
                 }
             }
 

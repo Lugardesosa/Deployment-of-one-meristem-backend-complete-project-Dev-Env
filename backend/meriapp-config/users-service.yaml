@@ -39,3 +39,4 @@ one-app:
     finance-logo-url: ${FINANCE_LOGO_URL}
     okhi:
       server-ips: ${OKHI_DEV_AND_PROD_WHITELIST_IP}
+      header-value: ${OKHI_HEADER_VALUE}

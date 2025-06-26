@@ -39,11 +39,9 @@ public class Transactions extends BaseModel<String> {
     @Column("amount")
     private BigDecimal amount;
 
-    @NotNull(message = "Cannot be null")
     @Column("previous_balance")
     private BigDecimal previousBalance;
 
-    @NotNull(message = "Cannot be null")
     @Column("new_balance")
     private BigDecimal newBalance;
 

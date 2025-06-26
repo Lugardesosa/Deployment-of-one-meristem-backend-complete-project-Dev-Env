@@ -12,11 +12,16 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -25,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.TimeZone;
 
+@Slf4j
 @Configuration
 public class AppConfig {
 
@@ -84,5 +90,20 @@ public class AppConfig {
     @Bean
     public BeanFactoryPostProcessor beanFactoryPostProcessor() {
         return beanFactory -> TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Africa/Lagos")));
+    }
+
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
+        var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
+        DefaultErrorHandler handler = new DefaultErrorHandler(
+                recoverer,
+                new FixedBackOff(2000L, 3)
+        );
+
+        handler.addNotRetryableExceptions(IllegalArgumentException.class);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
+            log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex);
+        });
+        return handler;
     }
 }

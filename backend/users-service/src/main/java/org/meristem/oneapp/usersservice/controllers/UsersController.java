@@ -67,19 +67,13 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updatePhoneNumber(request), HttpStatus.OK.toString(), "Successful");
     }
 
-//    @Operation(summary = "Update user's avatar")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Allows users to update their avatar")
-//    })
-//    @PreAuthorize("hasRole('ROLE_users.change.avatar')")
-
     @Operation(summary = "Upload profile picture")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
     })
     @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
     @PutMapping(value = "/image", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateAvatarUrlResponse>> updateImage(@RequestBody @Valid UpdateImageRequest request) {
+    public ResponseEntity<AppResponse<UpdateImageResponse>> updateImage(@RequestBody @Valid UpdateImageRequest request) {
         return ApiUtil.buildResponse(usersService.updateImage(request), HttpStatus.OK.toString(), "Successful");
     }
 
@@ -153,16 +147,4 @@ public class UsersController {
     public ResponseEntity<AppResponse<NextOfKinResponse>> getNextOfKin() {
         return ApiUtil.buildResponse(nextOfKinService.getNextOfKin(), HttpStatus.OK.toString(), "Successful");
     }
-
-
-
-//    @Operation(summary = "Upload profile picture")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
-//    })
-//    @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
-//    @GetMapping(value = "/upload-picture", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<AppResponse<ProfilePictureUploadResponse>> uploadProfilePicture(@RequestBody @Valid ProfilePictureUploadRequest request) {
-//        return ApiUtil.buildResponse(usersService.uploadProfilePicture(request), HttpStatus.OK.toString(), "Successful");
-//    }
 }

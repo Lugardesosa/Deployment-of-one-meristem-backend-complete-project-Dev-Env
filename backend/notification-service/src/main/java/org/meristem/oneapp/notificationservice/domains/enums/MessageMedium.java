@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum MessageMedium {
     EMAIL(1, "EMAIL"),
     SMS(2, "SMS"),
-    WHATSAPP(3, "WHATSAPP"),;
+    WHATSAPP(3, "WHATSAPP");
 
     private final int value;
     private final String label;
