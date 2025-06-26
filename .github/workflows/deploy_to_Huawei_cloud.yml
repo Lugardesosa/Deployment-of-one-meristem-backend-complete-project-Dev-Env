@@ -119,14 +119,15 @@ jobs:
           echo "Backing up Docker state..."
           TIMESTAMP=$(date +%s)
           
-          # Optional: Clean up old backup files
-          rm -f /one_meristem_app/docker-compose.backup.*.yml || true
-
-          # Generate a valid config and store it for rollback
-          sudo docker-compose -f ../docker-compose.yml config > /one_meristem_app/docker-compose.last-known-good.yml || {
+          # Clean any old backups in project root
+          rm -f ../docker-compose.backup.*.yml || true
+          
+          # Save validated config as last-known-good in project root
+          sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.backup.yml || {
             echo "Failed to create rollback config. Aborting deployment."
             exit 1
           }
+
 
           # -----------------------------
           # Build each changed microservice
@@ -169,10 +170,13 @@ jobs:
           # -----------------------------
           # If failed, roll back to previous config
           # -----------------------------
+          # -----------------------------
+          # If failed, roll back to previous config
+          # -----------------------------
           if [ \$DEPLOY_STATUS -ne 0 ]; then
             echo "Deployment failed. Rolling back..."
             sudo docker-compose down || true
-            sudo docker-compose -f /one_meristem_app/docker-compose.last-known-good.yml up -d || {
+            sudo docker-compose -f ../docker-compose.backup.yml up -d || {
               echo "Rollback failed. Manual intervention required."
               exit 1
             }
