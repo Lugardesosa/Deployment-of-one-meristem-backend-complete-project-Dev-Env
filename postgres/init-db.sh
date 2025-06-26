@@ -17,7 +17,7 @@ WALLET_DB_USER=${DB_USER_USERNAME:-"wallet-service"}
 WALLET_DB_PASS=${DB_USER_PASSWORD:-admin-657-A1}
 
 REPORT_DB_USER=${REPORT_DB_USERNAME:-"report-service"}
-REPORT_DB_PASS=${REPORT_DB_PASSWORD:-{cipher}afdb0f0e9091d032039f1169597d7d72ddef48011d3d748791abe0af00f84f06}
+REPORT_DB_PASS=${REPORT_DB_PASSWORD:-admin-657-A1}
 
 echo "Creating databases and assigning users..."
 
