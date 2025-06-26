@@ -36,7 +36,7 @@ jobs:
         id: check_change
         run: |
           git pull origin dev_env
-          CHANGED=$(git diff --name-only origin/dev_env | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
           echo "Changed services: $CHANGED"
 
           if [ -z "$CHANGED" ]; then
