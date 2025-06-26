@@ -99,16 +99,14 @@ public class AdminService {
     }
 
     public DobResponse updateDob(DobRequest request) {
-        Long userId = AppUtil.getLoggedInUserId();
-        int updated = userProfileRepository.updateDob(userId, request.dob());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        int updated = userProfileRepository.updateDob(request.userId(), request.dob());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(usersRepository.findEmailById(request.userId()));
         return DobResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
     }
 
     public GenderResponse updateGender(GenderRequest request) {
-        Long userId = AppUtil.getLoggedInUserId();
-        int updated = userProfileRepository.updateGender(userId, request.gender().name());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        int updated = userProfileRepository.updateGender(request.userId(), request.gender().name());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(usersRepository.findEmailById(request.userId()));
         return GenderResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
     }
 }

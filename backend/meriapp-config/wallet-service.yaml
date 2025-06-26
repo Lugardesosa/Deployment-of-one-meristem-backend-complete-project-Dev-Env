@@ -27,3 +27,9 @@ one-app:
       integration-name: 'Wema Integration'
       url: ${WEMA_API_URL}
       account-prefix: ${WEMA_ACCOUNT_PREFIX}
+      client-name: Wema
+    providus:
+      base-url: ${PROVIDUS_BASE_URL}
+      public-key: ${PROVIDUS_API_PUBLIC_KEY}
+      secret-key: ${PROVIDUS_API_SECRET_KEY}
+      client-name: Providus

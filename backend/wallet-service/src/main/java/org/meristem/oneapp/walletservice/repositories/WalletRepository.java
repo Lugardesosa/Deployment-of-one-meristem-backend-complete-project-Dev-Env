@@ -5,9 +5,11 @@ import org.springframework.data.relational.core.sql.LockMode;
 import org.springframework.data.relational.repository.Lock;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Transactional(readOnly = true)
 public interface WalletRepository extends BaseRepository<Wallets, Long> {
 
     @Lock(LockMode.PESSIMISTIC_WRITE)
-    Wallets findWalletsById(Long id);
+    Optional<Wallets> findWalletsById(Long id);
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AddressStatus {
 
+    FAILED(4),
     CANCELLED(3),
     PENDING(2),
     APPROVED(1),

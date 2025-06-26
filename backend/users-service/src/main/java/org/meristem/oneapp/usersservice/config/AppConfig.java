@@ -40,9 +40,8 @@ public class AppConfig {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         JavaTimeModule module = new JavaTimeModule();
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        ));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
         mapper.registerModule(module);
         return mapper;
     }

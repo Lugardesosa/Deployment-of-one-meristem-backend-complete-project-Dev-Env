@@ -31,6 +31,7 @@ one-app:
       callback-url: ${SMILE_ID_PROD_CALLBACK_URL}
       is-single-use: true
       expires-at: 2 # in days
+      client-name: SmileID
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
     logo-url: ${GREEN_LOGO_URL}
@@ -38,3 +39,4 @@ one-app:
     finance-logo-url: ${FINANCE_LOGO_URL}
     okhi:
       server-ips: ${OKHI_DEV_AND_PROD_WHITELIST_IP}
+      header-value: ${OKHI_HEADER_VALUE}

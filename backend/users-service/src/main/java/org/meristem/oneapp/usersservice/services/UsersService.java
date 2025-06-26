@@ -4,6 +4,7 @@ package org.meristem.oneapp.usersservice.services;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
@@ -199,7 +200,7 @@ public class UsersService {
      * @return the update avatar URL response
      * @throws BadRequestException if the avatar URL is invalid
      */
-    public UpdateAvatarUrlResponse updateImage(UpdateImageRequest request) {
+    public UpdateImageResponse updateImage(UpdateImageRequest request) {
 
         Long userId = AppUtil.getLoggedInUserId();
 
@@ -217,7 +218,7 @@ public class UsersService {
 
         userProfileRepository.updateUsersImage(imageKey, userId);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
-        return UpdateAvatarUrlResponse.builder().status(true).message("User image updated").build();
+        return UpdateImageResponse.builder().status(true).message("User image updated").build();
     }
 
     /**
@@ -258,5 +259,15 @@ public class UsersService {
         Long userId = AppUtil.getLoggedInUserId();
         int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
         return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
+    }
+
+    public void completeUserOnboarding(String userId) {
+
+        KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
+        if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
+            userProfileRepository.completeOnboarding(kycCompletedDto.userId());
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.email());
+            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
+        }
     }
 }

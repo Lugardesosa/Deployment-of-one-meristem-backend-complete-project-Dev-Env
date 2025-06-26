@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
+import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -46,6 +47,9 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("SELECT pin FROM user_profile u WHERE u.user_id = :userId ")
     String findPinByEmailOrPhoneNumber(Long userId);
 
+    @Query("SELECT email FROM users u WHERE u.id = :id ")
+    String findEmailById(Long id);
+
     @UsersQueryModifier
     @Query("UPDATE users SET phone_number = :phoneNumber WHERE email = :email ")
     void updateUsersPhoneNumber(String email, String phoneNumber);
@@ -65,4 +69,9 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     int updateUsersStatus(long id, Integer status);
 
     Long findIdByEmail(String email);
+
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, i.id_value, up.date_of_birth FROM users u " +
+            "LEFT JOIN address a ON a.user_id = u.id LEFT JOIN id_card i ON i.user_id = u.id LEFT JOIN user_profile up ON up.user_id = u.id " +
+            " WHERE u.email = :userId ")
+    KycCompletedDto getUserKyc(String userId);
 }

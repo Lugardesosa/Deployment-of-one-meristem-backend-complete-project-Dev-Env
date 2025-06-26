@@ -6,6 +6,8 @@ import org.springframework.data.relational.core.sql.LockMode;
 import org.springframework.data.relational.repository.Lock;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Transactional(readOnly = true)
 public interface VirtualAccountRepository extends BaseRepository<VirtualAccounts, Long> {
 
@@ -13,7 +15,7 @@ public interface VirtualAccountRepository extends BaseRepository<VirtualAccounts
     String getFullNameByAccountNumber(String accountNumber, String bankCode);
 
     @Lock(LockMode.PESSIMISTIC_WRITE)
-    VirtualAccounts findByAccountNumberAndBankCode(String accountNumber, String bankCode);
+    Optional<VirtualAccounts> findByAccountNumberAndBankCode(String accountNumber, String bankCode);
 
     @Query("SELECT account_name from virtual_accounts account_number = :accountNumber AND bank_code = :bankCode")
     String getFullNameByAccountNumberAndBankCode(String s, String bankCode);
