@@ -267,8 +267,8 @@ services:
 
 
 
-    # ======================
-  # REPORT SERVICE (Internal only)
+  # ======================
+  # WALLET SERVICE (Internal only)
   # ======================
   wallet-service:
     image: wallet-service
@@ -304,12 +304,6 @@ services:
       - PROVIDUS_API_SECRET_KEY=${PROVIDUS_API_SECRET_KEY} 
       - WEMA_API_URL='https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/'
       - WEMA_ACCOUNT_PREFIX=733
-      
-
-  
-
-
-
     
   # ======================
   # API GATEWAY (Exposed publicly)
