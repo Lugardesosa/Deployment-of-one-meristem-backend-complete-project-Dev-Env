@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,15 +125,19 @@ public class RestClientConfig {
             HashMap<String, Object> bodyRequest = objectMapper.readValue(requestBody, new TypeReference<>() {});
             HashMap<String, Object> bodyResponse = objectMapper.readValue(responseBody, new TypeReference<>() {});
             sanitizeBody(bodyRequest, bodyResponse);
+
+            HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);
+            HashMap<String, List<String>> responseHeaders1 = new HashMap<>(responseHeaders);
+            sanitizeHeaders(requestHeaders1, responseHeaders1);
             log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
                     status,
                     method,
                     url,
-                    requestHeaders,
+                    objectMapper.writeValueAsString(requestHeaders1),
                     objectMapper.writeValueAsString(bodyRequest),
                     objectMapper.writeValueAsString(bodyResponse),
                     duration,
-                    responseHeaders
+                    objectMapper.writeValueAsString(responseHeaders1)
             );
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -150,7 +155,22 @@ public class RestClientConfig {
         });
     }
 
-    private String sanitizeHeaders(Map<String, String> requestHeaders) {
-        return "";
+    private void sanitizeHeaders(Map<String, List<String>> requestHeaders, Map<String, List<String>> responseHeaders) {
+
+        bodyToSanitize.forEach(k -> {
+            requestHeaders.forEach((key, value) -> {
+                if (key.equals(k)) {
+                    requestHeaders.put(k, Collections.singletonList(REDACTED));
+                } else {
+                    responseHeaders.put(k, Collections.singletonList(REDACTED));
+                }
+            });
+
+            responseHeaders.forEach((key, value) -> {
+                if (key.equals(k)) {
+                    responseHeaders.put(k, Collections.singletonList(REDACTED));
+                }
+            });
+        });
     }
 }

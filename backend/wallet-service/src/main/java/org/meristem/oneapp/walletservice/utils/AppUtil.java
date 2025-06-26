@@ -11,6 +11,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static java.util.Objects.nonNull;
+
 @UtilityClass
 public final class AppUtil {
 
@@ -48,9 +50,12 @@ public final class AppUtil {
 
         final int RANDOM_LENGTH = 4;
         final String PREFIX = "MER";
-        final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
         String randomPart = randomAlphanumeric(RANDOM_LENGTH);
         return String.format("%s-%s-%s-%s", PREFIX, provider.getValue().substring(Integer.min(provider.getValue().length(), 4)), userId, randomPart);
+    }
+
+    public static String getUserFullName(String firstName, String middleName, String lastName) {
+        return firstName + " " + (nonNull(middleName) ? (middleName + " "): "") + lastName;
     }
 }
