@@ -308,10 +308,10 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - KAFKA_HOST_URL=${KAFKA_HOST}
-      - PROVIDUS_BASE_URL='https://payment.xpress-wallet.com/api/v1/'
+      - PROVIDUS_BASE_URL=https://payment.xpress-wallet.com/api/v1/
       - PROVIDUS_API_PUBLIC_KEY=${PROVIDUS_API_PUBLIC_KEY}
       - PROVIDUS_API_SECRET_KEY=${PROVIDUS_API_SECRET_KEY} 
-      - WEMA_API_URL='https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/'
+      - WEMA_API_URL=https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/
       - WEMA_ACCOUNT_PREFIX=733
       - H2_PASSWORD=${H2_PASSWORD}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
