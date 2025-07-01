@@ -13,3 +13,8 @@ spring:
           uri: ${WALLET_SERVICE_URI}
           predicates:
             - Path=${one-app.wallet-service.context-path}/**
+
+        - id: ${one-app.report-service.application-name}/
+          uri: ${REPORT_SERVICE_URI}
+          predicates:
+            - Path=${one-app.report-service.context-path}/**

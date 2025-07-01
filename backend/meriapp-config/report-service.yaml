@@ -17,6 +17,6 @@ spring:
       host: ${CONSUL_HOST}
 
 server:
-  port: 20040
+  port: 20050
   servlet:
     context-path: ${one-app.report-service.context-path}
