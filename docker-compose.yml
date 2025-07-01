@@ -132,9 +132,9 @@ services:
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
-      - GREEN_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Green%20Logo.png
-      - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
-      - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
         #- SPRING_PROFILES_ACTIVE=default
       - SMILE_ID_PARTNER_ID=7496
       - SMILE_ID_PROD_API_KEY=ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI=
@@ -191,9 +191,9 @@ services:
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
-      - GREEN_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Green%20Logo.png
-      - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
-      - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
       - GITHUB_PROFILE=local
@@ -244,9 +244,9 @@ services:
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
-      - GREEN_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Green%20Logo.png
-      - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
-      - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
       - GITHUB_PROFILE=local
@@ -290,9 +290,9 @@ services:
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
-      - GREEN_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Green%20Logo.png
-      - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
-      - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
       - GITHUB_PROFILE=local
@@ -335,9 +335,9 @@ services:
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
-      - GREEN_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Green%20Logo.png
-      - WHITE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20White%20Logo.png
-      - FINANCE_LOGO_URL=https://obs-unstructured-data-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/logos/Meristem%20Finance%20%28Green%29.png
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
       - GITHUB_PROFILE=local
