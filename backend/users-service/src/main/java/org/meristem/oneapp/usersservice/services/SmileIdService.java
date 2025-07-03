@@ -18,6 +18,7 @@ import org.meristem.oneapp.usersservice.integrations.responses.SmileIdSmileLinkR
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class SmileIdService {
     private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
     private static final List<Integer> DOC_AND_ENHANCED_JOB_TYPES = List.of(DOCUMENT_JOB_TYPE, ENHANCED_JOB_TYPE);
+    public static final String LOCAL = "local";
     private final SmileIdRecordRepository smileIdRecordRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
@@ -57,6 +59,8 @@ public class SmileIdService {
     private final SimpMessagingTemplate messagingTemplate;
     private final SmileIdClient smileIdClient;
     private final UsersService usersService;
+    @Value("${spring.cloud.config.profile:local}")
+    private String activeProfile;
 
 
     private final SmileIdProperties smileIdProperties;
@@ -102,9 +106,12 @@ public class SmileIdService {
             smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
                     .timestamp(timestamp).build());
 
-            SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
+            if (activeProfile.equals(LOCAL)) {
+                return getTestSmartLinkResponse(jobId, signature);
+            } else {
+                return getSmartLinkResponse(request, jobId);
+            }
 
-            return new SmileIdTokenResponse(response.link(), jobId);
         } catch (Exception e) {
             throw new UpstreamServiceException("Can not generate token.");
         }
@@ -138,7 +145,7 @@ public class SmileIdService {
     }
 
     private void handleFailedNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
         smileIdRecord.setMessage(notification.resultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.FAILED.getValue());
         userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.REJECTED.getValue(), false);
@@ -154,7 +161,7 @@ public class SmileIdService {
     }
 
     private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
         smileIdRecord.setMessage(notification.resultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.APPROVED.getValue());
         completeOnboarding(smileIdRecord, loggedInUser);
@@ -166,7 +173,7 @@ public class SmileIdService {
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
         // Save document url for non bvn requirement
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId());
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
         UserDocument document = UserDocument.builder().userId(loggedInUser.getId()).requirementId(smileIdRecord.getRequirementId())
                 .idType(notification.idType()).additionalUrl(notification.kycReceipt()).build();
         if (nonNull(notification.imageLinks())) {
@@ -229,5 +236,15 @@ public class SmileIdService {
         mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
         mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
         return mac;
+    }
+
+    private SmileIdTokenResponse getSmartLinkResponse(SmileIdSmileLinkRequest request, String jobId) {
+        SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
+        return new SmileIdTokenResponse(response.link(), jobId);
+    }
+
+    private SmileIdTokenResponse getTestSmartLinkResponse(String jobId, String value) {
+        log.info("Created value: {}", value);
+        return new SmileIdTokenResponse("", jobId);
     }
 }

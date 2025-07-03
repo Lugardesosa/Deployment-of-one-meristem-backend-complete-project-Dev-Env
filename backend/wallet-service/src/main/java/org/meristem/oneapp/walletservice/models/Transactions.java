@@ -8,7 +8,6 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Objects;
 
 @ToString
@@ -56,9 +55,6 @@ public class Transactions extends BaseModel<String> {
     @Column("narration")
     private String narration;
 
-    @Column("metadata")
-    private Map<String, Object> metadata;
-
     @Column("senders_bank_name")
     private String sendersBankName;
 
@@ -71,11 +67,14 @@ public class Transactions extends BaseModel<String> {
     @Column("senders_name")
     private String sendersName;
 
+    @Column("transaction_date")
+    private LocalDateTime transactionDate;
+
     @Builder
     public Transactions(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
                         Long walletId, Long virtualAccountId, String reference, BigDecimal amount, BigDecimal previousBalance, BigDecimal newBalance, Integer type,
-                        Integer method, String narration, Map<String, Object> metadata, String providerReference, String sendersBankName, String sendersBankCode,
-                        String sendersName, String sendersAccountNumber) {
+                        Integer method, String narration, String providerReference, String sendersBankName, String sendersBankCode,
+                        String sendersName, String sendersAccountNumber, LocalDateTime transactionDate) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.walletId = walletId;
         this.virtualAccountId = virtualAccountId;
@@ -87,11 +86,11 @@ public class Transactions extends BaseModel<String> {
         this.type = type;
         this.method = method;
         this.narration = narration;
-        this.metadata = metadata;
         this.sendersBankName = sendersBankName;
         this.sendersBankCode = sendersBankCode;
         this.sendersName = sendersName;
         this.sendersAccountNumber = sendersAccountNumber;
+        this.transactionDate = transactionDate;
     }
 
     @Override

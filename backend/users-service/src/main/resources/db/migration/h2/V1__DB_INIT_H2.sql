@@ -440,7 +440,7 @@ SET @RolesUserID = SELECT (id) FROM roles WHERE name = 'USER';
 INSERT INTO users (created_date, created_by, last_modified_date, last_modified_by, version, email, first_name, last_name, middle_name, password, phone_number)
 VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'oneappsuperadmin@meristemng.com', 'Super', 'Admin', '', '$2a$12$zoqPU9DmUuSysmmH47ic.OHx3tXVHf5lJDUDNtpJjC3FM5tUcVd3W', '');
 
-INSERT INTO users_roles VALUES (SELECT id FROM users WHERE email = 'oneappsuperadmin@meristemng.com', SELECT id FROM roles WHERE `name` = 'SUPER_ADMIN');
+INSERT INTO users_roles VALUES (SELECT id FROM users WHERE email = 'oneappsuperadmin@meristemng.com', SELECT id FROM roles WHERE name = 'SUPER_ADMIN');
 
 -- PERMISSIONS
 INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
@@ -454,6 +454,8 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.p_picture.post'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.generate_signed_url'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_smile_id_token'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.virtual_accounts.get'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.transactions.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.next_of_kin.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.phone-number.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password'),
@@ -474,6 +476,8 @@ SET @UsersNextOfKinCreateID = (SELECT id FROM permissions WHERE name = 'users.ne
 SET @UsersNextOfKinGetID = (SELECT id FROM permissions WHERE name = 'users.next_of_kin.get');
 SET @UsersPPicturePostID = (SELECT id FROM permissions WHERE name = 'users.p_picture.post');
 SET @UsersSignedUrlID = (SELECT id FROM permissions WHERE name = 'users.generate_signed_url');
+SET @UsersVirtualAccountsGetID = (SELECT id FROM permissions WHERE name = 'users.virtual_accounts.get');
+SET @UsersTransactionsGetID = (SELECT id FROM permissions WHERE name = 'users.transactions.get');
 SET @UsersGetSmileIdTokenID = (SELECT id FROM permissions WHERE name = 'users.get_smile_id_token');
 SET @AdminNextOfKinUpdateID = (SELECT id FROM permissions WHERE name = 'admin.next_of_kin.update');
 SET @UsersPhoneNumberUpdateID = (SELECT id FROM permissions WHERE name = 'users.phone-number.update');
@@ -495,6 +499,8 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersNextOfKinGetID),
        (@RolesUserID, @UsersPPicturePostID),
        (@RolesUserID, @UsersSignedUrlID),
+       (@RolesUserID, @UsersVirtualAccountsGetID),
+       (@RolesUserID, @UsersTransactionsGetID),
        (@RolesUserID, @UsersGetSmileIdTokenID),
        (@RolesAdminID, @AdminNextOfKinUpdateID),
        (@RolesUserID, @UsersPhoneNumberUpdateID),
@@ -550,6 +556,10 @@ INSERT INTO user_profile (created_by, created_date, gender, last_modified_by, la
                           referral_code, USER_ID, VERSION)
 VALUES ('SYSTEM', NOW(), 'MALE', 'SYSTEM', NOW(), FALSE, 'MER-MOSES90', @MosesID, 0),
        ('SYSTEM', NOW(), 'MALE', 'SYSTEM', NOW(), FALSE, 'MER-IMEH90', @ImehID, 0);
+
+INSERT INTO users_roles VALUES (@MosesID, SELECT id FROM roles WHERE name = 'USER');
+INSERT INTO users_roles VALUES (@ImehID, SELECT id FROM roles WHERE name = 'USER');
+
 
 SET @BvnID = (SELECT id
               FROM requirements

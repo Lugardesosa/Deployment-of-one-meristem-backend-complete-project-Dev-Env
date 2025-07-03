@@ -1,7 +1,7 @@
-package org.meristem.oneapp.usersservice.utils;
+package org.meristem.oneapp.reportservice.utils;
 
 import lombok.experimental.UtilityClass;
-import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
+import org.meristem.oneapp.reportservice.domains.responses.AppResponse;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;

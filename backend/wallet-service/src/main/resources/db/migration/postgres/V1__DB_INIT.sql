@@ -51,12 +51,12 @@ CREATE TABLE transactions
     type                   INTEGER                                 NOT NULL,
     method                 INTEGER                                 NOT NULL,
     narration              VARCHAR(255),
-    metadata               JSON,
     provider_reference     VARCHAR(50)                             NOT NULL,
     senders_bank_name      VARCHAR(100),
     senders_name           VARCHAR(100),
     senders_bank_code      VARCHAR(20),
     senders_account_number VARCHAR(20),
+    transaction_date       TIMESTAMP                               NOT NULL,
 
     CONSTRAINT "pk_transactions" PRIMARY KEY (id)
 );
@@ -81,6 +81,10 @@ ALTER TABLE transactions
 CREATE UNIQUE INDEX IDX_VIRTUAL_ACCOUNT_WALLET_ID_BANK_CODE ON virtual_accounts (wallet_id, bank_code);
 
 CREATE UNIQUE INDEX IDX_TRANSACTIONS_REFERENCE ON transactions (reference);
+CREATE UNIQUE INDEX IDX_TRANSACTIONS_REFERENCE ON transactions (reference);
+CREATE INDEX IDX_TRANSACTIONS_WALLET_ID ON transactions (wallet_id);
+CREATE INDEX IDX_TRANSACTIONS_VA_ID ON transactions (virtual_account_id);
+CREATE UNIQUE INDEX IDX_TRANSACTIONS_PR_ID ON transactions (provider_reference);
 
 CREATE UNIQUE INDEX IDX_PROVIDUS_BANK_CODE on providus_bank_codes (bank_code);
 
