@@ -4,6 +4,8 @@ package org.meristem.oneapp.walletservice.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
+import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
+import org.meristem.oneapp.walletservice.constants.KafkaTopics;
 import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
 import org.meristem.oneapp.walletservice.domains.enums.TransactionMethod;
 import org.meristem.oneapp.walletservice.domains.enums.TransactionStatus;
@@ -25,6 +27,8 @@ import org.meristem.oneapp.walletservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,9 +40,10 @@ public class TransactionService {
 
     private final VirtualAccountRepository virtualAccountRepository;
     private final WalletRepository walletRepository;
-    private final TransactionsMapper transactionsMapper = Mappers.getMapper(TransactionsMapper.class);
+    private final TransactionsMapper transactionsMapper = TransactionsMapper.INSTANCE;
     private final TransactionsRepository transactionsRepository;
     private final ProvidusBankCodesRepository providusBankCodesRepository;
+    private final KafkaSenderService kafkaSenderService;
 
     @Transactional
     public WemaTransactionResponse handleWemaTransaction(WemaTransactionNotificationRequest request) {
@@ -102,11 +107,19 @@ public class TransactionService {
                 transactions.setType(TransactionType.DEPOSIT.getValue());
                 transactions.setAmount(request.data().amount());
                 transactions.setMethod(TransactionMethod.BANK_TRANSFER.getValue());
+                transactions.setTransactionDate(AppUtil.nonNullOrLocalDateTimeNow(request.data().paidAt()));
                 transactions.setReference(AppUtil.generateTransactionReference(wallets.getId() + virtualAccounts.getId()));
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("channelCode", request.data().channelCode());
+                metadata.put("destinationInstitutionCode", request.data().destinationInstitutionCode());
+                metadata.put("BankVerificationCode", request.data().destinationInstitutionCode());
                 walletRepository.save(wallets);
                 virtualAccountRepository.save(virtualAccounts);
 
                 transactionsRepository.save(transactions);
+                TransactionEventDto payload = transactionsMapper.transactionsToTransactionEventDto(transactions);
+                payload = payload.withers(payload, virtualAccounts.getAccountNumber(), virtualAccounts.getAccountName(), TransactionType.DEPOSIT.getName(), TransactionMethod.BANK_TRANSFER.getName(), metadata);
+                kafkaSenderService.send(KafkaTopics.KAFKA_TRANSACTIONS_TOPIC, transactions.getReference(), payload);
             });
         });
 

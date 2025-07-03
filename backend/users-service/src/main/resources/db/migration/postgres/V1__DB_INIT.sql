@@ -441,6 +441,8 @@ DO $$
         UsersNextOfKinGetID integer;
         UsersPPicturePostID integer;
         UsersSignedUrlID integer;
+        UsersVirtualAccountsGetID integer;
+        UsersTransactionsGetID integer;
         UsersGetSmileIdTokenID integer;
         AdminNextOfKinUpdateID integer;
         AdminChangePasswordID integer;
@@ -494,6 +496,12 @@ BEGIN
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.generate_signed_url') RETURNING id INTO UsersSignedUrlID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.virtual_accounts.get') RETURNING id INTO UsersVirtualAccountsGetID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.transactions.get') RETURNING id INTO UsersTransactionsGetID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_smile_id_token') RETURNING id INTO UsersGetSmileIdTokenID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
@@ -539,6 +547,8 @@ BEGIN
            (RolesUserID, UsersNextOfKinGetID),
            (RolesUserID, UsersPPicturePostID),
            (RolesUserID, UsersSignedUrlID),
+           (RolesUserID, UsersVirtualAccountsGetID),
+           (RolesUserID, UsersTransactionsGetID),
            (RolesUserID, UsersGetSmileIdTokenID),
            (RolesAdminID, AdminNextOfKinUpdateID),
            (RolesAdminID, AdminChangePasswordID),
@@ -550,7 +560,6 @@ BEGIN
            (RolesUserID, UsersGetAvatarID),
            (RolesUserID, UsersPhoneNumberUpdateID),
            (RolesSuperAdminID, SuperAdminAdminCreateID);
-
 END $$;
 
 INSERT INTO oauth2_registered_client

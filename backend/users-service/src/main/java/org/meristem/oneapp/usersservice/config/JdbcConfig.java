@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -12,18 +11,16 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
-@RequiredArgsConstructor
 public class JdbcConfig {
 
-    private final DataSource dataSource;
 
     @Bean
-    NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
+    NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
     @Bean
-    PlatformTransactionManager transactionManager() {
+    PlatformTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 }

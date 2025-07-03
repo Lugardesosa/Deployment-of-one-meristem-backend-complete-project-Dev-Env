@@ -7,11 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
 import org.meristem.oneapp.walletservice.domains.requests.WemaAccountQueryRequest;
+import org.meristem.oneapp.walletservice.domains.responses.VirtualAccountResponse;
 import org.meristem.oneapp.walletservice.domains.responses.WemaAccountQueryResponse;
 import org.meristem.oneapp.walletservice.integrations.ProvidusClient;
 import org.meristem.oneapp.walletservice.integrations.requests.CreateProvidusWalletRequest;
 import org.meristem.oneapp.walletservice.integrations.responses.CreateProvidusWalletResponse;
-import org.meristem.oneapp.walletservice.mappers.TransactionsMapper;
 import org.meristem.oneapp.walletservice.models.VirtualAccounts;
 import org.meristem.oneapp.walletservice.models.Wallets;
 import org.meristem.oneapp.walletservice.repositories.GeneralRepository;
@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 
 import static java.util.Objects.nonNull;
 
@@ -82,11 +83,16 @@ public class VirtualAccountService {
                 .accountNumber(accountNumber)
                 .balance(BigDecimal.ZERO)
                 .bankCode(WEMA.getBankCode())
-                .bankName(WEMA.getValue())
+                .bankName(WEMA.getBankName())
                 .reference(reference)
                 .providerWalletId(reference)
                 .walletId(walletId)
                 .build();
         virtualAccountRepository.save(virtualAccounts);
+    }
+
+    public List<VirtualAccountResponse> getAccounts() {
+        Long userId = AppUtil.getLoggedInUserId();
+        return virtualAccountRepository.findAccountNumberAndBankNameByUserId(userId);
     }
 }

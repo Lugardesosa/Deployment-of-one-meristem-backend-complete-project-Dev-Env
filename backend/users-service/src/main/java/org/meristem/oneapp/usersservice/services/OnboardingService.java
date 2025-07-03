@@ -44,7 +44,7 @@ public class OnboardingService {
         switch (request.eventType()) {
 
             case OkhiEventTypes.ADDRESS_COLLECTED -> {
-                Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId());
+                Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 addressRepository.findByUserId(users.getId()).ifPresentOrElse(address -> {
                         address.setCity(request.data().location().city());
                         address.setCountry(request.data().location().country());
@@ -71,7 +71,7 @@ public class OnboardingService {
 
             case OkhiEventTypes.ADDRESS_VERIFICATION_STARTED -> {
 
-                Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId());
+                Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 addressRepository.findByUserId(users.getId()).ifPresent(address -> {
                             address.setStatus(AddressStatus.PENDING.getValue());
                             addressRepository.save(address);
@@ -81,7 +81,7 @@ public class OnboardingService {
             case OkhiEventTypes.ADDRESS_VERIFICATION_COMPLETED -> {
 
                 Requirements requirements = requirementsRepository.findByRequirementNameAndStatus(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), EntityStatus.ACTIVE.getValue());
-                Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId());
+                Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 if ("verified".equals(request.data().addressVerification().status())) {
 
                     userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), true);
