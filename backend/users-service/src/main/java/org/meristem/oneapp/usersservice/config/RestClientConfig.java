@@ -122,8 +122,8 @@ public class RestClientConfig {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            HashMap<String, Object> bodyRequest = objectMapper.readValue(requestBody, new TypeReference<>() {});
-            HashMap<String, Object> bodyResponse = objectMapper.readValue(responseBody, new TypeReference<>() {});
+            HashMap<String, Object> bodyRequest = requestBody.isBlank() ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
+            HashMap<String, Object> bodyResponse = responseBody.isBlank() ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
             sanitizeBody(bodyRequest, bodyResponse);
 
             HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);

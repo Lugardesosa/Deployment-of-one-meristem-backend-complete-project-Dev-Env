@@ -2,6 +2,7 @@ package org.meristem.oneapp.walletservice.utils;
 
 import lombok.experimental.UtilityClass;
 import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
+import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -23,6 +24,15 @@ public final class AppUtil {
             return jwt.getClaimAsString("sub");
         }
         return "SYSTEM.AUTO";
+    }
+
+    public static Long getLoggedInUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return jwt.getClaim("id");
+        }
+        throw new BadRequestException("User is not logged in");
     }
 
     public static String generateTransactionReference(Long walletVirtualId) {
@@ -57,5 +67,9 @@ public final class AppUtil {
 
     public static String getUserFullName(String firstName, String middleName, String lastName) {
         return firstName + " " + (nonNull(middleName) ? (middleName + " "): "") + lastName;
+    }
+
+    public static LocalDateTime nonNullOrLocalDateTimeNow(LocalDateTime localDateTime) {
+        return nonNull(localDateTime) ? localDateTime : LocalDateTime.now();
     }
 }

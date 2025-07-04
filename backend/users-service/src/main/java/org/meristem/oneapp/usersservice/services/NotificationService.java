@@ -65,7 +65,7 @@ public class NotificationService {
                     .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
         }
 
-        if (sendOtpRequest.otpType().equals(OtpType.BVN_VERIFICATION.getCode())) {
+        if (sendOtpRequest.otpType().equals(OtpType.ONBOARDING_VERIFICATION.getCode())) {
             messageMedium = validateAndGetMessageMedium(MessageMedium.SMS.getValue(), sendOtpRequest.recipient());
         }
 

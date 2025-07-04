@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
+import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
 import org.meristem.oneapp.walletservice.domains.requests.ProvidusAccountFundedEventRequest;
 import org.meristem.oneapp.walletservice.domains.requests.WemaTransactionNotificationRequest;
 import org.meristem.oneapp.walletservice.models.Transactions;
@@ -32,7 +33,6 @@ public interface TransactionsMapper {
             @Mapping(target = "newBalance", ignore = true),
             @Mapping(target = "type", ignore = true),
             @Mapping(target = "method", ignore = true),
-            @Mapping(target = "metadata", ignore = true),
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "createdDate", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
@@ -61,7 +61,6 @@ public interface TransactionsMapper {
             @Mapping(target = "newBalance", ignore = true),
             @Mapping(target = "type", ignore = true),
             @Mapping(target = "method", ignore = true),
-            @Mapping(target = "metadata", ignore = true),
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "createdBy", ignore = true),
             @Mapping(target = "lastModifiedDate", ignore = true),
@@ -69,4 +68,12 @@ public interface TransactionsMapper {
             @Mapping(target = "version", ignore = true)
     })
     Transactions providusTransactionsToTransactions(ProvidusAccountFundedEventRequest request);
+
+
+    @Mappings({
+            @Mapping(target = "accountName", ignore = true),
+            @Mapping(target = "accountNumber", ignore = true),
+            @Mapping(target = "type", ignore = true)
+    })
+    TransactionEventDto transactionsToTransactionEventDto(Transactions transactions);
 }

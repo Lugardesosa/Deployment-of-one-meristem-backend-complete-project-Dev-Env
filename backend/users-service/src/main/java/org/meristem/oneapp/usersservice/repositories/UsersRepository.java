@@ -62,7 +62,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("UPDATE users SET status = :userStatus WHERE email = :email ")
     void updateStatus(String email, Integer userStatus);
 
-    Users findOneByEmail(String email);
+    Optional<Users> findOneByEmail(String email);
 
     @UsersQueryModifier
     @Query("UPDATE users SET status = :status WHERE id = :id ")

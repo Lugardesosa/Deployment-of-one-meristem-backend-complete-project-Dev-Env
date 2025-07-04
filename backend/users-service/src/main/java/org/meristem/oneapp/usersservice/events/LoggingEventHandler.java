@@ -23,7 +23,8 @@ public class LoggingEventHandler {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> parametersToSanitize = List.of("password", "pin");
+    private final List<String> parametersToSanitize = List.of("password", "pin", "X-MERISTEM-KEY");
+    private final List<String> headersToSanitize = List.of("password", "pin", "X-MERISTEM-KEY");
 
     private final ObjectMapper objectMapper;
 
@@ -80,6 +81,10 @@ public class LoggingEventHandler {
         headers.append("{");
 
         for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
+            if (headersToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
+                headers.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
+                continue;
+            }
             headers.append("\"").append(entry.getKey()).append("\": ").append("\"").append(entry.getValue()).append("\",");
         }
         if (headers.charAt(headers.length() - 1) == ',') {
