@@ -1,6 +1,6 @@
 
 server:
-  port: 20010
+  port: 443
   ssl:
     key-store: classpath:keys/one-meristem-app.com-keystore.pkcs12
     key-store-password: ${KEY_STORE_PASSWORD}
