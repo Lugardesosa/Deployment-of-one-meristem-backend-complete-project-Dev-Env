@@ -321,6 +321,7 @@ services:
     image: cloud-gateway
     container_name: cloud-gateway
     ports:
+      - "443:8443"
       - "8080:20010"  # Exposed for HTTP
       - "443:20010" # Exposed for HTTPS
     networks:
@@ -345,7 +346,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - SERVER_PORT=20010 #Reinforce the port setting
+      #- SERVER_PORT=20010 #Reinforce the port setting
         #- MANAGEMENT_SERVER=-1 #Disable the actuator port
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - USER_SERVICE_URI=${USER_SERVICE_URI}
