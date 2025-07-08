@@ -221,6 +221,7 @@ services:
       - CREDIT_SWITCH_SMS_BASEURL=http://176.58.99.160:9014/api/v1/
       - CREDIT_SWITCH_SMS_SENDER_ID=Meristem
       - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
     restart: unless-stopped
 
 
@@ -265,6 +266,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD} 
       - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
     restart: unless-stopped
 
 
@@ -313,6 +315,7 @@ services:
       - WEMA_ACCOUNT_PREFIX=733
       - H2_PASSWORD=${H2_PASSWORD}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - CONSUL_HOST=consul
     restart: unless-stopped
     
   # ======================
@@ -324,7 +327,7 @@ services:
     ports:
       - "443:8443"
       - "8080:20010"  # Exposed for HTTP
-      - "443:20010" # Exposed for HTTPS
+        #- "443:20010" # Exposed for HTTPS
     networks:
       - meristem-network
     depends_on:
