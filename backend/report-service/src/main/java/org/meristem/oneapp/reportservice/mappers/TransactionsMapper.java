@@ -6,7 +6,10 @@ import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
+import org.meristem.oneapp.reportservice.domains.responses.TransactionsResponse;
 import org.meristem.oneapp.reportservice.models.Transactions;
+
+import java.util.List;
 
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -21,4 +24,6 @@ public interface TransactionsMapper {
             @Mapping(target = "transactionStatus", source = "status")
     })
     Transactions transactionEventDtoToTransactions(TransactionEventDto transactionEventDto);
+
+    List<TransactionsResponse> transactionsToTransactionsResponse(List<Transactions> content);
 }
