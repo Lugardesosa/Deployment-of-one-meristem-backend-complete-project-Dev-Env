@@ -20,8 +20,8 @@ public class PageRequest {
     private Integer size = AppConstants.PAGE_SIZE;
     @Schema(description = "Page number to retrieve. First page is 0, second is 1", example = "0")
     private Integer page = 0;
-    @Schema(description = "Field to sort by", example = "createdDate")
-    private List<String> sortBy = Collections.singletonList("createdDate");
+    @Schema(description = "Field to sort by", example = "providerTransactionDate")
+    private List<String> sortBy = Collections.singletonList("providerTransactionDate");
     @Schema(anyOf = {Sort.Direction.class}, description = "Sort order (ASC or DESC)", example = "DESC")
     private Sort.Direction sortOrder = Sort.Direction.DESC;
 
@@ -34,6 +34,6 @@ public class PageRequest {
     }
 
     public PageRequest(int page) {
-        this(page, AppConstants.PAGE_SIZE, Collections.singletonList("createdDate"), Sort.Direction.DESC);
+        this(page, AppConstants.PAGE_SIZE, Collections.singletonList("providerTransactionDate"), Sort.Direction.DESC);
     }
 }

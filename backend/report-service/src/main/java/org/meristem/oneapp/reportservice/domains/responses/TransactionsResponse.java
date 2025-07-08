@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Builder
@@ -26,6 +27,9 @@ public record TransactionsResponse(
         @Schema(description = "Sender's name") String sendersName,
         @Schema(description = "Transaction status code") Integer status,
         @Schema(description = "Recipient's account number") String accountNumber,
-        @Schema(description = "Recipient's account name") String accountName
+        @Schema(description = "Recipient's account name") String accountName,
+        @Schema(description = "Date we received the transactions") LocalDateTime transactionDate,
+        @Schema(description = "Status of the transactions") Integer transactionStatus,
+        @Schema(description = "Date provider received the transactions") LocalDateTime providerTransactionDate
 ) {
 }

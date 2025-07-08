@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import javax.crypto.Mac;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -69,6 +70,10 @@ public final class AppUtil {
 
     public static boolean nonIsNull(Object... s) {
         return Arrays.stream(s).allMatch(Objects::nonNull);
+    }
+
+    public static boolean isValidDateRage(OffsetDateTime from, Integer daysRange) {
+        return from.isAfter(OffsetDateTime.now().minusDays(daysRange));
     }
 
     public static boolean isValidDateRage(LocalDateTime from, Integer daysRange) {

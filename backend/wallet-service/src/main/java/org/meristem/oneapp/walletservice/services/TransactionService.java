@@ -3,7 +3,6 @@ package org.meristem.oneapp.walletservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
 import org.meristem.oneapp.walletservice.constants.KafkaTopics;
 import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
@@ -11,9 +10,7 @@ import org.meristem.oneapp.walletservice.domains.enums.TransactionMethod;
 import org.meristem.oneapp.walletservice.domains.enums.TransactionStatus;
 import org.meristem.oneapp.walletservice.domains.enums.TransactionType;
 import org.meristem.oneapp.walletservice.domains.requests.ProvidusAccountFundedEventRequest;
-import org.meristem.oneapp.walletservice.domains.requests.WemaTransactionNotificationRequest;
 import org.meristem.oneapp.walletservice.domains.responses.ProvidusTransactionResponse;
-import org.meristem.oneapp.walletservice.domains.responses.WemaTransactionResponse;
 import org.meristem.oneapp.walletservice.mappers.TransactionsMapper;
 import org.meristem.oneapp.walletservice.models.ProvidusBankCodes;
 import org.meristem.oneapp.walletservice.models.Transactions;
@@ -30,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -44,39 +40,6 @@ public class TransactionService {
     private final TransactionsRepository transactionsRepository;
     private final ProvidusBankCodesRepository providusBankCodesRepository;
     private final KafkaSenderService kafkaSenderService;
-
-    @Transactional
-    public WemaTransactionResponse handleWemaTransaction(WemaTransactionNotificationRequest request) {
-
-        AtomicReference<String> wemaReference = new AtomicReference<>("");
-        getVirtualAccounts(request.creditAccount(),  AccountProvider.WEMA.getBankCode()).ifPresent(virtualAccounts -> {
-
-            getWalletsById(virtualAccounts.getWalletId()).ifPresent(wallets -> {
-
-                Transactions transactions = transactionsMapper.wemaTransactionsToTransactions(request);
-                transactions.setWalletId(wallets.getId());
-                transactions.setVirtualAccountId(virtualAccounts.getId());
-                transactions.setPreviousBalance(wallets.getBalance());
-
-                virtualAccounts.setBalance(virtualAccounts.getBalance().add(request.amount()));
-                wallets.setBalance(wallets.getBalance().add(request.amount()));
-
-                transactions.setNewBalance(wallets.getBalance());
-                wemaReference.set(transactions.getReference());
-                transactions.setType(TransactionType.DEPOSIT.getValue());
-                transactions.setMethod(TransactionMethod.BANK_TRANSFER.getValue());
-                transactions.setReference(AppUtil.generateTransactionReference(wallets.getId() + virtualAccounts.getId()));
-                walletRepository.save(wallets);
-                virtualAccountRepository.save(virtualAccounts);
-                transactionsRepository.save(transactions);
-
-            });
-        });
-
-        return WemaTransactionResponse.builder().transactionReference(wemaReference.get()).status("00")
-                .statusDesc("Successful").build();
-    }
-
 
     @Transactional
     public ProvidusTransactionResponse handleProvidusTransaction(ProvidusAccountFundedEventRequest request) {

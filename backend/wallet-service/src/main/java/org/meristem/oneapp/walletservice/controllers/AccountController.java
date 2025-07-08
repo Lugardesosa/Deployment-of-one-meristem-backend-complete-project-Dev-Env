@@ -39,7 +39,7 @@ public class AccountController {
     })
     @PreAuthorize("hasRole('ROLE_users.virtual_accounts.get')")
     @GetMapping(value = "")
-    private ResponseEntity<AppResponse<List<VirtualAccountResponse>>> getVirtualAccounts() {
+    public ResponseEntity<AppResponse<List<VirtualAccountResponse>>> getVirtualAccounts() {
         return ApiUtil.buildResponse(virtualAccountService.getAccounts(), HttpStatus.OK.toString(), "Successful");
     }
 }
