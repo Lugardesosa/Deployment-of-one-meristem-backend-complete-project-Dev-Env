@@ -265,6 +265,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD} 
       - H2_PASSWORD=${H2_PASSWORD}
+    restart: unless-stopped
 
 
 
@@ -312,6 +313,7 @@ services:
       - WEMA_ACCOUNT_PREFIX=733
       - H2_PASSWORD=${H2_PASSWORD}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+    restart: unless-stopped
     
   # ======================
   # API GATEWAY (Exposed publicly)
