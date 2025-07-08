@@ -78,7 +78,6 @@ services:
       - SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT=30  # Default is 5s (often too short)
       - SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE=10  # Check for updates every 10s
       - H2_PASSWORD=${H2_PASSWORD} 
-      - SERVER_PORT=20000 
     restart: unless-stopped
 
   # --------------------
@@ -356,7 +355,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SSL_KEY_ALIAS=one-meristem-app
-      - KEY_STORE_PASSWORD=oneApp231
+      - KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
         #- SSL_CERT_PATH=/etc/ssl/certs/certificate.pem
         #- SSL_CERT_PASSWORD=${CERT_PASSWORD}  
         #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
