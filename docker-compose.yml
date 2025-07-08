@@ -56,8 +56,6 @@ services:
     container_name: config-server
     networks:
       - meristem-network
-    ports:
-      - "8082:20000"
     depends_on:
       - redis
       - kafka
