@@ -47,7 +47,7 @@ public class SmileIdService {
     private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
     private static final List<Integer> DOC_AND_ENHANCED_JOB_TYPES = List.of(DOCUMENT_JOB_TYPE, ENHANCED_JOB_TYPE);
-    public static final String LOCAL = "local";
+    public static final List<String> PROFILES = List.of("local", "devlocal");
     private final SmileIdRecordRepository smileIdRecordRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
@@ -106,7 +106,7 @@ public class SmileIdService {
             smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
                     .timestamp(timestamp).build());
 
-            if (activeProfile.equals(LOCAL)) {
+            if (PROFILES.contains(activeProfile)) {
                 return getTestSmartLinkResponse(jobId, signature);
             } else {
                 return getSmartLinkResponse(request, jobId);

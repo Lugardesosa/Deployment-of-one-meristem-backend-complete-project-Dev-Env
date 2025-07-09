@@ -7,6 +7,7 @@ import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
 import org.meristem.oneapp.reportservice.constants.AppConstants;
 import org.meristem.oneapp.reportservice.domains.enums.TransactionType;
 import org.meristem.oneapp.reportservice.domains.requests.TransactionsRequest;
+import org.meristem.oneapp.reportservice.domains.responses.PageTransactionsResponse;
 import org.meristem.oneapp.reportservice.domains.responses.TransactionsResponse;
 import org.meristem.oneapp.reportservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.reportservice.mappers.TransactionsMapper;
@@ -17,15 +18,15 @@ import org.meristem.oneapp.reportservice.repositories.TransactionMetadataReposit
 import org.meristem.oneapp.reportservice.repositories.TransactionsRepository;
 import org.meristem.oneapp.reportservice.utils.AppUtil;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
@@ -53,7 +54,7 @@ public class TransactionsService {
         transactionMetadataRepository.saveAll(metadata);
     }
 
-    public Page<Transactions> getTransactions(TransactionsRequest request) {
+    public Page<PageTransactionsResponse> getTransactions(TransactionsRequest request) {
 
         Map<String, Object> filters = new HashMap<>();
 
@@ -71,6 +72,15 @@ public class TransactionsService {
         PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize(), Sort.by(request.getSortOrder(), String.join(",", request.getSortBy())));
 
         Page<Transactions> transactions = generalRepository.findAllBy(Transactions.class, filters, pageRequest);
-        return transactions;
+
+
+        List<TransactionsResponse> transactionsResponses = transactionsMapper.transactionsToTransactionsResponse(transactions.getContent());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
+        List<PageTransactionsResponse> page = transactionsResponses.stream()
+                .collect(Collectors.groupingBy(p -> p.providerTransactionDate().toLocalDate().format(formatter),
+                        LinkedHashMap::new, Collectors.toList())).entrySet().stream().map(entry ->
+                        new PageTransactionsResponse(entry.getKey(), entry.getValue())).toList();
+        return new PageImpl<>(page, pageRequest, transactions.getTotalElements());
     }
 }
