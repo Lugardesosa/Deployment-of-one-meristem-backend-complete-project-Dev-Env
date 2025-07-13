@@ -9,6 +9,7 @@ public final class AppConstants {
     public static final int ADDRESS_APPROVAL_TIME_IN_HOURS = 24;
     public static final int OTP_EXPIRES_AT_MINUTES = 5;
     public static final int PASSWORD_ATTEMPTS = 3;
+    public static final int PAGE_SIZE = 20;
 
     public static final int ADMIN_PASSWORD_LENGTH = 10;
     public static final char[] specialChars = {'@', '#', '$', '%', '^', '&', '+', '=', '(', ')', '\''};

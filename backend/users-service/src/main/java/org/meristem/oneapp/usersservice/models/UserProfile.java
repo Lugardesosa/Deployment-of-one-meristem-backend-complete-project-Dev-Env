@@ -44,6 +44,8 @@ public class UserProfile extends BaseModel<String> {
 
     private String countryOfOrigin;
 
+    private String lgOfOrigin;
+
     private String maritalStatus;
 
     @NotBlank(message = "Cannot be empty")

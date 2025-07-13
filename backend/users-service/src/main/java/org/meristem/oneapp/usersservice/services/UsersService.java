@@ -1,6 +1,8 @@
 package org.meristem.oneapp.usersservice.services;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,15 +13,13 @@ import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
-import org.meristem.oneapp.usersservice.models.Images;
-import org.meristem.oneapp.usersservice.models.UserOnboarding;
-import org.meristem.oneapp.usersservice.models.UserProfile;
-import org.meristem.oneapp.usersservice.models.Users;
+import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
 
@@ -62,6 +63,8 @@ public class UsersService {
     private final UserOnboardingRepository userOnboardingRepository;
     private final RolesRepository rolesRepository;
     private final HuaweiService huaweiService;
+    private final GeneralRepository generalRepository;
+    private final ObjectMapper objectMapper;
 
     /**
      * Creates a new user after validating the request and OTP.
@@ -161,7 +164,7 @@ public class UsersService {
      * @throws BadRequestException if the new password matches the old one
      */
     @Transactional
-    public UpdatePasswordResponse updatePassword(UpdatePasswordRequest request) {
+    public UpdateResponse updatePassword(UpdatePasswordRequest request) {
 
         String userEmail = AppUtil.getLoggedInUserEmail();
         String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
@@ -176,7 +179,7 @@ public class UsersService {
 
         // Update password and return
         usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
-        return UpdatePasswordResponse.builder().success(true).message("Password successfully updated.").build();
+        return UpdateResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
     /**
@@ -269,5 +272,23 @@ public class UsersService {
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.email());
             kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
         }
+    }
+
+    public UpdateResponse updateStateOfOrigin(StateUpdateRequest request) {
+        AtomicInteger updated = new AtomicInteger();
+        generalRepository.findOneBy(CountryStates.class, Map.of("id", request.stateId(), "countryId", request.countryId()))
+                .ifPresent(countryStates -> {
+            updated.set(userProfileRepository.updateState(AppUtil.getLoggedInUserId(), countryStates.getName()));
+        });
+        return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse updateCountryOfOrigin(CountryUpdateRequest request) {
+
+        AtomicInteger updated = new AtomicInteger();
+        generalRepository.findById(Countries.class, request.id()).ifPresent(country -> {
+            updated.set(userProfileRepository.updateCountry(AppUtil.getLoggedInUserId(), country.getName()));
+        });
+        return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 }

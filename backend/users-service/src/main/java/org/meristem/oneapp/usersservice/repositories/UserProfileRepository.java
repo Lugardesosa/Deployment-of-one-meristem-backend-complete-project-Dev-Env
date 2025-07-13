@@ -1,6 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
-import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
+
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -41,4 +41,14 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Transactional
     @Query("UPDATE user_profile SET gender = :gender WHERE user_id = :userId ")
     int updateGender(long userId, String gender);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET state_of_origin = :name WHERE user_id = :userId ")
+    int updateState(long userId, String name);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET country_of_origin = :name WHERE user_id = :userId ")
+    int updateCountry(long userId, String name);
 }

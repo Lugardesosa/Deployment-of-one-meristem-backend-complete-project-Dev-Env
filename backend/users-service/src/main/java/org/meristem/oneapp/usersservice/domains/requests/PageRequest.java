@@ -1,11 +1,11 @@
-package org.meristem.oneapp.reportservice.domains.requests;
+package org.meristem.oneapp.usersservice.domains.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.meristem.oneapp.reportservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
@@ -34,14 +34,17 @@ public class PageRequest {
     @Schema(anyOf = {Sort.Direction.class}, description = "Sort order (ASC or DESC)", example = "DESC")
     private Sort.Direction sortOrder = Sort.Direction.DESC;
 
+    @Builder
     public PageRequest(int page, List<String> sortBy, Sort.Direction sortOrder) {
         this(page, AppConstants.PAGE_SIZE, sortBy, sortOrder);
     }
 
+    @Builder
     public PageRequest(int page, List<String> sortBy) {
         this(page, AppConstants.PAGE_SIZE, sortBy, Sort.Direction.DESC);
     }
 
+    @Builder
     public PageRequest(int page) {
         this(page, AppConstants.PAGE_SIZE, Collections.singletonList("createdDate"), Sort.Direction.DESC);
     }
