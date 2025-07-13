@@ -103,7 +103,7 @@ public class UsersController {
     })
     @PreAuthorize("hasAnyRole('ROLE_users.change-password', 'ROLE_admin.change.password')")
     @PutMapping(value = {"/password-update", "/admin/password-update"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdatePasswordResponse>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
+    public ResponseEntity<AppResponse<UpdateResponse>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
         return ApiUtil.buildResponse(usersService.updatePassword(request), HttpStatus.OK.toString(), "Successful");
     }
 
@@ -146,5 +146,25 @@ public class UsersController {
     @GetMapping(value = "/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<NextOfKinResponse>> getNextOfKin() {
         return ApiUtil.buildResponse(nextOfKinService.getNextOfKin(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Update state")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their state of origin")
+    })
+    @PreAuthorize("hasRole('ROLE_users.state.update')")
+    @PutMapping(value = "/state", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateStateOfOrigin(@Valid @RequestBody StateUpdateRequest request) {
+        return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Update Country")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their state of origin")
+    })
+    @PreAuthorize("hasRole('ROLE_users.country.update')")
+    @PutMapping(value = "/country", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateCountryOfOrigin(@Valid @RequestBody CountryUpdateRequest request) {
+        return ApiUtil.buildResponse(usersService.updateCountryOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 }

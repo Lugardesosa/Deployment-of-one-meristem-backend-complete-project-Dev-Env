@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;

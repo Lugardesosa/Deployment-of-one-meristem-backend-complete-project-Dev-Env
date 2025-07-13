@@ -1,7 +1,9 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
 import java.util.Map;
 
 public record SmileIdWebhookNotification(
@@ -73,7 +75,65 @@ public record SmileIdWebhookNotification(
         String phoneNumber2,
 
         @JsonProperty("SecondaryIDNumber")
-        String secondaryIdNumber
+        String secondaryIdNumber,
+
+        @JsonProperty("Address")
+        String address,
+
+        @JsonProperty("CountryOfBirth")
+        String countryOfBirth,
+
+        @JsonProperty("DateOfDeath")
+        String dateOfDeath,
+
+        @JsonProperty("Email")
+        String email,
+
+        @JsonProperty("FirstName")
+        String firstName,
+
+        @JsonProperty("IDNumberPreviouslyRegistered")
+        boolean idNumberPreviouslyRegistered,
+
+        @JsonProperty("IDStatus")
+        String idStatus,
+
+        @JsonProperty("IsAlive")
+        boolean isAlive,
+
+        @JsonProperty("LastName")
+        String lastName,
+
+        @JsonProperty("LocalAreaOfOrigin")
+        String localAreaOfOrigin,
+
+        @JsonProperty("Nationality")
+        String nationality,
+
+        @JsonProperty("Occupation")
+        String occupation,
+
+        @JsonProperty("OtherNames")
+        String otherNames,
+
+        @JsonProperty("PhoneNumber")
+        String phoneNumber,
+
+        @JsonProperty("PlaceOfBirth")
+        String placeOfBirth,
+
+        @JsonProperty("PlaceOfIssuance")
+        String placeOfIssuance,
+
+        @JsonProperty("RegionOfOrigin")
+        String regionOfOrigin,
+
+        @JsonProperty("Title")
+        String title,
+
+        @JsonProperty("UserIDsOfPreviousRegistrants")
+        List<String> userIdsOfPreviousRegistrants
+
 ) {
 
     public record PartnerParams(

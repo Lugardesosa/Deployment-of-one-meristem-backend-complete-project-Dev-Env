@@ -17,6 +17,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
+/**
+ * A custom implementation of the {@link Converter} interface that converts a {@link Jwt} object
+ * into an {@link AbstractAuthenticationToken}. This class is used to extract roles and authorities
+ * from a JWT and create an authentication token for use in Spring Security.
+ *
+ * <p>The class combines authorities extracted by the default {@link JwtGrantedAuthoritiesConverter}
+ * with roles extracted from the "roles" claim in the JWT. Roles are prefixed with "ROLE_" to comply
+ * with Spring Security conventions.</p>
+ *
+ * <p>Annotated with {@link Component} to allow Spring to manage its lifecycle and inject it where needed.</p>
+ */
 @Component
 public class CustomJwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 

@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @AllArgsConstructor
-public class BaseModel<U> implements Serializable {
+public class BaseModel<U> {
 
     @Id
     @NotNull(message = "id cannot be null")

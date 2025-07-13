@@ -5,18 +5,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
+import org.meristem.oneapp.usersservice.domains.responses.CountriesResponse;
 import org.meristem.oneapp.usersservice.domains.responses.OkHiWebhookResponse;
+import org.meristem.oneapp.usersservice.domains.responses.StatesResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.models.Address;
-import org.meristem.oneapp.usersservice.models.Requirements;
-import org.meristem.oneapp.usersservice.models.Users;
+import org.meristem.oneapp.usersservice.mappers.UsersMapping;
+import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.Objects.nonNull;
 
 @Slf4j
 @Service
@@ -28,6 +39,8 @@ public class OnboardingService {
     private final AddressRepository addressRepository;
     private final RequirementsRepository requirementsRepository;
     private final UsersService usersService;
+    private final GeneralRepository generalRepository;
+    private final UsersMapping usersMapping = UsersMapping.INSTANCE;
 
     /**
      * Retrieves the onboarding details for a user.
@@ -116,5 +129,34 @@ public class OnboardingService {
             default -> throw new BadRequestException("Unknown event type");
         }
         return OkHiWebhookResponse.builder().message("Success").success(true).build();
+    }
+
+    public Page<CountriesResponse> getCountries() {
+
+        PageRequest pageRequest = getCountryAndStatePageRequest();
+
+        Page<Countries> countries = generalRepository.findAllBy(Countries.class, new HashMap<>(), pageRequest);
+
+        List<CountriesResponse> countriesResponses = usersMapping.countriesToCountriesResponse(countries.getContent());
+        return new PageImpl<>(countriesResponses, pageRequest, countries.getTotalElements());
+    }
+
+    public Page<StatesResponse> getStates(Long countryId) {
+
+        PageRequest pageRequest = getCountryAndStatePageRequest();
+
+        Page<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", countryId), pageRequest);
+
+        List<StatesResponse> statesResponses = usersMapping.countryStatesToStatesResponseResponse(countryStates.getContent());
+        return new PageImpl<>(statesResponses, pageRequest, countryStates.getTotalElements());
+    }
+
+    private PageRequest getCountryAndStatePageRequest() {
+
+        org.meristem.oneapp.usersservice.domains.requests.PageRequest request = org.meristem.oneapp.usersservice.domains.requests.PageRequest.builder().build();
+        int pageSize = 400;
+        request.setSortBy(Collections.singletonList("name"));
+        request.setSortOrder(Sort.Direction.ASC);
+        return PageRequest.of(request.getPage(), pageSize, Sort.by(request.getSortOrder(), String.join(",", request.getSortBy())));
     }
 }

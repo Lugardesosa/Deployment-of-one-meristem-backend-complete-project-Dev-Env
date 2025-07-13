@@ -69,6 +69,7 @@ public class TransactionsService {
             filters.put("type", TransactionType.fromValue(request.getTransactionType()));
         }
 
+        request.setSortBy(Collections.singletonList("providerTransactionDate"));
         PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize(), Sort.by(request.getSortOrder(), String.join(",", request.getSortBy())));
 
         Page<Transactions> transactions = generalRepository.findAllBy(Transactions.class, filters, pageRequest);
