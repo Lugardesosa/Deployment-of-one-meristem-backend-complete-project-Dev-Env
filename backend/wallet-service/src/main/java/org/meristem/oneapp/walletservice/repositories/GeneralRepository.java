@@ -177,6 +177,50 @@ public class GeneralRepository {
         return jdbcAggregateTemplate.findOne(Query.query(CriteriaDefinition.from(getCriteriaDefinitions(conditions))), tableName);
     }
 
+    /**
+     * Updates an existing record in the database.
+     *
+     * @param <T>      The type of the entity to update.
+     * @param instance The instance of the entity to update. Must not be null.
+     * @return The updated instance of the entity.
+     */
+    public <T> T update(T instance) {
+        return jdbcAggregateTemplate.update(instance);
+    }
+
+    /**
+     * Updates multiple existing records in the database.
+     *
+     * @param <T>       The type of the entities to update.
+     * @param instances A list of entity instances to update. Must not be null or empty.
+     * @return A list of updated entity instances.
+     */
+    public <T> List<T> update(List<T> instances) {
+        return jdbcAggregateTemplate.updateAll(instances);
+    }
+
+    /**
+     * Saves a new record in the database.
+     *
+     * @param <T>      The type of the entity to save.
+     * @param instance The instance of the entity to save. Must not be null.
+     * @return The saved instance of the entity.
+     */
+    public <T> T save(T instance) {
+        return jdbcAggregateTemplate.insert(instance);
+    }
+
+    /**
+     * Saves multiple new records in the database.
+     *
+     * @param <T>       The type of the entities to save.
+     * @param instances A list of entity instances to save. Must not be null or empty.
+     * @return A list of saved entity instances.
+     */
+    public <T> List<T> saveAll(List<T> instances) {
+        return jdbcAggregateTemplate.insertAll(instances);
+    }
+
 
     private String getTableName(Class<?> table) {
         return StringUtils.isNotBlank(table.getAnnotation(Table.class).value()) ? table.getAnnotation(Table.class).value() : table.getAnnotation(Table.class).name();
