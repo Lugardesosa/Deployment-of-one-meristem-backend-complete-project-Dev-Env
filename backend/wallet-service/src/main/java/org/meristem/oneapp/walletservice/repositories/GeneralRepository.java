@@ -1,6 +1,7 @@
 package org.meristem.oneapp.walletservice.repositories;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.walletservice.config.configProperties.WemaConfigProperties;
 import org.meristem.oneapp.walletservice.domains.enums.NullCheck;
@@ -33,7 +34,8 @@ public class GeneralRepository {
 
     /**
      * <p>Updates records in the specified table based on the provided parameters and conditions.</p>
-     *
+     * <p>Use the names as used in the db, not the object names, eg 'first_name' instead of 'firstName'</p>
+     * <p>Accept the user input using a request object, then map to a map</p>
      * @param <T>       The type of the entity corresponding to the table.
      * @param table     The class of the table to update, annotated with @Table.
      * @param params    A map of column names and their new values to be updated.
@@ -177,7 +179,7 @@ public class GeneralRepository {
 
 
     private String getTableName(Class<?> table) {
-        return table.getAnnotation(Table.class).value();
+        return StringUtils.isNotBlank(table.getAnnotation(Table.class).value()) ? table.getAnnotation(Table.class).value() : table.getAnnotation(Table.class).name();
     }
 
     private List<CriteriaDefinition> getCriteriaDefinitions(Map<String, Object> conditions) {
