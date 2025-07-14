@@ -56,30 +56,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthorizationServerConfig {
 
-    @Value("${one-app.server-url:http://localhost:20010/}")
-    private String serverUrl;
-
-    @Value("${one-app.users-service.context-path}")
-    private String usersServiceContextPath;
-
-    private final ObjectMapper mapper;
-    private final CustomUserDetailsService userDetailsService;
-    private final JdbcTemplate jdbcTemplate;
-    private final JdbcOperations jdbcOperations;
-    private final RsaKeys rsaKeys;
-    private final CustomJwtConverter customJwtConverter;
-    private final UsersRepository usersRepository;
-
     @Order(1)
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JdbcTemplate jdbcTemplate, JdbcOperations jdbcOperations, RsaKeys rsaKeys,
+                                                   CustomUserDetailsService userDetailsService, UsersRepository usersRepository) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
         http.securityMatcher(configurer.getEndpointsMatcher())
                 .with(configurer, cfgr ->
                         cfgr.oidc(Customizer.withDefaults())
                                 .tokenEndpoint(te -> te.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
-                                        .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(),
-                                                tokenGenerator(), userDetailsService, passwordEncoder(), usersRepository)
+                                        .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(jdbcOperations, jdbcTemplate),
+                                                tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository)
                                         )
                                 )
                 );
@@ -88,7 +75,7 @@ public class AuthorizationServerConfig {
 
     @Order(2)
     @Bean
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, ObjectMapper mapper, CustomJwtConverter customJwtConverter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
@@ -105,10 +92,10 @@ public class AuthorizationServerConfig {
 
 
     @Bean
-    OAuth2TokenGenerator<OAuth2Token> tokenGenerator() {
-        JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource());
+    OAuth2TokenGenerator<OAuth2Token> tokenGenerator(JdbcTemplate jdbcTemplate, RsaKeys rsaKeys) {
+        JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource(rsaKeys));
         JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
-        OAuth2AccessTokenCustomizer customizer = new OAuth2AccessTokenCustomizer(clientRepository(), jdbcTemplate);
+        OAuth2AccessTokenCustomizer customizer = new OAuth2AccessTokenCustomizer(clientRepository(jdbcTemplate), jdbcTemplate);
         jwtGenerator.setJwtCustomizer(customizer);
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
@@ -116,7 +103,7 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    DaoAuthenticationProvider daoAuthenticationProvider() {
+    DaoAuthenticationProvider daoAuthenticationProvider(CustomUserDetailsService userDetailsService) {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
@@ -124,7 +111,7 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    JWKSource<SecurityContext> jwkSource() {
+    JWKSource<SecurityContext> jwkSource(RsaKeys rsaKeys) {
 
         RSAPublicKey publicKey = rsaKeys.publicKey();
         RSAPrivateKey privateKey = rsaKeys.privateKey();
@@ -155,15 +142,17 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    AuthorizationServerSettings authorizationServerSettings() {
+    AuthorizationServerSettings authorizationServerSettings(
+            @Value("${one-app.users-service.context-path}") String usersServiceContextPath,
+            @Value("${one-app.server-url:http://localhost:20010/}") String serverUrl) {
         return AuthorizationServerSettings.builder().issuer(serverUrl.concat(usersServiceContextPath)).build();
     }
 
     @Bean
-    JdbcOAuth2AuthorizationService oAuth2AuthorizationService() {
-        var jdbcOAuth2AuthorizationService = new JdbcOAuth2AuthorizationService(jdbcOperations, clientRepository());
+    JdbcOAuth2AuthorizationService oAuth2AuthorizationService(JdbcOperations jdbcOperations, JdbcTemplate jdbcTemplate) {
+        var jdbcOAuth2AuthorizationService = new JdbcOAuth2AuthorizationService(jdbcOperations, clientRepository(jdbcTemplate));
 
-        JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper rowMapper = new JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper(clientRepository());
+        JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper rowMapper = new JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper(clientRepository(jdbcTemplate));
         ObjectMapper mapper1 = new ObjectMapper();
         ClassLoader classLoader = JdbcOAuth2AuthorizationService.class.getClassLoader();
         List<Module> securityModule = SecurityJackson2Modules.getModules(classLoader);
@@ -178,7 +167,7 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    JdbcRegisteredClientRepository clientRepository() {
+    JdbcRegisteredClientRepository clientRepository(JdbcTemplate jdbcTemplate) {
 //        RegisteredClient mobile = RegisteredClient
 //                .withId(UUID.randomUUID().toString())
 //                .clientId("mobile-service")

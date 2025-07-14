@@ -2,6 +2,7 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
@@ -193,8 +194,18 @@ public class SmileIdService {
         }
 
         if (OnboardingRequirements.of(notification.idType()) == OnboardingRequirements.BVN) {
-            userProfileRepository.updateUsersDobAndGender(Gender.getGender(notification.gender()).getCaps(), LocalDate.parse(notification.dob()),
-                    Country.getCountry(notification.country()).getCountryName(), loggedInUser.getId());
+
+            UserProfile profile = userProfileRepository.findById(loggedInUser.getId()).orElseThrow(() -> new BadRequestException("User not found"));
+
+            profile.setGender(Gender.getGender(notification.gender()).getCaps());
+            profile.setDateOfBirth(LocalDate.parse(notification.dob()));
+            profile.setCountryOfOrigin(getCountry(notification));
+            profile.setLgOfOrigin(getLgo(notification));
+            profile.setStateOfOrigin(notification.placeOfBirth());
+            userProfileRepository.save(profile);
+
+//            userProfileRepository.updateUsersDobAndGender(Gender.getGender(notification.gender()).getCaps(), LocalDate.parse(notification.dob()),
+//                    getCountry(notification), getLgo(notification), notification.placeOfBirth(), loggedInUser.getId());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getEmail());
         }
 
@@ -246,5 +257,23 @@ public class SmileIdService {
     private SmileIdTokenResponse getTestSmartLinkResponse(String jobId, String value) {
         log.info("Created value: {}", value);
         return new SmileIdTokenResponse("", jobId);
+    }
+
+    private String getCountry(SmileIdWebhookNotification request) {
+
+        if (StringUtils.isNotBlank(request.nationality())) {
+            return request.nationality();
+        } else if (StringUtils.isNotBlank(request.countryOfBirth())) {
+            return request.countryOfBirth();
+        }
+        return Country.getCountry(request.country()).getCountryName();
+    }
+
+    private String getLgo(SmileIdWebhookNotification request) {
+        if (StringUtils.isNotBlank(request.localAreaOfOrigin())) {
+            return request.localAreaOfOrigin();
+        }  else  {
+            return request.regionOfOrigin();
+        }
     }
 }

@@ -5,8 +5,14 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
+import org.meristem.oneapp.usersservice.domains.responses.CountriesResponse;
+import org.meristem.oneapp.usersservice.domains.responses.StatesResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.models.Countries;
+import org.meristem.oneapp.usersservice.models.CountryStates;
 import org.meristem.oneapp.usersservice.models.Users;
+
+import java.util.List;
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UsersMapping {
@@ -15,4 +21,8 @@ public interface UsersMapping {
     Users createUserRequestToUsers(CreateUserRequest user);
     UsersResponse usersToUserResponse(Users user);
     Users createAdminRequestToUsers(CreateAdminRequest adminRequest);
+
+    List<CountriesResponse> countriesToCountriesResponse(List<Countries> content);
+
+    List<StatesResponse> countryStatesToStatesResponseResponse(List<CountryStates> content);
 }

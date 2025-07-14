@@ -8,15 +8,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
-import org.meristem.oneapp.usersservice.domains.requests.AddressOnboardRequest;
-import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
-import org.meristem.oneapp.usersservice.domains.requests.ProcessAddressRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
+import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.SmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,5 +67,25 @@ public class OnboardingController {
     @PostMapping(value = "/okhi/webhook", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<OkHiWebhookResponse>> okhiWebhook(@RequestBody @Valid OkHiWebhookRequest request) {
         return ApiUtil.buildResponse(onboardingService.handleOkhiWebhook(request), HttpStatus.OK.toString(), "Request successful");
+    }
+
+    @Operation(summary = "Get Countries")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows Users to get all countries")
+    })
+    @PreAuthorize("hasRole('ROLE_users.get_countries')")
+    @GetMapping(value = "/countries", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<Page<CountriesResponse>>> getCountries() {
+        return ApiUtil.buildResponse(onboardingService.getCountries(), HttpStatus.OK.toString(), "Request successful");
+    }
+
+    @Operation(summary = "Get States")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows Users to get all states for a given country")
+    })
+    @PreAuthorize("hasRole('ROLE_users.get_states')")
+    @GetMapping(value = "/states", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates(@RequestParam() Long countryId) {
+        return ApiUtil.buildResponse(onboardingService.getStates(countryId), HttpStatus.OK.toString(), "Request successful");
     }
 }
