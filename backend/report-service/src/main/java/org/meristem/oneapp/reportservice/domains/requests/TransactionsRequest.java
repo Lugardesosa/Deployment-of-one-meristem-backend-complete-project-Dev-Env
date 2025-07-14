@@ -3,6 +3,7 @@ package org.meristem.oneapp.reportservice.domains.requests;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.meristem.oneapp.reportservice.domains.enums.TransactionStatus;
 import org.meristem.oneapp.reportservice.domains.enums.TransactionType;
 
@@ -12,7 +13,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
+@SuperBuilder
 @Schema(description = "Request object for filtering transaction records")
 public class TransactionsRequest extends PageRequest {
 

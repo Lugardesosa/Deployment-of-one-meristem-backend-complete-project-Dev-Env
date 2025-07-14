@@ -207,7 +207,7 @@ public class GeneralRepository {
      * @return The saved instance of the entity.
      */
     public <T> T save(T instance) {
-        return jdbcAggregateTemplate.insert(instance);
+        return jdbcAggregateTemplate.save(instance);
     }
 
     /**
@@ -218,7 +218,7 @@ public class GeneralRepository {
      * @return A list of saved entity instances.
      */
     public <T> List<T> saveAll(List<T> instances) {
-        return jdbcAggregateTemplate.insertAll(instances);
+        return jdbcAggregateTemplate.saveAll(instances);
     }
 
 
