@@ -144,7 +144,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - GITHUB_PROFILE=local
+      - APP_PROFILE=local
       - GITHUB_BRANCH=wallet
       - USER="System"
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
@@ -193,7 +193,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
-      - GITHUB_PROFILE=local
+      - APP_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -247,7 +247,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
-      - GITHUB_PROFILE=local
+      - APP_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -295,7 +295,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
-      - GITHUB_PROFILE=local
+      - APP_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -346,7 +346,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
-      - GITHUB_PROFILE=devlocal
+      - APP_PROFILE=devlocal
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
