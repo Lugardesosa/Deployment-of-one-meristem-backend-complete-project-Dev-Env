@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.services;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.mappers.AvatarMapping;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -48,7 +46,6 @@ import static java.util.Objects.requireNonNull;
 @Service
 @RequiredArgsConstructor
 public class UsersService {
-    private final AvatarMapping avatarMapping = AvatarMapping.INSTANCE;
 
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;

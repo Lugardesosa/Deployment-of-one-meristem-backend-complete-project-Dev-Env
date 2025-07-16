@@ -141,11 +141,11 @@ public class OnboardingService {
         return new PageImpl<>(countriesResponses, pageRequest, countries.getTotalElements());
     }
 
-    public Page<StatesResponse> getStates(Long countryId) {
+    public Page<StatesResponse> getStates() {
 
         PageRequest pageRequest = getCountryAndStatePageRequest();
-
-        Page<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", countryId), pageRequest);
+        Countries country = generalRepository.findOneBy(Countries.class, Map.of("code", "NG")).orElseThrow(() -> new BadRequestException("Country not found"));
+        Page<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", country.getId()), pageRequest);
 
         List<StatesResponse> statesResponses = usersMapping.countryStatesToStatesResponseResponse(countryStates.getContent());
         return new PageImpl<>(statesResponses, pageRequest, countryStates.getTotalElements());

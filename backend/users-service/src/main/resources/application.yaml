@@ -6,7 +6,7 @@ spring:
   cloud:
     config:
       label: ${GITHUB_BRANCH}
-      profile: ${GITHUB_PROFILE}
+      profile: ${APP_PROFILE}
       username: ${ADMIN_USERNAME}
       password: ${ADMIN_PASSWORD}
       request-connect-timeout: 10
@@ -18,11 +18,19 @@ spring:
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
+
+hide:
+  update:
+    country: true
+  get:
+    countries: true
+
+
 ## TODO: DELETE
-logging:
-  level:
-    org.springframework.jdbc.core.JdbcTemplate: DEBUG
-    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+#logging:
+#  level:
+#    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+#    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
 #    org.springframework.jdbc: DEBUG
 #    org.springframework.web: DEBUG
 #    org.springframework.security: TRACE

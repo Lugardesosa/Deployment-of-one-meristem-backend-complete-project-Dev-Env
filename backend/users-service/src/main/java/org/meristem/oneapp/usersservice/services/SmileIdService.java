@@ -38,6 +38,20 @@ import java.util.*;
 
 import static java.util.Objects.*;
 
+
+/**
+ * Service class for handling Smile ID-related operations, including generating Smile ID links,
+ * processing webhook notifications, and managing user onboarding requirements.
+ *
+ * <p>This class integrates with Smile ID's API to create smart links for user verification,
+ * handle webhook notifications for verification results, and update user records accordingly.</p>
+ *
+ * <p>Annotated with {@link Service} to indicate that it is a Spring-managed service component.
+ * Transactional methods ensure atomicity for database operations.</p>
+ *
+ * <p>Dependencies are injected via constructor injection, and the class uses {@link Slf4j}
+ * for logging purposes.</p>
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -72,6 +86,15 @@ public class SmileIdService {
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
 
+    /**
+     * Generates a Smile ID smart link for user verification.
+     *
+     * @param smileRequest The request containing ID type and number for verification.
+     * @param requirementId The ID of the requirement being verified.
+     * @return A {@link SmileIdTokenResponse} containing the generated smart link and job ID.
+     * @throws BadRequestException If the ID card already exists or the requirement is already completed.
+     * @throws UpstreamServiceException If the token generation fails.
+     */
     @Transactional
     public SmileIdTokenResponse getSmileLink(SmileIdIdTypeRequest smileRequest, Long requirementId) {
 
@@ -118,6 +141,13 @@ public class SmileIdService {
         }
     }
 
+    /**
+     * Handles Smile ID webhook notifications for verification results.
+     *
+     * @param request The webhook notification containing verification details.
+     * @return A {@link SmileIdWebhookResponse} indicating the success or failure of the operation.
+     * @throws BadRequestException If the request is invalid or the user is not found.
+     */
     @Transactional
     public SmileIdWebhookResponse handleWebhook(SmileIdWebhookNotification request) {
         SmileIdWebhookResponse response = new SmileIdWebhookResponse("Failed", false);
@@ -145,6 +175,12 @@ public class SmileIdService {
         return response;
     }
 
+    /**
+     * Handles failed webhook notifications by updating the Smile ID record and user onboarding status.
+     *
+     * @param notification The webhook notification containing failure details.
+     * @param smileIdRecord The Smile ID record associated with the notification.
+     */
     private void handleFailedNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
         smileIdRecord.setMessage(notification.resultText());
@@ -153,6 +189,12 @@ public class SmileIdService {
         smileIdRecordRepository.save(smileIdRecord);
     }
 
+    /**
+     * Handles successful webhook notifications by processing the action or data based on the job type.
+     *
+     * @param notification The webhook notification containing success details.
+     * @param smileIdRecord The Smile ID record associated with the notification.
+     */
     private void handleSuccessfulNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         if (actionStatus.contains(notification.resultCode()) && !DOC_AND_ENHANCED_JOB_TYPES.contains(notification.partnerParams().jobType())) {
             handleAction(notification, smileIdRecord);
@@ -161,6 +203,12 @@ public class SmileIdService {
         }
     }
 
+    /**
+     * Processes action-based webhook notifications and completes user onboarding.
+     *
+     * @param notification The webhook notification containing action details.
+     * @param smileIdRecord The Smile ID record associated with the notification.
+     */
     private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
         smileIdRecord.setMessage(notification.resultText());
@@ -169,6 +217,12 @@ public class SmileIdService {
         smileIdRecordRepository.save(smileIdRecord);
     }
 
+    /**
+     * Processes data-based webhook notifications and updates user documents or profiles.
+     *
+     * @param notification The webhook notification containing data details.
+     * @param smileIdRecord The Smile ID record associated with the notification.
+     */
     private void handleData(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         Requirements requirements = requirementsRepository.findByIdAndStatus(smileIdRecord.getRequirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
@@ -204,8 +258,6 @@ public class SmileIdService {
             profile.setStateOfOrigin(notification.placeOfBirth());
             userProfileRepository.save(profile);
 
-//            userProfileRepository.updateUsersDobAndGender(Gender.getGender(notification.gender()).getCaps(), LocalDate.parse(notification.dob()),
-//                    getCountry(notification), getLgo(notification), notification.placeOfBirth(), loggedInUser.getId());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getEmail());
         }
 
@@ -214,11 +266,24 @@ public class SmileIdService {
         }
     }
 
+    /**
+     * Completes the onboarding process for a user by updating the onboarding status and notifying the user service.
+     *
+     * @param smileIdRecord The Smile ID record associated with the onboarding process.
+     * @param loggedInUser The user completing the onboarding process.
+     */
     private void completeOnboarding(SmileIdRecord smileIdRecord, Users loggedInUser) {
         userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
         usersService.completeUserOnboarding(loggedInUser.getEmail());
     }
 
+    /**
+     * Generates a signature for Smile ID API requests using HMAC-SHA256.
+     *
+     * @param timestamp The timestamp to include in the signature.
+     * @return The generated signature as a Base64-encoded string.
+     * @throws UpstreamServiceException If the signature generation fails.
+     */
     private String generateSignature(String timestamp) {
         try {
             Mac mac = getMac(timestamp);
@@ -228,6 +293,13 @@ public class SmileIdService {
         }
     }
 
+    /**
+     * Confirms the validity of a received signature by comparing it with a generated signature.
+     *
+     * @param receivedSignature The signature received in the request.
+     * @param receivedTimestamp The timestamp received in the request.
+     * @return True if the signature is valid, false otherwise.
+     */
     private boolean confirmSignature(String receivedSignature, String receivedTimestamp) {
 
         try {
@@ -240,6 +312,14 @@ public class SmileIdService {
         }
     }
 
+    /**
+     * Creates and initializes an HMAC-SHA256 {@link Mac} instance for signature generation.
+     *
+     * @param timestamp The timestamp to include in the MAC initialization.
+     * @return The initialized {@link Mac} instance.
+     * @throws NoSuchAlgorithmException If the HMAC-SHA256 algorithm is not available.
+     * @throws InvalidKeyException If the provided key is invalid.
+     */
     private Mac getMac(String timestamp) throws NoSuchAlgorithmException, InvalidKeyException {
         Mac mac = AppUtil.getHmacSHA256();
         mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
@@ -249,16 +329,36 @@ public class SmileIdService {
         return mac;
     }
 
+    /**
+     * Sends a request to the Smile ID API to generate a smart link.
+     *
+     * @param request The request containing the details for the smart link.
+     * @param jobId The job ID associated with the request.
+     * @return A {@link SmileIdTokenResponse} containing the generated smart link and job ID.
+     */
     private SmileIdTokenResponse getSmartLinkResponse(SmileIdSmileLinkRequest request, String jobId) {
         SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
         return new SmileIdTokenResponse(response.link(), jobId);
     }
 
+    /**
+     * Generates a test smart link response for local or development environments.
+     *
+     * @param jobId The job ID associated with the test response.
+     * @param value A placeholder value for the test response.
+     * @return A {@link SmileIdTokenResponse} containing the test smart link and job ID.
+     */
     private SmileIdTokenResponse getTestSmartLinkResponse(String jobId, String value) {
         log.info("Created value: {}", value);
         return new SmileIdTokenResponse("", jobId);
     }
 
+    /**
+     * Retrieves the country of origin from the webhook notification.
+     *
+     * @param request The webhook notification containing country details.
+     * @return The country of origin as a string.
+     */
     private String getCountry(SmileIdWebhookNotification request) {
 
         if (StringUtils.isNotBlank(request.nationality())) {
@@ -269,6 +369,12 @@ public class SmileIdService {
         return Country.getCountry(request.country()).getCountryName();
     }
 
+    /**
+     * Retrieves the local government area of origin from the webhook notification.
+     *
+     * @param request The webhook notification containing LGA details.
+     * @return The local government area of origin as a string.
+     */
     private String getLgo(SmileIdWebhookNotification request) {
         if (StringUtils.isNotBlank(request.localAreaOfOrigin())) {
             return request.localAreaOfOrigin();
