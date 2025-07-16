@@ -346,7 +346,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
       - GITHUB_BRANCH=wallet
-      - APP_PROFILE=devlocal
+      - APP_PROFILE=local
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
