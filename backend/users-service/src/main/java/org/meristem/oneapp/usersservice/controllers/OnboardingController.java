@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.controllers;
 
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,6 +15,7 @@ import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.SmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,6 +71,8 @@ public class OnboardingController {
         return ApiUtil.buildResponse(onboardingService.handleOkhiWebhook(request), HttpStatus.OK.toString(), "Request successful");
     }
 
+    @ConditionalOnExpression("${hide.get.countries:true}")
+    @Hidden
     @Operation(summary = "Get Countries")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows Users to get all countries")
@@ -85,7 +89,7 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_users.get_states')")
     @GetMapping(value = "/states", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates(@RequestParam() Long countryId) {
-        return ApiUtil.buildResponse(onboardingService.getStates(countryId), HttpStatus.OK.toString(), "Request successful");
+    public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates() {
+        return ApiUtil.buildResponse(onboardingService.getStates(), HttpStatus.OK.toString(), "Request successful");
     }
 }

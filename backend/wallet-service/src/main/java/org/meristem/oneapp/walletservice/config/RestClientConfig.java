@@ -92,9 +92,9 @@ public class RestClientConfig {
             @Override
             public ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
 
-                long startTime = System.currentTimeMillis();
+                long startTime = System.nanoTime() / 1_000_000;
                 ClientHttpResponse response = execution.execute(request, body);
-                long endTime = System.currentTimeMillis();
+                long endTime = System.nanoTime() / 1_000_000;
 
                 byte[] responseBodyBytes = StreamUtils.copyToByteArray(response.getBody());
 
