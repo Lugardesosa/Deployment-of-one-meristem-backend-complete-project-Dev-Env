@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.controllers;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +15,7 @@ import org.meristem.oneapp.usersservice.services.NextOfKinService;
 import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -158,6 +160,8 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 
+    @ConditionalOnExpression("${hide.update.country:true}")
+    @Hidden
     @Operation(summary = "Update Country")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their state of origin")

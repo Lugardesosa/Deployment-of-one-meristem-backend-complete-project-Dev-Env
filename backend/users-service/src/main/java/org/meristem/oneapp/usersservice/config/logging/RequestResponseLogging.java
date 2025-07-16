@@ -46,9 +46,9 @@ public class RequestResponseLogging extends OncePerRequestFilter {
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime() / 1_000_000L;
         filterChain.doFilter(requestWrapper, responseWrapper);
-        long endTime = System.currentTimeMillis();
+        long endTime = System.nanoTime() / 1_000_000L;
 
         List<String> contentTypeToSkipForBody = List.of(MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE);
         byte[] requestBody = nonNull(requestWrapper.getHeader("content-type")) && contentTypeToSkipForBody.contains(requestWrapper.getHeader("content-type")) ? new byte[0] : requestWrapper.getContentAsByteArray();

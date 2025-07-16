@@ -32,7 +32,7 @@ public class LoggingEventHandler {
 
     @EventListener
     @Async
-    public void handleLogging(RequestAndResponseLogEvent event) throws JsonProcessingException {
+    public void handleLogging(RequestAndResponseLogEvent event) {
 
         try {
 
