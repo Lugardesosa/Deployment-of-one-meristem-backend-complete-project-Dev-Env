@@ -87,10 +87,6 @@ public class AppConfig {
                 ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
     }
 
-    @Bean
-    public BeanFactoryPostProcessor beanFactoryPostProcessor() {
-        return beanFactory -> TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Africa/Lagos")));
-    }
 
     @Bean
     public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
