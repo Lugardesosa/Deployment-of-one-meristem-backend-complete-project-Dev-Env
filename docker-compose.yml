@@ -70,7 +70,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - GITHUB_URL=${GITHUB_URL}
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - GITHUB_USERNAME=${GITHUB_USERNAME}
       - GITHUB_PASSWORD=${GITHUB_PASSWORD}
       - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START=true
@@ -145,7 +145,7 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - APP_PROFILE=local
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - USER="System"
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -192,7 +192,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - APP_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -246,7 +246,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - APP_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -294,7 +294,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - APP_PROFILE=local
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
@@ -345,7 +345,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SPRING_PROFILES_ACTIVE=default
-      - GITHUB_BRANCH=wallet
+      - GITHUB_BRANCH=dev_env
       - APP_PROFILE=local
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
