@@ -18,8 +18,9 @@ spring:
 
 server:
   port: 20060
-#  servlet:
+  servlet:
 #    context-path: ${one-app.core-service.context-path}
+    context-path: /api/core
 
 one-app:
   core-service:
