@@ -15,6 +15,8 @@ spring:
         max-attempts: 10
         initial-interval: 3000
         max-interval: 3500
+  profiles:
+    active: ${spring.cloud.config.profile}
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
@@ -29,11 +31,12 @@ hide:
 ## TODO: DELETE
 #logging:
 #  level:
+#    root: WARN
+#    org.apache.kafka.streams: DEBUG
+#    org.springframework.kafka.listener: DEBUG
+#    org.springframework.web: DEBUG
+#    org.springframework.jdbc: DEBUG
+##     SEE SQL STATEMENT AND VALUES
 #    org.springframework.jdbc.core.JdbcTemplate: DEBUG
 #    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
-#    org.springframework.jdbc: DEBUG
-#    org.springframework.web: DEBUG
 #    org.springframework.security: TRACE
-#spring.datasource.hikari.data-source-properties.logUnclosedConnections: true
-#logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
-#logging.level.com.zaxxer.hikari: TRACE

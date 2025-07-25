@@ -6,6 +6,7 @@ import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.domains.enums.NullCheck;
 import org.meristem.oneapp.usersservice.dtos.sql.Comparison;
 import org.meristem.oneapp.usersservice.dtos.sql.LikePattern;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +46,10 @@ public class GeneralRepository {
      */
     public <T> int dynamicUpdate(Class<T> table, Map<String, Object> params, @NonNull Map<String, Object> condition) {
 
+        if (condition.isEmpty()) {
+            throw new BadRequestException("Condition cannot be empty");
+        }
+
         StringBuilder sql = new StringBuilder("UPDATE " + getTableName(table) + " SET ");
 
         for (Map.Entry<String, Object> entry : params.entrySet()) {
@@ -60,6 +65,35 @@ public class GeneralRepository {
         params.putAll(condition);
         params.put("last_modified_date", LocalDateTime.now());
         params.put("last_modified_by", AppUtil.getLoggedInSubject());
+
+        return jdbcTemplate.update(sql.toString(), params);
+    }
+
+    /**
+     * <p>Delete records in the specified table based on the provided parameters and conditions.</p>
+     * <p>Use the names as used in the db, not the object names, eg 'first_name' instead of 'firstName'</p>
+     * <p>Accept the user input using a request object, then map to a map</p>
+     *
+     * @param <T>       The type of the entity corresponding to the table.
+     * @param table     The class of the table to delete from, annotated with @Table.
+     * @param condition A map of column names and their values to define the WHERE clause.
+     *                  The keys represent column names, and the values represent the conditions.
+     * @return The number of rows affected by the delete operation.
+     * @throws IllegalArgumentException if the table class is not annotated with @Table.
+     */
+    public <T> int dynamicDelete(Class<T> table, Map<String, Object> params, @NonNull Map<String, Object> condition) {
+
+        if (condition.isEmpty()) {
+            throw new BadRequestException("Condition cannot be empty");
+        }
+
+        StringBuilder sql = new StringBuilder("DELETE FROM " + getTableName(table) + " WHERE ");
+
+        for (Map.Entry<String, Object> entry : condition.entrySet()) {
+            sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(", ");
+        }
+        sql.deleteCharAt(sql.length() - 2);
+        params.putAll(condition);
 
         return jdbcTemplate.update(sql.toString(), params);
     }

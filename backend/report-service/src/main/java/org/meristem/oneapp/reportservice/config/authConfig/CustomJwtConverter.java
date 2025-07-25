@@ -1,6 +1,5 @@
 package org.meristem.oneapp.reportservice.config.authConfig;
 
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,11 +37,10 @@ public class CustomJwtConverter implements Converter<Jwt, AbstractAuthentication
     private Collection<? extends GrantedAuthority> extractRoles(Jwt source) {
         List<String> resource = source.getClaim("roles");
         if (resource == null) {
-            return List.of();
+            return Set.of();
         }
         return resource.stream()
                 .map(s -> new SimpleGrantedAuthority("ROLE_".concat(s)))
                 .collect(Collectors.toSet());
-
     }
 }

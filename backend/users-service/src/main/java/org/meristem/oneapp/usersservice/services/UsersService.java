@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -222,7 +223,7 @@ public class UsersService {
     }
 
     /**
-     * This is only for updating the user's pin when they still know their old pin.
+     * This is only for updating the user's newPin when they still know their old newPin.
      * If thwey
      * Updates the logged-in user's PIN after ensuring it is different from the old one.
      *
@@ -234,15 +235,32 @@ public class UsersService {
 
         Long userId = AppUtil.getLoggedInUserId();
 
-        // Ensure password is not the same as old one
-        if (passwordEncoder.matches(request.pin(), usersRepository.findPinByEmailOrPhoneNumber(userId))) {
-            throw new BadRequestException("Pin cannot be the same as your old pin.");
+        String oldPin = usersRepository.findPinByEmailOrPhoneNumber(userId);
+
+        if (oldPin == null && request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
+            throw new BadRequestException("You need to create a pin first.");
         }
 
-        // Update password and return
-        userProfileRepository.updateUsersPin(passwordEncoder.encode(request.pin()), userId);
+        if (request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
+
+            if (isNull(request.oldPin())) {
+                throw new BadRequestException("You must pass the old pin to update your pin.");
+            }
+            // Ensure old matches
+            if (!passwordEncoder.matches(request.oldPin(), oldPin)) {
+                throw new BadRequestException("Wrong old pin entered.");
+            }
+
+            // Ensure newPin is not the same as old one
+            if (passwordEncoder.matches(request.newPin(), oldPin)) {
+                throw new BadRequestException("New pin cannot be the same as your old pin.");
+            }
+        }
+
+        // Update newPin and return
+        userProfileRepository.updateUsersPin(passwordEncoder.encode(request.newPin()), userId);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
-        return PinResponse.builder().status(true).message("Pin successfully updated.").build();
+        return PinResponse.builder().status(true).message("Pin successfully set.").build();
     }
 
     @Cacheable("avatars")
