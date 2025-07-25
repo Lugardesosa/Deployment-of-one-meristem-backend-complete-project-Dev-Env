@@ -486,6 +486,8 @@ DO $$
         UsersChangeAvatarID integer;
         UsersChangePinID integer;
         AdminChangeDobID integer;
+        AdminSelectionUpdateID integer;
+        AdminFormItemUpdateID integer;
         AdminChangeGenderID integer;
         UsersDeactivateAccountID integer;
         UsersGetAvatarID integer;
@@ -572,6 +574,12 @@ BEGIN
     VALUES ( NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob') RETURNING id INTO AdminChangeDobID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES ( NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.selection.update') RETURNING id INTO AdminSelectionUpdateID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES ( NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.form.items.update') RETURNING id INTO AdminFormItemUpdateID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
     VALUES ( NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.gender') RETURNING id INTO AdminChangeGenderID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
@@ -606,6 +614,8 @@ BEGIN
            (RolesAdminID, AdminNextOfKinUpdateID),
            (RolesAdminID, AdminChangePasswordID),
            (RolesAdminID, AdminChangeDobID),
+           (RolesAdminID, AdminSelectionUpdateID),
+           (RolesAdminID, AdminFormItemUpdateID),
            (RolesAdminID, AdminChangeGenderID),
            (RolesUserID, UsersChangeAvatarID),
            (RolesUserID, UsersChangePinID),

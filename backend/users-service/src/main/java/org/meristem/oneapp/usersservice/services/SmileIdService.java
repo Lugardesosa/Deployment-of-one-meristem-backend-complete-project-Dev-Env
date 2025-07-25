@@ -74,7 +74,7 @@ public class SmileIdService {
     private final SimpMessagingTemplate messagingTemplate;
     private final SmileIdClient smileIdClient;
     private final UsersService usersService;
-    @Value("${spring.cloud.config.profile:local}")
+    @Value("${spring.profiles.active:local}")
     private String activeProfile;
 
 

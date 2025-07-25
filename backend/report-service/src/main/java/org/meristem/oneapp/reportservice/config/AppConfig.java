@@ -88,11 +88,6 @@ public class AppConfig {
     }
 
     @Bean
-    public BeanFactoryPostProcessor beanFactoryPostProcessor() {
-        return beanFactory -> TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of("Africa/Lagos")));
-    }
-
-    @Bean
     public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
         var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
         DefaultErrorHandler handler = new DefaultErrorHandler(

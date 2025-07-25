@@ -26,4 +26,5 @@ public final class AppConstants {
     public static final Pair<Integer, Integer> sevenNumbersOtp = Pair.of(1000000, 9000000);
 
     public static final String USERS_CACHE_NAME = "users";
+    public static final Integer IS_UPDATE_PIN = 1;
 }

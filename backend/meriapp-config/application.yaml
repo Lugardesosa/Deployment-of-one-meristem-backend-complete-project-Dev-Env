@@ -54,20 +54,25 @@ one-app:
   server-app-name: "Meristem One App"
   default-header-name: "X-ONE-APP-CLIENT-NAME"
 
-#  USERS SERVICE
+  #  USERS SERVICE
   users-service:
     context-path: /api/users
     application-name: users-service
 
-#  WALLET SERVICE
+  #  WALLET SERVICE
   wallet-service:
     context-path: /api/wallets
     application-name: wallet-service
 
-#  WALLET SERVICE
+  #  REPORT SERVICE
   report-service:
     context-path: /api/reports
     application-name: report-service
+
+    #  CORE SERVICE
+  core-service:
+    context-path: /api/core
+    application-name: core-service
 
 logging:
   file:
