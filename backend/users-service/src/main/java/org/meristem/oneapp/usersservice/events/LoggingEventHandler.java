@@ -23,8 +23,8 @@ public class LoggingEventHandler {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> parametersToSanitize = List.of("password", "pin", "X-MERISTEM-KEY");
-    private final List<String> headersToSanitize = List.of("password", "pin", "X-MERISTEM-KEY");
+    private final List<String> parametersToSanitize = List.of("password", "newPin", "oldPin", "X-MERISTEM-KEY");
+    private final List<String> headersToSanitize = List.of("password", "newPin", "oldPin", "X-MERISTEM-KEY");
 
     private final ObjectMapper objectMapper;
 
@@ -71,8 +71,9 @@ public class LoggingEventHandler {
             bodyRequest.replace("password", REDACTED);
         }
 
-        if (event.getRequestURI().startsWith(contextPath.concat("/base/pin-update"))) {
-            bodyRequest.replace("pin", REDACTED);
+        if (event.getRequestURI().startsWith(contextPath.concat("/base/newPin-update"))) {
+            bodyRequest.replace("newPin", REDACTED);
+            bodyRequest.replace("oldPin", REDACTED);
         }
     }
 

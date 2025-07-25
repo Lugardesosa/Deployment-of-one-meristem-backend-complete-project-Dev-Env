@@ -498,6 +498,8 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.phone-number.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.selection.update'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.form.items.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.gender'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.avatar'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.pin'),
@@ -525,6 +527,8 @@ SET @AdminNextOfKinUpdateID = (SELECT id FROM permissions WHERE name = 'admin.ne
 SET @UsersPhoneNumberUpdateID = (SELECT id FROM permissions WHERE name = 'users.phone-number.update');
 SET @AdminChangePasswordID = (SELECT id FROM permissions WHERE name = 'admin.change.password');
 SET @AdminChangeDobID = (SELECT id FROM permissions WHERE name = 'admin.change.dob');
+SET @AdminSelectionUpdateID = (SELECT id FROM permissions WHERE name = 'admin.selection.update');
+SET @AdminFormItemUpdateID = (SELECT id FROM permissions WHERE name = 'admin.form.items.update');
 SET @AdminChangeGenderID = (SELECT id FROM permissions WHERE name = 'admin.change.gender');
 SET @UsersChangeAvatarID = (SELECT id FROM permissions WHERE name = 'users.change.avatar');
 SET @UsersChangePinID = (SELECT id FROM permissions WHERE name = 'users.change.pin');
@@ -552,6 +556,8 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersPhoneNumberUpdateID),
        (@RolesAdminID, @AdminChangePasswordID),
        (@RolesAdminID, @AdminChangeDobID),
+       (@RolesAdminID, @AdminSelectionUpdateID),
+       (@RolesAdminID, @AdminFormItemUpdateID),
        (@RolesAdminID, @AdminChangeGenderID),
        (@RolesUserID, @UsersChangeAvatarID),
        (@RolesUserID, @UsersChangePinID),

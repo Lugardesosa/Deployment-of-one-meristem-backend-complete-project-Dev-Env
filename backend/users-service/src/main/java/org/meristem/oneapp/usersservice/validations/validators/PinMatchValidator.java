@@ -21,9 +21,9 @@ public class PinMatchValidator implements ConstraintValidator<PinMatch, Object> 
             return true;
         }
         PinRequest request = (PinRequest) value;
-        if (isNull(request.pin()) || isNull(request.confirmPin())) {
+        if (isNull(request.newPin()) || isNull(request.oldPin())) {
             return true;
         }
-        return request.pin().equals(request.confirmPin());
+        return request.newPin().equals(request.oldPin());
     }
 }
