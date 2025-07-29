@@ -11,7 +11,6 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.AdminService;
-import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
@@ -68,23 +67,4 @@ public class AdminController {
     public ResponseEntity<AppResponse<GenderResponse>> updateDob(@RequestBody @Valid GenderRequest request) {
         return ApiUtil.buildResponse(adminService.updateGender(request), HttpStatus.OK.toString(), "Successful");
     }
-
-//    @Operation(summary = "Password reset")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Allows admins to reset their password")
-//    })
-//    @PutMapping(value = "/password-reset", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<AppResponse<PasswordResetResponse>> resetPassword(@RequestBody @Valid PasswordResetRequest request) {
-//        return ApiUtil.buildResponse(usersService.resetPassword(request), HttpStatus.OK.toString(), "Successful");
-//    }
-//
-//    @Operation(summary = "Password update")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Allows admins to update their password")
-//    })
-//    @PreAuthorize("hasRole('ROLE_users.password_update')")
-//    @PutMapping(value = "/password-update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<AppResponse<UpdatePasswordResponse>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
-//        return ApiUtil.buildResponse(usersService.updatePassword(request), HttpStatus.OK.toString(), "Successful");
-//    }
 }
