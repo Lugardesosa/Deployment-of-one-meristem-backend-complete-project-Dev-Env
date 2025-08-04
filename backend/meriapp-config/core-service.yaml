@@ -28,3 +28,4 @@ one-app:
     logo-url: ${GREEN_LOGO_URL}
     white-logo-url: ${WHITE_LOGO_URL}
     finance-logo-url: ${FINANCE_LOGO_URL}
+    client-name: UsersService

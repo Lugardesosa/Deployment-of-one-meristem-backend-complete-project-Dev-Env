@@ -74,6 +74,13 @@ one-app:
     context-path: /api/core
     application-name: core-service
 
+    # APP NAMES
+  service-names:
+    wallet-service: ${one-app.wallet-service.application-name}
+    core-service: ${one-app.core-service.application-name}
+    report-service: ${one-app.report-service.application-name}
+    users-service: ${one-app.users-service.application-name}
+
 logging:
   file:
     max-size: 2MB
