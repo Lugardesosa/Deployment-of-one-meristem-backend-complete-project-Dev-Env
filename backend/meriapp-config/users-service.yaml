@@ -6,6 +6,8 @@ spring:
   cloud:
     consul:
       discovery:
+        metadata:
+          contextPath: ${one-app.users-service.context-path}
         health-check-path: ${one-app.users-service.context-path}/actuator/health
         enabled: true
         fail-fast: true

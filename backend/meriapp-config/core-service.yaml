@@ -6,12 +6,14 @@ spring:
   cloud:
     consul:
       discovery:
+        metadata:
+          contextPath: ${one-app.core-service.context-path}
         health-check-path: ${one-app.core-service.context-path}/actuator/health
         enabled: true
         fail-fast: true
         catalogServicesWatch:
           enabled: false
-        hostname: ${USER_SERVICE_HOSTNAME}
+        hostname: ${CORE_SERVICE_HOSTNAME}
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
         health-check-interval: 60s
       host: ${CONSUL_HOST}
@@ -28,4 +30,4 @@ one-app:
     logo-url: ${GREEN_LOGO_URL}
     white-logo-url: ${WHITE_LOGO_URL}
     finance-logo-url: ${FINANCE_LOGO_URL}
-    client-name: UsersService
+    client-name: CoreService
