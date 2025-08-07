@@ -14,6 +14,7 @@ import org.meristem.oneapp.walletservice.integrations.requests.CreateProvidusWal
 import org.meristem.oneapp.walletservice.integrations.responses.CreateProvidusWalletResponse;
 import org.meristem.oneapp.walletservice.models.VirtualAccounts;
 import org.meristem.oneapp.walletservice.models.Wallets;
+import org.meristem.oneapp.walletservice.repositories.CustomRepository;
 import org.meristem.oneapp.walletservice.repositories.GeneralRepository;
 import org.meristem.oneapp.walletservice.repositories.VirtualAccountRepository;
 import org.meristem.oneapp.walletservice.utils.AppUtil;
@@ -33,7 +34,7 @@ public class VirtualAccountService {
     private final VirtualAccountRepository virtualAccountRepository;
     private final WalletService walletService;
 
-    private final GeneralRepository generalRepository;
+    private final CustomRepository generalRepository;
     private final ProvidusClient providusClient;
 
     public void createVirtualAccounts(KycCompletedDto record) {

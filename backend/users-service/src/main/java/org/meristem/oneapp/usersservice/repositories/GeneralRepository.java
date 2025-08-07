@@ -15,20 +15,19 @@ import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.relational.core.query.CriteriaDefinition;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.data.util.Pair;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.springframework.data.relational.core.query.Criteria.where;
 
-@Repository
 @RequiredArgsConstructor
 public class GeneralRepository {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final JdbcAggregateTemplate jdbcAggregateTemplate;
+    public final NamedParameterJdbcTemplate jdbcTemplate;
+    public final JdbcAggregateTemplate jdbcAggregateTemplate;
 
 
     /**
@@ -61,12 +60,11 @@ public class GeneralRepository {
         for (Map.Entry<String, Object> entry : condition.entrySet()) {
             sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(", ");
         }
-        sql.deleteCharAt(sql.length() - 2);
         params.putAll(condition);
         params.put("last_modified_date", LocalDateTime.now());
         params.put("last_modified_by", AppUtil.getLoggedInSubject());
 
-        return jdbcTemplate.update(sql.toString(), params);
+        return jdbcTemplate.update(sql.substring(0, sql.length() - 2), params);
     }
 
     /**
@@ -76,27 +74,26 @@ public class GeneralRepository {
      *
      * @param <T>       The type of the entity corresponding to the table.
      * @param table     The class of the table to delete from, annotated with @Table.
-     * @param condition A map of column names and their values to define the WHERE clause.
+     * @param conditions A map of column names and their values to define the WHERE clause.
      *                  The keys represent column names, and the values represent the conditions.
      * @return The number of rows affected by the delete operation.
      * @throws IllegalArgumentException if the table class is not annotated with @Table.
      */
-    public <T> int dynamicDelete(Class<T> table, Map<String, Object> params, @NonNull Map<String, Object> condition) {
+    public <T> int dynamicDelete(Class<T> table, @NonNull Map<String, Object> conditions) {
 
-        if (condition.isEmpty()) {
+        if (conditions.isEmpty()) {
             throw new BadRequestException("Condition cannot be empty");
         }
 
         StringBuilder sql = new StringBuilder("DELETE FROM " + getTableName(table) + " WHERE ");
 
-        for (Map.Entry<String, Object> entry : condition.entrySet()) {
+        for (Map.Entry<String, Object> entry : conditions.entrySet()) {
             sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(", ");
         }
-        sql.deleteCharAt(sql.length() - 2);
-        params.putAll(condition);
 
-        return jdbcTemplate.update(sql.toString(), params);
+        return jdbcTemplate.update(sql.substring(0, sql.length() - 2), conditions);
     }
+
 
 
     /**
@@ -143,6 +140,76 @@ public class GeneralRepository {
         return jdbcAggregateTemplate.findAll(Query.query(CriteriaDefinition.from(getCriteriaDefinitions(conditions))), tableName, pageable);
     }
 
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * <p>1. Equality Condition:
+     *    conditions.put("fieldName", value);
+     *    // SQL: fieldName = :fieldName</p>
+     *
+     * <p>2. Range (BETWEEN) Condition:
+     *    conditions.put("fieldName", Pair.of(start, end));
+     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *
+     * <p>3. IN Condition:
+     *    conditions.put("fieldName", List.of(val1, val2, val3));
+     *    // SQL: fieldName IN (:fieldName)</p>
+     *
+     * <p>4. LIKE Condition:
+     *    conditions.put("fieldName", new LikePattern("%" + value + "%"));
+     *    // SQL: fieldName LIKE :fieldName</p>
+     *
+     * <p>5. Comparison Operators (>, <, >=, <=):
+     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *
+     * <p>6. Null Check:
+     *    conditions.put("fieldName", NullCheck.IS_NULL);
+     *    conditions.put("fieldName", NullCheck.IS_NOT_NULL);
+     *    // SQL: fieldName IS NULL OR fieldName IS NOT NULL</p>
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return A Page containing the records that match the conditions.
+
+     */
+    public <T> List<T> findAllBy(Class<T> tableName, Map<String, Object> conditions) {
+
+        return jdbcAggregateTemplate.findAll(Query.query(CriteriaDefinition.from(getCriteriaDefinitions(conditions))), tableName);
+    }
+
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return A Page containing the records that match the conditions.
+
+     */
+    public <T, R> List<R> findAll(Class<T> tableName, Map<String, Object> conditions, RowMapper<R> rowMapper) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
+
+        for (Map.Entry<String, Object> entry : conditions.entrySet()) {
+            sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(" AND ");
+        }
+
+        String query = sql.toString().endsWith("WHERE ") ? sql.substring(0, sql.length() - 6) : sql.substring(0, sql.length() - 4);
+
+        return jdbcTemplate.query(query, conditions, rowMapper);
+    }
+
     /**
      * <p>Checks if a record with the specified ID exists in the given table.</p>
      *
@@ -155,6 +222,49 @@ public class GeneralRepository {
         return jdbcAggregateTemplate.exists(Query.query(where("id").is(id)), tableName);
     }
 
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * <p>1. Equality Condition:
+     *    conditions.put("fieldName", value);
+     *    // SQL: fieldName = :fieldName</p>
+     *
+     * <p>2. Range (BETWEEN) Condition:
+     *    conditions.put("fieldName", Pair.of(start, end));
+     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *
+     * <p>3. IN Condition:
+     *    conditions.put("fieldName", List.of(val1, val2, val3));
+     *    // SQL: fieldName IN (:fieldName)</p>
+     *
+     * <p>4. LIKE Condition:
+     *    conditions.put("fieldName", new LikePattern("%" + value + "%"));
+     *    // SQL: fieldName LIKE :fieldName</p>
+     *
+     * <p>5. Comparison Operators (>, <, >=, <=):
+     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *
+     * <p>6. Null Check:
+     *    conditions.put("fieldName", NullCheck.IS_NULL);
+     *    conditions.put("fieldName", NullCheck.IS_NOT_NULL);
+     *    // SQL: fieldName IS NULL OR fieldName IS NOT NULL</p>
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return A Page containing the records that match the conditions.
+
+     */
+    public <T> boolean existBy(Class<T> tableName, Map<String, Object> conditions) {
+        return jdbcAggregateTemplate.exists(Query.query(CriteriaDefinition.from(getCriteriaDefinitions(conditions))), tableName);
+    }
+
     /**
      * <p>Retrieves a record with the specified ID from the given table.</p>
      *
@@ -165,6 +275,49 @@ public class GeneralRepository {
      */
     public <T> Optional<T> findById(Class<T> tableName, Long id) {
         return jdbcAggregateTemplate.findOne(Query.query(where("id").is(id)), tableName);
+    }
+
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * <p>1. Equality Condition:
+     *    conditions.put("fieldName", value);
+     *    // SQL: fieldName = :fieldName</p>
+     *
+     * <p>2. Range (BETWEEN) Condition:
+     *    conditions.put("fieldName", Pair.of(start, end));
+     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *
+     * <p>3. IN Condition:
+     *    conditions.put("fieldName", List.of(val1, val2, val3));
+     *    // SQL: fieldName IN (:fieldName)</p>
+     *
+     * <p>4. LIKE Condition:
+     *    conditions.put("fieldName", new LikePattern("%" + value + "%"));
+     *    // SQL: fieldName LIKE :fieldName</p>
+     *
+     * <p>5. Comparison Operators (>, <, >=, <=):
+     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *
+     * <p>6. Null Check:
+     *    conditions.put("fieldName", NullCheck.IS_NULL);
+     *    conditions.put("fieldName", NullCheck.IS_NOT_NULL);
+     *    // SQL: fieldName IS NULL OR fieldName IS NOT NULL</p>
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return An Optional containing the record if found, or an empty Optional if not found.
+
+     */
+    public <T> Optional<T> findOneBy(Class<T> tableName, Map<String, Object> conditions) {
+        return jdbcAggregateTemplate.findOne(Query.query(CriteriaDefinition.from(getCriteriaDefinitions(conditions))), tableName);
     }
 
     /**
@@ -212,54 +365,11 @@ public class GeneralRepository {
     }
 
 
-    /**
-     * <p>Follow the instructions below</p>
-     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
-     * Each entry in the map represents a condition on a database field.
-     * The value’s type determines the type of condition to generate.</p>
-     *
-     * <p>1. Equality Condition:
-     *    conditions.put("fieldName", value);
-     *    // SQL: fieldName = :fieldName</p>
-     *
-     * <p>2. Range (BETWEEN) Condition:
-     *    conditions.put("fieldName", Pair.of(start, end));
-     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
-     *
-     * <p>3. IN Condition:
-     *    conditions.put("fieldName", List.of(val1, val2, val3));
-     *    // SQL: fieldName IN (:fieldName)</p>
-     *
-     * <p>4. LIKE Condition:
-     *    conditions.put("fieldName", new LikePattern("%" + value + "%"));
-     *    // SQL: fieldName LIKE :fieldName</p>
-     *
-     * <p>5. Comparison Operators (>, <, >=, <=):
-     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
-     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
-     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
-     *
-     * <p>6. Null Check:
-     *    conditions.put("fieldName", NullCheck.IS_NULL);
-     *    conditions.put("fieldName", NullCheck.IS_NOT_NULL);
-     *    // SQL: fieldName IS NULL OR fieldName IS NOT NULL</p>
-     * @param <T>        The type of the entity corresponding to the table.
-     * @param tableName  The class of the table to query, annotated with @Table.
-     * @param conditions A map of column names and their values to define the WHERE clause.
-     *                   The keys represent column names, and the values represent the conditions.
-     * @return An Optional containing the record if found, or an empty Optional if not found.
-
-     */
-    public <T> Optional<T> findOneBy(Class<T> tableName, Map<String, Object> conditions) {
-        return jdbcAggregateTemplate.findOne(Query.query(CriteriaDefinition.from(getCriteriaDefinitions(conditions))), tableName);
-    }
-
-
     private String getTableName(Class<?> table) {
         return StringUtils.isNotBlank(table.getAnnotation(Table.class).value()) ? table.getAnnotation(Table.class).value() : table.getAnnotation(Table.class).name();
     }
 
-    private List<CriteriaDefinition> getCriteriaDefinitions(Map<String, Object> conditions) {
+    public List<CriteriaDefinition> getCriteriaDefinitions(Map<String, Object> conditions) {
         List<CriteriaDefinition> criteriaDefinitions = new ArrayList<>();
 
         for (Map.Entry<String, Object> entry : conditions.entrySet()) {

@@ -145,12 +145,7 @@ public class UsersService {
         otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), OtpType.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
-        MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{usersResponse.email()})
-                .body("Your password was changed, if you didn't initiate this, click this link.")
-                .subject(MessageSubjects.PASSWORD_RESET).build();
-        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.PASSWORD_RESET).message(messageDetailsDto).build();
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
-
+        notifyUserAboutPasswordChange(usersResponse.email());
         return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
@@ -167,6 +162,11 @@ public class UsersService {
         String userEmail = AppUtil.getLoggedInUserEmail();
         String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
 
+        // Ensure otp exists and not expired
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), userEmail, userEmail, true, LocalDateTime.now())) {
+            throw new BadRequestException("OTP not verified or expired.");
+        }
+
         if (!passwordEncoder.matches(request.oldPassword(), userPassword)) {
             throw new BadRequestException("Wrong oldPassword entered.");
         }
@@ -177,6 +177,10 @@ public class UsersService {
 
         // Update password and return
         usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userEmail, userEmail, OtpType.PASSWORD_RESET.getCode());
+
+        // Notify the user about the password rest via mail
+        notifyUserAboutPasswordChange(userEmail);
         return UpdateResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
@@ -305,5 +309,13 @@ public class UsersService {
             updated.set(userProfileRepository.updateCountry(AppUtil.getLoggedInUserId(), country.getName()));
         });
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
+    }
+
+    private void notifyUserAboutPasswordChange(String userEmail) {
+        MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{userEmail})
+                .body("Your password was changed, if you didn't initiate this, click this link.")
+                .subject(MessageSubjects.PASSWORD_RESET).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.PASSWORD_RESET).message(messageDetailsDto).build();
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
     }
 }

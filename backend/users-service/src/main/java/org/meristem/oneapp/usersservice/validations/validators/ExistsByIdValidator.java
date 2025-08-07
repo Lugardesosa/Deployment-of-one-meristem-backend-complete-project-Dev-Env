@@ -7,7 +7,7 @@ import org.meristem.oneapp.usersservice.repositories.GeneralRepository;
 import org.meristem.oneapp.usersservice.validations.constraints.ExistsById;
 
 @RequiredArgsConstructor
-public class ExistsByIdValidator implements ConstraintValidator<ExistsById, String> {
+public class ExistsByIdValidator implements ConstraintValidator<ExistsById, Long> {
 
     private final GeneralRepository repository;
     private Class<?> tableName;
@@ -19,12 +19,12 @@ public class ExistsByIdValidator implements ConstraintValidator<ExistsById, Stri
     }
 
     @Override
-    public boolean isValid(String id, ConstraintValidatorContext context) {
+    public boolean isValid(Long id, ConstraintValidatorContext context) {
         if (id == null) {
             return true;
         }
         try {
-            return repository.existById(tableName, Long.valueOf(id));
+            return repository.existById(tableName, id);
         } catch (Exception e) {
             return false;
         }

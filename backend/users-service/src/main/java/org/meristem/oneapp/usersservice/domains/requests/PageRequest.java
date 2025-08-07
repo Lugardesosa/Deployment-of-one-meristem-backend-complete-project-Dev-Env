@@ -5,13 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
 import java.util.List;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,17 +35,14 @@ public class PageRequest {
     @Schema(anyOf = {Sort.Direction.class}, description = "Sort order (ASC or DESC)", example = "DESC")
     private Sort.Direction sortOrder = Sort.Direction.DESC;
 
-    @Builder
     public PageRequest(int page, List<String> sortBy, Sort.Direction sortOrder) {
         this(page, AppConstants.PAGE_SIZE, sortBy, sortOrder);
     }
 
-    @Builder
     public PageRequest(int page, List<String> sortBy) {
         this(page, AppConstants.PAGE_SIZE, sortBy, Sort.Direction.DESC);
     }
 
-    @Builder
     public PageRequest(int page) {
         this(page, AppConstants.PAGE_SIZE, Collections.singletonList("createdDate"), Sort.Direction.DESC);
     }

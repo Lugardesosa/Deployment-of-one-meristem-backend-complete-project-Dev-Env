@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.Users;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import javax.crypto.Mac;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
@@ -108,5 +110,14 @@ public final class AppUtil {
 
     public static boolean nonIsNull(Object... s) {
         return Arrays.stream(s).allMatch(Objects::nonNull);
+    }
+
+    public static String getServiceUrl(List<ServiceInstance> instances, String serviceName) {
+
+        if (instances.isEmpty()) {
+            throw new IllegalStateException("No instances found for " + serviceName);
+        }
+
+        return instances.getFirst().getUri().toString().concat(instances.getFirst().getMetadata().getOrDefault("contextPath", ""));
     }
 }
