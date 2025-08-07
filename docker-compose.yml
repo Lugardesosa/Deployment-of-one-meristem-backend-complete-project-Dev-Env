@@ -332,6 +332,7 @@ services:
       - kafka
       - redis
       - consul
+      - users-service
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -346,8 +347,8 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - CORE_DB_NAME=core-service ${DB_NAME_CORE_SERVICE}
-      - CORE_DB_PASSWORD={cipher}afdb0f0e9091d032039f1169597d7d72ddef48011d3d748791abe0af00f84f06' ${DB_CORE_PASSWORD}
+      - CORE_DB_NAME=${DB_NAME_CORE_SERVICE}
+      - CORE_DB_PASSWORD=${DB_CORE_PASSWORD}
       - CORE_DB_USERNAME=${DB_WALLET_USERNAME}
       - CORE_CLIENT_ID=core-service
       - CORE_CLIENT_SECRET=secret
