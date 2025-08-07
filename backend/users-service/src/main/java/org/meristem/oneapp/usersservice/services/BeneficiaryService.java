@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Service
@@ -54,6 +53,6 @@ public class BeneficiaryService {
     public List<BeneficiaryResponse> getBeneficiaries(Long userId) {
 
         Long loggedInUserid = nonNull(userId) ? userId: AppUtil.getLoggedInUserId();
-        return beneficiaryMapper.beneficiaryToBeneficiaryResponse(customRepository.findAllBy(Beneficiaries.class, Map.of("ownerId",loggedInUserid)));
+        return beneficiaryMapper.beneficiaryToBeneficiaryResponse(customRepository.findAllBy(Beneficiaries.class, Map.of("ownerId", loggedInUserid)));
     }
 }

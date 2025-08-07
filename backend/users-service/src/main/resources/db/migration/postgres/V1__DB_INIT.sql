@@ -410,6 +410,8 @@ ALTER TABLE beneficiaries
 
 CREATE INDEX idx_beneficiaries_email ON beneficiaries (email);
 
+CREATE INDEX idx_beneficiaries_owner_id ON beneficiaries (owner_id);
+
 CREATE INDEX idx_otpver_uid_ot ON otp_verification (user_id, otp_type);
 
 ALTER TABLE user_profile

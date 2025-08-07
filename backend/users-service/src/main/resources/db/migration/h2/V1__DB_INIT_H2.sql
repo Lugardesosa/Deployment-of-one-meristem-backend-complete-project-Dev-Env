@@ -429,6 +429,8 @@ ALTER TABLE beneficiaries
 
 CREATE INDEX idx_beneficiaries_email ON beneficiaries (email);
 
+CREATE INDEX idx_beneficiaries_owner_id ON beneficiaries (owner_id);
+
 CREATE INDEX idx_users_email ON users (email);
 
 CREATE UNIQUE INDEX idx_onbaording_user_requirement_id ON user_onboarding(user_id, requirement_id);
