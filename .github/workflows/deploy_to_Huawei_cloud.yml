@@ -41,7 +41,7 @@ jobs:
         id: check_change
         run: |
           git pull origin dev_env
-          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|core-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
           echo "Changed services: $CHANGED"
 
           if [ -z "$CHANGED" ]; then
@@ -143,7 +143,7 @@ jobs:
 
           for svc in ${{ needs.build.outputs.changed_services }}; do
             case \$svc in
-              cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service)
+              cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|core-service)
                 if [ -d "\$svc" ]; then
                   build_service "\$svc"
                 else
