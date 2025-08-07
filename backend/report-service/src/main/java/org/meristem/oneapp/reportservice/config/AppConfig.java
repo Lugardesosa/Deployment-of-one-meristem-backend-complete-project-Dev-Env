@@ -66,7 +66,7 @@ public class AppConfig {
     ) {
         Server server = new Server();
         server.setUrl(serverUrl.concat(contextPath));
-        server.description("Wallet API Documentation");
+        server.description("Report API Documentation");
 
         Contact contact = new Contact().url(serverUrl).email(email).name(serverAppName);
         Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with users' wallets.");
@@ -80,7 +80,7 @@ public class AppConfig {
                                 .bearerFormat("JWT")
                                 .description("This API uses OAuth 2 with the implicit grant flow.")
                                 .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
-                                                .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
+                                                .concat("/oauth2/token")).scopes(new Scopes().addString("openid", "openid")))
                                         .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
                                                 .concat("/oauth2/token"))))
                         )

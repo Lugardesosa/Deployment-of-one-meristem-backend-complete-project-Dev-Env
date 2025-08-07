@@ -43,6 +43,19 @@ spring:
         jwt:
           public-key-location: classpath:keys/public.pem
 
+      client:
+        registration:
+          core-service:
+            client-id: ${CORE_CLIENT_ID}
+            client-secret: ${CORE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            provider: users-service
+            scope:
+              - beneficiaries.get
+        provider:
+          users-service:
+            token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
+
 rsa:
   private-key: classpath:keys/private.pem
   public-key: classpath:keys/public.pem
@@ -73,6 +86,13 @@ one-app:
   core-service:
     context-path: /api/core
     application-name: core-service
+
+    # APP NAMES
+  service-names:
+    wallet-service: ${one-app.wallet-service.application-name}
+    core-service: ${one-app.core-service.application-name}
+    report-service: ${one-app.report-service.application-name}
+    users-service: ${one-app.users-service.application-name}
 
 logging:
   file:

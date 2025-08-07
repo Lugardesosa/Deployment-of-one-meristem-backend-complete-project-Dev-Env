@@ -3,6 +3,7 @@ package org.meristem.oneapp.walletservice.utils;
 import lombok.experimental.UtilityClass;
 import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
 import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static java.util.Objects.nonNull;
 
@@ -71,5 +73,14 @@ public final class AppUtil {
 
     public static LocalDateTime nonNullOrLocalDateTimeNow(LocalDateTime localDateTime) {
         return nonNull(localDateTime) ? localDateTime : LocalDateTime.now();
+    }
+
+    public static String getServiceUrl(List<ServiceInstance> instances, String serviceName) {
+
+        if (instances.isEmpty()) {
+            throw new IllegalStateException("No instances found for " + serviceName);
+        }
+
+        return instances.getFirst().getUri().toString().concat(instances.getFirst().getMetadata().getOrDefault("contextPath", ""));
     }
 }

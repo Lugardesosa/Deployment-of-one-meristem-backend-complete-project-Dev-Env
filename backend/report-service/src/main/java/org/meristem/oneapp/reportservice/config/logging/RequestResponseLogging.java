@@ -37,7 +37,7 @@ public class RequestResponseLogging extends OncePerRequestFilter {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> headersToFilterFor = List.of("x-forwarded-for", "host", "user-agent");
+    private final List<String> headersToFilterFor = List.of("x-forwarded-for", "host", "user-agent", "content-type");
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -50,7 +50,7 @@ public class RequestResponseLogging extends OncePerRequestFilter {
         filterChain.doFilter(requestWrapper, responseWrapper);
         long endTime = System.nanoTime() / 1_000_000L;
 
-        List<String> contentTypeToSkipForBody = List.of(MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE);
+        List<String> contentTypeToSkipForBody = List.of(MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE, "application/x-www-form-urlencoded;charset=UTF-8");
         byte[] requestBody = nonNull(requestWrapper.getHeader("content-type")) && contentTypeToSkipForBody.contains(requestWrapper.getHeader("content-type")) ? new byte[0] : requestWrapper.getContentAsByteArray();
         byte[] responseBody = responseWrapper.getContentAsByteArray();
 

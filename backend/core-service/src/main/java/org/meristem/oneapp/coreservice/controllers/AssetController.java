@@ -1,0 +1,117 @@
+package org.meristem.oneapp.coreservice.controllers;
+
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.coreservice.constants.ApiConstants;
+import org.meristem.oneapp.coreservice.domains.requests.*;
+import org.meristem.oneapp.coreservice.domains.responses.*;
+import org.meristem.oneapp.coreservice.services.AssetService;
+import org.meristem.oneapp.coreservice.utils.ApiUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RequestMapping(ApiConstants.CONTEXT_PATH + "assets")
+@RestController
+@RequiredArgsConstructor
+@Tag(name = "Asset API", description = "Controls everything asset")
+public class AssetController {
+
+    private final AssetService assetService;
+
+    @Operation(summary = "Create a cash asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a cash asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/cash", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<CashResponse>> createCash(@RequestBody @Valid CashRequest cashRequest) {
+        return ApiUtil.buildResponse(assetService.saveCash(cashRequest), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a public equities asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a public equities asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/public-equities", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<PublicEquitiesResponse>> createPublicEquities(@RequestBody @Valid PublicEquitiesRequest request) {
+        return ApiUtil.buildResponse(assetService.savePublicEquities(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a private equities asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a private equities asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/private-equities", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EquitiesResponse>> createPrivateEquities(@RequestBody @Valid EquitiesRequest request) {
+        return ApiUtil.buildResponse(assetService.savePrivateEquities(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a fintech wallet asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a fintech wallet asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/fintech-wallet", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<FintechWalletResponse>> createFintechWallet(@RequestBody @Valid FintechWalletRequest request) {
+        return ApiUtil.buildResponse(assetService.saveFintechWallet(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a real estate asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a real estate asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/real-estate", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<RealEstateResponse>> createRealEstate(@RequestBody @Valid RealEstateRequest request) {
+        return ApiUtil.buildResponse(assetService.saveRealEstate(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a fixed income / money market asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a fixed income / money market asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/money-market", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<MoneyMarketResponse>> createMoneyMarket(@RequestBody @Valid MoneyMarketRequest request) {
+        return ApiUtil.buildResponse(assetService.saveMoneyMarket(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a intellectual property asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a intellectual property asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/intellectual-property", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<IntellectualPropertyResponse>> createIntellectualProperty(@RequestBody @Valid IntellectualPropertyRequest request) {
+        return ApiUtil.buildResponse(assetService.saveIntellectualProperty(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a alternate asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a alternate asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/alternate-assets", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AlternateAssetsResponse>> createAlternateAssets(@RequestBody @Valid AlternateAssetsRequest request) {
+        return ApiUtil.buildResponse(assetService.saveAlternateAssets(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a personal asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a personal asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/personal-assets", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<PersonalAssetsResponse>> createPersonalAssets(@RequestBody @Valid PersonalAssetsRequest request) {
+        return ApiUtil.buildResponse(assetService.savePersonalAssets(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a pension asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a pension asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/pension", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<PensionResponse>> createPension(@RequestBody @Valid PensionRequest request) {
+        return ApiUtil.buildResponse(assetService.savePension(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a life insurance asset", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a life insurance asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PostMapping(value = "/life-insurance", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<LifeInsuranceResponse>> createLifeInsurance(@RequestBody @Valid LifeInsuranceRequest request) {
+        return ApiUtil.buildResponse(assetService.saveLifeInsurance(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+}

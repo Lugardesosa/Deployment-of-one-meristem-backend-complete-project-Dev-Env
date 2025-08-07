@@ -14,10 +14,7 @@ import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
@@ -123,7 +120,7 @@ public class RestClientConfig {
             ObjectMapper objectMapper = new ObjectMapper();
 
             HashMap<String, Object> bodyRequest = requestBody.isBlank() ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
-            HashMap<String, Object> bodyResponse = responseBody.isBlank() ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
+            HashMap<String, Object> bodyResponse = responseBody.isBlank() || status == HttpStatus.NOT_FOUND.value() ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
             sanitizeBody(bodyRequest, bodyResponse);
 
             HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);

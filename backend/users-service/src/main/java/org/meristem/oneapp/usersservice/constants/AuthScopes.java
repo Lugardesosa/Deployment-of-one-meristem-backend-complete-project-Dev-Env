@@ -1,0 +1,10 @@
+package org.meristem.oneapp.usersservice.constants;
+
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
+public final class AuthScopes {
+
+    public static final String GET_BENEFICIARIES = "beneficiaries.get";
+    public static final String GET_USERS = "users.get";
+}

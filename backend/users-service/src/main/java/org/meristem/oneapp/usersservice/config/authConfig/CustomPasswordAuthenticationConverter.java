@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -21,7 +22,7 @@ public class CustomPasswordAuthenticationConverter implements AuthenticationConv
 
         String grantType = request.getParameter(OAuth2ParameterNames.GRANT_TYPE);
 
-        if (!AuthorizationGrantType.PASSWORD.getValue().equals(grantType)) {
+        if (!AppConstants.RE_PASSWORD.equals(grantType)) {
             return null;
         }
 
