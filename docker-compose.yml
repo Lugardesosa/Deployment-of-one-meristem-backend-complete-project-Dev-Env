@@ -368,6 +368,7 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - CORE_SERVICE_HOSTNAME=core-service
       - USER_SERVICE_HOSTNAME=users-service
+    restart: unless-stopped
   # ======================
   # API GATEWAY (Exposed publicly)
   # ======================
