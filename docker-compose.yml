@@ -269,10 +269,6 @@ services:
       - CONSUL_HOST=consul
     restart: unless-stopped
 
-
-
-
-
   # ======================
   # WALLET SERVICE (Internal only)
   # ======================
@@ -318,8 +314,9 @@ services:
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - CONSUL_HOST=consul
     restart: unless-stopped
+    
   # ======================
-  # API GATEWAY (Exposed publicly)
+  # CORE SERVICE (Internal Only)
   # ======================
   core-service:
     image: core-service
@@ -351,7 +348,7 @@ services:
       - CORE_DB_PASSWORD=${DB_CORE_PASSWORD}
       - CORE_DB_USERNAME=${DB_CORE_USERNAME}
       - CORE_CLIENT_ID=core-service
-      - CORE_CLIENT_SECRET=secret
+      - CORE_CLIENT_SECRET=${CORE_CLIENT_SECRET}
       - CORE_SERVICE_HOSTNAME=core-service
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - KAFKA_HOST_URL=${KAFKA_HOST}
