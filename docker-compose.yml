@@ -222,6 +222,7 @@ services:
       - CREDIT_SWITCH_SMS_SENDER_ID=Meristem
       - H2_PASSWORD=${H2_PASSWORD}
       - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
     restart: unless-stopped
 
 
@@ -267,6 +268,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD} 
       - H2_PASSWORD=${H2_PASSWORD}
       - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
     restart: unless-stopped
 
   # ======================
@@ -313,6 +315,7 @@ services:
       - H2_PASSWORD=${H2_PASSWORD}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
     restart: unless-stopped
     
   # ======================
@@ -358,6 +361,7 @@ services:
       - CONSUL_HOST=consul
       - CORE_CLIENT_ID=core-service
       - CORE_CLIENT_SECRET=secret
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
   # ======================
   # API GATEWAY (Exposed publicly)
   # ======================
