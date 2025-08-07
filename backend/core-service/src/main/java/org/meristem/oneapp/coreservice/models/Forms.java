@@ -52,13 +52,16 @@ public class Forms extends BaseModel<String> {
     @Column("text_size")
     private Integer textSize;
 
+    @Column("page_no")
+    private Integer pageNo;
+
     @NotNull(message = "Cannot be null")
     @Column("mandatory")
     private Integer mandatory;
 
     @Builder
     public Forms(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long formPosition,
-                 String placeholder, String type, Integer order, String label, Integer mandatory, Integer textSize, String defaultValue, String subtext) {
+                 String placeholder, String type, Integer order, String label, Integer pageNo, Integer mandatory, Integer textSize, String defaultValue, String subtext) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.formPosition = formPosition;
         this.placeholder = placeholder;
@@ -69,6 +72,7 @@ public class Forms extends BaseModel<String> {
         this.textSize = textSize;
         this.defaultValue = defaultValue;
         this.subtext = subtext;
+        this.pageNo = pageNo;
     }
 
     @Override

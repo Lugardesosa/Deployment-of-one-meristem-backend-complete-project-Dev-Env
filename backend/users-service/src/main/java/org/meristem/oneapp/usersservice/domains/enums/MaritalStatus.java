@@ -10,7 +10,7 @@ public enum MaritalStatus {
     SINGLE("Single"),
     DIVORCED("Divorced"),
     WIDOWED("Widowed"),
-    MARRIED("Married"),;
+    MARRIED("Married");
 
     private final String value;
 

@@ -13,7 +13,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
 @RequiredArgsConstructor
-public class integrationConfig {
+public class IntegrationConfig {
 
     private final SmileIdProperties smileIdProperties;
     private final OneAppProperties oneAppProperties;

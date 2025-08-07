@@ -33,20 +33,20 @@ public class BeneficiaryController {
     @ApiResponses(value = {
             @ApiResponse(description = "Returns the details of a beneficiary", responseCode = "200")
     })
-    @PreAuthorize("hasRole('ROLE_user.beneficiary.get')")
+    @PreAuthorize("hasRole('ROLE_user.beneficiary.get') OR hasAuthority('SCOPE_beneficiaries.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<BeneficiaryResponse>> getBeneficiary(@RequestParam(name = "email")  String email) {
-        return ApiUtil.buildResponse(beneficiaryService.getBeneficiary(email), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<BeneficiaryResponse>> getBeneficiary(@RequestParam(name = "email")  String email, @RequestParam(name = "userId", required = false) Long userId) {
+        return ApiUtil.buildResponse(beneficiaryService.getBeneficiary(email, userId), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get beneficiaries")
     @ApiResponses(value = {
             @ApiResponse(description = "Returns the details of all beneficiaries", responseCode = "200")
     })
-    @PreAuthorize("hasRole('ROLE_user.beneficiary.get')")
+    @PreAuthorize("hasRole('ROLE_user.beneficiary.get') OR hasAuthority('SCOPE_beneficiaries.get')")
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<BeneficiaryResponse>>> getBeneficiaries() {
-        return ApiUtil.buildResponse(beneficiaryService.getBeneficiaries(), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<List<BeneficiaryResponse>>> getBeneficiaries(@RequestParam(name = "userId", required = false) Long userId) {
+        return ApiUtil.buildResponse(beneficiaryService.getBeneficiaries(userId), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Create a beneficiary")

@@ -11,6 +11,8 @@ import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.AuthScopes;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,14 +32,19 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -47,6 +54,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -174,6 +182,7 @@ public class AuthorizationServerConfig {
 //        RegisteredClient mobile = RegisteredClient
 //                .withId(UUID.randomUUID().toString())
 //                .clientId("mobile-service")
+//                .clientName("mobile-service")
 //                .clientSecret(passwordEncoder().encode("secret"))
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
@@ -192,6 +201,7 @@ public class AuthorizationServerConfig {
 //        RegisteredClient users = RegisteredClient
 //                .withId(UUID.randomUUID().toString())
 //                .clientId("users-service")
+//                .clientName("users-service")
 //                .clientSecret(passwordEncoder().encode("secret"))
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
@@ -203,21 +213,33 @@ public class AuthorizationServerConfig {
 //        RegisteredClient notifications = RegisteredClient
 //                .withId(UUID.randomUUID().toString())
 //                .clientId("notification-service")
+//                .clientName("notification-service")
 //                .clientSecret(passwordEncoder().encode("secret"))
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
 //                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
 //                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-//                .scope(OidcScopes.OPENID)
-//                .scope(OidcScopes.PROFILE)
-//                .scope(OidcScopes.EMAIL)
 //                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
 //                .build();
-
+//
+//
+//                RegisteredClient core = RegisteredClient
+//                .withId(UUID.randomUUID().toString())
+//                .clientId("core-service")
+//                .clientName("core-service")
+//                .clientSecret(passwordEncoder().encode("secret"))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+//                .scope(AuthScopes.GET_BENEFICIARIES)
+//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+//                .build();
+//
         JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
 //        registeredClientRepository.save(mobile);
 //        registeredClientRepository.save(users);
 //        registeredClientRepository.save(notifications);
+//        registeredClientRepository.save(core);
         return registeredClientRepository;
     }
 }

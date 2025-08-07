@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,9 +41,9 @@ public class BeneficiaryService {
         return beneficiaryMapper.beneficiaryToBeneficiaryResponse(beneficiaries);
     }
 
-    public BeneficiaryResponse getBeneficiary(String email) {
+    public BeneficiaryResponse getBeneficiary(String email, Long userId) {
         Map<String,Object> map = new HashMap<>();
-        Long loggedInUserid = AppUtil.getLoggedInUserId();
+        Long loggedInUserid = nonNull(userId) ? userId: AppUtil.getLoggedInUserId();
         map.put("ownerId",loggedInUserid);
         map.put("email",email);
 
@@ -48,9 +51,9 @@ public class BeneficiaryService {
         return beneficiaries.isPresent() ? beneficiaryMapper.beneficiaryToBeneficiaryResponse(beneficiaries.get()) : BeneficiaryResponse.builder().build();
     }
 
-    public List<BeneficiaryResponse> getBeneficiaries() {
+    public List<BeneficiaryResponse> getBeneficiaries(Long userId) {
 
-        Long loggedInUserid = AppUtil.getLoggedInUserId();
+        Long loggedInUserid = nonNull(userId) ? userId: AppUtil.getLoggedInUserId();
         return beneficiaryMapper.beneficiaryToBeneficiaryResponse(customRepository.findAllBy(Beneficiaries.class, Map.of("ownerId",loggedInUserid)));
     }
 }

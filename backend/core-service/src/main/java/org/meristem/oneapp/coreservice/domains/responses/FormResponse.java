@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.relational.core.mapping.Column;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ public class FormResponse {
                         description = "The id of the form (e.g., 1, 2, 3, 4)",
                         example = "1"
                 )
+                @JsonIgnore
                 private Long id;
 
                 @Schema(
@@ -79,6 +81,12 @@ public class FormResponse {
                         example = "2"
                 )
                 private Integer fieldOrder;
+
+                @Schema(
+                        description = "The display number of this page for the form",
+                        example = "1"
+                )
+                private Integer pageNo;
 
                 @Schema(
                         description = "The visible label of the field",
@@ -121,5 +129,44 @@ public class FormResponse {
                         example = "https://example.com/naira.png"
                 )
                 private String currencyLogo;
+        }
+
+        @Builder
+        @Data
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @Schema(description = "Model representing a selection used in the form")
+        public static class Selection {
+
+                @Schema(
+                        description = "Each of the values in the selection",
+                        example = "Cash"
+                )
+                private String selectionValue;
+
+                @Schema(
+                        description = "Any other value, label of each category in the case of 'Asset Category'",
+                        example = "Account Number"
+                )
+                private String additionalValue;
+        }
+
+        @Builder
+        @Data
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @Schema(description = "Model representing a phone number country code and logo used in the form")
+        public static class PhoneCode {
+                @Schema(
+                        description = "Country code",
+                        example = "+234"
+                )
+                private String countryCode;
+
+                @Schema(
+                        description = "URL or path to the logo of the country",
+                        example = "https://example.com/nigeria.png"
+                )
+                private String countryLogo;
         }
 }

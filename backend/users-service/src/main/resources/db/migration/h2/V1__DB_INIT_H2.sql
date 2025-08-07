@@ -514,6 +514,10 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.country.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_countries'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_states'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.create'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.get'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.plan.create'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.plan.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change-password'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.onboard'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.forms.get'),
@@ -547,6 +551,10 @@ SET @UsersUpdateStateID = (SELECT id FROM permissions WHERE name = 'users.state.
 SET @UsersUpdateCountryID = (SELECT id FROM permissions WHERE name = 'users.country.update');
 SET @UsersGetCountriesID = (SELECT id FROM permissions WHERE name = 'users.get_countries');
 SET @UsersGetStatesID = (SELECT id FROM permissions WHERE name = 'users.get_states');
+SET @UsersAssetCreateID = (SELECT id FROM permissions WHERE name = 'users.asset.create');
+SET @UsersAssetGetID = (SELECT id FROM permissions WHERE name = 'users.asset.get');
+SET @UsersPlanCreateID = (SELECT id FROM permissions WHERE name = 'users.plan.create');
+SET @UsersPlanGetID = (SELECT id FROM permissions WHERE name = 'users.plan.get');
 SET @UsersChangePasswordID = (SELECT id FROM permissions WHERE name = 'users.change-password');
 SET @UsersOnboardOnboardID = (SELECT id FROM permissions WHERE name = 'users.onboard.onboard');
 SET @UsersBeneficiaryGetID = (SELECT id FROM permissions WHERE name = 'user.beneficiary.get');
@@ -578,6 +586,10 @@ INSERT INTO roles_permissions (roles_id, permissions_id)
 VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersGetCountriesID),
        (@RolesUserID, @UsersUpdateStateID),
+       (@RolesUserID, @UsersAssetCreateID),
+       (@RolesUserID, @UsersAssetGetID),
+       (@RolesUserID, @UsersPlanCreateID),
+       (@RolesUserID, @UsersPlanGetID),
        (@RolesUserID, @UsersUpdateCountryID),
        (@RolesUserID, @UsersGetStatesID),
        (@RolesUserID, @UsersChangePasswordID),
@@ -611,7 +623,9 @@ INSERT INTO oauth2_registered_client
 VALUES
         ('b4c1e3f7-7238-4453-a68e-8a52faf61834', 'mobile-service', NOW(), '$2a$10$BayFPa39DOsXHezSVcWIrONwom81s46vDs6js4AK1fx/hRR37Rx7S', NULL, 'Mobile Service', 'client_secret_post,client_secret_basic', 'refresh_token,re_password,client_credentials', '', '', 'user.read,user.write,openid,send_otp,verify_otp,create_user,users.get,password_reset', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":false,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",57600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}'),
         ('38463a9b-55ef-4df0-a319-63f5c60475d8', 'users-service', NOW(), '$2a$10$I0HYSs94VokxDXX77ubhsudZSrz96lyfOTLetGwyTHotmJo6cX9YS', NULL, 'Users Service', 'client_secret_post,client_secret_basic', 'refresh_token,client_credentials', '', '', '', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":true,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}'),
-        ('8705d10f-81b1-4095-9424-955b03e47d4a', 'notification-service', NOW(), '$2a$10$T929snsP.zmaysL7Byji1.6Y2yOvkFWniUcGl0Cb3dt3HWdXLb83a', NULL, 'Notification Service', 'client_secret_post,client_secret_basic', 'refresh_token,client_credentials', '', '', '', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":true,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}');
+        ('8705d10f-81b1-4095-9424-955b03e47d4a', 'notification-service', NOW(), '$2a$10$T929snsP.zmaysL7Byji1.6Y2yOvkFWniUcGl0Cb3dt3HWdXLb83a', NULL, 'Notification Service', 'client_secret_post,client_secret_basic', 'refresh_token,client_credentials', '', '', '', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":true,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",300.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}'),
+        ('a32aabe8-8984-4b60-8930-cd21c9d0c8a5', 'core-service', NOW(), '$2a$10$//EaAIscgwJAxz6cnGupqOKcx6uundA5iRpOi7teAFsUMEa/y1H0.', NULL, 'Core Service', 'client_secret_post,client_secret_basic', 'client_credentials', '', '', 'beneficiaries.get', '{"@class":"java.util.Collections$UnmodifiableMap","settings.client.require-proof-key":false,"settings.client.require-authorization-consent":false}', '{"@class":"java.util.Collections$UnmodifiableMap","settings.token.reuse-refresh-tokens":true,"settings.token.x509-certificate-bound-access-tokens":false,"settings.token.id-token-signature-algorithm":["org.springframework.security.oauth2.jose.jws.SignatureAlgorithm","RS256"],"settings.token.access-token-time-to-live":["java.time.Duration",86400.000000000],"settings.token.access-token-format":{"@class":"org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat","value":"self-contained"},"settings.token.refresh-token-time-to-live":["java.time.Duration",3600.000000000],"settings.token.authorization-code-time-to-live":["java.time.Duration",300.000000000],"settings.token.device-code-time-to-live":["java.time.Duration",300.000000000]}');
+
 
 INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
 VALUES

@@ -15,6 +15,8 @@ public enum FormType {
     EMAIL("EMAIL"),
     FILE("FILE"),
     DATE("DATE"),
+    HEADER("HEADER"),
+    ADD_MORE("ADD_MORE"),
     SELECTION("SELECTION");
 
     private final String value;
@@ -29,6 +31,8 @@ public enum FormType {
             case "EMAIL" -> EMAIL;
             case "FILE" -> FILE;
             case "DATE" -> DATE;
+            case "HEADER" -> HEADER;
+            case "ADD_MORE" -> ADD_MORE;
             case "SELECTION" -> SELECTION;
             default -> throw new IllegalArgumentException("Unknown form type: " + value);
         };

@@ -9,8 +9,9 @@ import org.springframework.jdbc.core.RowMapper;
 @UtilityClass
 public final class RowMappers {
 
-    public static RowMapper<String> getSelectionValue() {
-        return (rs, rowNum) -> rs.getString("selection_value");
+    public static RowMapper<FormResponse.Selection> getSelectionValue() {
+        return (rs, rowNum) -> FormResponse.Selection.builder().selectionValue(rs.getString("selection_value"))
+                .additionalValue(rs.getString("additional_value")).build();
     }
 
     public static RowMapper<BankResponse> getBankNames() {

@@ -22,11 +22,15 @@ public class Selections extends BaseModel<String> {
     @Column("selection_value")
     private String selectionValue;
 
+    @Column("additional_value")
+    private String additionalValue;
+
     @Builder
-    public Selections(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long formId, String selectionValue) {
+    public Selections(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long formId, String selectionValue,  String additionalValue) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.formId = formId;
         this.selectionValue = selectionValue;
+        this.additionalValue = additionalValue;
     }
 
     @Override

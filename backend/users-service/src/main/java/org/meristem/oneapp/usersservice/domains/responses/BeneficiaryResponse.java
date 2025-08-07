@@ -1,14 +1,7 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import org.meristem.oneapp.usersservice.domains.enums.BeneficiaryRelationship;
-import org.meristem.oneapp.usersservice.domains.enums.Gender;
-import org.meristem.oneapp.usersservice.domains.enums.MaritalStatus;
-import org.meristem.oneapp.usersservice.validations.constraints.AllPhoneNumber;
-import org.meristem.oneapp.usersservice.validations.constraints.Email;
 
 import java.time.LocalDate;
 

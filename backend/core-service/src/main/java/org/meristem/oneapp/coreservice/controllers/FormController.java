@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.coreservice.constants.ApiConstants;
 import org.meristem.oneapp.coreservice.domains.enums.FormName;
+import org.meristem.oneapp.coreservice.domains.enums.GeneralFormType;
 import org.meristem.oneapp.coreservice.domains.responses.AppResponse;
 import org.meristem.oneapp.coreservice.domains.responses.BankResponse;
 import org.meristem.oneapp.coreservice.domains.responses.FormNamesResponse;
@@ -18,17 +19,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 
 @RequestMapping(ApiConstants.CONTEXT_PATH + "forms")
 @RestController
-@Tag(name = "Admin api", description = "This controller manages everything forms")
+@Tag(name = "Form api", description = "This controller manages everything forms")
 @RequiredArgsConstructor
 public class FormController {
 
@@ -46,8 +44,8 @@ public class FormController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Get a form and its properties")})
     @PreAuthorize("hasRole('ROLE_users.forms.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<FormNamesResponse>>> getFormNames() {
-        return ApiUtil.buildResponse(formService.getFormNames(), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<List<FormNamesResponse>>> getFormNames(@RequestParam(name = "formName") GeneralFormType generalFormType) {
+        return ApiUtil.buildResponse(formService.getFormNames(generalFormType), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get banks", method = "GET")

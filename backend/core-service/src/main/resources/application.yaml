@@ -15,6 +15,21 @@ spring:
         max-attempts: 10
         initial-interval: 3000
         max-interval: 3500
+
+  security:
+    oauth2:
+      client:
+        registration:
+          core-service:
+            client-id: ${CORE_CLIENT_ID}
+            client-secret: ${CORE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            provider: users-service
+            scope:
+              - beneficiaries.get
+        provider:
+          users-service:
+            token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
   profiles:
     active: ${spring.cloud.config.profile}
 
