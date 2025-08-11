@@ -98,10 +98,6 @@ one-app:
     users-service.first: ${one-app.users-service.application-name}
     users-service.second: ${USER_SERVICE_URI}/${one-app.users-service.context-path}
 
-#    wallet-url: ${WALLET_SERVICE_URI}/${one-app.wallet-service.context-path}
-#    core-url: ${CORE_SERVICE_URI}/${one-app.core-service.context-path}
-#    report-url: ${REPORT_SERVICE_URI}/${one-app.report-service.context-path}
-#    users-url: ${USER_SERVICE_URI}/${one-app.users-service.context-path}
 
 logging:
   file:
