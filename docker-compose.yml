@@ -167,6 +167,7 @@ services:
       - OKHI_DEV_AND_PROD_WHITELIST_IP=52.18.220.93,18.202.96.242
       - H2_PASSWORD=${H2_PASSWORD}
       - USER_SERVICE_HOSTNAME=users-service
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
@@ -201,9 +202,6 @@ services:
       - NOTIFICATION_DB_NAME=${DB_NAME_NOTIFICATION_SERVICE}
       - NOTIFICATION_DB_PASSWORD=${DB_NOTIFICATION_PASSWORD}
       - NOTIFICATION_DB_USERNAME=${DB_NOTIFICATION_USERNAME}
-        #- WALLET_DB_NAME=${DB_NAME_WALLET_SERVICE}
-        #- WALLET_DB_PASSWORD=${DB_WALLET_PASSWORD}
-        #- WALLET_DB_USERNAME=${DB_WALLET_USERNAME}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - KAFKA_HOST_URL=${KAFKA_HOST}
       - REDIS_HOST=${REDIS_HOST}
@@ -222,6 +220,7 @@ services:
       - CONSUL_HOST=consul
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - NOTIFICATION_SERVICE_HOSTNAME=notification-service
+      - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
     restart: unless-stopped
 
 
@@ -268,6 +267,7 @@ services:
       - CONSUL_HOST=consul
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - REPORT_SERVICE_HOSTNAME=report-service
+      - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
     restart: unless-stopped
 
   # ======================
@@ -315,6 +315,7 @@ services:
       - CONSUL_HOST=consul
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - WALLET_SERVICE_HOSTNAME=wallet-service
+      - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
     restart: unless-stopped
     
   # ======================
@@ -359,6 +360,7 @@ services:
       - CONSUL_HOST=consul
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - USER_SERVICE_HOSTNAME=users-service
+      - CORE_SERVICE_URI=${CORE_SERVICE_URI}
     restart: unless-stopped
   # ======================
   # API GATEWAY (Exposed publicly)
