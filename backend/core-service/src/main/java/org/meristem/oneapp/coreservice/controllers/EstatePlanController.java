@@ -1,0 +1,115 @@
+package org.meristem.oneapp.coreservice.controllers;
+
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.coreservice.constants.ApiConstants;
+import org.meristem.oneapp.coreservice.domains.enums.Plans;
+import org.meristem.oneapp.coreservice.domains.requests.*;
+import org.meristem.oneapp.coreservice.domains.responses.*;
+import org.meristem.oneapp.coreservice.services.EstatePlanService;
+import org.meristem.oneapp.coreservice.utils.ApiUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RequestMapping(ApiConstants.CONTEXT_PATH + "plans")
+@RestController
+@RequiredArgsConstructor
+@Tag(name = "Estate Plan API", description = "Controls everything estate plans")
+public class EstatePlanController {
+
+    private final EstatePlanService estatePlanService;
+
+
+    @Operation(summary = "Create a simple will", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a simple will")})
+    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PostMapping(value = "/simple-will", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> createSimpleWill(@RequestBody @Valid CreateWillRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.saveSimpleWill(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a comprehensive will", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a comprehensive will")})
+    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PostMapping(value = "/comprehensive-will", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> createComprehensiveWill(@RequestBody @Valid CreateComprehensiveWillRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.saveComprehensiveWill(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Add a beneficiary", method = "PUT")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Add a beneficiary")})
+    @PreAuthorize("hasRole('ROLE_users.beneficiary.add')")
+    @PutMapping(value = "/add-beneficiary", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> addBeneficiary(@RequestBody @Valid AddBeneficiaryRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.addBeneficiary(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Remove a beneficiary", method = "PUT")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Remove a beneficiary")})
+    @PreAuthorize("hasRole('ROLE_users.beneficiary.remove')")
+    @PutMapping(value = "/remove-beneficiary", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> removeBeneficiary(@RequestBody @Valid RemoveBeneficiaryRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.removeBeneficiary(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Add a asset", method = "PUT")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Add a asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.add')")
+    @PutMapping(value = "/add-asset", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> addAsset(@RequestBody @Valid AddAssetRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.addAsset(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Remove an asset", method = "PUT")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Remove a asset")})
+    @PreAuthorize("hasRole('ROLE_users.asset.remove')")
+    @PutMapping(value = "/remove-asset", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> addAsset(@RequestBody @Valid RemoveAssetRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.removeAsset(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Add an executor", method = "PUT")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Add an executor")})
+    @PreAuthorize("hasRole('ROLE_users.executor.add')")
+    @PutMapping(value = "/add-executor", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> addExecutor(@RequestBody @Valid AddExecutorRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.addExecutor(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a will-executor", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a will-executor")})
+    @PreAuthorize("hasRole('ROLE_users.executor.add')")
+    @PostMapping(value = "/will-executor", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> willExecutor(@RequestBody @Valid AddExecutorRequest.ExecutorRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.addWillExecutor(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Create a nominated fund", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a nominated fund")})
+    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PostMapping(value = "/nominated-fund", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> createSimpleWill(@RequestBody @Valid CreateNominatedFundRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.saveNominatedFund(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get an asset (s)", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get an asset (s)",
+            content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = GetAssetResponse.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GetPlanResponse>> getPlans(@RequestParam(name = "plan") Plans plan, @RequestParam(name = "plan-id", required = false) Long planId) {
+        return ApiUtil.buildResponse(estatePlanService.getPlans(plan, planId), HttpStatus.CREATED.toString(), "Successful");
+    }
+}

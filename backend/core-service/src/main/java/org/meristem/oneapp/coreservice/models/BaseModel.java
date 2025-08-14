@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 public class BaseModel<U> implements Serializable {
 
     @Id
-    @NotNull(message = "id cannot be null")
+    @NotNull(message = "assetType cannot be null")
     private Long id;
 
     @CreatedDate

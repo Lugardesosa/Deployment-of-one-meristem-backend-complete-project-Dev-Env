@@ -2,10 +2,10 @@ package org.meristem.oneapp.coreservice.repositories;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.coreservice.domains.requests.UpdateSelectionRequest;
 import org.meristem.oneapp.coreservice.exception.exceptions.BadRequestException;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -39,5 +39,16 @@ public class CustomRepository extends GeneralRepository {
         }
 
         return jdbcTemplate.update(sql.substring(0, sql.length() - 3), params);
+    }
+
+    public List<?> findPlans(Class<?> clazz, Map<String, Object> filters, ResultSetExtractor<List<?>> resultSetExtractor) {
+
+        String sql = "SELECT p.*, pa.asset_id AS assetId, pa.asset_type, pb.beneficiary_id, pb.percentage FROM " + getTableName(clazz) +
+                " p " +
+                " LEFT JOIN plan_assets pa ON p.id = pa.plan_id " +
+                " LEFT JOIN plan_beneficiaries pb ON p.id = pb.plan_id " +
+                " WHERE p.owner_id = :owner_id " +
+                (filters.containsKey("id") ? " AND p.id = :id " : "");
+        return jdbcTemplate.query(sql, filters, resultSetExtractor);
     }
 }

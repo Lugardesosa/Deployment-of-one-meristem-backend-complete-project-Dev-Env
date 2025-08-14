@@ -88,11 +88,16 @@ one-app:
     application-name: core-service
 
     # APP NAMES
-  service-names:
-    wallet-service: ${one-app.wallet-service.application-name}
-    core-service: ${one-app.core-service.application-name}
-    report-service: ${one-app.report-service.application-name}
-    users-service: ${one-app.users-service.application-name}
+  services:
+    wallet-service.first: ${one-app.wallet-service.application-name}
+    wallet-service.second: ${WALLET_SERVICE_URI}/${one-app.wallet-service.context-path}
+    core-service.first: ${one-app.core-service.application-name}
+    core-service.second: ${CORE_SERVICE_URI}/${one-app.core-service.context-path}
+    report-service.first: ${one-app.report-service.application-name}
+    report-service.second: ${REPORT_SERVICE_URI}/${one-app.report-service.context-path}
+    users-service.first: ${one-app.users-service.application-name}
+    users-service.second: ${USER_SERVICE_URI}/${one-app.users-service.context-path}
+
 
 logging:
   file:

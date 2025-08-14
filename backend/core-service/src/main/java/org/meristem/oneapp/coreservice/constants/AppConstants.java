@@ -10,4 +10,5 @@ public final class AppConstants {
     public static int SORT_ORDER = 0; // 0 for descending and 1 for ascending
     public static String FORM_TYPE_ASSET = "ASSET";
     public static String FORM_TYPE_PLAN = "PLAN";
+    public static final String EMAIL_REGEX_PATTERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
 }

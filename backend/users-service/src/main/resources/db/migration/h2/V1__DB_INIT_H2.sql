@@ -512,6 +512,13 @@ INSERT INTO users_roles VALUES (SELECT id FROM users WHERE email = 'oneappsupera
 INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
 VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get'),
+
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.add'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.remove'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.add'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.remove'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.executor.add'),
+
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.state.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.country.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_countries'),
@@ -524,8 +531,8 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.onboard'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.forms.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.banks.get'),
-    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'user.beneficiary.get'),
-    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'user.beneficiary.create'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.get'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.create'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.create'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.get'),
@@ -549,6 +556,13 @@ VALUES
 
 
 SET @UsersGetID = (SELECT id FROM permissions WHERE name = 'users.get');
+
+SET @UsersBeneficiaryAddID = (SELECT id FROM permissions WHERE name = 'users.beneficiary.add');
+SET @UsersBeneficiaryRemoveID = (SELECT id FROM permissions WHERE name = 'users.beneficiary.remove');
+SET @UsersAssetAddID = (SELECT id FROM permissions WHERE name = 'users.asset.add');
+SET @UsersAssetRemoveID = (SELECT id FROM permissions WHERE name = 'users.asset.remove');
+SET @UsersExecutorAddID = (SELECT id FROM permissions WHERE name = 'users.executor.add');
+
 SET @UsersUpdateStateID = (SELECT id FROM permissions WHERE name = 'users.state.update');
 SET @UsersUpdateCountryID = (SELECT id FROM permissions WHERE name = 'users.country.update');
 SET @UsersGetCountriesID = (SELECT id FROM permissions WHERE name = 'users.get_countries');
@@ -559,8 +573,8 @@ SET @UsersPlanCreateID = (SELECT id FROM permissions WHERE name = 'users.plan.cr
 SET @UsersPlanGetID = (SELECT id FROM permissions WHERE name = 'users.plan.get');
 SET @UsersChangePasswordID = (SELECT id FROM permissions WHERE name = 'users.change-password');
 SET @UsersOnboardOnboardID = (SELECT id FROM permissions WHERE name = 'users.onboard.onboard');
-SET @UsersBeneficiaryGetID = (SELECT id FROM permissions WHERE name = 'user.beneficiary.get');
-SET @UsersBeneficiaryCreateID = (SELECT id FROM permissions WHERE name = 'user.beneficiary.create');
+SET @UsersBeneficiaryGetID = (SELECT id FROM permissions WHERE name = 'users.beneficiary.get');
+SET @UsersBeneficiaryCreateID = (SELECT id FROM permissions WHERE name = 'users.beneficiary.create');
 SET @UsersFormsGetID = (SELECT id FROM permissions WHERE name = 'users.forms.get');
 SET @UsersBanksGetID = (SELECT id FROM permissions WHERE name = 'users.banks.get');
 SET @UsersOnboardGetID = (SELECT id FROM permissions WHERE name = 'users.onboard.get');
@@ -586,6 +600,13 @@ SET @SuperAdminAdminCreateID = (SELECT id FROM permissions WHERE name = 'super_a
 
 INSERT INTO roles_permissions (roles_id, permissions_id)
 VALUES (@RolesUserID, @UsersGetID),
+
+       (@RolesUserID, @UsersBeneficiaryAddID),
+       (@RolesUserID, @UsersBeneficiaryRemoveID),
+       (@RolesUserID, @UsersAssetAddID),
+       (@RolesUserID, @UsersAssetRemoveID),
+       (@RolesUserID, @UsersExecutorAddID),
+
        (@RolesUserID, @UsersGetCountriesID),
        (@RolesUserID, @UsersUpdateStateID),
        (@RolesUserID, @UsersAssetCreateID),

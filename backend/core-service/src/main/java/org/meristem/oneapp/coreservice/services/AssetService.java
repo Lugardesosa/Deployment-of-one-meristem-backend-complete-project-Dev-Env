@@ -1,15 +1,22 @@
 package org.meristem.oneapp.coreservice.services;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.coreservice.domains.enums.AlternateAssetType;
+import org.meristem.oneapp.coreservice.domains.enums.Assets;
 import org.meristem.oneapp.coreservice.domains.requests.*;
 import org.meristem.oneapp.coreservice.domains.responses.*;
+import org.meristem.oneapp.coreservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.coreservice.mappers.AssetMapper;
 import org.meristem.oneapp.coreservice.models.*;
 import org.meristem.oneapp.coreservice.repositories.CustomRepository;
 import org.meristem.oneapp.coreservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.util.Objects.isNull;
 
 @Service
 @Slf4j
@@ -42,14 +49,6 @@ public class AssetService {
         return assetMapper.privateEquitiesToEquitiesResponse(privateEquitiesRequest);
     }
 
-    public FintechWalletResponse saveFintechWallet(FintechWalletRequest request) {
-
-        FintechWallets fintechWallets = assetMapper.fintechWalletRequestToFintechWallets(request);
-        fintechWallets.setOwnerId(AppUtil.getLoggedInUserId());
-        customRepository.save(fintechWallets);
-        return assetMapper.fintechWalletToFintechWalletResponse(fintechWallets);
-    }
-
     public RealEstateResponse saveRealEstate(RealEstateRequest request) {
 
         RealEstate realEstate = assetMapper.realEstateRequestToRealEstate(request);
@@ -74,29 +73,46 @@ public class AssetService {
 
     public AlternateAssetsResponse saveAlternateAssets(AlternateAssetsRequest request) {
         AlternateAssets alternateAssets = assetMapper.alternateAssetsRequestToAlternateAssets(request);
+        AlternateAssetType alternateAssetType = AlternateAssetType.valueOf(request.getAssetType());
+
+        if (alternateAssetType.name().equals(AlternateAssetType.CRYPTO_NFT.getDescription()) &&
+        isNull(alternateAssets.getWalletAddress())) {
+            throw new BadRequestException("Wallet address is required");
+        }
+        alternateAssets.setAssetType(alternateAssetType.getDescription());
         alternateAssets.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(alternateAssets);
         return assetMapper.alternateAssetsToAlternateAssetsResponse(alternateAssets);
     }
 
-    public PersonalAssetsResponse savePersonalAssets(@Valid PersonalAssetsRequest request) {
+    public PersonalAssetsResponse savePersonalAssets(PersonalAssetsRequest request) {
         PersonalAssets personalAssets = assetMapper.personalAssetsRequestToPersonalAssets(request);
         personalAssets.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(personalAssets);
         return assetMapper.personalAssetsToPersonalAssetsResponse(personalAssets);
     }
 
-    public PensionResponse savePension(@Valid PensionRequest request) {
+    public PensionResponse savePension(PensionRequest request) {
         Pension pension = assetMapper.pensionRequestToPension(request);
         pension.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(pension);
         return assetMapper.pensionToPensionResponse(pension);
     }
 
-    public LifeInsuranceResponse saveLifeInsurance(@Valid LifeInsuranceRequest request) {
+    public LifeInsuranceResponse saveLifeInsurance(LifeInsuranceRequest request) {
         LifeInsurance lifeInsurance = assetMapper.lifeInsuranceRequestToLifeInsurance(request);
         lifeInsurance.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(lifeInsurance);
         return assetMapper.lifeInsuranceToLifeInsuranceResponse(lifeInsurance);
+    }
+
+    public GetAssetResponse getAssets(Assets asset, Long assetId) {
+
+        Map<String, Object> filter = new HashMap<>();
+        if (assetId != null) {
+            filter.put("id", assetId);
+        }
+        filter.put("owner_id", AppUtil.getLoggedInUserId());
+        return new GetAssetResponse(customRepository.findAll(asset.getClazz(), filter, asset.getRowMapper()));
     }
 }

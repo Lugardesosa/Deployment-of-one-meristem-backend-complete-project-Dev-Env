@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @SuperBuilder
+@Schema(description = "Response object for pension asset")
 public class PensionResponse extends AssetResponse {
 
     @Schema(description = "Name of the Pension Fund Administrator (PFA)", example = "Stanbic IBTC")

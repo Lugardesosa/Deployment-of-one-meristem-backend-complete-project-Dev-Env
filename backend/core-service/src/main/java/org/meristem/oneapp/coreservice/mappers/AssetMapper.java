@@ -35,12 +35,6 @@ public interface AssetMapper {
     EquitiesResponse privateEquitiesToEquitiesResponse(PrivateEquities privateEquities);
 
     @Mapping(source = "currencyId", target = "currencyId")
-    FintechWallets fintechWalletRequestToFintechWallets(FintechWalletRequest request);
-
-    @Mapping(source = "currencyId", target = "currencyId")
-    FintechWalletResponse fintechWalletToFintechWalletResponse(FintechWallets fintechWallets);
-
-    @Mapping(source = "currencyId", target = "currencyId")
     RealEstate realEstateRequestToRealEstate(RealEstateRequest request);
 
     @Mapping(source = "currencyId", target = "currencyId")
@@ -58,7 +52,10 @@ public interface AssetMapper {
     @Mapping(source = "currencyId", target = "currencyId")
     IntellectualPropertyResponse intellectualPropertyToIntellectualPropertyResponse(IntellectualProperty intellectualProperty);
 
-    @Mapping(source = "currencyId", target = "currencyId")
+    @Mappings(value = {
+            @Mapping(source = "currencyId", target = "currencyId"),
+            @Mapping(ignore = true, target = "assetType")
+    })
     AlternateAssets alternateAssetsRequestToAlternateAssets(AlternateAssetsRequest request);
 
     @Mapping(source = "currencyId", target = "currencyId")

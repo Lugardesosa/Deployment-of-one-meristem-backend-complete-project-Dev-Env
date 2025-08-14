@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @SuperBuilder
-@Schema(description = "Request object for real estate asset")
+@Schema(description = "Response object for real estate asset")
 public class RealEstateResponse extends AssetResponse {
 
     @Schema(description = "Type of property", example = "Residential")

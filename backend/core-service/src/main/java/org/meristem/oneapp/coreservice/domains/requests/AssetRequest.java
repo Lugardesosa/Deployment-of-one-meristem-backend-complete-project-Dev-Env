@@ -2,6 +2,7 @@ package org.meristem.oneapp.coreservice.domains.requests;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,12 +19,13 @@ import java.math.BigDecimal;
 @SuperBuilder
 public class AssetRequest {
 
+    @DecimalMin(value = "0.0", inclusive = false)
     @NotNull(message = "Estimated amount cannot be null")
     @Schema(description = "Estimated amount for the cash request", example = "1000.00", requiredMode = Schema.RequiredMode.REQUIRED)
     private BigDecimal estimatedAmount;
 
-    @NotNull(message = "Currency id cannot be blank")
-    @Schema(description = "Currency id for the cash request", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Currency assetType cannot be blank")
+    @Schema(description = "Currency assetType for the cash request", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExistsById(message = "Currency does not exist", tableName = Currencies.class)
     private Long currencyId;
 
