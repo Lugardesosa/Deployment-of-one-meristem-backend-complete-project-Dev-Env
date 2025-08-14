@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @SuperBuilder
+@Schema(description = "Response object for intellectual property asset")
 public class IntellectualPropertyResponse extends AssetResponse {
 
     @Schema(description = "Type of intellectual property", example = "Trademark")

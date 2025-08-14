@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Assets extends BaseModel<String> {
 
-    @NotNull(message = "owner id cannot be null")
+    @NotNull(message = "owner assetType cannot be null")
     @Column("owner_id")
     private Long ownerId;
 

@@ -16,10 +16,13 @@ import java.math.BigDecimal;
 @Schema(description = "Response object for assets")
 public class AssetResponse {
 
+        @Schema(description = "The assetType of the asset", example = "1")
+        private Long id;
+
         @Schema(description = "Estimated amount for the cash response", example = "1000.00")
         private BigDecimal estimatedAmount;
 
-        @Schema(description = "Currency id for the cash response", example = "1")
+        @Schema(description = "Currency assetType for the cash response", example = "1")
         private Long currencyId;
 
         @Schema(description = "Additional details about the cash response", example = "Urgent transfer")

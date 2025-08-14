@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Data
 @SuperBuilder
+@Schema(description = "Response object for life insurance asset")
 public class LifeInsuranceResponse extends AssetResponse {
 
     @Schema(description = "Name of the insurance company", example = "Leadway Assurance")

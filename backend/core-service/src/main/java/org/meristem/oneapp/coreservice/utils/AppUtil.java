@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.coreservice.exception.exceptions.BadRequestException;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.data.util.Pair;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
@@ -82,12 +84,9 @@ public final class AppUtil {
         return from.isAfter(LocalDateTime.now().minusDays(daysRange));
     }
 
-    public static String getServiceUrl(List<ServiceInstance> instances, String serviceName) {
+    public static String getServiceUrl(List<ServiceInstance> instances, Pair<String, String> service) {
 
-        if (instances.isEmpty()) {
-            throw new IllegalStateException("No instances found for " + serviceName);
-        }
-
-        return instances.getFirst().getUri().toString().concat(instances.getFirst().getMetadata().getOrDefault("contextPath", ""));
+        return isNull(instances) || instances.isEmpty() ? service.getSecond() :
+                instances.getFirst().getUri().toString().concat(instances.getFirst().getMetadata().getOrDefault("contextPath", ""));
     }
 }

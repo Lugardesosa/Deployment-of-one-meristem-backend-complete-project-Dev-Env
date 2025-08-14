@@ -1,11 +1,10 @@
 package org.meristem.oneapp.coreservice.config;
 
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.coreservice.config.configProperties.CoreUsersAppProperties;
 import org.meristem.oneapp.coreservice.config.configProperties.OneAppProperties;
-import org.meristem.oneapp.coreservice.config.configProperties.ServiceNamesProperties;
+import org.meristem.oneapp.coreservice.config.configProperties.ServicesProperties;
 import org.meristem.oneapp.coreservice.integrations.UserServiceClient;
 import org.meristem.oneapp.coreservice.utils.AppUtil;
 import org.springframework.cloud.client.ServiceInstance;
@@ -28,15 +27,15 @@ public class IntegrationConfig {
 
     @Bean
     UserServiceClient userServiceClient(RestClient.Builder restClientBuilder, DiscoveryClient discoveryClient, OneAppProperties oneAppProperties,
-                                        CoreUsersAppProperties coreUsersAppProperties, ServiceNamesProperties serviceNamesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
+                                        CoreUsersAppProperties coreUsersAppProperties, ServicesProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
 
-        List<ServiceInstance> instances = discoveryClient.getInstances(serviceNamesProperties.usersService());
+        List<ServiceInstance> instances = discoveryClient.getInstances(servicesProperties.usersService().getFirst());
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 
         return HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClientBuilder.requestInterceptors(c -> c.add(interceptor))
-                        .defaultRequest(r -> r.attributes(clientRegistrationId(serviceNamesProperties.coreService())))
-                        .baseUrl(AppUtil.getServiceUrl(instances, serviceNamesProperties.usersService()))
+                        .defaultRequest(r -> r.attributes(clientRegistrationId(servicesProperties.coreService().getFirst())))
+                        .baseUrl(AppUtil.getServiceUrl(instances, servicesProperties.usersService()))
                         .defaultHeader(oneAppProperties.defaultHeaderName(), coreUsersAppProperties.clientName())
                         .build())).build().createClient(UserServiceClient.class);
     }

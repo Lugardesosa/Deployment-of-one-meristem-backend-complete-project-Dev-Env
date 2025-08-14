@@ -3,6 +3,7 @@ package org.meristem.oneapp.coreservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.coreservice.domains.enums.Assets;
 import org.meristem.oneapp.coreservice.domains.enums.FormName;
 import org.meristem.oneapp.coreservice.domains.enums.FormType;
 import org.meristem.oneapp.coreservice.domains.enums.GeneralFormType;
@@ -19,10 +20,7 @@ import org.meristem.oneapp.coreservice.repositories.FormRepository;
 import org.meristem.oneapp.coreservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.meristem.oneapp.coreservice.dtos.sql.RowMappers.getCurrencyRowMapper;
 import static org.meristem.oneapp.coreservice.dtos.sql.RowMappers.getSelectionValue;
@@ -33,6 +31,7 @@ import static org.meristem.oneapp.coreservice.dtos.sql.RowMappers.getSelectionVa
 public class FormService {
 
     public static final String BENEFICIARY = "Beneficiary";
+    public static final String ASSET_CATEGORY = "Asset Category";
     private final CustomRepository customRepository;
     private final FormRepository formRepository;
     private final UserServiceClient userServiceClient;
@@ -47,10 +46,24 @@ public class FormService {
         for (FormResponse.FormData formData : formResponses) {
             if (formData.getType().equals(FormType.SELECTION.getValue())) {
 
-                if (BENEFICIARY.equals(formData.getLabel())) {
-                    selections.put(formData.getFieldOrder(), userServiceClient.getAllBeneficiaries(userId).data());
-                } else {
-                    selections.put(formData.getFieldOrder(), customRepository.findAll(Selections.class, Map.of("form_id", formData.getId()), getSelectionValue()));
+                switch (formData.getLabel()) {
+                    case BENEFICIARY ->
+                            selections.put(formData.getFieldOrder(), userServiceClient.getAllBeneficiaries(userId).data());
+                    case ASSET_CATEGORY ->
+                            selections.put(formData.getFieldOrder(), Arrays.stream(Assets.values()).map(Assets::getDisplayName).toList());
+                    case "EMPTY" -> {
+                        List<Object> values = new ArrayList<>();
+                        Arrays.stream(Assets.values()).forEach(asset -> {
+                            Map<String, Object> assetValues = new HashMap<>();
+                            assetValues.put("label", asset.getLabel());
+                            assetValues.put("placeholder", asset.getPlaceholder());
+                            assetValues.put(asset.getName(), customRepository.findAll(asset.getClazz(), Map.of("owner_id", userId), asset.getRowMapper()));
+                            values.add(assetValues);
+                        });
+                        selections.put(formData.getFieldOrder(), values);
+                    }
+                    case null, default ->
+                            selections.put(formData.getFieldOrder(), customRepository.findAll(Selections.class, Map.of("form_id", formData.getId()), getSelectionValue()));
                 }
             }
         }
@@ -59,7 +72,8 @@ public class FormService {
     }
 
     public List<FormNamesResponse> getFormNames(GeneralFormType generalFormType) {
-        return Arrays.stream(FormName.values()).filter(f -> f.getType().equals(generalFormType.getName())).map(fn -> FormNamesResponse.builder().displayName(fn.getDisplayName())
+        return Arrays.stream(FormName.values()).filter(f -> f.getType().equals(generalFormType.getName()))
+                .map(fn -> FormNamesResponse.builder().displayName(fn.getDisplayName())
                 .position(fn.getPosition()).name(fn.name()).build())
                 .toList();
     }

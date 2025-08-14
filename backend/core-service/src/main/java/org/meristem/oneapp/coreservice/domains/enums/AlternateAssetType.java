@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum AlternateAssetType {
 
     CRYPTO_NFT("Cryptocurrency & NFT"),
-    DIGITAL_PLATFORM("Digital Platform");
+    DIGITAL_PLATFORM("Digital Platform"),
+    FINTECH_WALLETS("Fintech Wallets"),;
 
     private final String description;
 }
