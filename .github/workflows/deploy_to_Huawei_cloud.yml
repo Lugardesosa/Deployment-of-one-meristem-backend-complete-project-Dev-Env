@@ -62,7 +62,7 @@ jobs:
     name: Deploy to Huawei Cloud ECS
     runs-on: self-hosted
     needs: build
-    if: needs.build.outputs.changed_services != 'none'
+    
 
     steps:
       - name: Debug SSH vars (partial)
