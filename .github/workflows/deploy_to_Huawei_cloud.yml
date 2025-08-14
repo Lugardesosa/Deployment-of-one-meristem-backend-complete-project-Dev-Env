@@ -9,6 +9,9 @@ on:
   push:
     branches:
       - dev_env
+    paths:
+      - 'backend/**'               # app src              
+      - 'docker-compose.yml' 
 
 # Global environment variables
 env:
