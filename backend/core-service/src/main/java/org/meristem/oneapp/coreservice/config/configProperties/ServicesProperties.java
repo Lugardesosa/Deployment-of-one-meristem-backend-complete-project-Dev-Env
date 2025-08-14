@@ -1,7 +1,8 @@
 package org.meristem.oneapp.coreservice.config.configProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.data.util.Pair;
 
-@ConfigurationProperties(prefix = "one-app.service-names")
-public record ServiceNamesProperties(String usersService, String walletService, String coreService, String reportService) {
+@ConfigurationProperties(prefix = "one-app.services")
+public record ServicesProperties(Pair<String, String> usersService, Pair<String, String> walletService, Pair<String, String> coreService, Pair<String, String> reportService) {
 }

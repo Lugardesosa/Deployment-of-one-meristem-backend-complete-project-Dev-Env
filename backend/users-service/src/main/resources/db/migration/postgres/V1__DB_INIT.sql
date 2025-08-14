@@ -534,7 +534,12 @@ DO $$
         UsersGetAvatarID integer;
         UsersPhoneNumberUpdateID integer;
         SuperAdminAdminCreateID integer;
-BEGIN
+        UsersBeneficiaryAddID integer;
+        UsersBeneficiaryRemoveID integer;
+        UsersAssetAddID integer;
+        UsersAssetRemoveID integer;
+        UsersExecutorAddID integer;
+    BEGIN
 
     -- USERS
     INSERT INTO users (created_date, created_by, last_modified_date, last_modified_by, version, email, first_name, last_name, middle_name, password, phone_number)
@@ -553,6 +558,24 @@ BEGIN
     -- PERMISSIONS
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get') RETURNING id INTO UsersGetID;
+
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.add') RETURNING id INTO UsersBeneficiaryAddID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.remove') RETURNING id INTO UsersBeneficiaryRemoveID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.add') RETURNING id INTO UsersAssetAddID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.remove') RETURNING id INTO UsersAssetRemoveID;
+
+    INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+    VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.executor.add') RETURNING id INTO UsersExecutorAddID;
+
+
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.state.update') RETURNING id INTO UsersUpdateStateID;
@@ -591,10 +614,10 @@ BEGIN
     VALUES  (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.banks.get') RETURNING id INTO UsersBanksGetID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
-    VALUES  (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'user.beneficiary.get') RETURNING id INTO UsersBeneficiaryGetID;
+    VALUES  (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.get') RETURNING id INTO UsersBeneficiaryGetID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
-    VALUES  (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'user.beneficiary.create') RETURNING id INTO UsersBeneficiaryCreateID;
+    VALUES  (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.create') RETURNING id INTO UsersBeneficiaryCreateID;
 
     INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
     VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.get') RETURNING id INTO UsersOnboardGetID;
@@ -663,6 +686,13 @@ BEGIN
     INSERT INTO roles_permissions (roles_id, permissions_id)
     VALUES (RolesUserID, UsersGetID),
            (RolesUserID, UsersGetStatesID),
+
+           (RolesUserID, UsersBeneficiaryAddID),
+           (RolesUserID, UsersBeneficiaryRemoveID),
+           (RolesUserID, UsersAssetAddID),
+           (RolesUserID, UsersAssetRemoveID),
+           (RolesUserID, UsersExecutorAddID),
+
            (RolesUserID, UsersAssetCreateID),
            (RolesUserID, UsersAssetGetID),
            (RolesUserID, UsersPlanCreateID),

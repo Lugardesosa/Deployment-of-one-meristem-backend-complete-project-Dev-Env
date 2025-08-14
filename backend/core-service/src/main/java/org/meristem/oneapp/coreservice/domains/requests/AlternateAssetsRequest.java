@@ -2,12 +2,15 @@ package org.meristem.oneapp.coreservice.domains.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.meristem.oneapp.coreservice.domains.enums.AlternateAssetType;
+import org.meristem.oneapp.coreservice.validations.constraints.ContainsEnum;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
@@ -17,8 +20,9 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Request object for alternate asset")
 public class AlternateAssetsRequest extends AssetRequest {
 
-    @Schema(description = "Type of alternate asset", example = "Crypto")
-    @NotBlank(message = "Cannot be blank")
+    @ContainsEnum(enumClass = AlternateAssetType.class, message = "Pass a valid enum")
+    @Schema(description = "Type of alternate asset", example = "CRYPTO_NFT", anyOf = AlternateAssetType.class)
+    @NotBlank(message = "Cannot be null")
     private String assetType;
 
     @Schema(description = "Platform name", example = "Binance")

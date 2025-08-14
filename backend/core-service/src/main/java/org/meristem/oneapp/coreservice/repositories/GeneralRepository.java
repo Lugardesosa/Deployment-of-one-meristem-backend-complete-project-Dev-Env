@@ -368,7 +368,18 @@ public class GeneralRepository {
     }
 
 
-    private String getTableName(Class<?> table) {
+    /**
+     * Deletes multiple records from the database.
+     *
+     * @param <T>       The type of the entities to delete.
+     * @param instances A list of entity instances to delete. Must not be null or empty.
+     */
+    public <T> void deleteAll(List<T> instances) {
+        jdbcAggregateTemplate.deleteAll(instances);
+    }
+
+
+    protected String getTableName(Class<?> table) {
         return StringUtils.isNotBlank(table.getAnnotation(Table.class).value()) ? table.getAnnotation(Table.class).value() : table.getAnnotation(Table.class).name();
     }
 

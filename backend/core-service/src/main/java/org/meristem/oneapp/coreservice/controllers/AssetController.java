@@ -2,12 +2,16 @@ package org.meristem.oneapp.coreservice.controllers;
 
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.coreservice.constants.ApiConstants;
+import org.meristem.oneapp.coreservice.domains.enums.Assets;
 import org.meristem.oneapp.coreservice.domains.requests.*;
 import org.meristem.oneapp.coreservice.domains.responses.*;
 import org.meristem.oneapp.coreservice.services.AssetService;
@@ -17,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequestMapping(ApiConstants.CONTEXT_PATH + "assets")
 @RestController
@@ -48,14 +54,6 @@ public class AssetController {
     @PostMapping(value = "/private-equities", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EquitiesResponse>> createPrivateEquities(@RequestBody @Valid EquitiesRequest request) {
         return ApiUtil.buildResponse(assetService.savePrivateEquities(request), HttpStatus.CREATED.toString(), "Successful");
-    }
-
-    @Operation(summary = "Create a fintech wallet asset", method = "POST")
-    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a fintech wallet asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
-    @PostMapping(value = "/fintech-wallet", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<FintechWalletResponse>> createFintechWallet(@RequestBody @Valid FintechWalletRequest request) {
-        return ApiUtil.buildResponse(assetService.saveFintechWallet(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
     @Operation(summary = "Create a real estate asset", method = "POST")
@@ -112,6 +110,17 @@ public class AssetController {
     @PostMapping(value = "/life-insurance", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<LifeInsuranceResponse>> createLifeInsurance(@RequestBody @Valid LifeInsuranceRequest request) {
         return ApiUtil.buildResponse(assetService.saveLifeInsurance(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get an asset (s)", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get an asset (s)",
+            content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = GetAssetResponse.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GetAssetResponse>> getAssets(@RequestParam(name = "asset-name") Assets assetName, @RequestParam(name = "asset-id", required = false) Long assetId) {
+        return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.CREATED.toString(), "Successful");
     }
 
 }

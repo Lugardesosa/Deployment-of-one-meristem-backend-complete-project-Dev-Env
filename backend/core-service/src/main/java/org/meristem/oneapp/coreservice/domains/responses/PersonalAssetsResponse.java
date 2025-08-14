@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @SuperBuilder
+@Schema(description = "Response object for personal  asset")
 public class PersonalAssetsResponse extends AssetResponse {
 
     @Schema(description = "Type of personal asset", example = "Jewelry")

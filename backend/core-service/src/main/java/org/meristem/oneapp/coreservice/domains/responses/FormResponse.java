@@ -45,7 +45,7 @@ public class FormResponse {
         public static class FormData {
 
                 @Schema(
-                        description = "The id of the form (e.g., 1, 2, 3, 4)",
+                        description = "The assetType of the form (e.g., 1, 2, 3, 4)",
                         example = "1"
                 )
                 @JsonIgnore

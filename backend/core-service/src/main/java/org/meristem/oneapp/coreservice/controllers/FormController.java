@@ -40,7 +40,7 @@ public class FormController {
         return ApiUtil.buildResponse(formService.getForm(formName), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Operation(summary = "Get a form or forms", method = "GET")
+    @Operation(summary = "Get a form ", method = "GET")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Get a form and its properties")})
     @PreAuthorize("hasRole('ROLE_users.forms.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)

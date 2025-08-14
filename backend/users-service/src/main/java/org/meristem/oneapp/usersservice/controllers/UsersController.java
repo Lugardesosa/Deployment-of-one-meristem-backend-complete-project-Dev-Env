@@ -33,7 +33,6 @@ public class UsersController {
     private final UsersService usersService;
     private final NextOfKinService nextOfKinService;
 
-
     @Operation(summary = "Creates a user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created the user.",

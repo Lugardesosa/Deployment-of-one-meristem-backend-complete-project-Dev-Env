@@ -15,8 +15,8 @@ import org.meristem.oneapp.coreservice.domains.requests.EquitiesRequest;
 @NoArgsConstructor
 @Data
 @SuperBuilder
-@Schema(description = "Request object for public equities operations")
-public class PublicEquitiesResponse extends EquitiesRequest {
+@Schema(description = "Response object for public equities operations")
+public class PublicEquitiesResponse extends EquitiesResponse {
 
         @Schema(description = "Type of company", example = "Public")
         private String companyType;

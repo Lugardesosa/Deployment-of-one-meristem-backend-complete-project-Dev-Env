@@ -5,5 +5,5 @@ import lombok.Builder;
 
 @Builder
 public record BankResponse(@Schema(description = "The name of the bank", example = "Access Bank Plc") String name,
-                           @Schema(description = "The id of the bank", example = "1") Long id) {
+                           @Schema(description = "The assetType of the bank", example = "1") Long id) {
 }

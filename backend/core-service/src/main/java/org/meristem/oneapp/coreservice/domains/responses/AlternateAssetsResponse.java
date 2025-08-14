@@ -13,6 +13,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @SuperBuilder
+@Schema(description = "Response object for alternate asset")
 public class AlternateAssetsResponse extends AssetResponse {
 
     @Schema(description = "Type of alternate asset", example = "Crypto")

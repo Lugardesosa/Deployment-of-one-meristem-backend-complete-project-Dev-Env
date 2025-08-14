@@ -8,6 +8,9 @@ import java.time.LocalDate;
 @Builder
 public record BeneficiaryResponse(
 
+        @Schema(description = "id of the beneficiary", example = "1")
+        Long id,
+
         @Schema(description = "First name of the beneficiary", example = "John")
         String firstName,
 
