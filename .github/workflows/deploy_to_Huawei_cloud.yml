@@ -61,7 +61,6 @@ jobs:
   deploy:
     name: Deploy to Huawei Cloud ECS
     runs-on: self-hosted
-    needs: build
     
 
     steps:
