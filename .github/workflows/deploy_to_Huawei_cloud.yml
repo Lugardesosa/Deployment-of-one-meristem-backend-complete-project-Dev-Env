@@ -93,9 +93,6 @@ jobs:
           # -----------------------------
           # Clone the latest application code
           # -----------------------------
-
-          #Clean up old docker images older than 24h
-          docker image prune -a --filter "until=24h" -f
           
           #Update packages
           sudo apt update
