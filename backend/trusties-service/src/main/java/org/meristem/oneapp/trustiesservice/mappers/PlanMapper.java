@@ -1,0 +1,41 @@
+package org.meristem.oneapp.trustiesservice.mappers;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.factory.Mappers;
+import org.meristem.oneapp.trustiesservice.domains.requests.AddExecutorRequest;
+import org.meristem.oneapp.trustiesservice.domains.requests.CreateComprehensiveWillRequest;
+import org.meristem.oneapp.trustiesservice.domains.requests.CreateNominatedFundRequest;
+import org.meristem.oneapp.trustiesservice.domains.requests.CreateWillRequest;
+import org.meristem.oneapp.trustiesservice.models.ComprehensiveWill;
+import org.meristem.oneapp.trustiesservice.models.NominatedFund;
+import org.meristem.oneapp.trustiesservice.models.SimpleWill;
+import org.meristem.oneapp.trustiesservice.models.WillExecutors;
+
+@Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+public interface PlanMapper {
+
+    PlanMapper INSTANCE = Mappers.getMapper(PlanMapper.class);
+
+    @Mappings(value = {
+        @Mapping(target = "maritalStatus", ignore = true),
+        @Mapping(target = "ownerId", ignore = true)
+    })
+    SimpleWill simpleWillRequestToSimpleWill(CreateWillRequest simpleCreateWillRequest);
+
+    @Mappings(value = {
+            @Mapping(target = "marriageType", ignore = true),
+            @Mapping(target = "religion", ignore = true),
+            @Mapping(target = "traditionDetails", ignore = true),
+            @Mapping(target = "maritalStatus", ignore = true),
+            @Mapping(target = "ownerId", ignore = true)
+    })
+    ComprehensiveWill comprehensiveWillRequestToComprehensiveWill(CreateComprehensiveWillRequest comprehensiveRequest);
+
+    WillExecutors willExecutorRequestToWillExecutors(AddExecutorRequest.ExecutorRequest executorRequest);
+
+    @Mapping(target = "ownerId", ignore = true)
+    NominatedFund createNominatedFundRequestToNominatedFund(CreateNominatedFundRequest request);
+}
