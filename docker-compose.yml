@@ -329,9 +329,9 @@ services:
   # ======================
   # CORE SERVICE (Internal Only)
   # ======================
-  core-service:
-    image: core-service
-    container_name: core-service
+  trusties-service:
+    image: trusties-service
+    container_name: trusties-service
     networks:
       - meristem-network
     depends_on:
@@ -354,12 +354,12 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - CORE_DB_NAME=${DB_NAME_CORE_SERVICE}
-      - CORE_DB_PASSWORD=${DB_CORE_PASSWORD}
-      - CORE_DB_USERNAME=${DB_CORE_USERNAME}
-      - CORE_CLIENT_ID=core-service
-      - CORE_CLIENT_SECRET=${CORE_CLIENT_SECRET}
-      - CORE_SERVICE_HOSTNAME=core-service
+      - TRUSTIES_DB_NAME=${DB_NAME_TRUSTIES_SERVICE}
+      - TRUSTIES_DB_PASSWORD=${DB_TRUSTIES_PASSWORD}
+      - TRUSTIES_DB_USERNAME=${DB_TRUSTIES_USERNAME}
+      - TRUSTIES_CLIENT_ID=trusties-service
+      - TRUSTIES_CLIENT_SECRET=${CORE_CLIENT_SECRET}
+      - TRUSTIES_SERVICE_HOSTNAME=trusties-service
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - KAFKA_HOST_URL=${KAFKA_HOST}
       - REDIS_HOST=${REDIS_HOST}
@@ -368,7 +368,7 @@ services:
       - CONSUL_HOST=consul
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - USER_SERVICE_HOSTNAME=users-service
-      - CORE_SERVICE_URI=${CORE_SERVICE_URI}
+      - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
     restart: unless-stopped
   # ======================
   # API GATEWAY (Exposed publicly)
@@ -390,7 +390,7 @@ services:
       - postgres
       - kafka
       - consul
-      - core-service
+      - trusties-service
       - report-service
       - wallet-service
     environment:
