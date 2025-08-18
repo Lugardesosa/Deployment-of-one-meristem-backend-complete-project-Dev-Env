@@ -1,11 +1,26 @@
 package org.meristem.oneapp.coreservice.domains.responses;
 
 import lombok.Builder;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Objects;
 
+@Schema(
+        name = "PlanAssetResponse",
+        description = "Represents an asset associated with a plan.",
+        example = """
+          {
+            "assetType": "CASH",
+            "assetId": 123456789
+          }
+        """
+)
 @Builder
-public record PlanAssetResponse(String assetType, Long assetId) {
+public record PlanAssetResponse(
+        @Schema(description = "Type/category of the asset.", example = "SECURITY")
+        String assetType,
+        @Schema(description = "Unique identifier of the asset.", example = "123456789")
+        Long assetId) {
 
     @Override
     public boolean equals(Object o) {

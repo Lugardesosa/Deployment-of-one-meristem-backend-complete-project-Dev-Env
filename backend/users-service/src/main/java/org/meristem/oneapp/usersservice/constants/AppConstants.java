@@ -27,5 +27,5 @@ public final class AppConstants {
 
     public static final String USERS_CACHE_NAME = "users";
     public static final Integer IS_UPDATE_PIN = 1;
-    public static final String RE_PASSWORD = "re_password";
+    public static final String RE_PASSWORD = "password";
 }

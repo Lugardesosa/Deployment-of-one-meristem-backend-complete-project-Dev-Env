@@ -2,7 +2,6 @@ package org.meristem.oneapp.coreservice.controllers;
 
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RequestMapping(ApiConstants.CONTEXT_PATH + "assets")
 @RestController
@@ -114,7 +112,7 @@ public class AssetController {
 
     @Operation(summary = "Get an asset (s)", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get an asset (s)",
-            content = {@Content(mediaType = "application/json",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GetAssetResponse.class)
             )})
     @PreAuthorize("hasRole('ROLE_users.asset.get')")
@@ -122,5 +120,4 @@ public class AssetController {
     public ResponseEntity<AppResponse<GetAssetResponse>> getAssets(@RequestParam(name = "asset-name") Assets assetName, @RequestParam(name = "asset-id", required = false) Long assetId) {
         return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.CREATED.toString(), "Successful");
     }
-
 }
