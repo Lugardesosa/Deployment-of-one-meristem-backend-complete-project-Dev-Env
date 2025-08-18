@@ -102,12 +102,13 @@ public class EstatePlanController {
         return ApiUtil.buildResponse(estatePlanService.saveNominatedFund(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
-    @Operation(summary = "Get an asset (s)", method = "GET")
-    @ApiResponse(responseCode = "200", description = "Get an asset (s)",
-            content = {@Content(mediaType = "application/json",
-                    schema = @Schema(implementation = GetAssetResponse.class)
+    @Operation(summary = "Get a plan (s)", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get a plan (s)",
+            content = {@Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = GetPlanResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @PreAuthorize("hasRole('ROLE_users.plan.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetPlanResponse>> getPlans(@RequestParam(name = "plan") Plans plan, @RequestParam(name = "plan-id", required = false) Long planId) {
         return ApiUtil.buildResponse(estatePlanService.getPlans(plan, planId), HttpStatus.CREATED.toString(), "Successful");
