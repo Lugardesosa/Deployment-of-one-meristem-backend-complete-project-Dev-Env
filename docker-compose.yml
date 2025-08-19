@@ -168,8 +168,8 @@ services:
       - H2_PASSWORD=${H2_PASSWORD}
       - USER_SERVICE_HOSTNAME=users-service
       - USER_SERVICE_URI=${USER_SERVICE_URI}
-      - CORE_CLIENT_ID=core-service
-      - CORE_CLIENT_SECRET=${CORE_CLIENT_SECRET}
+      - TRUSTIES_CLIENT_ID=trusties-service
+      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
@@ -223,8 +223,8 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - NOTIFICATION_SERVICE_HOSTNAME=notification-service
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
-      - CORE_CLIENT_ID=core-service
-      - CORE_CLIENT_SECRET=${CORE_CLIENT_SECRET}
+      - TRUSTIES_CLIENT_ID=trusties-service
+      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
     restart: unless-stopped
 
 
@@ -272,8 +272,8 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - REPORT_SERVICE_HOSTNAME=report-service
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
-      - CORE_CLIENT_ID=core-service
-      - CORE_CLIENT_SECRET=${CORE_CLIENT_SECRET}
+      - TRUSTIES_CLIENT_ID=trusties-service
+      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
     restart: unless-stopped
 
   # ======================
@@ -322,8 +322,8 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - WALLET_SERVICE_HOSTNAME=wallet-service
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
-      - CORE_CLIENT_ID=core-service
-      - CORE_CLIENT_SECRET=${CORE_CLIENT_SECRET}
+      - TRUSTIES_CLIENT_ID=trusties-service
+      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
     restart: unless-stopped
     
   # ======================
@@ -410,7 +410,7 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
-      - CORE_SERVICE_URI=${CORE_SERVICE_URI}
+      - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI} 
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
