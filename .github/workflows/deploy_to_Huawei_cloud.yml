@@ -93,22 +93,28 @@ jobs:
           # -----------------------------
           # Clone the latest application code
           # -----------------------------
-          
-          #Update packages
+
+          # Update packages
           sudo apt update
           
-          echo "Cloning latest repo..."
-          rm -rf one_meristem_app || true
-          git clone https://${{ secrets.GH_PAT }}@github.com/${{ env.REPO_NAME }}.git
+          echo "Using existing repo folder..."
+          if [ ! -d "one_meristem_app/.git" ]; then
+            echo "Repo not found locally, cloning once..."
+            git clone https://${{ secrets.GH_PAT }}@github.com/${{ env.REPO_NAME }}.git one_meristem_app
+          fi
+          
           cd one_meristem_app
+          
+          echo "Fetching latest 'dev_env' branch..."
+          git fetch origin dev_env
           
           echo "Switching to 'dev_env' branch..."
           git checkout dev_env || git checkout -b dev_env origin/dev_env
           
-          # Pull latest changes just in case
-          git pull origin dev_env
+          echo "Resetting local branch to match remote..."
+          git reset --hard origin/dev_env
           
-          echo "Switched to 'dev_env' branch with latest code."
+          echo "Now on latest 'dev_env' branch."
           ls -l
 
           
