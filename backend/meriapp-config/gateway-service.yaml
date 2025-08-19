@@ -17,7 +17,7 @@ spring:
           predicates:
             - Path=${one-app.report-service.context-path}/**
 
-        - id: ${one-app.core-service.application-name}
-          uri: ${CORE_SERVICE_URI}
+        - id: ${one-app.trusties-service.application-name}
+          uri: ${TRUSTIES_SERVICE_URI}
           predicates:
-            - Path=${one-app.core-service.context-path}/**
+            - Path=${one-app.trusties-service.context-path}/**
