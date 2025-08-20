@@ -128,3 +128,6 @@ huawei:
   signed_url_ttl_sec: 3600
   images_bucket_name: ${HUAWEI_OBS_IMAGES_BUCKET}
   document_bucket_name: ${HUAWEI_OBS_DOC_BUCKET}
+
+call:
+  smile-id: true
