@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.services;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,14 +61,13 @@ public class UsersService {
     private final RolesRepository rolesRepository;
     private final HuaweiService huaweiService;
     private final GeneralRepository generalRepository;
-    private final ObjectMapper objectMapper;
 
     /**
      * Creates a new user after validating the request and OTP.
      *
      * @param userRequest the request containing user details
      * @return the created user's response
-     * @throws BadRequestException if the email or phone number already exists or OTP is invalid/expired
+     * @throws BadRequestException if the email or phone number already exists, or OTP is invalid/expired
      */
     @Transactional
     public  UsersResponse createUser(CreateUserRequest userRequest) {
@@ -94,7 +92,7 @@ public class UsersService {
         requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
                 .forEach(rId -> {
                     UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.NOT_STARTED.getValue())
-                            .completed(false).userId(userId).requirementId(rId).type(RequirementType.DEFAULT.getId()).build();
+                            .completed(false).userId(userId).requirementId(rId).build();
                     userOnboardingRepository.save(userOnboarding);
                 });
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
@@ -124,7 +122,7 @@ public class UsersService {
      *
      * @param request the password reset request
      * @return the password reset response
-     * @throws BadRequestException if OTP is invalid/expired or the new password matches the old one
+     * @throws BadRequestException if OTP is invalid/expired, or the new password matches the old one
      */
     @Transactional
     public PasswordResetResponse resetPassword(PasswordResetRequest request) {
@@ -134,7 +132,7 @@ public class UsersService {
             throw new BadRequestException("OTP not verified or expired.");
         }
 
-        // Ensure password is not the same as the old one
+        // Ensure the password is different from the old one
         UsersResponse usersResponse = usersRepository.findUserByEmailOrPhoneNumber(request.recipient());
         if (passwordEncoder.matches(request.password(), usersResponse.password())) {
             throw new BadRequestException("Password cannot be the same as your old password.");
@@ -228,7 +226,6 @@ public class UsersService {
 
     /**
      * This is only for updating the user's newPin when they still know their old newPin.
-     * If thwey
      * Updates the logged-in user's PIN after ensuring it is different from the old one.
      *
      * @param request the update PIN request
@@ -255,7 +252,7 @@ public class UsersService {
                 throw new BadRequestException("Wrong old pin entered.");
             }
 
-            // Ensure newPin is not the same as old one
+            // Ensure the newPin is different from the old one
             if (passwordEncoder.matches(request.newPin(), oldPin)) {
                 throw new BadRequestException("New pin cannot be the same as your old pin.");
             }
@@ -293,21 +290,26 @@ public class UsersService {
         }
     }
 
+    public void resetUserOnboarding(String userId, Long requirementId) {
+
+        KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
+        userProfileRepository.resetOnboarding(kycCompletedDto.userId());
+        userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.email());
+        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED));
+    }
+
     public UpdateResponse updateStateOfOrigin(StateUpdateRequest request) {
         AtomicInteger updated = new AtomicInteger();
         generalRepository.findOneBy(CountryStates.class, Map.of("id", request.stateId(), "countryId", request.countryId()))
-                .ifPresent(countryStates -> {
-            updated.set(userProfileRepository.updateState(AppUtil.getLoggedInUserId(), countryStates.getName()));
-        });
+                .ifPresent(countryStates -> updated.set(userProfileRepository.updateState(AppUtil.getLoggedInUserId(), countryStates.getName())));
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 
     public UpdateResponse updateCountryOfOrigin(CountryUpdateRequest request) {
 
         AtomicInteger updated = new AtomicInteger();
-        generalRepository.findById(Countries.class, request.id()).ifPresent(country -> {
-            updated.set(userProfileRepository.updateCountry(AppUtil.getLoggedInUserId(), country.getName()));
-        });
+        generalRepository.findById(Countries.class, request.id()).ifPresent(country -> updated.set(userProfileRepository.updateCountry(AppUtil.getLoggedInUserId(), country.getName())));
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 

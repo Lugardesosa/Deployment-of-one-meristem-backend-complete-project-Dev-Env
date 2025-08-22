@@ -10,6 +10,7 @@ public final class AppConstants {
     public static final int OTP_EXPIRES_AT_MINUTES = 5;
     public static final int PASSWORD_ATTEMPTS = 3;
     public static final int PAGE_SIZE = 20;
+    public static final String YYYY_MM_DD = "yyyy-MM-dd";
 
     public static final int ADMIN_PASSWORD_LENGTH = 10;
     public static final char[] specialChars = {'@', '#', '$', '%', '^', '&', '+', '=', '(', ')', '\''};
@@ -28,4 +29,5 @@ public final class AppConstants {
     public static final String USERS_CACHE_NAME = "users";
     public static final Integer IS_UPDATE_PIN = 1;
     public static final String RE_PASSWORD = "password";
+    public static final String DATE_REGEX = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
 }
