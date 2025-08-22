@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
@@ -34,13 +35,19 @@ public class Requirements extends BaseModel<String> {
     @NotNull(message = "Cannot be null")
     private Boolean mandatory;
 
+     // @see org.meristem.oneapp.usersservice.domains.enums.RequirementType
+    @Column("requirement_type")
+    @NotNull(message = "Cannot be null")
+    private Integer requirementType;
+
     @Builder
     public Requirements(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                        String displayName, String requirementName, Boolean mandatory) {
+                        String displayName, String requirementName, Boolean mandatory, Integer requirementType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.displayName = displayName;
         this.requirementName = requirementName;
         this.mandatory = mandatory;
+        this.requirementType = requirementType;
     }
 
     @Override

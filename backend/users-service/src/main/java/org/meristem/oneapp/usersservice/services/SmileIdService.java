@@ -16,6 +16,7 @@ import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceExce
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdSmileLinkRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.SmileIdSmileLinkResponse;
+import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
@@ -62,8 +63,9 @@ public class SmileIdService {
     private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
     private static final List<Integer> DOC_AND_ENHANCED_JOB_TYPES = List.of(DOCUMENT_JOB_TYPE, ENHANCED_JOB_TYPE);
-    public static final List<String> PROFILES = List.of("devlocal");
-//    public static final List<String> PROFILES = List.of("local", "devlocal");
+
+    @Value("${call.smile-id:true}")
+    private boolean callSmileId;
     private final SmileIdRecordRepository smileIdRecordRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
@@ -75,14 +77,14 @@ public class SmileIdService {
     private final SimpMessagingTemplate messagingTemplate;
     private final SmileIdClient smileIdClient;
     private final UsersService usersService;
-    @Value("${spring.profiles.active:local}")
-    private String activeProfile;
+    private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
+    private final CustomRepository customRepository;
 
 
     private final SmileIdProperties smileIdProperties;
     private final OneAppUsersProperties oneAppUsersProperties;
 
-    List<String> dataStatus = List.of("1012");
+    List<String> dataStatus = List.of("1012", DOCUMENT_APPROVED_STATUS);
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
@@ -102,7 +104,7 @@ public class SmileIdService {
         if (idCardRepository.existsByIdValue(smileRequest.idNumber())) {
             throw new BadRequestException("Id card already exists");
         }
-        // Check if user has already completed this requirement
+        // Check if a user has already completed this requirement
         if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
                 requirementId, true)) {
             throw new BadRequestException("User has already completed this requirement");
@@ -131,10 +133,10 @@ public class SmileIdService {
             smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
                     .timestamp(timestamp).build());
 
-            if (PROFILES.contains(activeProfile)) {
-                return getTestSmartLinkResponse(jobId, signature);
-            } else {
+            if (callSmileId) {
                 return getSmartLinkResponse(request, jobId);
+            } else {
+                return getTestSmartLinkResponse(jobId, signature, timestamp);
             }
 
         } catch (Exception e) {
@@ -197,11 +199,41 @@ public class SmileIdService {
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleSuccessfulNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-        if (actionStatus.contains(notification.resultCode()) && !DOC_AND_ENHANCED_JOB_TYPES.contains(notification.partnerParams().jobType())) {
+
+        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
+
+        if (actionStatus.contains(notification.resultCode())) {
             handleAction(notification, smileIdRecord);
-        } else {
+        } else if (dataStatus.contains(notification.resultCode()) && DOC_AND_ENHANCED_JOB_TYPES.contains(notification.partnerParams().jobType())) {
+            saveUserIdDetails(notification, smileIdRecord, loggedInUser);
+        } else if (dataStatus.contains(notification.resultCode())){
             handleData(notification, smileIdRecord);
         }
+    }
+
+    private void saveUserIdDetails(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, Users loggedInUser) {
+
+
+        if (StringUtils.isNotBlank(notification.expirationDate()) && notification.expirationDate().matches(AppConstants.DATE_REGEX)) {
+
+            if (LocalDate.parse(notification.expirationDate()).isBefore(LocalDate.now())) {
+                usersService.resetUserOnboarding(loggedInUser.getEmail(), smileIdRecord.getRequirementId());
+                return;
+            }
+        }
+
+        customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.fromName(notification.idType()).getName(), "idNumber", notification.idNumber()))
+                .ifPresentOrElse(u -> {
+                }, () -> {
+                    UserIdDetails userIdDetails = userIdDetailsMapper.smileIdWebhookNotificationToUserIdDetails(notification);
+                    userIdDetails.setIdType(IdCardType.fromName(notification.idType()).getName());
+                    userIdDetails.setGender(Gender.getGender(notification.gender()).getCaps());
+
+                    userIdDetails.setUserId(loggedInUser.getId());
+                    customRepository.save(userIdDetails);
+                });
+
+        completeOnboarding(smileIdRecord, loggedInUser);
     }
 
     /**
@@ -211,11 +243,16 @@ public class SmileIdService {
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
+
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
+
+        if (DOCUMENT_JOB_TYPE.equals(notification.partnerParams().jobType())) {
+            saveUserIdDetails(notification, smileIdRecord, loggedInUser);
+        }
         smileIdRecord.setMessage(notification.resultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.APPROVED.getValue());
-        completeOnboarding(smileIdRecord, loggedInUser);
         smileIdRecordRepository.save(smileIdRecord);
+        completeOnboarding(smileIdRecord, loggedInUser);
     }
 
     /**
@@ -225,7 +262,7 @@ public class SmileIdService {
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleData(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-        Requirements requirements = requirementsRepository.findByIdAndStatus(smileIdRecord.getRequirementId(), EntityStatus.ACTIVE.getValue())
+        requirementsRepository.findByIdAndStatus(smileIdRecord.getRequirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
         // Save document url for non bvn requirement
@@ -250,7 +287,7 @@ public class SmileIdService {
 
         if (OnboardingRequirements.of(notification.idType()) == OnboardingRequirements.BVN) {
 
-            UserProfile profile = userProfileRepository.findById(loggedInUser.getId()).orElseThrow(() -> new BadRequestException("User not found"));
+            UserProfile profile = userProfileRepository.findByUserId(loggedInUser.getId()).orElseThrow(() -> new BadRequestException("User not found"));
 
             profile.setGender(Gender.getGender(notification.gender()).getCaps());
             profile.setDateOfBirth(LocalDate.parse(notification.dob()));
@@ -260,10 +297,6 @@ public class SmileIdService {
             userProfileRepository.save(profile);
 
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getEmail());
-        }
-
-        if (DOCUMENT_APPROVED_STATUS.equals(notification.resultCode())) {
-            completeOnboarding(smileIdRecord, loggedInUser);
         }
     }
 
@@ -346,12 +379,12 @@ public class SmileIdService {
      * Generates a test smart link response for local or development environments.
      *
      * @param jobId The job ID associated with the test response.
-     * @param value A placeholder value for the test response.
+     * @param signature A placeholder value for the test response.
+     * @param timestamp A placeholder value for the test response.
      * @return A {@link SmileIdTokenResponse} containing the test smart link and job ID.
      */
-    private SmileIdTokenResponse getTestSmartLinkResponse(String jobId, String value) {
-        log.info("Created value: {}", value);
-        return new SmileIdTokenResponse("", jobId);
+    private SmileIdTokenResponse getTestSmartLinkResponse(String jobId, String signature, String timestamp) {
+        return new SmileIdTokenResponse("", jobId, signature, timestamp);
     }
 
     /**

@@ -7,6 +7,7 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Transactional(readOnly = true)
 public interface UserProfileRepository extends BaseRepository<UserProfile, Long> {
@@ -33,6 +34,11 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
 
     @Modifying
     @Transactional
+    @Query("UPDATE user_profile SET onboarding_completed = FALSE WHERE user_id = :userId ")
+    void resetOnboarding(Long userId);
+
+    @Modifying
+    @Transactional
     @Query("UPDATE user_profile SET date_of_birth = :dob WHERE user_id = :userId ")
     int updateDob(long userId, LocalDate dob);
 
@@ -51,4 +57,6 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Transactional
     @Query("UPDATE user_profile SET country_of_origin = :name WHERE user_id = :userId ")
     int updateCountry(long userId, String name);
+
+    Optional<UserProfile> findByUserId(Long userId);
 }

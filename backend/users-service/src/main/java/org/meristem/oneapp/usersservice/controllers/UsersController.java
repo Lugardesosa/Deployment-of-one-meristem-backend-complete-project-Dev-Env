@@ -159,7 +159,6 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 
-    @ConditionalOnExpression("${hide.update.country:true}")
     @Hidden
     @Operation(summary = "Update Country")
     @ApiResponses(value = {

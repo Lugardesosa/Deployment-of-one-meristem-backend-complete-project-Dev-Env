@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;

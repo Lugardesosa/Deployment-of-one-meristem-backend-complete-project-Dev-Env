@@ -1,7 +1,6 @@
 package org.meristem.oneapp.trustiesservice.services;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.trustiesservice.domains.requests.UpdateSelectionRequest;
@@ -20,7 +19,6 @@ import java.util.*;
 public class AdminService {
 
     private final CustomRepository customRepository;
-    private final ObjectMapper objectMapper;
     private final FormRepository formRepository;
 
     @Transactional
