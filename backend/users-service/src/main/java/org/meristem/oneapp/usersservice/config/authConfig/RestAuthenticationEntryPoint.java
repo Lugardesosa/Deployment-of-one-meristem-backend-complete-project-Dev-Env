@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -14,10 +14,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RequiredArgsConstructor
-public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    private final ObjectMapper mapper;
+public record RestAuthenticationEntryPoint(ObjectMapper mapper) implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
@@ -28,7 +25,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 : "Unauthorized";
         String path = request.getRequestURI();
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType("application/json;charset=UTF-8");
+        response.setContentType(AppConstants.APPLICATION_JSON_UTF8_VALUE);
 
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("timestamp", currentTimeStamp);
