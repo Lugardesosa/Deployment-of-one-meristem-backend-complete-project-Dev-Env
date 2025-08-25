@@ -15,7 +15,6 @@ import org.meristem.oneapp.usersservice.services.NextOfKinService;
 import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +35,7 @@ public class UsersController {
     @Operation(summary = "Creates a user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created the user.",
-                    content = { @Content(mediaType = "application/json",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = CreateUserRequest.class))
             }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
