@@ -8,8 +8,8 @@ import org.meristem.oneapp.usersservice.models.Images;
 
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface AvatarMapping {
-    AvatarMapping INSTANCE = Mappers.getMapper(AvatarMapping.class);
+public interface AvatarMapper {
+    AvatarMapper INSTANCE = Mappers.getMapper(AvatarMapper.class);
 
     AvatarUrls avatarsToAvatarUrls(Images avatars);
 }

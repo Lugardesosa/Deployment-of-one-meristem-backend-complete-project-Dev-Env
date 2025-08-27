@@ -8,7 +8,7 @@ import org.meristem.oneapp.usersservice.domains.enums.NextOfKins;
 import org.meristem.oneapp.usersservice.domains.requests.CreateNextOfKinRequest;
 import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.mappers.NextOfKinMapping;
+import org.meristem.oneapp.usersservice.mappers.NextOfKinMapper;
 import org.meristem.oneapp.usersservice.models.NextOfKin;
 import org.meristem.oneapp.usersservice.repositories.NextOfKinRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
@@ -36,7 +36,7 @@ import static java.util.Objects.isNull;
 public class NextOfKinService {
 
     private final NextOfKinRepository nextOfKinRepository;
-    private final NextOfKinMapping nextOfKinMapping = Mappers.getMapper(NextOfKinMapping.class);
+    private final NextOfKinMapper nextOfKinMapper = Mappers.getMapper(NextOfKinMapper.class);
 
 
     /**
@@ -68,16 +68,16 @@ public class NextOfKinService {
             throw new BadRequestException("Contact us to update your next-of-kin");
         }
 
-        NextOfKin nextOfKin = nextOfKinMapping.createNextOfKinRequestToNextOfKin(createNextOfKinRequest);
+        NextOfKin nextOfKin = nextOfKinMapper.createNextOfKinRequestToNextOfKin(createNextOfKinRequest);
         nextOfKin.setRelationship(nextOfKins.getDisplayName());
         nextOfKin.setUserId(AppUtil.getLoggedInUserId());
         nextOfKinRepository.save(nextOfKin);
-        return nextOfKinMapping.NextOfKinToCreateNextOfKindResponse(nextOfKin);
+        return nextOfKinMapper.NextOfKinToCreateNextOfKindResponse(nextOfKin);
     }
 
     public NextOfKinResponse getNextOfKin() {
         NextOfKin nextOfKin = nextOfKinRepository.findByUserId(AppUtil.getLoggedInUserId());
-        return isNull(nextOfKin) ? NextOfKinResponse.builder().build() : nextOfKinMapping.nextOfKinToNextOfKinResponse(nextOfKin);
+        return isNull(nextOfKin) ? NextOfKinResponse.builder().build() : nextOfKinMapper.nextOfKinToNextOfKinResponse(nextOfKin);
     }
 
     // TODO: CREATE AN UPDATE ENDPOINT THAT CAN ONLY BE USED BY ADMINS

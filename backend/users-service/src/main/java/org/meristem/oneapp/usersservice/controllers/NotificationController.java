@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = ApiConstants.CONTEXT_PATH + "notification", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = ApiConstants.CONTEXT_PATH + "notification", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -36,11 +36,11 @@ public class NotificationController {
     @Operation(summary = "Sends an otp.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sends an otp to the given number or recipient.",
-                    content = { @Content(mediaType = "application/json",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = SendOtpResponse.class))
                     }),
     })
-    @PreAuthorize("hasAuthority('SCOPE_send_otp')")
+    @PreAuthorize("hasAuthority('SCOPE_send_otp') OR hasRole('ROLE_users.otp.send')")
     @PostMapping(value = "/otp")
     public ResponseEntity<AppResponse<SendOtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest sendOtpRequest) {
         return ApiUtil.buildResponse(notificationService.sendOtp(sendOtpRequest), HttpStatus.OK.toString(), "Otp sent to ".concat(sendOtpRequest.recipient()));
@@ -49,11 +49,11 @@ public class NotificationController {
     @Operation(summary = "Verifies an otp.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Verifies an otp sent to the given number or recipient.",
-                    content = { @Content(mediaType = "application/json",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = VerifyOtpResponse.class))
                     })
     })
-    @PreAuthorize("hasAuthority('SCOPE_verify_otp')")
+    @PreAuthorize("hasAuthority('SCOPE_verify_otp') OR hasRole('ROLE_users.otp.verify')")
     @PostMapping(value = "/otp/verify")
     public ResponseEntity<AppResponse<VerifyOtpResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest verifyOtpRequest) {
         return ApiUtil.buildResponse(notificationService.verifyOtp(verifyOtpRequest), HttpStatus.OK.toString(), "Otp request verification processed.");

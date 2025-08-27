@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.walletservice.constants.AppConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -14,10 +14,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RequiredArgsConstructor
-public class RestAccessDeniedException implements AccessDeniedHandler {
+public record RestAccessDeniedException(ObjectMapper mapper) implements AccessDeniedHandler {
 
-    private final ObjectMapper mapper;
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
@@ -26,7 +24,7 @@ public class RestAccessDeniedException implements AccessDeniedHandler {
                 accessDeniedException.getMessage() : "Authorization failed";
         String path = request.getRequestURI();
         response.setStatus(HttpStatus.FORBIDDEN.value());
-        response.setContentType("application/json;charset=UTF-8");
+        response.setContentType(AppConstants.APPLICATION_JSON_UTF8_VALUE);
 
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("timestamp", currentTimeStamp);

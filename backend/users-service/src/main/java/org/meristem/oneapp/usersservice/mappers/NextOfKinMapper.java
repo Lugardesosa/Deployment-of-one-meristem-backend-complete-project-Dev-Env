@@ -8,9 +8,9 @@ import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
 import org.meristem.oneapp.usersservice.models.NextOfKin;
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface NextOfKinMapping {
+public interface NextOfKinMapper {
 
-    NextOfKinMapping INSTANCE = Mappers.getMapper(NextOfKinMapping.class);
+    NextOfKinMapper INSTANCE = Mappers.getMapper(NextOfKinMapper.class);
 
     NextOfKin createNextOfKinRequestToNextOfKin(CreateNextOfKinRequest nextOfKinRequest);
     NextOfKinResponse NextOfKinToCreateNextOfKindResponse(NextOfKin nextOfKin);

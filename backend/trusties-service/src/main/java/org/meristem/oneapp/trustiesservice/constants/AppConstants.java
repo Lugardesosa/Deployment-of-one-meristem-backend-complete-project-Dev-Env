@@ -11,4 +11,6 @@ public final class AppConstants {
     public static String FORM_TYPE_ASSET = "ASSET";
     public static String FORM_TYPE_PLAN = "PLAN";
     public static final String EMAIL_REGEX_PATTERN = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
+    public static final String APPLICATION_JSON_UTF8_VALUE = "application/json;charset=UTF-8";
+
 }

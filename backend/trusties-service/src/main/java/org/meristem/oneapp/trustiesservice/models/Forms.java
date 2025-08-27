@@ -20,8 +20,11 @@ public class Forms extends BaseModel<String> {
 
     @NotNull(message = "Cannot be null")
     @Column("form_position")
-    @Size(max = 255, message = "Cannot be more than 255 chars")
     private Long formPosition;
+
+    @NotNull(message = "Cannot be null")
+    @Column("internal_order")
+    private Long internalOrder;
 
     @Column("placeholder")
     @Size(max = 255, message = "Cannot be more than 255 chars")
@@ -60,10 +63,11 @@ public class Forms extends BaseModel<String> {
     private Integer mandatory;
 
     @Builder
-    public Forms(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long formPosition,
+    public Forms(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long formPosition, Long internalOrder,
                  String placeholder, String type, Integer order, String label, Integer pageNo, Integer mandatory, Integer textSize, String defaultValue, String subtext) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.formPosition = formPosition;
+        this.internalOrder = internalOrder;
         this.placeholder = placeholder;
         this.type = type;
         this.order = order;

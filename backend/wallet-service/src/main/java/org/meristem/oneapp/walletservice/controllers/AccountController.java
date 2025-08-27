@@ -13,6 +13,7 @@ import org.meristem.oneapp.walletservice.domains.responses.VirtualAccountRespons
 import org.meristem.oneapp.walletservice.services.VirtualAccountService;
 import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +33,7 @@ public class AccountController {
     @Operation(summary = "Gets user's accounts", method = "GET")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Get accounts.",
-                    content = { @Content(mediaType = "application/json",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = VirtualAccountResponse.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")

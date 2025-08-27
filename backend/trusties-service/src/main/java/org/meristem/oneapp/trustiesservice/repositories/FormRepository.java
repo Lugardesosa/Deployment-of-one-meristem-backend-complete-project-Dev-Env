@@ -18,4 +18,7 @@ public interface FormRepository extends BaseRepository<Forms, Long> {
 
     @Query("SELECT f.* FROM forms f WHERE f.form_position = :formPosition")
     List<FormResponse.FormData> findFormsByFormPosition(Integer formPosition);
+
+    @Query("SELECT f.* FROM forms f WHERE f.internal_order = :internalOrder")
+    List<FormResponse.FormData> findFormsByInternalOrder(Integer internalOrder);
 }
