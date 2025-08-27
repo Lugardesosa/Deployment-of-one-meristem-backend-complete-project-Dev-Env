@@ -30,7 +30,7 @@ jobs:
         id: check_change
         run: |
           git fetch origin dev_env
-          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|core-service|report-service|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|core-service|report-service|meriapp-config|platform|trusties-service)/" | cut -d'/' -f2 | sort -u | xargs)
           echo "Changed services: $CHANGED"
           if [ -z "$CHANGED" ]; then
             echo "changed_services=none" >> "$GITHUB_OUTPUT"
