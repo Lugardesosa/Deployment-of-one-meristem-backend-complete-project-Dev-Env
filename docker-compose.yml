@@ -269,7 +269,7 @@ services:
     container_name: cloud-gateway
     ports:
       - "8080:20010"  # Exposed for HTTP
-      - "443:20010" # Exposed for HTTPS
+      #- "443:20010" # Exposed for HTTPS
     networks:
       - meristem-network
     depends_on:
