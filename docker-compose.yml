@@ -142,7 +142,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - APP_PROFILE=local
+      - APP_PROFILE=devlocal
       - GITHUB_BRANCH=dev_env
       - USER="System"
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
