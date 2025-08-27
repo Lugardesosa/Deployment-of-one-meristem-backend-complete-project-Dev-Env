@@ -174,7 +174,7 @@ jobs:
           set +e
           sudo docker-compose -f docker-compose.yml down
           sudo docker volume prune -f
-          sudo docker-compose -f docker-compose.yml up -d 
+          sudo docker-compose -f docker-compose.yml up -d
           DEPLOY_STATUS=\$?
           set -e
 
