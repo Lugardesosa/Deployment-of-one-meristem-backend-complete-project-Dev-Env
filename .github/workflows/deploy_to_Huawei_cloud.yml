@@ -172,21 +172,18 @@ jobs:
           # -----------------------------
           echo "Restarting Docker Compose services..."
           set +e
-          sudo docker-compose down
+          sudo docker-compose down -f docker-compose.yml
           sudo docker volume prune -f
-          sudo docker-compose up -d --build
+          sudo docker-compose up -f docker-compose.yml -d 
           DEPLOY_STATUS=\$?
           set -e
 
           # -----------------------------
           # If failed, roll back to previous config
           # -----------------------------
-          # -----------------------------
-          # If failed, roll back to previous config
-          # -----------------------------
           if [ \$DEPLOY_STATUS -ne 0 ]; then
             echo "Deployment failed. Rolling back..."
-            sudo docker-compose down || true
+            sudo docker-compose down -f docker-compose.yml || true
             sudo docker-compose -f ../docker-compose.backup.yml up -d || {
               echo "Rollback failed. Manual intervention required."
               exit 1
