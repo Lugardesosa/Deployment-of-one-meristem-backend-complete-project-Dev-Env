@@ -377,7 +377,7 @@ services:
     image: cloud-gateway
     container_name: cloud-gateway
     ports:
-      - "443:8443"
+      #- "443:8443"
       - "8080:20010"  # Exposed for HTTP
         #- "443:20010" # Exposed for HTTPS
     networks:
