@@ -184,7 +184,7 @@ jobs:
           if [ \$DEPLOY_STATUS -ne 0 ]; then
             echo "Deployment failed. Rolling back..."
             sudo docker-compose -f docker-compose.yml down || true
-            sudo docker-compose -f ../docker-compose.backup.yml up -d || {
+            sudo docker-compose -f docker-compose.backup.yml up -d || {
               echo "Rollback failed. Manual intervention required."
               exit 1
             }
