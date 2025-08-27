@@ -15,12 +15,10 @@ import java.util.List;
 @Getter
 public enum Plans {
 
-    SIMPLE_WILL("Simple Will", 14, RowMappers.getSimpleWill(), SimpleWill.class),
-    COMPREHENSIVE_WILL("Comprehensive Will", 15, RowMappers.getComprehensiveWill(), ComprehensiveWill.class),
-//    EDUCATION_TRUST("Education Trust", 16),
-//    LIVING_TRUST("Living Trust", 17),
-    NOMINATED_FUND("Nominated Fund", 18, RowMappers.getNominatedFund(), NominatedFund.class);
-//    TESTAMENTARY_TRUST("Testamentary Trust", 19);
+    SIMPLE_WILL("Simple Will", 1, RowMappers.getSimpleWill(), SimpleWill.class),
+    COMPREHENSIVE_WILL("Comprehensive Will", 2, RowMappers.getComprehensiveWill(), ComprehensiveWill.class),
+//    PRIVATE_TRUSTS("Private Trusts", 3, RowMappers.getNominatedFund(), NominatedFund.class),
+    NOMINATED_FUND("Nominated Fund", 4, RowMappers.getNominatedFund(), NominatedFund.class);
 
     private final String name;
     private final int value;

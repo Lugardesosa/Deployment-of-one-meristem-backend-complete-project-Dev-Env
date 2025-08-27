@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers.getCurrencyRowMapper;
 import static org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers.getSelectionValue;
 
@@ -40,7 +41,7 @@ public class FormService {
 
         Long userId = AppUtil.getLoggedInUserId();
         Map<Integer, Object> selections = new HashMap<>();
-        List<FormResponse.FormData> formResponses = formRepository.findFormsByFormPosition(form.getPosition());
+        List<FormResponse.FormData> formResponses = formRepository.findFormsByInternalOrder(form.getInternalOrder());
         List<FormResponse.Currency> currencies = customRepository.findAll(Currencies.class, Map.of(), getCurrencyRowMapper());
 
         for (FormResponse.FormData formData : formResponses) {
@@ -72,9 +73,24 @@ public class FormService {
     }
 
     public List<FormNamesResponse> getFormNames(GeneralFormType generalFormType) {
+
+        List<FormName> skip = List.of(FormName.DIGITAL_PLATFORM, FormName.CRYPTOCURRENCY_AND_NFT, FormName.FINTECH_WALLET);
+
         return Arrays.stream(FormName.values()).filter(f -> f.getType().equals(generalFormType.getName()))
-                .map(fn -> FormNamesResponse.builder().displayName(fn.getDisplayName())
-                .position(fn.getPosition()).name(fn.name()).build())
+                .filter(f -> !skip.contains(f))
+                .map(fn -> {
+
+                    FormNamesResponse build = FormNamesResponse.builder().displayName(fn.getDisplayName())
+                            .position(fn.getPosition()).name(fn.name()).build();
+
+                    if (FormName.ALTERNATE_ASSETS.equals(fn)) {
+                        build.setSubs(skip.stream().map(fc -> FormNamesResponse.builder().displayName(fc.getDisplayName())
+                                .position(fc.getPosition()).name(fc.name()).build()).toList());
+                    }
+
+                    return build;
+
+                })
                 .toList();
     }
 
