@@ -1,10 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
-import lombok.RequiredArgsConstructor;
-import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.models.Roles;
-import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.PermissionsRepository;
 import org.meristem.oneapp.usersservice.repositories.RolesRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
@@ -19,12 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
-
-    private final UsersRepository usersRepository;
-    private final RolesRepository rolesRepository;
-    private final PermissionsRepository permissionsRepository;
+public record CustomUserDetailsService(UsersRepository usersRepository, RolesRepository rolesRepository, PermissionsRepository permissionsRepository) implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
