@@ -125,7 +125,7 @@ services:
       - redis
       - kafka
       - consul
-      - otel-collector
+      #- otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -171,17 +171,17 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      - OTEL_SERVICE_NAME=users-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-      - OTEL_TRACES_EXPORTER=otlp #---
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=users-service,env=devlocal
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_JAVAAGENT_ENABLED=true
-    volumes:
-      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=users-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=users-service,env=devlocal
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
      # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
@@ -199,7 +199,7 @@ services:
       - kafka
       - redis
       - consul
-      - otel-collector
+      # - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -238,17 +238,17 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      - OTEL_SERVICE_NAME=notification-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-      - OTEL_TRACES_EXPORTER=otlp #---
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-service,env=local
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_JAVAAGENT_ENABLED=true
-    volumes:
-      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+    #   - OTEL_SERVICE_NAME=notification-service
+    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+    #   - OTEL_TRACES_EXPORTER=otlp #---
+    #   - OTEL_METRICS_EXPORTER=otlp
+    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-service,env=local
+    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    #   - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
 
 
@@ -266,7 +266,7 @@ services:
       - kafka
       - redis
       - consul
-      - otel-collector
+      # - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -285,9 +285,6 @@ services:
       - REPORT_DB_PASSWORD=${DB_REPORT_PASSWORD}
       - REPORT_DB_USERNAME=${DB_REPORT_USERNAME}
       - REPORT_SERVICE_HOSTNAME=report-service
-        #- WALLET_DB_NAME=${DB_NAME_WALLET_SERVICE}
-        #- WALLET_DB_PASSWORD=${DB_WALLET_PASSWORD}
-        #- WALLET_DB_USERNAME=${DB_WALLET_USERNAME}
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - KAFKA_HOST_URL=${KAFKA_HOST}
       - REDIS_HOST=${REDIS_HOST}
@@ -299,17 +296,17 @@ services:
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      - OTEL_SERVICE_NAME=report-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-      - OTEL_TRACES_EXPORTER=otlp #---
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=report-service,env=local
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_JAVAAGENT_ENABLED=true
-    volumes:
-      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+    #   - OTEL_SERVICE_NAME=report-service
+    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+    #   - OTEL_TRACES_EXPORTER=otlp #---
+    #   - OTEL_METRICS_EXPORTER=otlp
+    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=report-service,env=local
+    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    #   - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
 
   # ======================
@@ -326,7 +323,7 @@ services:
       - kafka
       - redis
       - consul
-      - otel-collector
+      # - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -361,17 +358,17 @@ services:
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      - OTEL_SERVICE_NAME=wallet-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-      - OTEL_TRACES_EXPORTER=otlp #---
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=wallet-service,env=local
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_JAVAAGENT_ENABLED=true
-    volumes:
-      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+    #   - OTEL_SERVICE_NAME=wallet-service
+    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+    #   - OTEL_TRACES_EXPORTER=otlp #---
+    #   - OTEL_METRICS_EXPORTER=otlp
+    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=wallet-service,env=local
+    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    #   - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
     
   # ======================
@@ -389,7 +386,7 @@ services:
       - redis
       - consul
       - users-service
-      - otel-collector
+      # - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -418,17 +415,17 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - USER_SERVICE_HOSTNAME=users-service
       - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
-      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      - OTEL_SERVICE_NAME=trusties-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-      - OTEL_TRACES_EXPORTER=otlp #---
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=trusties-service,env=local
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_JAVAAGENT_ENABLED=true
-    volumes:
-      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+    #   - OTEL_SERVICE_NAME=trusties-service
+    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+    #   - OTEL_TRACES_EXPORTER=otlp #---
+    #   - OTEL_METRICS_EXPORTER=otlp
+    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=trusties-service,env=local
+    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    #   - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
   # ======================
   # API GATEWAY (Exposed publicly)
@@ -453,7 +450,7 @@ services:
       - trusties-service
       - report-service
       - wallet-service
-      - otel-collector
+      # - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -477,17 +474,17 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SSL_KEY_ALIAS=one-meristem-app
       - KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
-      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      - OTEL_SERVICE_NAME=cloud-gateway
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-      - OTEL_TRACES_EXPORTER=otlp #---
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=cloud-gateway,env=local
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_JAVAAGENT_ENABLED=true
-    volumes:
-      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=cloud-gateway
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=cloud-gateway,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
         #- SSL_CERT_PATH=/etc/ssl/certs/certificate.pem
         #- SSL_CERT_PASSWORD=${CERT_PASSWORD}  
         #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
@@ -497,72 +494,72 @@ services:
       #test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]   
 
   # OBSERVABILITY
-  otel-collector:
-    container_name: otel-collector
-    image: otel/opentelemetry-collector-contrib:0.123.0
-    command: [ "--config=/etc/otel-collector-config.yaml" ]
-    ports:
-      - "4317:4317" # OTLP gRPC receiver
-    volumes:
-      - /one_meristem_app/logs_collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    networks:
-      - meristem-network
-    restart: unless-stopped
+  # otel-collector:
+  #   container_name: otel-collector
+  #   image: otel/opentelemetry-collector-contrib:0.123.0
+  #   command: [ "--config=/etc/otel-collector-config.yaml" ]
+  #   ports:
+  #     - "4317:4317" # OTLP gRPC receiver
+  #   volumes:
+  #     - /one_meristem_app/logs_collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+  #   networks:
+  #     - meristem-network
+  #   restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - 3000:3000
-    environment:
-      - GF_USERS_DEFAULT_THEME=dark
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=password
-    volumes:
-      - /one_meristem_app/logs_collector/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/provisioning-datasources.yaml:ro
-    depends_on:
-      - tempo
-      - loki
-      - prometheus
-    restart: unless-stopped
-    networks:
-      - meristem-network
-
-
-  tempo:
-    image: grafana/tempo:latest
-    container_name: tempo
-    volumes:
-      - /one_meristem_app/logs_collector/tempo/tempo-local.yaml:/etc/tempo-local.yaml:ro
-    command: "-config.file=/etc/tempo-local.yaml" 
-    restart: unless-stopped
-    networks:
-      - meristem-network
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     - GF_USERS_DEFAULT_THEME=dark
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=password
+  #   volumes:
+  #     - /one_meristem_app/logs_collector/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/provisioning-datasources.yaml:ro
+  #   depends_on:
+  #     - tempo
+  #     - loki
+  #     - prometheus
+  #   restart: unless-stopped
+  #   networks:
+  #     - meristem-network
 
 
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - meristem-network
-    restart: unless-stopped
+  # tempo:
+  #   image: grafana/tempo:latest
+  #   container_name: tempo
+  #   volumes:
+  #     - /one_meristem_app/logs_collector/tempo/tempo-local.yaml:/etc/tempo-local.yaml:ro
+  #   command: "-config.file=/etc/tempo-local.yaml" 
+  #   restart: unless-stopped
+  #   networks:
+  #     - meristem-network
 
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    command:
-      - --config.file=/etc/prometheus/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
-    volumes:
-      - /one_meristem_app/monitoring/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    networks:
-      - meristem-network
+  # loki:
+  #   image: grafana/loki:latest
+  #   container_name: loki
+  #   command: -config.file=/etc/loki/local-config.yaml
+  #   networks:
+  #     - meristem-network
+  #   restart: unless-stopped
+
+
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   command:
+  #     - --config.file=/etc/prometheus/prometheus.yaml
+  #     - --web.enable-remote-write-receiver
+  #     - --enable-feature=exemplar-storage
+  #   volumes:
+  #     - /one_meristem_app/monitoring/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - meristem-network
 
 # ======================
 # INFRASTRUCTURE
