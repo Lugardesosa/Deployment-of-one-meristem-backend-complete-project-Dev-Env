@@ -4,7 +4,7 @@ services:
   # ======================
   redis:
     image: redis:7.4.2-alpine
-    container_name: redis
+    container_name: redis-new
     command: redis-server --requirepass 'AHjsoie67&8*'
     environment:
       - REDIS_HOST=${REDIS_HOST}
@@ -12,7 +12,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - meristem-network
+      - meristem-network-new
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -22,7 +22,7 @@ services:
   # ======================
   kafka:
     image: apache/kafka:3.9.0
-    container_name: kafka
+    container_name: kafka-new
     environment:
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
@@ -40,7 +40,7 @@ services:
       - kafka_data:/var/lib/kafka/data
       - kafka_secret:/etc/kafka/secrets
     networks:
-      - meristem-network
+      - meristem-network-new
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "sh", "-c", "nc -z localhost 9092"]
@@ -52,10 +52,10 @@ services:
   # CONFIG SERVER (Internal only)
   # ======================
   config-server:
-    image: config-server
-    container_name: config-server
+    image: config-server-new
+    container_name: config-server-new
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - redis
       - kafka
@@ -83,12 +83,12 @@ services:
   # CONSUL
   # ---------------------
   consul:
-    container_name: consul
+    container_name: consul-new
     command: "agent -server -bootstrap-expect 1 -ui -client 0.0.0.0"
     networks:
-      - meristem-network
+      - meristem-network-new
     ports:
-      - "8500:8500"
+      - "8501:8500"
     restart: unless-stopped
     image: consul:1.15.4
 
@@ -97,7 +97,7 @@ services:
   # ======================
   postgres:
     image: postgres:15-alpine
-    container_name: postgres
+    container_name: postgres-new
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -106,7 +106,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh  # The Database init-db.sh to be run in order to create the databases
     networks:
-      - meristem-network
+      - meristem-network-new
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}"]
@@ -115,10 +115,10 @@ services:
   # USERS SERVICE (Internal only)
   # ======================
   users-service:
-    image: users-service
-    container_name: users-service
+    image: users-service-new
+    container_name: users-service-new
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - config-server
       - postgres
@@ -177,10 +177,10 @@ services:
   # NOTIFICATION SERVICE (Internal only)
   # ======================
   notification-service:
-    image: notification-service
-    container_name: notification-service
+    image: notification-service-new
+    container_name: notification-service-new
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - config-server
       - postgres
@@ -225,6 +225,17 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      - OTEL_SERVICE_NAME=notification-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      - OTEL_TRACES_EXPORTER=otlp #---
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-service,env=local
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_JAVAAGENT_ENABLED=true
+    volumes:
+      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
 
 
@@ -232,10 +243,10 @@ services:
   # REPORT SERVICE (Internal only)
   # ======================
   report-service:
-    image: report-service
-    container_name: report-service
+    image: report-service-new
+    container_name: report-service-new
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - config-server
       - postgres
@@ -274,16 +285,27 @@ services:
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      - OTEL_SERVICE_NAME=report-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      - OTEL_TRACES_EXPORTER=otlp #---
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=report-service,env=local
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_JAVAAGENT_ENABLED=true
+    volumes:
+      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
 
   # ======================
   # WALLET SERVICE (Internal only)
   # ======================
   wallet-service:
-    image: wallet-service
-    container_name: wallet-service
+    image: wallet-service-new
+    container_name: wallet-service-new
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - config-server
       - postgres
@@ -324,16 +346,28 @@ services:
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      - OTEL_SERVICE_NAME=wallet-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      - OTEL_TRACES_EXPORTER=otlp #---
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=wallet-service,env=local
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_JAVAAGENT_ENABLED=true
+    volumes:
+      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+
     restart: unless-stopped
     
   # ======================
   # TRUSTIES SERVICE (Internal Only)
   # ======================
   trusties-service:
-    image: trusties-service
-    container_name: trusties-service
+    image: trusties-service-new
+    container_name: trusties-service-new
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - config-server
       - postgres
@@ -369,19 +403,30 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - USER_SERVICE_HOSTNAME=users-service
       - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
+      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      - OTEL_SERVICE_NAME=trusties-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      - OTEL_TRACES_EXPORTER=otlp #---
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=trusties-service,env=local
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_JAVAAGENT_ENABLED=true
+    volumes:
+      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
   # ======================
   # API GATEWAY (Exposed publicly)
   # ======================
   cloud-gateway:
-    image: cloud-gateway
-    container_name: cloud-gateway
+    image: cloud-gateway-new
+    container_name: cloud-gateway-new
     ports:
       #- "443:8443"
       #- "8080:20010"  # Exposed for HTTP
       - "443:20010" # Exposed for HTTPS
     networks:
-      - meristem-network
+      - meristem-network-new
     depends_on:
       - config-server
       - users-service
@@ -416,6 +461,17 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SSL_KEY_ALIAS=one-meristem-app
       - KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
+      - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      - OTEL_SERVICE_NAME=cloud-gateway
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      - OTEL_TRACES_EXPORTER=otlp #---
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=cloud-gateway,env=local
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_JAVAAGENT_ENABLED=true
+    volumes:
+      - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
         #- SSL_CERT_PATH=/etc/ssl/certs/certificate.pem
         #- SSL_CERT_PASSWORD=${CERT_PASSWORD}  
         #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
@@ -428,7 +484,7 @@ services:
 # INFRASTRUCTURE
 # ======================
 networks:
-  meristem-network:
+  meristem-network-new:
     driver: bridge
 
 volumes:
