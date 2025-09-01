@@ -18,8 +18,8 @@ public enum Plans {
 
     SIMPLE_WILL("Simple Will", 1, RowMappers.getSimpleWill(), SimpleWill.class, true),
     COMPREHENSIVE_WILL("Comprehensive Will", 2, RowMappers.getComprehensiveWill(), ComprehensiveWill.class, true),
-    PRIVATE_TRUSTS("Private Trusts", 3, RowMappers.getPrivateTrusts(), PrivateTrusts.class, false);
-//    NOMINATED_FUND("Nominated Fund", 4, RowMappers.getNominatedFund(), NominatedFund.class, false);
+    PRIVATE_TRUSTS("Private Trusts", 3, RowMappers.getPrivateTrusts(), PrivateTrusts.class, false),
+    NOMINATED_FUND("Nominated Fund", 4, RowMappers.getNominatedFund(), NominatedFund.class, false);
 
     private final String name;
     private final int value;

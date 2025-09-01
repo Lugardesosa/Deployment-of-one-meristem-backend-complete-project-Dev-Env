@@ -124,7 +124,7 @@ public class SmileIdService {
             SmileIdSmileLinkRequest request = SmileIdSmileLinkRequest.builder()
                     .partnerId(smileIdProperties.partnerId()).signature(signature)
                     .name(AppUtil.getLoggedInUserFullName())
-                    .timestamp(timestamp).callbackUrl(smileIdProperties.callbackUrl())
+                    .timestamp(timestamp)
                     .companyName(oneAppUsersProperties.companyName()).dataPrivacyPolicyUrl(oneAppUsersProperties.dataPrivacyPolicyUrl())
                     .logoUrl(oneAppUsersProperties.logoUrl()).isSingleUse(smileIdProperties.isSingleUse())
                     .expiresAt(expiresAt).userId(userId)
