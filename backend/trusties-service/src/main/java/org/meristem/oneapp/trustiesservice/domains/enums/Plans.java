@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers;
 import org.meristem.oneapp.trustiesservice.models.ComprehensiveWill;
 import org.meristem.oneapp.trustiesservice.models.NominatedFund;
+import org.meristem.oneapp.trustiesservice.models.PrivateTrusts;
 import org.meristem.oneapp.trustiesservice.models.SimpleWill;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
@@ -15,13 +16,14 @@ import java.util.List;
 @Getter
 public enum Plans {
 
-    SIMPLE_WILL("Simple Will", 1, RowMappers.getSimpleWill(), SimpleWill.class),
-    COMPREHENSIVE_WILL("Comprehensive Will", 2, RowMappers.getComprehensiveWill(), ComprehensiveWill.class),
-//    PRIVATE_TRUSTS("Private Trusts", 3, RowMappers.getNominatedFund(), NominatedFund.class),
-    NOMINATED_FUND("Nominated Fund", 4, RowMappers.getNominatedFund(), NominatedFund.class);
+    SIMPLE_WILL("Simple Will", 1, RowMappers.getSimpleWill(), SimpleWill.class, true),
+    COMPREHENSIVE_WILL("Comprehensive Will", 2, RowMappers.getComprehensiveWill(), ComprehensiveWill.class, true),
+    PRIVATE_TRUSTS("Private Trusts", 3, RowMappers.getPrivateTrusts(), PrivateTrusts.class, false);
+//    NOMINATED_FUND("Nominated Fund", 4, RowMappers.getNominatedFund(), NominatedFund.class, false);
 
     private final String name;
     private final int value;
     private final ResultSetExtractor<List<?>> rowMapper;
     private final Class<?> clazz;
+    private final boolean withAssets;
 }

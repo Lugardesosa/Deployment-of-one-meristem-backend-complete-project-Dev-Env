@@ -3,6 +3,8 @@ package org.meristem.oneapp.trustiesservice.dtos.sql;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.trustiesservice.domains.enums.ContributionFrequency;
+import org.meristem.oneapp.trustiesservice.domains.enums.PrivateTrustObjectives;
 import org.meristem.oneapp.trustiesservice.domains.responses.*;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,6 +23,16 @@ public final class RowMappers {
                 .additionalValue(rs.getString("additional_value")).build();
     }
 
+    public static ResultSetExtractor<List<?>> getRadioValue() {
+        return (rs) -> {
+            List<String> radioValues = new ArrayList<>();
+            while (rs.next()) {
+                radioValues.add(rs.getString("selection_value"));
+            }
+            return radioValues;
+        };
+    }
+
     public static RowMapper<BankResponse> getBankNames() {
         return (rs, rowNum) ->
                 BankResponse.builder()
@@ -32,7 +44,9 @@ public final class RowMappers {
         return (rs, rn) ->
                 FormResponse.Currency.builder()
                         .currencyName(rs.getString("currency_name"))
-                        .currencyLogo("currency_logo").build();
+                        .currencyLogo(rs.getString("currency_logo"))
+                        .currencyId(rs.getLong("id"))
+                        .build();
     }
 
     public static RowMapper<CashResponse> getCashRowMapper() {
@@ -182,7 +196,7 @@ public final class RowMappers {
                             .id(id).lastName(rs.getString("last_name")).email(rs.getString("email"))
                             .address(rs.getString("address")).firstName(rs.getString("first_name")).middleName(rs.getString("middle_name"))
                             .ownerId(rs.getLong("owner_id")).maritalStatus(rs.getString("marital_status"))
-                            .phoneNumber(String.valueOf(rs.getLong("phone_number"))).title(rs.getString("title"))
+                            .phoneNumber(rs.getString("phone_number")).title(rs.getString("title"))
                             .build();
                     Set<PlanAssetResponse> planAssetResponseSet = new HashSet<>();
                     Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet = new HashSet<>();
@@ -216,7 +230,7 @@ public final class RowMappers {
                             .id(id).lastName(rs.getString("last_name")).email(rs.getString("email"))
                             .address(rs.getString("address")).firstName(rs.getString("first_name")).middleName(rs.getString("middle_name"))
                             .ownerId(rs.getLong("owner_id")).maritalStatus(rs.getString("marital_status"))
-                            .phoneNumber(String.valueOf(rs.getLong("phone_number"))).title(rs.getString("title"))
+                            .phoneNumber(rs.getString("phone_number")).title(rs.getString("title"))
                             .customaryTradition(rs.getString("customary_tradition")).marriageType(rs.getString("marriage_type"))
                             .occupation(rs.getString("occupation")).otherDetails(rs.getString("other_details"))
                             .religion(rs.getString("religion"))
@@ -253,24 +267,72 @@ public final class RowMappers {
                             .id(id).lastName(rs.getString("last_name")).email(rs.getString("email"))
                             .address(rs.getString("address")).firstName(rs.getString("first_name"))
                             .ownerId(rs.getLong("owner_id"))
-                            .phoneNumber(String.valueOf(rs.getLong("phone_number")))
+                            .phoneNumber(rs.getString("phone_number"))
                             .build();
                     Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet = new HashSet<>();
 
-                    setAssetAndBeneficiaries(rs, planBeneficiariesResponseSet);
+                    setBeneficiariesWIthPercent(rs, planBeneficiariesResponseSet);
 
                     nominatedFundResponse.setBeneficiaries(planBeneficiariesResponseSet);
 
                     row.put(id.toString(), nominatedFundResponse);
                 } else {
-                    setAssetAndBeneficiaries(rs, nominatedFundResponse.getBeneficiaries());
+                    setBeneficiariesWIthPercent(rs, nominatedFundResponse.getBeneficiaries());
                 }
             }
             return new ArrayList<>(row.values());
         };
     }
 
-    private static void setAssetAndBeneficiaries(ResultSet rs, Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet) throws SQLException {
+    public static ResultSetExtractor<List<?>> getPrivateTrusts() {
+        return (rs) ->
+
+        {
+
+            Map<String, PrivateTrustsResponse> row = new HashMap<>();
+            while (rs.next()) {
+                Long id = rs.getLong("id");
+                PrivateTrustsResponse privateTrustsResponse = row.get(id.toString());
+
+                if (privateTrustsResponse == null) {
+                    privateTrustsResponse = PrivateTrustsResponse.builder()
+                            .id(id).lastName(rs.getString("last_name")).email(rs.getString("email"))
+                            .address(rs.getString("address")).firstName(rs.getString("first_name"))
+                            .ownerId(rs.getLong("owner_id")).id(rs.getLong("id"))
+                            .phoneNumber(rs.getString("phone_number"))
+                            .title(rs.getString("title")).commencementDate(rs.getObject("commencement_date", LocalDate.class))
+                            .terminationDate(rs.getObject("termination_date", LocalDate.class))
+                            .powerOfTrustee(rs.getString("power_of_trustee").split(","))
+                            .frequency(ContributionFrequency.fromValue(rs.getInt("frequency")).getDisplayName())
+                            .objective(PrivateTrustObjectives.fromValue(rs.getInt("objective")).getDisplayName())
+                            .build();
+                    Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet = new HashSet<>();
+
+                    setBeneficiaries(rs, planBeneficiariesResponseSet);
+
+                    privateTrustsResponse.setBeneficiaries(planBeneficiariesResponseSet);
+
+                    row.put(id.toString(), privateTrustsResponse);
+                } else {
+                    setBeneficiaries(rs, privateTrustsResponse.getBeneficiaries());
+                }
+            }
+            return new ArrayList<>(row.values());
+        };
+    }
+
+
+    public static RowMapper<RealEstateResponse.DocumentResponse> getFileRowMapper() {
+        return (rs, rn) ->
+                RealEstateResponse.DocumentResponse.builder()
+                        .id(rs.getLong("id"))
+                        .fileKey(rs.getString("file_key"))
+                        .contentType(rs.getString("content_type"))
+                        .fileType(rs.getInt("file_type"))
+                        .build();
+    }
+
+    private static void setBeneficiariesWIthPercent(ResultSet rs, Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet) throws SQLException {
 
         PlanBeneficiariesResponse planBeneficiariesResponse = PlanBeneficiariesResponse.builder().beneficiaryId(rs.getLong("beneficiary_id")).beneficiaryPercent(rs.getDouble("percentage")).build();
         planBeneficiariesResponseSet.add(planBeneficiariesResponse);
@@ -282,5 +344,18 @@ public final class RowMappers {
 
         PlanBeneficiariesResponse planBeneficiariesResponse = PlanBeneficiariesResponse.builder().beneficiaryId(rs.getLong("beneficiary_id")).build();
         beneficiaries.add(planBeneficiariesResponse);
+    }
+
+    private static void setBeneficiaries(ResultSet rs, Set<PlanBeneficiariesResponse> beneficiaries) throws SQLException {
+
+        PlanBeneficiariesResponse planBeneficiariesResponse = PlanBeneficiariesResponse.builder().beneficiaryId(rs.getLong("beneficiary_id")).build();
+        beneficiaries.add(planBeneficiariesResponse);
+    }
+
+    public static RowMapper<GetAssetValueResponse.EstimatedValueDetails> getEstimatedAmount() {
+
+        return (rs, rn) -> GetAssetValueResponse.EstimatedValueDetails
+                .builder().value(rs.getBigDecimal("es_value"))
+                .currencyId(rs.getLong("currency_id")).currencyLogo(rs.getString("currency_logo")).build();
     }
 }

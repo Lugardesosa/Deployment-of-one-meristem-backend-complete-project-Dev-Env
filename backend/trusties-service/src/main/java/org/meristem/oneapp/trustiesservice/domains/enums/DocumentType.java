@@ -8,8 +8,9 @@ import lombok.Getter;
 @Getter
 public enum DocumentType {
 
-    IMAGE("IMAGE"),
-    DOCUMENT("DOCUMENT");
+    IMAGE("IMAGE", 0),
+    DOCUMENT("DOCUMENT", 1);
 
     private final String value;
+    private final int index;
 }

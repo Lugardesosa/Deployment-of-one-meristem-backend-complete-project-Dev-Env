@@ -3,7 +3,7 @@ package org.meristem.oneapp.trustiesservice.domains.requests;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import org.meristem.oneapp.trustiesservice.domains.enums.WillsEnum;
+import org.meristem.oneapp.trustiesservice.domains.enums.PlansEnum;
 import org.meristem.oneapp.trustiesservice.validations.constraints.ContainsEnum;
 
 import java.util.List;
@@ -31,10 +31,10 @@ public record RemoveBeneficiaryRequest(
         @Schema(
                 description = "Type of plan; must match one of the values of the Wills enum",
                 requiredMode = Schema.RequiredMode.REQUIRED,
-                implementation = WillsEnum.class,
+                implementation = PlansEnum.class,
                 example = "SIMPLE_WILL",
-                anyOf = WillsEnum.class
+                anyOf = PlansEnum.class
         )
-        @ContainsEnum(enumClass = WillsEnum.class)
+        @ContainsEnum(enumClass = PlansEnum.class)
                                        String planType) {
 }

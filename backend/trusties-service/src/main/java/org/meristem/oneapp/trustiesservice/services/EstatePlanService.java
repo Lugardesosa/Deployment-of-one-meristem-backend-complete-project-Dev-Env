@@ -1,5 +1,6 @@
 package org.meristem.oneapp.trustiesservice.services;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.InvalidRequestException;
@@ -75,7 +76,8 @@ public class EstatePlanService {
         customRepository.saveAll(planBeneficiaries);
 
         List<WillExecutors> willExecutors = request.getWillExecutorRequests().stream().map(w ->
-                        WillExecutors.builder().ownerId(userId).willExecutorName(w.getWillExecutorName()).willExecutorAddress(w.getWillExecutorAddress()).build())
+                        WillExecutors.builder().ownerId(userId).willExecutorName(w.getWillExecutorName())
+                                .planId(will.getId()).willExecutorAddress(w.getWillExecutorAddress()).build())
                 .toList();
         customRepository.saveAll(willExecutors);
 
@@ -157,6 +159,27 @@ public class EstatePlanService {
         }
         filter.put("owner_id", AppUtil.getLoggedInUserId());
 
-        return new GetPlanResponse(customRepository.findPlans(plan.getClazz(), filter, plan.getRowMapper()));
+        return new GetPlanResponse(customRepository.findPlans(plan.getClazz(), filter, plan.getRowMapper(), plan.isWithAssets()));
+    }
+
+    public EstatePlanResponse savePrivateTrust(@Valid CreatePrivateTrustsRequest request) {
+
+        PrivateTrusts privateTrusts = planMapper.privateTrustsRequestToPrivateTrusts(request);
+        Long loggedInUserId = AppUtil.getLoggedInUserId();
+        privateTrusts.setOwnerId(loggedInUserId);
+        customRepository.save(privateTrusts);
+
+        List<PlanBeneficiaries> planBeneficiaries = request.beneficiaryIds().stream().map(b ->
+                PlanBeneficiaries.builder().beneficiaryId(b).planType(PlansEnum.PRIVATE_TRUSTS.name()).planId(privateTrusts.getId()).build()).toList();
+        customRepository.saveAll(planBeneficiaries);
+
+        List<DesignatedRepresentative> designatedRepresentatives = request.designatedRepresentativeRequests().stream().map(d -> DesignatedRepresentative.builder()
+                .planId(privateTrusts.getId()).ownerId(loggedInUserId).representativeAddress(d.representativeAddress())
+                .representativeEmail(d.representativeAddress()).representativeName(d.representativeName())
+                .representativePhoneNumber(d.representativePhoneNumber()).build()).toList();
+        customRepository.saveAll(designatedRepresentatives);
+
+        return EstatePlanResponse.builder().status(true).message("Plan created").id(privateTrusts.getId()).build();
+
     }
 }

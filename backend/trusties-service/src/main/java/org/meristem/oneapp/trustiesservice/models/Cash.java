@@ -20,12 +20,12 @@ import java.util.Objects;
 @Getter
 public class Cash extends Assets {
 
-    @Size(max = 300)
+    @Size(max = 100)
     @NotBlank(message = "Cannot be blank")
     @Column("account_name")
     private String accountName;
 
-    @Size(max = 15)
+    @Size(max = 20)
     @NotBlank(message = "Cannot be blank")
     @Column("account_number")
     private String accountNumber;
