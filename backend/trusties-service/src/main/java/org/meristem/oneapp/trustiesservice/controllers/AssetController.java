@@ -118,7 +118,7 @@ public class AssetController {
     @PreAuthorize("hasRole('ROLE_users.asset.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetAssetResponse>> getAssets(@RequestParam(name = "asset-name") Assets assetName, @RequestParam(name = "asset-id", required = false) Long assetId) {
-        return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.CREATED.toString(), "Successful");
+        return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get total assets value", method = "GET")
@@ -128,7 +128,18 @@ public class AssetController {
             )})
     @PreAuthorize("hasRole('ROLE_users.asset.get')")
     @GetMapping(value = "/estimated-value", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<GetAssetValueResponse>> getAssetsValue() {
-        return ApiUtil.buildResponse(assetService.getAssetsValue(), HttpStatus.CREATED.toString(), "Successful");
+    public ResponseEntity<AppResponse<GetAssetValueResponse>> getAssetsValue(@RequestParam(name = "asset-name", required = false) Assets assets) {
+        return ApiUtil.buildResponse(assetService.getAssetsValue(assets), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get total assets value", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get total assets value",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = GetAssetResponse.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.remove')")
+    @DeleteMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AssetDeleteResponse>> deleteAsset(@RequestParam(name = "asset-name") Assets assets, @RequestParam(name = "asset-id") Long assetId) {
+        return ApiUtil.buildResponse(assetService.deleteAsset(assets, assetId), HttpStatus.OK.toString(), "Successful");
     }
 }

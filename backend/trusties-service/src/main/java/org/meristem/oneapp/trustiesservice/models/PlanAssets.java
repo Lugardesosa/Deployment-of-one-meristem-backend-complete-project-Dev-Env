@@ -24,6 +24,7 @@ public class PlanAssets extends BaseModel<String>{
     @NotNull(message = "Not blank")
     private Long assetId;
 
+    // PlansEnum
     @NotBlank(message = "Not blank")
     private String planType;
 

@@ -105,4 +105,15 @@ public class CustomRepository extends GeneralRepository {
         SqlParameterSource parameterSource = new MapSqlParameterSource("owner_id", ownerId);
         return jdbcTemplate.query(stringBuilder.toString(), parameterSource, RowMappers.getEstimatedAmount());
     }
+
+    public List<GetAssetValueResponse.EstimatedValueDetails> getEstimatedValue(Assets assets, Long ownerId) {
+
+        String stringBuilder = "SELECT t.currency_id, c.currency_logo, SUM(t.estimated_amount) AS es_value FROM " +
+                getTableName(assets.getClazz()) +
+                " t LEFT JOIN currencies c ON c.id = t.currency_id WHERE owner_id = :owner_id " +
+                " GROUP BY t.currency_id ";
+
+        SqlParameterSource parameterSource = new MapSqlParameterSource("owner_id", ownerId);
+        return jdbcTemplate.query(stringBuilder, parameterSource, RowMappers.getEstimatedAmount());
+    }
 }
