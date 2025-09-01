@@ -174,6 +174,12 @@ public class AuthorizationServerConfig {
 
         rowMapper.setObjectMapper(mapper1);
         jdbcOAuth2AuthorizationService.setAuthorizationRowMapper(rowMapper);
+
+        JdbcOAuth2AuthorizationService.OAuth2AuthorizationParametersMapper parametersMapper =
+                new JdbcOAuth2AuthorizationService.OAuth2AuthorizationParametersMapper();
+        parametersMapper.setObjectMapper(mapper1);
+        jdbcOAuth2AuthorizationService.setAuthorizationParametersMapper(parametersMapper);
+
         return jdbcOAuth2AuthorizationService;
     }
 
@@ -191,8 +197,7 @@ public class AuthorizationServerConfig {
 //                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 //                .redirectUri("localhost:30000/login/oauth2/code/mobile-service")
 //                .postLogoutRedirectUri("localhost:30000/logout")
-//                .scope(OidcScopes.OPENID)
-//                .scopes(e -> e.addAll(List.of("user.read", "user.write")))
+//                .scopes(e -> e.addAll(List.of("user.read", "user.write", "send_otp" ,"verify_otp", "create_user", "users.get", "password_reset")))
 //                .scope(OidcScopes.PROFILE)
 //                .scope(OidcScopes.EMAIL)
 //                .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(15))
@@ -223,10 +228,10 @@ public class AuthorizationServerConfig {
 //                .build();
 //
 //
-//                RegisteredClient core = RegisteredClient
+//                RegisteredClient trusties = RegisteredClient
 //                .withId(UUID.randomUUID().toString())
-//                .clientId("core-service")
-//                .clientName("core-service")
+//                .clientId("trusties-service")
+//                .clientName("trusties-service")
 //                .clientSecret(passwordEncoder().encode("secret"))
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 //                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
@@ -239,7 +244,7 @@ public class AuthorizationServerConfig {
 //        registeredClientRepository.save(mobile);
 //        registeredClientRepository.save(users);
 //        registeredClientRepository.save(notifications);
-//        registeredClientRepository.save(core);
+//        registeredClientRepository.save(trusties);
         return registeredClientRepository;
     }
 }

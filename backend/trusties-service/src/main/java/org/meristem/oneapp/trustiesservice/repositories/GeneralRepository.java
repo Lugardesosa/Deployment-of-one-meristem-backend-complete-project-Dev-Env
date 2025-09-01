@@ -15,8 +15,11 @@ import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.relational.core.query.CriteriaDefinition;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.data.util.Pair;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -204,13 +207,79 @@ public class GeneralRepository {
     public <T, R> List<R> findAll(Class<T> tableName, Map<String, Object> conditions, RowMapper<R> rowMapper) {
         StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
 
+        String query = getAllString(conditions, sql);
+
+        return jdbcTemplate.query(query, conditions, rowMapper);
+    }
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return A Page containing the records that match the conditions.
+
+     */
+    public <T, R> Optional<R> findOneBy(Class<T> tableName, Map<String, Object> conditions, RowMapper<R> rowMapper) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
+
+        String query = getAllString(conditions, sql);
+
+        List<R> list = jdbcTemplate.query(query, conditions, rowMapper);
+        return list.isEmpty() ? Optional.empty() : list.stream().findFirst();
+    }
+
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param id The id of the item to search for.
+     * @return A Page containing the records that match the conditions.
+
+     */
+    public <T, R> Optional<R> findOneBy(Class<T> tableName, Long id, RowMapper<R> rowMapper) {
+        SqlParameterSource parameters = new MapSqlParameterSource("id", id);
+        List<R> list = jdbcTemplate.query("SELECT * FROM " + getTableName(tableName) + " WHERE id = :id ", parameters, rowMapper);
+        return list.isEmpty() ? Optional.empty() : list.stream().findFirst();
+    }
+
+    /**
+     * <p>Follow the instructions below</p>
+     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
+     * Each entry in the map represents a condition on a database field.
+     * The value’s type determines the type of condition to generate.</p>
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return A Page containing the records that match the conditions.
+
+     */
+    public <T, R> List<?> findAll(Class<T> tableName, Map<String, Object> conditions, ResultSetExtractor<List<?>> resultSetExtractor) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
+
+        String query = getAllString(conditions, sql);
+
+        return jdbcTemplate.query(query, conditions, resultSetExtractor);
+    }
+
+    private static String getAllString(Map<String, Object> conditions, StringBuilder sql) {
         for (Map.Entry<String, Object> entry : conditions.entrySet()) {
             sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(" AND ");
         }
 
-        String query = sql.toString().endsWith("WHERE ") ? sql.substring(0, sql.length() - 6) : sql.substring(0, sql.length() - 4);
-
-        return jdbcTemplate.query(query, conditions, rowMapper);
+        return sql.toString().endsWith("WHERE ") ? sql.substring(0, sql.length() - 6) : sql.substring(0, sql.length() - 4);
     }
 
     /**

@@ -47,7 +47,8 @@ public class HuaweiService {
             }
 
             TemporarySignatureResponse response = obsClient.createTemporarySignature(request);
-            return SignedUrlResponse.builder().signedUrl(response.getSignedUrl()).imageKey(objectKey).contentType(signedUrlRequest.contentType()).build();
+            return SignedUrlResponse.builder().signedUrl(response.getSignedUrl()).fileKey(objectKey).contentType(signedUrlRequest.contentType())
+                    .fileType(signedUrlRequest.type().getValue()).build();
         } catch (IOException e) {
             log.error(e.getMessage());
             throw new BadRequestException("Signed key url could not be generated");

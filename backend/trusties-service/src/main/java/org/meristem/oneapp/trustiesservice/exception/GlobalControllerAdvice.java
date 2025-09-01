@@ -139,6 +139,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     protected ResponseEntity<ErrorDetails> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
+        log.info("HttpMessageNotReadableException: {}", ex.getMessage());
         return handleExceptionInternal("Invalid request", HttpStatus.BAD_REQUEST, request, List.of("There is error in the request body"));
     }
 

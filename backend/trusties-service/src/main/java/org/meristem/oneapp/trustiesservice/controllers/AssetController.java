@@ -120,4 +120,15 @@ public class AssetController {
     public ResponseEntity<AppResponse<GetAssetResponse>> getAssets(@RequestParam(name = "asset-name") Assets assetName, @RequestParam(name = "asset-id", required = false) Long assetId) {
         return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.CREATED.toString(), "Successful");
     }
+
+    @Operation(summary = "Get total assets value", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get total assets value",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = GetAssetResponse.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @GetMapping(value = "/estimated-value", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GetAssetValueResponse>> getAssetsValue() {
+        return ApiUtil.buildResponse(assetService.getAssetsValue(), HttpStatus.CREATED.toString(), "Successful");
+    }
 }

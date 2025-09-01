@@ -34,7 +34,9 @@ public interface AssetMapper {
     @Mapping(source = "currencyId", target = "currencyId")
     EquitiesResponse privateEquitiesToEquitiesResponse(PrivateEquities privateEquities);
 
-    @Mapping(source = "currencyId", target = "currencyId")
+    @Mappings(value = {
+            @Mapping(source = "currencyId", target = "currencyId"),
+    })
     RealEstate realEstateRequestToRealEstate(RealEstateRequest request);
 
     @Mapping(source = "currencyId", target = "currencyId")

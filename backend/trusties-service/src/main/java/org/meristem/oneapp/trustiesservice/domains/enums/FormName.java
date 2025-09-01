@@ -24,8 +24,8 @@ public enum FormName {
     LIFE_INSURANCE("Life Insurance", 10, 13, AppConstants.FORM_TYPE_ASSET),
     SIMPLE_WILL("Simple Will", 1, 14, AppConstants.FORM_TYPE_PLAN),
     COMPREHENSIVE_WILL("Comprehensive Will", 2, 15, AppConstants.FORM_TYPE_PLAN),
-    PRIVATE_TRUSTS("Private Trusts", 3, 16, AppConstants.FORM_TYPE_PLAN),
-    NOMINATED_FUND("Nominated Fund", 4, 17, AppConstants.FORM_TYPE_PLAN);
+    PRIVATE_TRUSTS("Private Trusts", 3, 17, AppConstants.FORM_TYPE_PLAN),
+    NOMINATED_FUND("Nominated Fund", 4, 16, AppConstants.FORM_TYPE_PLAN);
 
     private final String displayName;
     private final Integer position;

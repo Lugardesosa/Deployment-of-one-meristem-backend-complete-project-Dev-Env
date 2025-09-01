@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.meristem.oneapp.trustiesservice.domains.enums.Assets;
-import org.meristem.oneapp.trustiesservice.domains.enums.WillsEnum;
+import org.meristem.oneapp.trustiesservice.domains.enums.PlansEnum;
 import org.meristem.oneapp.trustiesservice.validations.constraints.ContainsEnum;
 
 import java.util.List;
@@ -35,8 +35,8 @@ public record RemoveAssetRequest(
         List<@NotNull Long> assetIds,
 
         @NotBlank(message = "Cannot be blank")
-        @ContainsEnum(enumClass = WillsEnum.class)
-        @Schema(description = "Type of the plan.", example = "SIMPLE_WILL", anyOf = WillsEnum.class)
+        @ContainsEnum(enumClass = PlansEnum.class)
+        @Schema(description = "Type of the plan.", example = "SIMPLE_WILL", anyOf = PlansEnum.class)
         String planType,
 
         @NotBlank(message = "Cannot be blank")

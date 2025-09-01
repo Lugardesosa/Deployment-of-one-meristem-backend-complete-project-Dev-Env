@@ -30,12 +30,16 @@ public class WillExecutors extends BaseModel<String> {
     @NotBlank(message = "Cannot be null")
     private String willExecutorAddress;
 
+    @NotNull(message = "Not blank")
+    private Long planId;
+
     @Builder
-    public WillExecutors(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long ownerId, String willExecutorName, String willExecutorAddress) {
+    public WillExecutors(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long ownerId, String willExecutorName, String willExecutorAddress, Long planId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.ownerId = ownerId;
         this.willExecutorName = willExecutorName;
         this.willExecutorAddress = willExecutorAddress;
+        this.planId = planId;
     }
 
     @Override
