@@ -2,8 +2,10 @@ package org.meristem.oneapp.trustiesservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.trustiesservice.controllers.AssetDeleteResponse;
 import org.meristem.oneapp.trustiesservice.domains.enums.AlternateAssetType;
 import org.meristem.oneapp.trustiesservice.domains.enums.Assets;
+import org.meristem.oneapp.trustiesservice.domains.enums.EntityStatus;
 import org.meristem.oneapp.trustiesservice.domains.requests.*;
 import org.meristem.oneapp.trustiesservice.domains.responses.*;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
@@ -133,6 +135,7 @@ public class AssetService {
             filter.put("id", assetId);
         }
         filter.put("owner_id", AppUtil.getLoggedInUserId());
+        filter.put("status", EntityStatus.ACTIVE.getValue());
         List<?> all = customRepository.findAll(asset.getClazz(), filter, asset.getRowMapper());
         if (asset.equals(Assets.REAL_ESTATE)) {
             Map<String, Object> fileFilter = new HashMap<>();
@@ -148,8 +151,23 @@ public class AssetService {
         return new GetAssetResponse(all);
     }
 
-    public GetAssetValueResponse getAssetsValue() {
+    public GetAssetValueResponse getAssetsValue(Assets asset) {
         Long loggedInUserId = AppUtil.getLoggedInUserId();
+        if (nonNull(asset)) {
+            return new GetAssetValueResponse(customRepository.getEstimatedValue(asset, loggedInUserId));
+        }
         return new GetAssetValueResponse(customRepository.getEstimatedValue(loggedInUserId));
+    }
+
+    public AssetDeleteResponse deleteAsset(Assets assets, Long assetId) {
+
+        Map<String, Object> filter = new HashMap<>();
+        filter.put("id", assetId);
+        filter.put("owner_id", AppUtil.getLoggedInUserId());
+        int assetsPlanDeleted = customRepository.dynamicDelete(PlanAssets.class, Map.of("asset_id", assetId, "asset_type", assets.name()));
+        int deleted = customRepository.dynamicDelete(assets.getClazz(), filter);
+
+        return new AssetDeleteResponse(deleted > 0 ? "Deleted" : "No item deleted", deleted > 0);
+
     }
 }
