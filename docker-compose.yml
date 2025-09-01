@@ -125,6 +125,7 @@ services:
       - redis
       - kafka
       - consul
+      - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -198,6 +199,7 @@ services:
       - kafka
       - redis
       - consul
+      - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -264,6 +266,7 @@ services:
       - kafka
       - redis
       - consul
+      - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -323,6 +326,7 @@ services:
       - kafka
       - redis
       - consul
+      - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -385,6 +389,7 @@ services:
       - redis
       - consul
       - users-service
+      - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -448,6 +453,7 @@ services:
       - trusties-service
       - report-service
       - wallet-service
+      - otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
