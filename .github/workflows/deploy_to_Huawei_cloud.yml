@@ -167,6 +167,14 @@ jobs:
             esac
           done
 
+          
+          # -----------------------------
+          # Go back to project root
+          # -----------------------------
+          echo "Returning to project root..."
+          cd ..
+
+          
           # -----------------------------
           # Attempt to redeploy services
           # -----------------------------
@@ -183,6 +191,7 @@ jobs:
           # -----------------------------
           if [ \$DEPLOY_STATUS -ne 0 ]; then
             echo "Deployment failed. Rolling back..."
+            set +e
             sudo docker-compose -f docker-compose.yml down || true
             sudo docker-compose -f docker-compose.backup.yml up -d || {
               echo "Rollback failed. Manual intervention required."
