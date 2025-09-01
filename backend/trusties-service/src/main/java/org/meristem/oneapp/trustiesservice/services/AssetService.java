@@ -12,15 +12,21 @@ import org.meristem.oneapp.trustiesservice.models.*;
 import org.meristem.oneapp.trustiesservice.repositories.CustomRepository;
 import org.meristem.oneapp.trustiesservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers.getFileRowMapper;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class AssetService {
 
     private final AssetMapper assetMapper = AssetMapper.INSTANCE;
@@ -52,8 +58,22 @@ public class AssetService {
     public RealEstateResponse saveRealEstate(RealEstateRequest request) {
 
         RealEstate realEstate = assetMapper.realEstateRequestToRealEstate(request);
-        realEstate.setOwnerId(AppUtil.getLoggedInUserId());
+
+        Long userId = AppUtil.getLoggedInUserId();
+        realEstate.setOwnerId(userId);
         customRepository.save(realEstate);
+
+        if (nonNull(request.getDocumentRequest())) {
+            Files file = Files.builder()
+                    .fileKey(request.getDocumentRequest().getFileKey())
+                    .contentType(request.getDocumentRequest().getContentType())
+                    .fileType(request.getDocumentRequest().getFileType())
+                    .ownerId(userId).build();
+            customRepository.save(file);
+            EntityFiles entityFiles = EntityFiles.builder().fileId(file.getId()).entityId(realEstate.getId())
+                    .entityName(RealEstate.class.getSimpleName()).build();
+            customRepository.save(entityFiles);
+        }
         return assetMapper.realEstateToRealEstateResponse(realEstate);
     }
 
@@ -113,6 +133,23 @@ public class AssetService {
             filter.put("id", assetId);
         }
         filter.put("owner_id", AppUtil.getLoggedInUserId());
-        return new GetAssetResponse(customRepository.findAll(asset.getClazz(), filter, asset.getRowMapper()));
+        List<?> all = customRepository.findAll(asset.getClazz(), filter, asset.getRowMapper());
+        if (asset.equals(Assets.REAL_ESTATE)) {
+            Map<String, Object> fileFilter = new HashMap<>();
+            fileFilter.put("owner_id", AppUtil.getLoggedInUserId());
+            fileFilter.put("entity_name", RealEstate.class.getSimpleName());
+            all.forEach(a -> {
+                RealEstateResponse r = (RealEstateResponse) a;
+                fileFilter.put("entity_id", r.getId());
+                Optional<RealEstateResponse.DocumentResponse> document = customRepository.findFile(Files.class, fileFilter, getFileRowMapper());
+                r.setDocumentResponse(document.orElse(null));
+            });
+        }
+        return new GetAssetResponse(all);
+    }
+
+    public GetAssetValueResponse getAssetsValue() {
+        Long loggedInUserId = AppUtil.getLoggedInUserId();
+        return new GetAssetValueResponse(customRepository.getEstimatedValue(loggedInUserId));
     }
 }

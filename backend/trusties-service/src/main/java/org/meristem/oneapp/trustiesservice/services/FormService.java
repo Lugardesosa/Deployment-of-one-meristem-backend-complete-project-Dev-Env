@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static java.util.stream.Collectors.toList;
-import static org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers.getCurrencyRowMapper;
-import static org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers.getSelectionValue;
+import static org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers.*;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +38,7 @@ public class FormService {
     public FormResponse getForm(FormName form) {
 
         Long userId = AppUtil.getLoggedInUserId();
-        Map<Integer, Object> selections = new HashMap<>();
+        Map<String, Object> selections = new HashMap<>();
         List<FormResponse.FormData> formResponses = formRepository.findFormsByInternalOrder(form.getInternalOrder());
         List<FormResponse.Currency> currencies = customRepository.findAll(Currencies.class, Map.of(), getCurrencyRowMapper());
 
@@ -49,9 +47,9 @@ public class FormService {
 
                 switch (formData.getLabel()) {
                     case BENEFICIARY ->
-                            selections.put(formData.getFieldOrder(), userServiceClient.getAllBeneficiaries(userId).data());
+                            selections.put(formData.getLabel(), userServiceClient.getAllBeneficiaries(userId).data());
                     case ASSET_CATEGORY ->
-                            selections.put(formData.getFieldOrder(), Arrays.stream(Assets.values()).map(Assets::getDisplayName).toList());
+                            selections.put(formData.getLabel(), Arrays.stream(Assets.values()).map(Assets::getDisplayName).toList());
                     case "EMPTY" -> {
                         List<Object> values = new ArrayList<>();
                         Arrays.stream(Assets.values()).forEach(asset -> {
@@ -61,11 +59,15 @@ public class FormService {
                             assetValues.put(asset.getName(), customRepository.findAll(asset.getClazz(), Map.of("owner_id", userId), asset.getRowMapper()));
                             values.add(assetValues);
                         });
-                        selections.put(formData.getFieldOrder(), values);
+                        selections.put("assets", values);
                     }
                     case null, default ->
-                            selections.put(formData.getFieldOrder(), customRepository.findAll(Selections.class, Map.of("form_id", formData.getId()), getSelectionValue()));
+                            selections.put(formData.getLabel(), customRepository.findAll(Selections.class, Map.of("form_id", formData.getId()), getSelectionValue()));
                 }
+            }
+
+            if (formData.getType().equals(FormType.RADIO.getValue())) {
+                selections.put(formData.getLabel(), customRepository.findAll(Selections.class, Map.of("form_id", formData.getId()), getRadioValue()));
             }
         }
 

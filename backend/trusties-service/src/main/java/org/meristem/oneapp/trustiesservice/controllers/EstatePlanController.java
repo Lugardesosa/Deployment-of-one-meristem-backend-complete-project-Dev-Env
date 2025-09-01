@@ -104,6 +104,15 @@ public class EstatePlanController {
         return ApiUtil.buildResponse(estatePlanService.saveNominatedFund(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
+
+    @Operation(summary = "Create a private trusts", method = "POST")
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a private trusts")})
+    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PostMapping(value = "/private-trusts", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<EstatePlanResponse>> createSimpleWill(@RequestBody @Valid CreatePrivateTrustsRequest request) {
+        return ApiUtil.buildResponse(estatePlanService.savePrivateTrust(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
     @Operation(summary = "Get a plan (s)", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get a plan (s)",
             content = {@Content(

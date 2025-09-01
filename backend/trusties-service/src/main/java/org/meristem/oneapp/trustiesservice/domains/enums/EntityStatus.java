@@ -20,7 +20,12 @@ public enum EntityStatus {
     /**
      * Represents an <strong>active/true/approved</strong> status with a value of 1.
      */
-    ACTIVE(1);
+    ACTIVE(1),
+
+    /**
+     * Represents a <strong>partially active/pending/partially saved</strong> status with a value of 2.
+     */
+    PENDING(2);
 
     /**
      * The integer value associated with the status.

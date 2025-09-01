@@ -5,14 +5,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
-import org.meristem.oneapp.trustiesservice.domains.requests.AddExecutorRequest;
-import org.meristem.oneapp.trustiesservice.domains.requests.CreateComprehensiveWillRequest;
-import org.meristem.oneapp.trustiesservice.domains.requests.CreateNominatedFundRequest;
-import org.meristem.oneapp.trustiesservice.domains.requests.CreateWillRequest;
-import org.meristem.oneapp.trustiesservice.models.ComprehensiveWill;
-import org.meristem.oneapp.trustiesservice.models.NominatedFund;
-import org.meristem.oneapp.trustiesservice.models.SimpleWill;
-import org.meristem.oneapp.trustiesservice.models.WillExecutors;
+import org.meristem.oneapp.trustiesservice.domains.requests.*;
+import org.meristem.oneapp.trustiesservice.models.*;
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PlanMapper {
@@ -38,4 +32,13 @@ public interface PlanMapper {
 
     @Mapping(target = "ownerId", ignore = true)
     NominatedFund createNominatedFundRequestToNominatedFund(CreateNominatedFundRequest request);
+
+    @Mappings(value = {
+            @Mapping(target = "ownerId", ignore = true),
+            @Mapping(target = "frequency", source = "frequency.value"),
+            @Mapping(target = "objective", source = "objective.value"),
+            @Mapping(target = "powerOfTrustee", expression = "java(String.join(\",\", request.powerOfTrustee()))")
+
+    })
+    PrivateTrusts privateTrustsRequestToPrivateTrusts(CreatePrivateTrustsRequest request);
 }

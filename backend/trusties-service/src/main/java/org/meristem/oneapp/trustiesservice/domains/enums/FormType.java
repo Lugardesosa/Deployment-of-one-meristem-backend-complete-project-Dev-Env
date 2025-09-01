@@ -17,6 +17,7 @@ public enum FormType {
     DATE("DATE"),
     HEADER("HEADER"),
     ADD_MORE("ADD_MORE"),
+    RADIO("RADIO"),
     SELECTION("SELECTION");
 
     private final String value;
