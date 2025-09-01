@@ -94,10 +94,12 @@ public class GeneralRepository {
         StringBuilder sql = new StringBuilder("DELETE FROM " + getTableName(table) + " WHERE ");
 
         for (Map.Entry<String, Object> entry : conditions.entrySet()) {
-            sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(", ");
+            sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(" AND ");
         }
 
-        return jdbcTemplate.update(sql.substring(0, sql.length() - 2), conditions);
+        sql.delete(sql.lastIndexOf("AND "), sql.length());
+
+        return jdbcTemplate.update(sql.toString(), conditions);
     }
 
 

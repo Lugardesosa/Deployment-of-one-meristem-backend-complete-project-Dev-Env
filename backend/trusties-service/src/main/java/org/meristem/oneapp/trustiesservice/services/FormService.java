@@ -3,10 +3,7 @@ package org.meristem.oneapp.trustiesservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trustiesservice.domains.enums.Assets;
-import org.meristem.oneapp.trustiesservice.domains.enums.FormName;
-import org.meristem.oneapp.trustiesservice.domains.enums.FormType;
-import org.meristem.oneapp.trustiesservice.domains.enums.GeneralFormType;
+import org.meristem.oneapp.trustiesservice.domains.enums.*;
 import org.meristem.oneapp.trustiesservice.domains.responses.BankResponse;
 import org.meristem.oneapp.trustiesservice.domains.responses.FormNamesResponse;
 import org.meristem.oneapp.trustiesservice.domains.responses.FormResponse;
@@ -56,7 +53,7 @@ public class FormService {
                             Map<String, Object> assetValues = new HashMap<>();
                             assetValues.put("label", asset.getLabel());
                             assetValues.put("placeholder", asset.getPlaceholder());
-                            assetValues.put(asset.getName(), customRepository.findAll(asset.getClazz(), Map.of("owner_id", userId), asset.getRowMapper()));
+                            assetValues.put(asset.getName(), customRepository.findAll(asset.getClazz(), Map.of("owner_id", userId, "status", EntityStatus.ACTIVE.getValue()), asset.getRowMapper()));
                             values.add(assetValues);
                         });
                         selections.put("assets", values);
