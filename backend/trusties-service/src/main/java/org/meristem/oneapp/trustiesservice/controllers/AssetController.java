@@ -124,7 +124,7 @@ public class AssetController {
     @Operation(summary = "Get total assets value", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get total assets value",
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GetAssetResponse.class)
+                    schema = @Schema(implementation = GetAssetValueResponse.class)
             )})
     @PreAuthorize("hasRole('ROLE_users.asset.get')")
     @GetMapping(value = "/estimated-value", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -135,7 +135,7 @@ public class AssetController {
     @Operation(summary = "Get total assets value", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get total assets value",
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GetAssetResponse.class)
+                    schema = @Schema(implementation = AssetDeleteResponse.class)
             )})
     @PreAuthorize("hasRole('ROLE_users.asset.remove')")
     @DeleteMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
