@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
-import org.meristem.oneapp.usersservice.domains.responses.CountriesResponse;
-import org.meristem.oneapp.usersservice.domains.responses.OkHiWebhookResponse;
-import org.meristem.oneapp.usersservice.domains.responses.StatesResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UserOnboardingResponse;
+import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
@@ -39,6 +36,7 @@ public class OnboardingService {
     private final UsersService usersService;
     private final GeneralRepository generalRepository;
     private final UsersMapping usersMapping = UsersMapping.INSTANCE;
+    private final CustomRepository customRepository;
 
     /**
      * Retrieves the onboarding details for a user.
@@ -156,5 +154,11 @@ public class OnboardingService {
         request.setSortBy(Collections.singletonList("name"));
         request.setSortOrder(Sort.Direction.ASC);
         return PageRequest.of(request.getPage(), pageSize, Sort.by(request.getSortOrder(), String.join(",", request.getSortBy())));
+    }
+
+    public List<InstrumentResponse> getInstruments() {
+
+        return customRepository.findAll(InvestmentInstruments.class, (rs, rn) -> InstrumentResponse.builder().id(rs.getLong("id"))
+                        .name(rs.getString("name")).code(rs.getString("code")).build());
     }
 }

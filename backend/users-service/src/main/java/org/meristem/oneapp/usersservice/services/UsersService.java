@@ -2,6 +2,7 @@ package org.meristem.oneapp.usersservice.services;
 
 
 import com.obs.services.model.HttpMethodEnum;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +47,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UsersService {
 
     private final UsersRepository usersRepository;
@@ -61,6 +64,7 @@ public class UsersService {
     private final RolesRepository rolesRepository;
     private final HuaweiService huaweiService;
     private final GeneralRepository generalRepository;
+    private final CustomRepository customRepository;
 
     /**
      * Creates a new user after validating the request and OTP.
@@ -95,6 +99,8 @@ public class UsersService {
                             .completed(false).userId(userId).requirementId(rId).build();
                     userOnboardingRepository.save(userOnboarding);
                 });
+        customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
+                        .stream().map(i -> InstrumentAccessed.builder().userId(userId).instrumentId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
         return usersMapper.usersToUserResponse(user);
     }
@@ -114,7 +120,7 @@ public class UsersService {
             signedUrl = signedUrlResponse.signedUrl();
         }
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted());
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses());
     }
 
     /**
@@ -319,5 +325,14 @@ public class UsersService {
                 .subject(MessageSubjects.PASSWORD_RESET).build();
         MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.PASSWORD_RESET).message(messageDetailsDto).build();
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
+    }
+
+    public UpdateResponse updateInstrumentAccessed(@Valid InstrumentAccessedRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("accessed", true);
+        int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 }

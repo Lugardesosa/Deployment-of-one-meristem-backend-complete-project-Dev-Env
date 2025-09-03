@@ -3,6 +3,7 @@ package org.meristem.oneapp.trustiesservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.trustiesservice.domains.enums.ActivityLogAction;
 import org.meristem.oneapp.trustiesservice.domains.requests.UpdateSelectionRequest;
 import org.meristem.oneapp.trustiesservice.domains.responses.UpdateSelectionResponse;
 import org.meristem.oneapp.trustiesservice.models.Selections;
@@ -20,6 +21,7 @@ public class AdminService {
 
     private final CustomRepository customRepository;
     private final FormRepository formRepository;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public UpdateSelectionResponse updateSelection(UpdateSelectionRequest request) {
@@ -33,6 +35,9 @@ public class AdminService {
 
         int objectsDeleted = customRepository.deleteSelections(request.itemsToRemove());
         customRepository.saveAll(selections);
+
+        activityLogService.sendActivity(Selections.class, ActivityLogAction.ADDED, null, Map.of("toAddFormIds", request.itemsToAdd().stream().map(UpdateSelectionRequest.Items::formId).toList(), "toRemoveFormIds",
+                request.itemsToRemove().stream().map(UpdateSelectionRequest.Items::formId).toList()));
         return UpdateSelectionResponse.builder().message("Successful").successCount(objectsDeleted + selections.size()).build();
     }
 

@@ -9,17 +9,24 @@ import org.meristem.oneapp.reportservice.dtos.sql.LikePattern;
 import org.meristem.oneapp.reportservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.reportservice.utils.AppUtil;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.relational.core.query.CriteriaDefinition;
 import org.springframework.data.relational.core.query.Query;
 import org.springframework.data.util.Pair;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.data.relational.core.query.Criteria.where;
 
@@ -32,18 +39,18 @@ public class GeneralRepository {
 
     /**
      * <p>Updates records in the specified table based on the provided parameters and conditions.</p>
-     * <p>Use the names as used in the db, not the object names, eg 'first_name' instead of 'firstName'</p>
+     * <p>Use the names as used in the db, not the object names, e.g. 'first_name' instead of 'firstName'</p>
      * <p>Accept the user input using a request object, then map to a map</p>
      *
      * @param <T>       The type of the entity corresponding to the table.
      * @param table     The class of the table to update, annotated with @Table.
-     * @param params    A map of column names and their new values to be updated.
+     * @param updates    A map of column names and their new values to be updated.
      * @param condition A map of column names and their values to define the WHERE clause.
      *                  The keys represent column names, and the values represent the conditions.
      * @return The number of rows affected by the update operation.
      * @throws IllegalArgumentException if the table class is not annotated with @Table.
      */
-    public <T> int dynamicUpdate(Class<T> table, Map<String, Object> params, @NonNull Map<String, Object> condition) {
+    public <T> int dynamicUpdate(Class<T> table, Map<String, Object> updates, @NonNull Map<String, Object> condition) {
 
         if (condition.isEmpty()) {
             throw new BadRequestException("Condition cannot be empty");
@@ -51,25 +58,26 @@ public class GeneralRepository {
 
         StringBuilder sql = new StringBuilder("UPDATE " + getTableName(table) + " SET ");
 
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
             sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(", ");
         }
 
         sql.append(" version = version + 1, last_modified_date = :last_modified_date, last_modified_by = :last_modified_by ");
         sql.append(" WHERE ");
         for (Map.Entry<String, Object> entry : condition.entrySet()) {
-            sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(", ");
+            sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(" AND ");
         }
-        params.putAll(condition);
-        params.put("last_modified_date", LocalDateTime.now());
-        params.put("last_modified_by", AppUtil.getLoggedInSubject());
+        sql.delete(sql.lastIndexOf("AND "), sql.length());
+        updates.putAll(condition);
+        updates.put("last_modified_date", LocalDateTime.now());
+        updates.put("last_modified_by", AppUtil.getLoggedInSubject());
 
-        return jdbcTemplate.update(sql.substring(0, sql.length() - 2), params);
+        return jdbcTemplate.update(sql.toString(), updates);
     }
 
     /**
      * <p>Delete records in the specified table based on the provided parameters and conditions.</p>
-     * <p>Use the names as used in the db, not the object names, eg 'first_name' instead of 'firstName'</p>
+     * <p>Use the names as used in the db, not the object names, e.g. 'first_name' instead of 'firstName'</p>
      * <p>Accept the user input using a request object, then map to a map</p>
      *
      * @param <T>       The type of the entity corresponding to the table.
@@ -106,11 +114,11 @@ public class GeneralRepository {
      *
      * <p>1. Equality Condition:
      *    conditions.put("fieldName", value);
-     *    // SQL: fieldName = :fieldName</p>
+     *    // SQL: fieldName =: fieldName</p>
      *
      * <p>2. Range (BETWEEN) Condition:
      *    conditions.put("fieldName", Pair.of(start, end));
-     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *    // SQL: fieldName BETWEEN: fieldName_start AND: fieldName_end</p>
      *
      * <p>3. IN Condition:
      *    conditions.put("fieldName", List.of(val1, val2, val3));
@@ -121,9 +129,9 @@ public class GeneralRepository {
      *    // SQL: fieldName LIKE :fieldName</p>
      *
      * <p>5. Comparison Operators (>, <, >=, <=):
-     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
-     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
-     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *    conditions.put("fieldName", new Comparison (value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison (value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName >: fieldName OR fieldName <=: fieldName</p>
      *
      * <p>6. Null Check:
      *    conditions.put("fieldName", NullCheck.IS_NULL);
@@ -151,11 +159,11 @@ public class GeneralRepository {
      *
      * <p>1. Equality Condition:
      *    conditions.put("fieldName", value);
-     *    // SQL: fieldName = :fieldName</p>
+     *    // SQL: fieldName =: fieldName</p>
      *
      * <p>2. Range (BETWEEN) Condition:
      *    conditions.put("fieldName", Pair.of(start, end));
-     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *    // SQL: fieldName BETWEEN: fieldName_start AND: fieldName_end</p>
      *
      * <p>3. IN Condition:
      *    conditions.put("fieldName", List.of(val1, val2, val3));
@@ -166,9 +174,9 @@ public class GeneralRepository {
      *    // SQL: fieldName LIKE :fieldName</p>
      *
      * <p>5. Comparison Operators (>, <, >=, <=):
-     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
-     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
-     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *    conditions.put("fieldName", new Comparison (value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison (value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName >: fieldName OR fieldName <=: fieldName</p>
      *
      * <p>6. Null Check:
      *    conditions.put("fieldName", NullCheck.IS_NULL);
@@ -178,7 +186,7 @@ public class GeneralRepository {
      * @param tableName  The class of the table to query, annotated with @Table.
      * @param conditions A map of column names and their values to define the WHERE clause.
      *                   The keys represent column names, and the values represent the conditions.
-     * @return A Page containing the records that match the conditions.
+     * @return A List containing the records that match the conditions.
 
      */
     public <T> List<T> findAllBy(Class<T> tableName, Map<String, Object> conditions) {
@@ -189,27 +197,129 @@ public class GeneralRepository {
 
     /**
      * <p>Follow the instructions below</p>
-     * <p>Example usage of Map<String, Object> to define dynamic query conditions.
-     * Each entry in the map represents a condition on a database field.
-     * The value’s type determines the type of condition to generate.</p>
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @return A List containing the records that match the conditions.
+
+     */
+    public <T> List<T> findAll(Class<T> tableName) {
+        return jdbcAggregateTemplate.findAll(tableName);
+    }
+
+
+    /**
+     * <p>Follow the instructions below</p>
      *
      * @param <T>        The type of the entity corresponding to the table.
      * @param tableName  The class of the table to query, annotated with @Table.
      * @param conditions A map of column names and their values to define the WHERE clause.
      *                   The keys represent column names, and the values represent the conditions.
-     * @return A Page containing the records that match the conditions.
+     * @return A List containing the records that match the conditions.
 
      */
     public <T, R> List<R> findAll(Class<T> tableName, Map<String, Object> conditions, RowMapper<R> rowMapper) {
         StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
 
+        String query = getAllString(conditions, sql);
+
+        return jdbcTemplate.query(query, conditions, rowMapper);
+    }
+
+
+    /**
+     * <p>Follow the instructions below</p>
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @return A List containing the records that match the conditions.
+
+     */
+    public <T, R> List<R> findAll(Class<T> tableName, RowMapper<R> rowMapper) {
+
+        return jdbcTemplate.query("SELECT * FROM " + getTableName(tableName), rowMapper);
+    }
+
+
+    /**
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @param pageRequest The page request object containing the page number and page size.
+     * @return A List containing the records that match the conditions.
+
+     */
+    public <T, R> Page<R> findAll(Class<T> tableName, Map<String, Object> conditions, RowMapper<R> rowMapper, PageRequest pageRequest) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
+
+        String query = getAllString(conditions, sql);
+
+        sql.append(" LIMIT :limit").append(" OFFSET :offset");
+        conditions.put("limit", pageRequest.getPageSize());
+        conditions.put("offset", pageRequest.getOffset() * pageRequest.getPageSize());
+
+        List<R> page = jdbcTemplate.query(query, conditions, rowMapper);
+        return new PageImpl<>(page, pageRequest, page.size());
+    }
+
+    /**
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return An Optional containing the records that match the conditions.
+
+     */
+    public <T, R> Optional<R> findOneBy(Class<T> tableName, Map<String, Object> conditions, RowMapper<R> rowMapper) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
+
+        String query = getAllString(conditions, sql);
+
+        List<R> list = jdbcTemplate.query(query, conditions, rowMapper);
+        return list.isEmpty() ? Optional.empty() : list.stream().findFirst();
+    }
+
+
+    /**
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param id The id of the item to search for.
+     * @return An Optional containing the records that match the conditions.
+
+     */
+    public <T, R> Optional<R> findOneBy(Class<T> tableName, Long id, RowMapper<R> rowMapper) {
+        SqlParameterSource parameters = new MapSqlParameterSource("id", id);
+        List<R> list = jdbcTemplate.query("SELECT * FROM " + getTableName(tableName) + " WHERE id = :id ", parameters, rowMapper);
+        return list.isEmpty() ? Optional.empty() : list.stream().findFirst();
+    }
+
+    /**
+     *
+     * @param <T>        The type of the entity corresponding to the table.
+     * @param tableName  The class of the table to query, annotated with @Table.
+     * @param conditions A map of column names and their values to define the WHERE clause.
+     *                   The keys represent column names, and the values represent the conditions.
+     * @return A List containing the records that match the conditions.
+
+     */
+    public <T, R> List<?> findAll(Class<T> tableName, Map<String, Object> conditions, ResultSetExtractor<List<?>> resultSetExtractor) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + getTableName(tableName) + " WHERE ");
+
+        String query = getAllString(conditions, sql);
+
+        return jdbcTemplate.query(query, conditions, resultSetExtractor);
+    }
+
+    private static String getAllString(Map<String, Object> conditions, StringBuilder sql) {
         for (Map.Entry<String, Object> entry : conditions.entrySet()) {
             sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(" AND ");
         }
 
-        String query = sql.toString().endsWith("WHERE ") ? sql.substring(0, sql.length() - 6) : sql.substring(0, sql.length() - 4);
-
-        return jdbcTemplate.query(query, conditions, rowMapper);
+        return sql.toString().endsWith("WHERE ") ? sql.substring(0, sql.length() - 6) : sql.substring(0, sql.length() - 4);
     }
 
     /**
@@ -224,7 +334,6 @@ public class GeneralRepository {
         return jdbcAggregateTemplate.exists(Query.query(where("id").is(id)), tableName);
     }
 
-
     /**
      * <p>Follow the instructions below</p>
      * <p>Example usage of Map<String, Object> to define dynamic query conditions.
@@ -233,11 +342,11 @@ public class GeneralRepository {
      *
      * <p>1. Equality Condition:
      *    conditions.put("fieldName", value);
-     *    // SQL: fieldName = :fieldName</p>
+     *    // SQL: fieldName =: fieldName</p>
      *
      * <p>2. Range (BETWEEN) Condition:
      *    conditions.put("fieldName", Pair.of(start, end));
-     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *    // SQL: fieldName BETWEEN: fieldName_start AND: fieldName_end</p>
      *
      * <p>3. IN Condition:
      *    conditions.put("fieldName", List.of(val1, val2, val3));
@@ -248,9 +357,9 @@ public class GeneralRepository {
      *    // SQL: fieldName LIKE :fieldName</p>
      *
      * <p>5. Comparison Operators (>, <, >=, <=):
-     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
-     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
-     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *    conditions.put("fieldName", new Comparison (value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison (value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName >: fieldName OR fieldName <=: fieldName</p>
      *
      * <p>6. Null Check:
      *    conditions.put("fieldName", NullCheck.IS_NULL);
@@ -288,11 +397,11 @@ public class GeneralRepository {
      *
      * <p>1. Equality Condition:
      *    conditions.put("fieldName", value);
-     *    // SQL: fieldName = :fieldName</p>
+     *    // SQL: fieldName =: fieldName</p>
      *
      * <p>2. Range (BETWEEN) Condition:
      *    conditions.put("fieldName", Pair.of(start, end));
-     *    // SQL: fieldName BETWEEN :fieldName_start AND :fieldName_end</p>
+     *    // SQL: fieldName BETWEEN: fieldName_start AND: fieldName_end</p>
      *
      * <p>3. IN Condition:
      *    conditions.put("fieldName", List.of(val1, val2, val3));
@@ -303,9 +412,9 @@ public class GeneralRepository {
      *    // SQL: fieldName LIKE :fieldName</p>
      *
      * <p>5. Comparison Operators (>, <, >=, <=):
-     *    conditions.put("fieldName", new Comparison(value, Operator.GREATER_THAN));
-     *    conditions.put("fieldName", new Comparison(value, Operator.LESS_THAN_OR_EQUAL));
-     *    // SQL: fieldName > :fieldName OR fieldName <= :fieldName</p>
+     *    conditions.put("fieldName", new Comparison (value, Operator.GREATER_THAN));
+     *    conditions.put("fieldName", new Comparison (value, Operator.LESS_THAN_OR_EQUAL));
+     *    // SQL: fieldName >: fieldName OR fieldName <=: fieldName</p>
      *
      * <p>6. Null Check:
      *    conditions.put("fieldName", NullCheck.IS_NULL);
@@ -367,7 +476,18 @@ public class GeneralRepository {
     }
 
 
-    private String getTableName(Class<?> table) {
+    /**
+     * Deletes multiple records from the database.
+     *
+     * @param <T>       The type of the entities to delete.
+     * @param instances A list of entity instances to delete. Must not be null or empty.
+     */
+    public <T> void deleteAll(List<T> instances) {
+        jdbcAggregateTemplate.deleteAll(instances);
+    }
+
+
+    protected String getTableName(Class<?> table) {
         return StringUtils.isNotBlank(table.getAnnotation(Table.class).value()) ? table.getAnnotation(Table.class).value() : table.getAnnotation(Table.class).name();
     }
 
