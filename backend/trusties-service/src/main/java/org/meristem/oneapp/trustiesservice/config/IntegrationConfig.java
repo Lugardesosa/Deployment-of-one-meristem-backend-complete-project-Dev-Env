@@ -2,7 +2,7 @@ package org.meristem.oneapp.trustiesservice.config;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trustiesservice.config.configProperties.CoreUsersAppProperties;
+import org.meristem.oneapp.trustiesservice.config.configProperties.TrustiesServiceProperties;
 import org.meristem.oneapp.trustiesservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.trustiesservice.config.configProperties.ServicesProperties;
 import org.meristem.oneapp.trustiesservice.integrations.UserServiceClient;
@@ -27,7 +27,7 @@ public class IntegrationConfig {
 
     @Bean
     UserServiceClient userServiceClient(RestClient.Builder restClientBuilder, DiscoveryClient discoveryClient, OneAppProperties oneAppProperties,
-                                        CoreUsersAppProperties coreUsersAppProperties, ServicesProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
+                                        TrustiesServiceProperties trustiesServiceProperties, ServicesProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
 
         List<ServiceInstance> instances = discoveryClient.getInstances(servicesProperties.usersService().getFirst());
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
@@ -36,7 +36,7 @@ public class IntegrationConfig {
                 .builderFor(RestClientAdapter.create(restClientBuilder.requestInterceptors(c -> c.add(interceptor))
                         .defaultRequest(r -> r.attributes(clientRegistrationId(servicesProperties.trustiesService().getFirst())))
                         .baseUrl(AppUtil.getServiceUrl(instances, servicesProperties.usersService()))
-                        .defaultHeader(oneAppProperties.defaultHeaderName(), coreUsersAppProperties.clientName())
+                        .defaultHeader(oneAppProperties.defaultHeaderName(), trustiesServiceProperties.clientName())
                         .build())).build().createClient(UserServiceClient.class);
     }
 }

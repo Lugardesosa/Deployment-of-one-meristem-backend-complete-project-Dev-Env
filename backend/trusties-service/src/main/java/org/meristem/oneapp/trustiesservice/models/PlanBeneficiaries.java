@@ -23,7 +23,7 @@ public class PlanBeneficiaries extends BaseModel<String> {
     @NotNull(message = "Not blank")
     private Long beneficiaryId;
 
-    // PlansEnum
+    // Plans enum
     @NotBlank(message = "Not blank")
     private String planType;
 

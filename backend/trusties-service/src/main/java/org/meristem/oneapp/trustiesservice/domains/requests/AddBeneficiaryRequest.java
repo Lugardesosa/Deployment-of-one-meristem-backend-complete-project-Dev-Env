@@ -2,7 +2,7 @@ package org.meristem.oneapp.trustiesservice.domains.requests;
 
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.meristem.oneapp.trustiesservice.domains.enums.PlansEnum;
+import org.meristem.oneapp.trustiesservice.domains.enums.Plans;
 import org.meristem.oneapp.trustiesservice.validations.constraints.ContainsEnum;
 
 import java.util.List;
@@ -34,9 +34,9 @@ public record AddBeneficiaryRequest(
     @Schema(
         description = "Type of plan to which beneficiaries are being added.",
         example = "SIMPLE_WILL",
-            anyOf = PlansEnum.class
+            anyOf = Plans.class
     )
-    @ContainsEnum(enumClass = PlansEnum.class)
+    @ContainsEnum(enumClass = Plans.class)
     String planType
 ) {
 }

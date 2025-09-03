@@ -3,6 +3,7 @@ package org.meristem.oneapp.trustiesservice.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.trustiesservice.controllers.AssetDeleteResponse;
+import org.meristem.oneapp.trustiesservice.domains.enums.ActivityLogAction;
 import org.meristem.oneapp.trustiesservice.domains.enums.AlternateAssetType;
 import org.meristem.oneapp.trustiesservice.domains.enums.Assets;
 import org.meristem.oneapp.trustiesservice.domains.enums.EntityStatus;
@@ -33,11 +34,13 @@ public class AssetService {
 
     private final AssetMapper assetMapper = AssetMapper.INSTANCE;
     private final CustomRepository customRepository;
+    private final ActivityLogService activityLogService;
 
     public CashResponse saveCash(CashRequest request) {
         Cash cash = assetMapper.cashRequestToCash(request);
         cash.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(cash);
+        activityLogService.sendActivity(Cash.class, ActivityLogAction.CREATED, cash.getId(), new HashMap<>());
         return assetMapper.cashToCashResponse(customRepository.save(cash));
     }
 
@@ -46,6 +49,7 @@ public class AssetService {
         PublicEquities publicEquities = assetMapper.publicEquitiesRequestToPublicEquities(cashRequest);
         publicEquities.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(publicEquities);
+        activityLogService.sendActivity(PublicEquities.class, ActivityLogAction.CREATED, publicEquities.getId(), new HashMap<>());
         return assetMapper.publicEquitiesToPublicEquitiesResponse(publicEquities);
     }
 
@@ -54,6 +58,7 @@ public class AssetService {
         PrivateEquities privateEquitiesRequest = assetMapper.privateEquitiesRequestToPrivateEquities(request);
         privateEquitiesRequest.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(privateEquitiesRequest);
+        activityLogService.sendActivity(PrivateEquities.class, ActivityLogAction.CREATED, privateEquitiesRequest.getId(), new HashMap<>());
         return assetMapper.privateEquitiesToEquitiesResponse(privateEquitiesRequest);
     }
 
@@ -76,6 +81,7 @@ public class AssetService {
                     .entityName(RealEstate.class.getSimpleName()).build();
             customRepository.save(entityFiles);
         }
+        activityLogService.sendActivity(RealEstate.class, ActivityLogAction.CREATED, realEstate.getId(), new HashMap<>());
         return assetMapper.realEstateToRealEstateResponse(realEstate);
     }
 
@@ -83,6 +89,7 @@ public class AssetService {
         MoneyMarket moneyMarket = assetMapper.moneyMarketRequestToMoneyMarket(request);
         moneyMarket.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(moneyMarket);
+        activityLogService.sendActivity(MoneyMarket.class, ActivityLogAction.CREATED, moneyMarket.getId(), new HashMap<>());
         return assetMapper.moneyMarketToMoneyMarketResponse(moneyMarket);
     }
 
@@ -90,6 +97,7 @@ public class AssetService {
         IntellectualProperty intellectualProperty = assetMapper.intellectualPropertyRequestToIntellectualProperty(request);
         intellectualProperty.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(intellectualProperty);
+        activityLogService.sendActivity(IntellectualProperty.class, ActivityLogAction.CREATED, intellectualProperty.getId(), new HashMap<>());
         return assetMapper.intellectualPropertyToIntellectualPropertyResponse(intellectualProperty);
     }
 
@@ -104,6 +112,7 @@ public class AssetService {
         alternateAssets.setAssetType(alternateAssetType.getDescription());
         alternateAssets.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(alternateAssets);
+        activityLogService.sendActivity(AlternateAssets.class, ActivityLogAction.CREATED, alternateAssets.getId(), new HashMap<>());
         return assetMapper.alternateAssetsToAlternateAssetsResponse(alternateAssets);
     }
 
@@ -111,6 +120,7 @@ public class AssetService {
         PersonalAssets personalAssets = assetMapper.personalAssetsRequestToPersonalAssets(request);
         personalAssets.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(personalAssets);
+        activityLogService.sendActivity(PersonalAssets.class, ActivityLogAction.CREATED, personalAssets.getId(), new HashMap<>());
         return assetMapper.personalAssetsToPersonalAssetsResponse(personalAssets);
     }
 
@@ -118,6 +128,7 @@ public class AssetService {
         Pension pension = assetMapper.pensionRequestToPension(request);
         pension.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(pension);
+        activityLogService.sendActivity(Pension.class, ActivityLogAction.CREATED, pension.getId(), new HashMap<>());
         return assetMapper.pensionToPensionResponse(pension);
     }
 
@@ -125,6 +136,7 @@ public class AssetService {
         LifeInsurance lifeInsurance = assetMapper.lifeInsuranceRequestToLifeInsurance(request);
         lifeInsurance.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(lifeInsurance);
+        activityLogService.sendActivity(LifeInsurance.class, ActivityLogAction.CREATED, lifeInsurance.getId(), new HashMap<>());
         return assetMapper.lifeInsuranceToLifeInsuranceResponse(lifeInsurance);
     }
 
@@ -164,10 +176,10 @@ public class AssetService {
         Map<String, Object> filter = new HashMap<>();
         filter.put("id", assetId);
         filter.put("owner_id", AppUtil.getLoggedInUserId());
-        int assetsPlanDeleted = customRepository.dynamicDelete(PlanAssets.class, Map.of("asset_id", assetId, "asset_type", assets.name()));
+        customRepository.dynamicDelete(PlanAssets.class, Map.of("asset_id", assetId, "asset_type", assets.name()));
         int deleted = customRepository.dynamicDelete(assets.getClazz(), filter);
 
+        activityLogService.sendActivity(assets.getClazz(), ActivityLogAction.DELETED, assetId, Map.of("asset_id", assetId, "asset_type", assets.name(), "deleted", deleted + ""));
         return new AssetDeleteResponse(deleted > 0 ? "Deleted" : "No item deleted", deleted > 0);
-
     }
 }

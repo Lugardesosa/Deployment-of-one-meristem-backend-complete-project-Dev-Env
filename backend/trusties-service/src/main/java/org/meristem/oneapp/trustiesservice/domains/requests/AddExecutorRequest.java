@@ -2,15 +2,20 @@ package org.meristem.oneapp.trustiesservice.domains.requests;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.meristem.oneapp.trustiesservice.domains.enums.Plans;
 
 import java.util.List;
 
 @Schema(name = "AddExecutorRequest", description = "Request to add one or more executors to a will.")
 public record AddExecutorRequest(
-        @Schema(description = "Unique identifier of the will.", example = "42", anyOf = {Long.class})
-        Long planId,
+        @Schema(description = "Unique identifier of the will.", example = "42")
+        @NotNull(message = "Cannot be null") Long planId,
+
+        @Schema(description = "Enum of the will.", example = "SIMPLE_WILL", allowableValues = {"COMPREHENSIVE_WILL", "SIMPLE_WILL"})
+        @NotBlank(message = "Cannot be null") String planType,
 
         @Schema(
                 description = "List of executor entries to be added.",

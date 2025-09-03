@@ -1,6 +1,7 @@
 package org.meristem.oneapp.trustiesservice.controllers;
 
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -80,20 +81,13 @@ public class EstatePlanController {
         return ApiUtil.buildResponse(estatePlanService.removeAsset(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
+    @Hidden
     @Operation(summary = "Add an executor", method = "PUT")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Add an executor")})
     @PreAuthorize("hasRole('ROLE_users.executor.add')")
     @PutMapping(value = "/add-executor", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EstatePlanResponse>> addExecutor(@RequestBody @Valid AddExecutorRequest request) {
         return ApiUtil.buildResponse(estatePlanService.addExecutor(request), HttpStatus.CREATED.toString(), "Successful");
-    }
-
-    @Operation(summary = "Create a will-executor", method = "POST")
-    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a will-executor")})
-    @PreAuthorize("hasRole('ROLE_users.executor.add')")
-    @PostMapping(value = "/will-executor", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<EstatePlanResponse>> willExecutor(@RequestBody @Valid AddExecutorRequest.ExecutorRequest request) {
-        return ApiUtil.buildResponse(estatePlanService.addWillExecutor(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
     @Operation(summary = "Create a nominated fund", method = "POST")

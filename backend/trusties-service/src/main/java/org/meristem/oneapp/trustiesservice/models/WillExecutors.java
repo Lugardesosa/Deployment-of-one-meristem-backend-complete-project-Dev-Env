@@ -33,13 +33,18 @@ public class WillExecutors extends BaseModel<String> {
     @NotNull(message = "Not blank")
     private Long planId;
 
+    // Plans enum
+    @NotBlank(message = "Not blank")
+    private String planType;
+
     @Builder
-    public WillExecutors(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long ownerId, String willExecutorName, String willExecutorAddress, Long planId) {
+    public WillExecutors(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long ownerId, String willExecutorName, String willExecutorAddress, Long planId, String planType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.ownerId = ownerId;
         this.willExecutorName = willExecutorName;
         this.willExecutorAddress = willExecutorAddress;
         this.planId = planId;
+        this.planType = planType;
     }
 
     @Override
