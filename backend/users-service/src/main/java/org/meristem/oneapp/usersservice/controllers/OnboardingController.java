@@ -14,7 +14,6 @@ import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.SmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -89,5 +88,15 @@ public class OnboardingController {
     @GetMapping(value = "/states", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates() {
         return ApiUtil.buildResponse(onboardingService.getStates(), HttpStatus.OK.toString(), "Request successful");
+    }
+
+    @Operation(summary = "Get Instruments")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows Users to get all the instruments")
+    })
+    @PreAuthorize("hasRole('ROLE_users.instrument.get')")
+    @GetMapping(value = "/instruments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<InstrumentResponse>>> getInstruments() {
+        return ApiUtil.buildResponse(onboardingService.getInstruments(), HttpStatus.OK.toString(), "Request successful");
     }
 }
