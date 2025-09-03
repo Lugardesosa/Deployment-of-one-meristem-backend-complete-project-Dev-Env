@@ -38,13 +38,13 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                 .password(rs.getString("password"))
                 .passwordAttempt(rs.getInt("password_attempt"))
                 .build();
-        while (rs.next()) {
+        do {
             user.userInstrumentResponses().add(UsersResponse.UserInstrumentResponse.builder()
                     .name(rs.getString("name")).id(rs.getLong("iiid"))
-                            .code(rs.getString("code"))
+                    .code(rs.getString("code"))
                     .accessed(rs.getBoolean("accessed"))
                     .build());
-        }
+        } while (rs.next());
         return user;
     }
 }
