@@ -1631,7 +1631,7 @@ $$
                 null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 8, 'Registered Email/Unique ID',
                 'Enter Registered Email or Unique ID',
-                'STRING', 4, 1, 320, null, 'v1', null),
+                'STRING', 4, 1, 150, null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 8, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 7, 1,
                 null, null,
                 'v1', null),
@@ -1661,12 +1661,12 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version, subtext)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Platform', 'Enter Asset Platform', 'STRING', 3, 1, 255,
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Platform', 'Enter Asset Platform', 'STRING', 3, 1, 150,
                 null, 'v1',
                 null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Registered Email/Unique ID',
                 'Enter Registered Email or Unique ID',
-                'STRING', 4, 1, 320, null, 'v1', null),
+                'STRING', 4, 1, 150, null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 7, 1,
                 null,
                 null, 'v1', null),
@@ -1697,7 +1697,7 @@ $$
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, form_version)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 10, 'Email/Unique ID', 'Enter app email/unique assetType',
-                'STRING', 2, 1, 320,
+                'STRING', 2, 1, 150,
                 'v1'),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 10, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 3, 1,
                 null,
@@ -1928,7 +1928,7 @@ $$
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 14, 1, 'Surname', 'Doe', 'STRING', 1, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 14, 1, 'First Name', 'John', 'STRING', 2, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 14, 1, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 3, 1,
-                300),
+                150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 14, 1, 'Phone Number', '8124077765', 'PHONE_NUMBER', 4, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 14, 1, 'Home Address', '54A Giwa Gardens, Idumota, Lagos',
                 'STRING', 5, 1, 150);
@@ -2014,7 +2014,7 @@ $$
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 17, 1, 'Surname', 'Doe', 'STRING', 1, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 17, 1, 'First Name', 'John', 'STRING', 2, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 17, 1, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 3, 1,
-                300),
+                150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 17, 1, 'Phone Number', '8124077765', 'PHONE_NUMBER', 4, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 17, 1, 'Home Address', '54A Giwa Gardens, Idumota, Lagos',
                 'STRING', 5, 1, 150);
@@ -2118,7 +2118,7 @@ $$
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Surname', 'Doe', 'STRING', 2, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'First Name', 'John', 'STRING', 3, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1,
-                300),
+                150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Phone Number', '8124077765', 'PHONE_NUMBER', 5, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Home Address', '54A Giwa Gardens, Idumota, Lagos',
                 'STRING', 6, 1, 150);
@@ -2244,10 +2244,10 @@ $$
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label, placeholder, type, field_order, mandatory, text_size)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Surname', 'John', 'STRING', 1, 1, 300),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'First Name', 'Doe', 'STRING', 2, 1, 300),
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Surname', 'John', 'STRING', 1, 1, 150),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'First Name', 'Doe', 'STRING', 2, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Phone Number', '8124077765', 'PHONE_NUMBER', 3, 1, 150),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1, 300),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1, 150),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Address', 'Enter Street, City, State and Country',
                 'STRING', 5, 1, 300),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Beneficiary Information', null, 'HEADER', 6, 0, null),
