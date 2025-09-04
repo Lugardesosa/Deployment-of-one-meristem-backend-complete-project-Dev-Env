@@ -1886,10 +1886,10 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, @AssetCategoryID, 'Cash', 'Account 
 
 INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                    internal_order, label, placeholder, type, field_order, mandatory, text_size)
-VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Surname', 'John', 'STRING', 1, 1, 300),
-       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'First Name', 'Doe', 'STRING', 2, 1, 300),
+VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Surname', 'John', 'STRING', 1, 1, 150),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'First Name', 'Doe', 'STRING', 2, 1, 150),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Phone Number', '8124077765', 'PHONE_NUMBER', 3, 1, 150),
-       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1, 300),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1, 150),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Address', 'Enter Street, City, State and Country', 'STRING', 5, 1,
         300),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Beneficiary Information', null, 'HEADER', 6, 0, null),

@@ -314,7 +314,7 @@ public class GeneralRepository {
         return jdbcTemplate.query(query, conditions, resultSetExtractor);
     }
 
-    private static String getAllString(Map<String, Object> conditions, StringBuilder sql) {
+    protected static String getAllString(Map<String, Object> conditions, StringBuilder sql) {
         for (Map.Entry<String, Object> entry : conditions.entrySet()) {
             sql.append(entry.getKey()).append(" = :").append(entry.getKey()).append(" AND ");
         }
