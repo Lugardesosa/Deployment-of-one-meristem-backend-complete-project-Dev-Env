@@ -8,16 +8,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
-import org.meristem.oneapp.usersservice.domains.requests.*;
-import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.usersservice.domains.requests.CreateNextOfKinRequest;
+import org.meristem.oneapp.usersservice.domains.requests.DobRequest;
+import org.meristem.oneapp.usersservice.domains.requests.GenderRequest;
+import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
+import org.meristem.oneapp.usersservice.domains.responses.DobResponse;
+import org.meristem.oneapp.usersservice.domains.responses.GenderResponse;
+import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
 import org.meristem.oneapp.usersservice.services.AdminService;
-import org.meristem.oneapp.usersservice.services.UsersService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
@@ -26,17 +33,6 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
-    private final UsersService usersService;
-
-    @Operation(summary = "Create admin")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Allows super admins to create admins")
-    })
-    @PreAuthorize("hasRole('ROLE_super_admin.admin.create')")
-    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UsersResponse>> createAmin(@RequestBody @Valid CreateAdminRequest request) {
-        return ApiUtil.buildResponse(adminService.create(request), HttpStatus.CREATED.toString(), "Admin created successfully");
-    }
 
     @Operation(summary = "Update next of kin")
     @ApiResponses(value = {

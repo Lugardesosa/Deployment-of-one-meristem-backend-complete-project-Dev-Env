@@ -3,6 +3,8 @@ package org.meristem.oneapp.usersservice.repositories;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.dtos.sql.RowMappers;
+import org.meristem.oneapp.usersservice.dtos.sql.UserResponseResultSetExtractor;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,7 +31,8 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     // TODO: INCREASE up COLUMNS AS THE TABLE INCREASES
     @Cacheable(value = "users", key = "#a0", unless = "#result == null")
-    @Query("SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email ")
+    @Query(value = "SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed, ii.code, ii.id AS iiid, ii.name, ia.accessed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id " +
+            "LEFT JOIN instrument_accessed ia ON ia.user_id = u.id LEFT JOIN investment_instruments ii ON ii.id = ia.instrument_id WHERE u.email = :email ", resultSetExtractorClass = UserResponseResultSetExtractor.class)
     Optional<UsersResponse> findUserDetailsByEmail(String email);
 
     boolean existsByEmailOrPhoneNumber(String email, String phoneNumber);

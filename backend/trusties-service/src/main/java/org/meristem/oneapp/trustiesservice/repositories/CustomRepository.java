@@ -9,6 +9,9 @@ import org.meristem.oneapp.trustiesservice.domains.responses.RealEstateResponse;
 import org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.trustiesservice.models.Files;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -62,6 +65,7 @@ public class CustomRepository extends GeneralRepository {
 
                 " LEFT JOIN plan_beneficiaries pb ON p.id = pb.plan_id " +
                 " WHERE p.owner_id = :owner_id " +
+                " AND pb.plan_type = :plan_type " +
                 (filters.containsKey("id") ? " AND p.id = :id " : "");
         return jdbcTemplate.query(sql, filters, resultSetExtractor);
     }

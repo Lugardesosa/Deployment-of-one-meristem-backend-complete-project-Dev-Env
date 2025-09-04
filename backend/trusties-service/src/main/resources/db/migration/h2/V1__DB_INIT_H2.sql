@@ -246,6 +246,7 @@ CREATE TABLE will_executors
     version               INTEGER,
     status                INTEGER DEFAULT 1                       NOT NULL,
     owner_id              BIGINT                                  NOT NULL,
+    plan_type          VARCHAR(100)                            NOT NULL,
     plan_id               BIGINT                                  NOT NULL,
     will_executor_name    VARCHAR(300)                            NOT NULL,
     will_executor_address VARCHAR(300)                            NOT NULL,

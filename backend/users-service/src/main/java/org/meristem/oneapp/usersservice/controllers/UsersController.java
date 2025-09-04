@@ -169,4 +169,14 @@ public class UsersController {
     public ResponseEntity<AppResponse<UpdateResponse>> updateCountryOfOrigin(@Valid @RequestBody CountryUpdateRequest request) {
         return ApiUtil.buildResponse(usersService.updateCountryOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
+
+    @Operation(summary = "Mark an instrument/subsidiary as visited")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Mark an instrument/subsidiary as visited")
+    })
+    @PreAuthorize("hasRole('ROLE_users.instrument.accessed')")
+    @PutMapping(value = "/instrument-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateInstrumentAccessed(@Valid @RequestBody InstrumentAccessedRequest request) {
+        return ApiUtil.buildResponse(usersService.updateInstrumentAccessed(request), HttpStatus.OK.toString(), "Successful");
+    }
 }

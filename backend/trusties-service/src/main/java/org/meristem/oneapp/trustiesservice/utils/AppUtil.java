@@ -53,7 +53,7 @@ public final class AppUtil {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
             return jwt.getClaim("email").toString();
         }
-        throw new BadRequestException("User is not logged in");
+        return "SYSTEM.AUTO";
     }
 
 
