@@ -143,7 +143,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - APP_PROFILE=devlocal
+      - APP_PROFILE=dev
       - GITHUB_BRANCH=dev_env
       - USER="System"
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
@@ -207,7 +207,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
-      - APP_PROFILE=local
+      - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -274,7 +274,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
-      - APP_PROFILE=local
+      - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -331,7 +331,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
-      - APP_PROFILE=local
+      - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -394,7 +394,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
-      - APP_PROFILE=local
+      - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=http://110.238.74.43:8080
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
@@ -434,8 +434,8 @@ services:
     image: cloud-gateway
     container_name: cloud-gateway
     ports:
-      #- "443:8443"
-      - "8080:20010"  # Exposed for HTTP
+      - "443:8443"
+      #- "8080:20010"  # Exposed for HTTP
         #- "443:20010" # Exposed for HTTPS
     networks:
       - meristem-network
@@ -458,7 +458,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
-      - APP_PROFILE=local
+      - APP_PROFILE=dev
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
