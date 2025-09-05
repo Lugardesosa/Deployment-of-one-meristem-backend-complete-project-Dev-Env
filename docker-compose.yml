@@ -146,7 +146,7 @@ services:
       - APP_PROFILE=dev
       - GITHUB_BRANCH=dev_env
       - USER="System"
-      - ONE_APP_SERVER_URL=http://110.238.74.43:8080
+      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
       - USERS_DB_NAME=${DB_NAME_USERS_SERVICE}
@@ -208,7 +208,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=http://110.238.74.43:8080
+      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -275,7 +275,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=http://110.238.74.43:8080
+      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -332,7 +332,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=http://110.238.74.43:8080
+      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -395,7 +395,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=http://110.238.74.43:8080
+      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
