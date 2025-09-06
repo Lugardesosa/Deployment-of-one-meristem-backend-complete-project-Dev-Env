@@ -7,3 +7,7 @@ server:
     key-store-type: JKS
     key-alias: ${SSL_KEY_ALIAS}
     enabled: true
+
+  server:
+    http2:
+      enabled: true
