@@ -358,4 +358,10 @@ public final class RowMappers {
                 .builder().value(rs.getBigDecimal("es_value"))
                 .currencyId(rs.getLong("currency_id")).currencyLogo(rs.getString("currency_logo")).build();
     }
+
+    public static RowMapper<GetAssetValueResponse.EstimatedValueDetails.AssetEstimatedValueDetails> getCurrencyEstimatedAmount() {
+
+        return (rs, rn) -> GetAssetValueResponse.EstimatedValueDetails.AssetEstimatedValueDetails
+                .builder().table(rs.getString("table_name")).value(rs.getBigDecimal("total")).build();
+    }
 }

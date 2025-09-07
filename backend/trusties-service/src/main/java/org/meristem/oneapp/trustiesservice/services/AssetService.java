@@ -2,6 +2,7 @@ package org.meristem.oneapp.trustiesservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.trustiesservice.controllers.AssetDeleteResponse;
 import org.meristem.oneapp.trustiesservice.domains.enums.ActivityLogAction;
 import org.meristem.oneapp.trustiesservice.domains.enums.AlternateAssetType;
@@ -164,14 +165,23 @@ public class AssetService {
     }
 
     public GetAssetValueResponse getAssetsValue(Assets asset) {
+
+        List<GetAssetValueResponse.EstimatedValueDetails> estimatedValueDetails;
         Long loggedInUserId = AppUtil.getLoggedInUserId();
         if (nonNull(asset)) {
-            return new GetAssetValueResponse(customRepository.getEstimatedValue(asset, loggedInUserId));
+            estimatedValueDetails = customRepository.getEstimatedValue(asset, loggedInUserId);
+        } else {
+            estimatedValueDetails = customRepository.getEstimatedValue(loggedInUserId);
         }
-        return new GetAssetValueResponse(customRepository.getEstimatedValue(loggedInUserId));
+
+        estimatedValueDetails.forEach(e -> {
+            e.setAssetEstimatedValueDetails(customRepository.getCurrencyEstimatedValue(e.getCurrencyId(), loggedInUserId));
+        });
+
+        return new GetAssetValueResponse(estimatedValueDetails);
     }
 
-    public AssetDeleteResponse deleteAsset(Assets assets, Long assetId) {
+    public AssetDeleteResponse deleteAsset(Assets assets, long assetId) {
 
         Map<String, Object> filter = new HashMap<>();
         filter.put("id", assetId);

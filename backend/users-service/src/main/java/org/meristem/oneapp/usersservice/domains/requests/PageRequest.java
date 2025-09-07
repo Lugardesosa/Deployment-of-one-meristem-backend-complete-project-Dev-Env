@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.domains.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class PageRequest {
 
     @Builder.Default
     @Schema(description = "Number of items per page", example = "10")
+    @Max(value = 200, message = "Maximum number of items per page is 200")
     private Integer size = AppConstants.PAGE_SIZE;
 
     @Builder.Default

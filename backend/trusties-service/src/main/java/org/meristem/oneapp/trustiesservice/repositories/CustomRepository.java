@@ -8,10 +8,7 @@ import org.meristem.oneapp.trustiesservice.domains.responses.GetAssetValueRespon
 import org.meristem.oneapp.trustiesservice.domains.responses.RealEstateResponse;
 import org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.trustiesservice.models.Files;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.meristem.oneapp.trustiesservice.models.*;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -119,5 +116,63 @@ public class CustomRepository extends GeneralRepository {
 
         SqlParameterSource parameterSource = new MapSqlParameterSource("owner_id", ownerId);
         return jdbcTemplate.query(stringBuilder, parameterSource, RowMappers.getEstimatedAmount());
+    }
+
+    public List<GetAssetValueResponse.EstimatedValueDetails.AssetEstimatedValueDetails> getCurrencyEstimatedValue(Long currencyId, Long loggedInUserId) {
+
+        String sql = """
+                    SELECT 'CASH' as table_name, COALESCE(SUM(estimated_amount), 0) AS total
+                    FROM cash
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'PUBLIC_EQUITIES' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM public_equities
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'PRIVATE_EQUITIES' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM private_equities
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'REAL_ESTATE' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM real_estate
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'FIXED_INCOME_MONEY_MARKET' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM money_market
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'INTELLECTUAL_PROPERTY' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM intellectual_property
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'ALTERNATE_ASSETS' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM alternate_assets
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'PERSONAL_ASSETS' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM personal_assets
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'PENSION' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM pension
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                
+                    UNION ALL
+                    SELECT 'LIFE_INSURANCE' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM life_insurance
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                """;
+
+        SqlParameterSource parameterSource = new MapSqlParameterSource(Map.of("ownerId", loggedInUserId, "currencyId", currencyId));
+        return jdbcTemplate.query(sql, parameterSource, RowMappers.getCurrencyEstimatedAmount());
+
     }
 }
