@@ -139,7 +139,7 @@ public class AssetController {
             )})
     @PreAuthorize("hasRole('ROLE_users.asset.remove')")
     @DeleteMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<AssetDeleteResponse>> deleteAsset(@RequestParam(name = "asset-name") Assets assets, @RequestParam(name = "asset-id") Long assetId) {
+    public ResponseEntity<AppResponse<AssetDeleteResponse>> deleteAsset(@RequestParam(name = "asset-name") Assets assets, @RequestParam(name = "asset-id") long assetId) {
         return ApiUtil.buildResponse(assetService.deleteAsset(assets, assetId), HttpStatus.OK.toString(), "Successful");
     }
 }
