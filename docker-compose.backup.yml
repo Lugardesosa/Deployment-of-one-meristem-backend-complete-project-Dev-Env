@@ -21,27 +21,36 @@ services:
       redis:
         condition: service_started
         required: true
+      report-service:
+        condition: service_started
+        required: true
+      trusties-service:
+        condition: service_started
+        required: true
       users-service:
+        condition: service_started
+        required: true
+      wallet-service:
         condition: service_started
         required: true
     environment:
       ADMIN_PASSWORD: UXgCkbD9yGILhlt
       ADMIN_USERNAME: admin
+      APP_PROFILE: dev
       COMPANY_NAME: '"Meristem Securities Limited"'
       CONFIG_SERVER_URI: http://config-server:20000/config
       DATA_PRIVACY_POLICY_URL: https://www.onemerristem.merristem.com
       ENCRYPTION_KEY: qHZOjcHdrKLrbhH
       FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
-      GITHUB_BRANCH: wallet
-      GITHUB_PROFILE: local
+      GITHUB_BRANCH: dev_env
       GREEN_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       KEY_STORE_PASSWORD: oneApp231
       NOTIFICATION_SERVICE_URI: http://notification-service:20030
       REDIS_HOST: redis
       REDIS_PASSWORD: AHjsoie67&8*
       REPORT_SERVICE_URI: http://report-service:20050
-      SPRING_PROFILES_ACTIVE: default
       SSL_KEY_ALIAS: one-meristem-app
+      TRUSTIES_SERVICE_URI: http://trusties-service:20060
       USER_SERVICE_URI: http://users-service:20020
       WALLET_SERVICE_URI: http://wallet-service:20040
       WHITE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -51,14 +60,6 @@ services:
     ports:
       - mode: ingress
         target: 8443
-        published: "443"
-        protocol: tcp
-      - mode: ingress
-        target: 20010
-        published: "8080"
-        protocol: tcp
-      - mode: ingress
-        target: 20010
         published: "443"
         protocol: tcp
     restart: unless-stopped
@@ -81,7 +82,7 @@ services:
       DATA_PRIVACY_POLICY_URL: https://www.onemerristem.merristem.com
       ENCRYPTION_KEY: qHZOjcHdrKLrbhH
       FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
-      GITHUB_BRANCH: wallet
+      GITHUB_BRANCH: dev_env
       GITHUB_PASSWORD: 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
       GITHUB_URL: https://github.com/Meristem-Innovation-Team/one_meristem_app.git
       GITHUB_USERNAME: lugardesosa100
@@ -90,7 +91,6 @@ services:
       SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START: "true"
       SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE: "10"
       SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT: "30"
-      SPRING_PROFILES_ACTIVE: default
       WHITE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
     image: config-server
     networks:
@@ -144,14 +144,16 @@ services:
       meristem-network: null
     restart: unless-stopped
     volumes:
-      - type: volume
-        source: kafka_data
+      - type: bind
+        source: /root/one_meristem_app/data/kafka
         target: /var/lib/kafka/data
-        volume: {}
-      - type: volume
-        source: kafka_secret
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /root/one_meristem_app/data/kafka/secrets
         target: /etc/kafka/secrets
-        volume: {}
+        bind:
+          create_host_path: true
   notification-service:
     container_name: notification-service
     depends_on:
@@ -173,8 +175,10 @@ services:
     environment:
       ADMIN_PASSWORD: UXgCkbD9yGILhlt
       ADMIN_USERNAME: admin
+      APP_PROFILE: dev
       COMPANY_NAME: '"Meristem Securities Limited"'
       CONFIG_SERVER_URI: http://config-server:20000/config
+      CONSUL_HOST: consul
       CREDIT_SWITCH_LOGIN_ID: "315497"
       CREDIT_SWITCH_PRIVATE_KEY: UNlYfANQ5hfpEjuaSIFjXOSK97NAX6NI0pT2ACpa5aPIi04Lc3swpj8XzscxJZPrzjUb1Yd1EFM5Z5yp8Tx5HwaIs9
       CREDIT_SWITCH_PUBLIC_KEY: 1kepf1KlXc9EUjPSMcqBvQf5EIqLWnXuEEz58XbiMyfLQEDfOpDltmMRHG88M3tmcSARuW9G6iMc9ExYMjfJwfI3MI
@@ -186,8 +190,7 @@ services:
       DB_SERVER: jdbc:postgresql://postgres:5432
       ENCRYPTION_KEY: qHZOjcHdrKLrbhH
       FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
-      GITHUB_BRANCH: wallet
-      GITHUB_PROFILE: local
+      GITHUB_BRANCH: dev_env
       GREEN_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       H2_PASSWORD: plumber101
       KAFKA_HOST_URL: kafka:9092
@@ -197,11 +200,15 @@ services:
       NOTIFICATION_DB_NAME: notification_service_db
       NOTIFICATION_DB_PASSWORD: admin-657-A1
       NOTIFICATION_DB_USERNAME: notification_service_user
+      NOTIFICATION_SERVICE_HOSTNAME: notification-service
+      NOTIFICATION_SERVICE_URI: http://notification-service:20030
       ONE_APP_EMAIL: hello@onemeristem.meristemng.com
-      ONE_APP_SERVER_URL: http://110.238.74.43:8080
+      ONE_APP_SERVER_URL: https://onemeristem.meristemng.com
       REDIS_HOST: redis
       REDIS_PASSWORD: AHjsoie67&8*
-      SPRING_PROFILES_ACTIVE: default
+      TRUSTIES_CLIENT_ID: trusties-service
+      TRUSTIES_CLIENT_SECRET: secret
+      USER_SERVICE_URI: http://users-service:20020
       WHITE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
     image: notification-service
     networks:
@@ -223,10 +230,11 @@ services:
       meristem-network: null
     restart: unless-stopped
     volumes:
-      - type: volume
-        source: postgres_data
+      - type: bind
+        source: /root/one_meristem_app/data/postgres
         target: /var/lib/postgresql/data
-        volume: {}
+        bind:
+          create_host_path: true
       - type: bind
         source: /root/one_meristem_app/postgres/init-db.sh
         target: /docker-entrypoint-initdb.d/init-db.sh
@@ -251,10 +259,11 @@ services:
       meristem-network: null
     restart: unless-stopped
     volumes:
-      - type: volume
-        source: redis_data
+      - type: bind
+        source: /root/one_meristem_app/data/redis
         target: /data
-        volume: {}
+        bind:
+          create_host_path: true
   report-service:
     container_name: report-service
     depends_on:
@@ -276,28 +285,85 @@ services:
     environment:
       ADMIN_PASSWORD: UXgCkbD9yGILhlt
       ADMIN_USERNAME: admin
+      APP_PROFILE: dev
       COMPANY_NAME: '"Meristem Securities Limited"'
       CONFIG_SERVER_URI: http://config-server:20000/config
+      CONSUL_HOST: consul
       DATA_PRIVACY_POLICY_URL: https://www.onemerristem.merristem.com
       DB_SERVER: jdbc:postgresql://postgres:5432
       ENCRYPTION_KEY: qHZOjcHdrKLrbhH
       FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
-      GITHUB_BRANCH: wallet
-      GITHUB_PROFILE: local
+      GITHUB_BRANCH: dev_env
       GREEN_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       H2_PASSWORD: plumber101
       KAFKA_HOST_URL: kafka:9092
       ONE_APP_EMAIL: hello@onemeristem.meristemng.com
-      ONE_APP_SERVER_URL: http://110.238.74.43:8080
+      ONE_APP_SERVER_URL: https://onemeristem.meristemng.com
       REDIS_HOST: redis
       REDIS_PASSWORD: AHjsoie67&8*
       REPORT_DB_NAME: report-service
       REPORT_DB_PASSWORD: admin-657-A1
       REPORT_DB_USERNAME: wallet-service
       REPORT_SERVICE_HOSTNAME: report-service
-      SPRING_PROFILES_ACTIVE: default
+      REPORT_SERVICE_URI: http://report-service:20050
+      TRUSTIES_CLIENT_ID: trusties-service
+      TRUSTIES_CLIENT_SECRET: secret
+      USER_SERVICE_URI: http://users-service:20020
       WHITE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
     image: report-service
+    networks:
+      meristem-network: null
+    restart: unless-stopped
+  trusties-service:
+    container_name: trusties-service
+    depends_on:
+      config-server:
+        condition: service_started
+        required: true
+      consul:
+        condition: service_started
+        required: true
+      kafka:
+        condition: service_started
+        required: true
+      postgres:
+        condition: service_started
+        required: true
+      redis:
+        condition: service_started
+        required: true
+      users-service:
+        condition: service_started
+        required: true
+    environment:
+      ADMIN_PASSWORD: UXgCkbD9yGILhlt
+      ADMIN_USERNAME: admin
+      APP_PROFILE: dev
+      COMPANY_NAME: '"Meristem Securities Limited"'
+      CONFIG_SERVER_URI: http://config-server:20000/config
+      CONSUL_HOST: consul
+      DATA_PRIVACY_POLICY_URL: https://www.onemerristem.merristem.com
+      ENCRYPTION_KEY: qHZOjcHdrKLrbhH
+      FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      GITHUB_BRANCH: dev_env
+      GREEN_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      H2_PASSWORD: plumber101
+      KAFKA_HOST_URL: kafka:9092
+      ONE_APP_EMAIL: hello@onemeristem.meristemng.com
+      ONE_APP_SERVER_URL: https://onemeristem.meristemng.com
+      REDIS_HOST: redis
+      REDIS_PASSWORD: AHjsoie67&8*
+      TRUSTIES_CLIENT_ID: trusties-service
+      TRUSTIES_CLIENT_SECRET: secret
+      TRUSTIES_DB_NAME: trusties_service_db
+      TRUSTIES_DB_PASSWORD: admin-657-A1
+      TRUSTIES_DB_USERNAME: trusties_service_user
+      TRUSTIES_SERVICE_HOSTNAME: trusties-service
+      TRUSTIES_SERVICE_URI: http://trusties-service:20060
+      USER_SERVICE_HOSTNAME: users-service
+      USER_SERVICE_URI: http://users-service:20020
+      WHITE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+    image: trusties-service
     networks:
       meristem-network: null
     restart: unless-stopped
@@ -322,6 +388,7 @@ services:
     environment:
       ADMIN_PASSWORD: UXgCkbD9yGILhlt
       ADMIN_USERNAME: admin
+      APP_PROFILE: dev
       COMPANY_NAME: '"Meristem Securities Limited"'
       CONFIG_SERVER_URI: http://config-server:20000/config
       CONSUL_HOST: consul
@@ -329,8 +396,7 @@ services:
       DB_SERVER: jdbc:postgresql://postgres:5432
       ENCRYPTION_KEY: qHZOjcHdrKLrbhH
       FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
-      GITHUB_BRANCH: wallet
-      GITHUB_PROFILE: local
+      GITHUB_BRANCH: dev_env
       GREEN_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       H2_PASSWORD: plumber101
       HUAWEI_ACCESS_KEY_ID: HPUAM5DHA70WCCJGFNK7
@@ -344,7 +410,7 @@ services:
       MAILER_USERNAME: MS_4nbheY@test-zxk54v8zomqljy6v.mlsender.net
       OKHI_DEV_AND_PROD_WHITELIST_IP: 52.18.220.93,18.202.96.242
       ONE_APP_EMAIL: hello@onemeristem.meristemng.com
-      ONE_APP_SERVER_URL: http://110.238.74.43:8080
+      ONE_APP_SERVER_URL: https://onemeristem.meristemng.com
       REDIS_HOST: redis
       REDIS_PASSWORD: AHjsoie67&8*
       SMILE_ID_DEV_API_KEY: 3d64d61d-6d64-402d-a5f0-fa288507ec8f
@@ -355,7 +421,11 @@ services:
       SMILE_ID_PROD_LAMBDA_URL: https://api.smileidentity.com/v1/
       SMILE_ID_PROD_WHITELIST_IPS: 34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
       SMILE_ID_TEST_LAMBDA_URL: https://testapi.smileidentity.com/v1/
+      TRUSTIES_CLIENT_ID: trusties-service
+      TRUSTIES_CLIENT_SECRET: secret
       USER: '"System"'
+      USER_SERVICE_HOSTNAME: users-service
+      USER_SERVICE_URI: http://users-service:20020
       USERS_DB_NAME: users_service_db
       USERS_DB_PASSWORD: admin-657-A1
       USERS_DB_USERNAME: users_service_user
@@ -385,28 +455,33 @@ services:
     environment:
       ADMIN_PASSWORD: UXgCkbD9yGILhlt
       ADMIN_USERNAME: admin
+      APP_PROFILE: dev
       COMPANY_NAME: '"Meristem Securities Limited"'
       CONFIG_SERVER_URI: http://config-server:20000/config
+      CONSUL_HOST: consul
       DATA_PRIVACY_POLICY_URL: https://www.onemerristem.merristem.com
       DB_SERVER: jdbc:postgresql://postgres:5432
       ENCRYPTION_KEY: qHZOjcHdrKLrbhH
       FINANCE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
-      GITHUB_BRANCH: wallet
-      GITHUB_PROFILE: local
+      GITHUB_BRANCH: dev_env
       GREEN_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       H2_PASSWORD: plumber101
       KAFKA_HOST_URL: kafka:9092
       ONE_APP_EMAIL: hello@onemeristem.meristemng.com
-      ONE_APP_SERVER_URL: http://110.238.74.43:8080
+      ONE_APP_SERVER_URL: https://onemeristem.meristemng.com
       PROVIDUS_API_PUBLIC_KEY: pk_sandbox_VumcF9DRNPXlO6ULxxSNM5Fx5MS34aMBzwm2c1e1CE2XrXvo
       PROVIDUS_API_SECRET_KEY: sk_sandbox_MoO4KJSXCXSXYBz53Wc9b3W3kR2y7wv30f1Gy399h8OQ7gP0
       PROVIDUS_BASE_URL: https://payment.xpress-wallet.com/api/v1/
       REDIS_HOST: redis
       REDIS_PASSWORD: AHjsoie67&8*
-      SPRING_PROFILES_ACTIVE: default
+      TRUSTIES_CLIENT_ID: trusties-service
+      TRUSTIES_CLIENT_SECRET: secret
+      USER_SERVICE_URI: http://users-service:20020
       WALLET_DB_NAME: wallet_service_db
       WALLET_DB_PASSWORD: admin-657-A1
       WALLET_DB_USERNAME: wallet_service_user
+      WALLET_SERVICE_HOSTNAME: wallet-service
+      WALLET_SERVICE_URI: http://wallet-service:20040
       WEMA_ACCOUNT_PREFIX: "733"
       WEMA_API_URL: https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/
       WHITE_LOGO_URL: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -418,12 +493,3 @@ networks:
   meristem-network:
     name: one_meristem_app_meristem-network
     driver: bridge
-volumes:
-  kafka_data:
-    name: one_meristem_app_kafka_data
-  kafka_secret:
-    name: one_meristem_app_kafka_secret
-  postgres_data:
-    name: one_meristem_app_postgres_data
-  redis_data:
-    name: one_meristem_app_redis_data

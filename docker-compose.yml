@@ -125,7 +125,7 @@ services:
       - redis
       - kafka
       - consul
-      #- otel-collector
+        #- otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -146,7 +146,7 @@ services:
       - APP_PROFILE=dev
       - GITHUB_BRANCH=dev_env
       - USER="System"
-      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
+      - ONE_APP_SERVER_URL=https://110.238.74.43
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
       - USERS_DB_NAME=${DB_NAME_USERS_SERVICE}
@@ -182,7 +182,6 @@ services:
       # - OTEL_JAVAAGENT_ENABLED=true
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
-     # - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
   # ======================
@@ -199,7 +198,7 @@ services:
       - kafka
       - redis
       - consul
-      # - otel-collector
+        #- otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -208,7 +207,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
+      - ONE_APP_SERVER_URL=https://110.238.74.43
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -238,15 +237,15 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-    #   - OTEL_SERVICE_NAME=notification-service
-    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-    #   - OTEL_TRACES_EXPORTER=otlp #---
-    #   - OTEL_METRICS_EXPORTER=otlp
-    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-service,env=local
-    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-    #   - OTEL_JAVAAGENT_ENABLED=true
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=notification-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
@@ -266,7 +265,7 @@ services:
       - kafka
       - redis
       - consul
-      # - otel-collector
+        #- otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -275,7 +274,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
+      - ONE_APP_SERVER_URL=https://110.238.74.43
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -296,15 +295,15 @@ services:
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-    #   - OTEL_SERVICE_NAME=report-service
-    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-    #   - OTEL_TRACES_EXPORTER=otlp #---
-    #   - OTEL_METRICS_EXPORTER=otlp
-    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=report-service,env=local
-    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-    #   - OTEL_JAVAAGENT_ENABLED=true
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=report-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=report-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
@@ -332,7 +331,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
+      - ONE_APP_SERVER_URL=https://110.238.74.43
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -358,15 +357,15 @@ services:
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-    #   - OTEL_SERVICE_NAME=wallet-service
-    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-    #   - OTEL_TRACES_EXPORTER=otlp #---
-    #   - OTEL_METRICS_EXPORTER=otlp
-    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=wallet-service,env=local
-    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-    #   - OTEL_JAVAAGENT_ENABLED=true
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=wallet-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=wallet-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
@@ -386,7 +385,7 @@ services:
       - redis
       - consul
       - users-service
-      # - otel-collector
+        #- otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -395,7 +394,7 @@ services:
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
-      - ONE_APP_SERVER_URL=https://onemeristem.meristemng.com
+      - ONE_APP_SERVER_URL=https://110.238.74.43
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -415,15 +414,15 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - USER_SERVICE_HOSTNAME=users-service
       - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
-    #   - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-    #   - OTEL_SERVICE_NAME=trusties-service
-    #   - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-    #   - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
-    #   - OTEL_TRACES_EXPORTER=otlp #---
-    #   - OTEL_METRICS_EXPORTER=otlp
-    #   - OTEL_RESOURCE_ATTRIBUTES=service.name=trusties-service,env=local
-    #   - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-    #   - OTEL_JAVAAGENT_ENABLED=true
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=trusties-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=trusties-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
@@ -450,7 +449,7 @@ services:
       - trusties-service
       - report-service
       - wallet-service
-      # - otel-collector
+        #- otel-collector
     environment:
       - COMPANY_NAME="Meristem Securities Limited"
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
@@ -487,13 +486,13 @@ services:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
         #- SSL_CERT_PATH=/etc/ssl/certs/certificate.pem
         #- SSL_CERT_PASSWORD=${CERT_PASSWORD}  
-        #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
-     # - JWT_SECRET=${JWT_SECRET}
+      #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
+      #- JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
     #healthcheck:
       #test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]   
 
-  # OBSERVABILITY
+  #OBSERVABILITY
   # otel-collector:
   #   container_name: otel-collector
   #   image: otel/opentelemetry-collector-contrib:0.123.0
@@ -570,5 +569,4 @@ networks:
 
 volumes:
   consul:
-
 
