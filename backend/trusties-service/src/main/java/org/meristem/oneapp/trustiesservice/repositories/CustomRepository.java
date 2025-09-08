@@ -151,9 +151,19 @@ public class CustomRepository extends GeneralRepository {
                     WHERE currency_id = :currencyId AND owner_id = :ownerId
                 
                     UNION ALL
-                    SELECT 'ALTERNATE_ASSETS' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    SELECT 'CRYPTO_NFT' as table_name, COALESCE(SUM(estimated_amount), 0)
                     FROM alternate_assets
-                    WHERE currency_id = :currencyId AND owner_id = :ownerId
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId AND asset_type = 'Cryptocurrency & NFT'
+                
+                    UNION ALL
+                    SELECT 'DIGITAL_PLATFORM' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM alternate_assets
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId AND asset_type = 'Digital Platform'
+                
+                    UNION ALL
+                    SELECT 'FINTECH_WALLETS' as table_name, COALESCE(SUM(estimated_amount), 0)
+                    FROM alternate_assets
+                    WHERE currency_id = :currencyId AND owner_id = :ownerId AND asset_type = 'Fintech Wallets'
                 
                     UNION ALL
                     SELECT 'PERSONAL_ASSETS' as table_name, COALESCE(SUM(estimated_amount), 0)
@@ -171,8 +181,7 @@ public class CustomRepository extends GeneralRepository {
                     WHERE currency_id = :currencyId AND owner_id = :ownerId
                 """;
 
-        SqlParameterSource parameterSource = new MapSqlParameterSource(Map.of("ownerId", loggedInUserId, "currencyId", currencyId));
-        return jdbcTemplate.query(sql, parameterSource, RowMappers.getCurrencyEstimatedAmount());
+        return jdbcTemplate.query(sql, Map.of("ownerId", loggedInUserId, "currencyId", currencyId), RowMappers.getCurrencyEstimatedAmount());
 
     }
 }
