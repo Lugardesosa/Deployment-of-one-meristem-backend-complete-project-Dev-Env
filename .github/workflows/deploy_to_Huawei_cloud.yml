@@ -178,24 +178,33 @@ jobs:
           # -----------------------------
           # Attempt to redeploy services
           # -----------------------------
-          echo "Restarting Docker Compose services..."
+          echo "Restarting application services only..."
+
           set +e
-          sudo docker-compose -f docker-compose.yml down
-          sudo docker volume prune -f
-          sudo docker-compose -f docker-compose.yml up -d --build
+          # Bring down only app-layer services
+          sudo docker-compose -f docker-compose.yml stop \
+            config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway
+
+          # Remove only containers for app-layer services (keeps infra running)
+          sudo docker-compose -f docker-compose.yml rm -f \
+            config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway
+
+          # Rebuild and start only app-layer services
+          sudo docker-compose -f docker-compose.yml up -d --build \
+            config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway
+          
           DEPLOY_STATUS=$?
           set -e
 
-          # -----------------------------
-          # If failed, roll back to previous config
-          # -----------------------------
-          if [ \$DEPLOY_STATUS -ne 0 ]; then
+          if [ $DEPLOY_STATUS -ne 0 ]; then
             echo "Deployment failed. Rolling back..."
             set +e
-            sudo docker-compose -f docker-compose.yml down || true
-            sudo docker-compose -f docker-compose.backup.yml up -d || {
-              echo "Rollback failed. Manual intervention required."
-              exit 1
+            sudo docker-compose -f docker-compose.yml stop \
+              config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway
+            sudo docker-compose -f docker-compose.backup.yml up -d \
+              config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway || {
+                echo "Rollback failed. Manual intervention required."
+                exit 1
             }
             echo "Rollback successful."
             exit 1
