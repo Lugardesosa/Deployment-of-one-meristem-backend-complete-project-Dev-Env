@@ -186,65 +186,68 @@ public class AuthorizationServerConfig {
 
     @Bean
     JdbcRegisteredClientRepository clientRepository(JdbcTemplate jdbcTemplate) {
-        RegisteredClient mobile = RegisteredClient
-                .withId(UUID.randomUUID().toString())
-                .clientId("mobile-service")
-                .clientName("mobile-service")
-                .clientSecret(passwordEncoder().encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .authorizationGrantType(new AuthorizationGrantType(AppConstants.RE_PASSWORD))
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("localhost:30000/login/oauth2/code/mobile-service")
-                .postLogoutRedirectUri("localhost:30000/logout")
-                .scopes(e -> e.addAll(List.of("user.read", "user.write", "send_otp" ,"verify_otp", "create_user", "users.get", "password_reset")))
-                .scope(OidcScopes.PROFILE)
-                .scope(OidcScopes.EMAIL)
-                .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(15))
-                        .reuseRefreshTokens(false).accessTokenTimeToLive(Duration.ofMinutes(5)).build())
-                .build();
-        RegisteredClient users = RegisteredClient
-                .withId(UUID.randomUUID().toString())
-                .clientId("users-service")
-                .clientName("users-service")
-                .clientSecret(passwordEncoder().encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .scope(OidcScopes.OPENID)
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
-                .build();
-        RegisteredClient notifications = RegisteredClient
-                .withId(UUID.randomUUID().toString())
-                .clientId("notification-service")
-                .clientName("notification-service")
-                .clientSecret(passwordEncoder().encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
-                .build();
 
-                RegisteredClient trusties = RegisteredClient
-                .withId(UUID.randomUUID().toString())
-                .clientId("trusties-service")
-                .clientName("trusties-service")
-                .clientSecret(passwordEncoder().encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope(AuthScopes.GET_BENEFICIARIES)
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
-                .build();
+//        RegisteredClient mobile = RegisteredClient
+//                .withId(UUID.randomUUID().toString())
+//                .clientId("mobile-service")
+//                .clientName("mobile-service")
+//                .clientSecret(passwordEncoder().encode("secret"))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+//                .authorizationGrantType(new AuthorizationGrantType(AppConstants.RE_PASSWORD))
+//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//                .redirectUri("localhost:30000/login/oauth2/code/mobile-service")
+//                .postLogoutRedirectUri("localhost:30000/logout")
+//                .scopes(e -> e.addAll(List.of("user.read", "user.write", "send_otp" ,"verify_otp", "create_user", "users.get", "password_reset")))
+//                .scope(OidcScopes.PROFILE)
+//                .scope(OidcScopes.EMAIL)
+//                .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(15))
+//                        .reuseRefreshTokens(false).accessTokenTimeToLive(Duration.ofMinutes(5)).build())
+//                .build();
+
+//        RegisteredClient users = RegisteredClient
+//                .withId(UUID.randomUUID().toString())
+//                .clientId("users-service")
+//                .clientName("users-service")
+//                .clientSecret(passwordEncoder().encode("secret"))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//                .scope(OidcScopes.OPENID)
+//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+//                .build();
+
+//        RegisteredClient notifications = RegisteredClient
+//                .withId(UUID.randomUUID().toString())
+//                .clientId("notification-service")
+//                .clientName("notification-service")
+//                .clientSecret(passwordEncoder().encode("secret"))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+//                .build();
+//
+//                RegisteredClient trusties = RegisteredClient
+//                .withId(UUID.randomUUID().toString())
+//                .clientId("trusties-service")
+//                .clientName("trusties-service")
+//                .clientSecret(passwordEncoder().encode("secret"))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+//                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+//                .scope(AuthScopes.GET_BENEFICIARIES)
+//                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+//                .build();
 
         JdbcRegisteredClientRepository registeredClientRepository = new JdbcRegisteredClientRepository(jdbcTemplate);
-        registeredClientRepository.save(mobile);
-        registeredClientRepository.save(users);
-        registeredClientRepository.save(notifications);
-        registeredClientRepository.save(trusties);
+//        registeredClientRepository.save(mobile);
+//        registeredClientRepository.save(users);
+//        registeredClientRepository.save(notifications);
+//        registeredClientRepository.save(trusties);
         return registeredClientRepository;
     }
 }
