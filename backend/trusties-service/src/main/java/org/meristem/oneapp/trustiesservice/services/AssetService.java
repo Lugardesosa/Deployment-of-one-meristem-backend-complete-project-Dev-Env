@@ -2,7 +2,6 @@ package org.meristem.oneapp.trustiesservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.trustiesservice.controllers.AssetDeleteResponse;
 import org.meristem.oneapp.trustiesservice.domains.enums.ActivityLogAction;
 import org.meristem.oneapp.trustiesservice.domains.enums.AlternateAssetType;

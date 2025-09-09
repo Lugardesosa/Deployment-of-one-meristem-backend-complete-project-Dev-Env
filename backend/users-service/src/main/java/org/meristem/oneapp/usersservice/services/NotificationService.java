@@ -86,8 +86,6 @@ public class NotificationService {
 
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).build();
 
-        // TODO: DELETE the log statement
-        log.info("OTP CODE ----> : {}", otpVerification.getCode());
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC));
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
                 .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerification.getExpiresAt()))
