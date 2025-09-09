@@ -42,3 +42,13 @@ one-app:
     okhi:
       server-ips: ${OKHI_DEV_AND_PROD_WHITELIST_IP}
       header-value: ${OKHI_HEADER_VALUE}
+
+  mobile-service:
+    secret: ${MOBILE_SECRET}
+    name: MobileService
+  notification-service:
+    secret: ${NOTIFICATION_SECRET}
+    name: NotificationService
+  trusties-service:
+    secret: ${TRUSTIES_SECRET}
+    name: TrustiesService
