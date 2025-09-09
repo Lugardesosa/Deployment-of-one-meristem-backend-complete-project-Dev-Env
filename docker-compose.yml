@@ -171,6 +171,9 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - MOBILE_SECRET=secret
+      - TRUSTIES_SECRET=secret
+      - NOTIFICATION_SECRET=secret
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
