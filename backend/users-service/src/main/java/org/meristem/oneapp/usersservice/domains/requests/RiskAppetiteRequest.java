@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.domains.requests;
 
-import com.ecwid.consul.v1.agent.AgentClient;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import org.meristem.oneapp.usersservice.domains.enums.*;
