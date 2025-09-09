@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
 public class RestClientConfig {
 
     public static final String REDACTED = "[REDACTED]";
-    private final List<String> bodyToSanitize = List.of("password", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN");
+    private final List<String> bodyToSanitize = List.of("password", "client_secret", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN");
 
     @Bean
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
