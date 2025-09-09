@@ -121,6 +121,9 @@ jobs:
           # -----------------------------
           # Enter the backend folder
           # -----------------------------
+          echo "Granting Database host file permissions to persisit data on host..."
+          chown -R 70:70 ./data/postgres/
+          
           echo "Changing into backend directory..."
           cd backend || { echo "Backend folder not found. Check repo structure."; exit 1; }
 
