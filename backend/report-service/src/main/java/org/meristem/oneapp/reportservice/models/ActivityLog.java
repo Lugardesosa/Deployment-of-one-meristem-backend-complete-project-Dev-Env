@@ -1,13 +1,11 @@
 package org.meristem.oneapp.reportservice.models;
 
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -23,11 +21,12 @@ public class ActivityLog extends BaseModel<String> {
 
     // class simple name
     private String entity;
-    private String entityId;
+    private Long entityId;
     private String application;
+    private String activity;
 
     @Builder
-    public ActivityLog(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, LocalDateTime activityDate, String actor, String action, String entity, String entityId, String application) {
+    public ActivityLog(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, LocalDateTime activityDate, String actor, String action, String entity, Long entityId, String application, String activity) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.activityDate = activityDate;
         this.actor = actor;
@@ -35,6 +34,7 @@ public class ActivityLog extends BaseModel<String> {
         this.entity = entity;
         this.entityId = entityId;
         this.application = application;
+        this.activity = activity;
     }
 
     @Override

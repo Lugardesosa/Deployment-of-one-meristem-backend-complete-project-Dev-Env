@@ -8,5 +8,5 @@ import java.util.Map;
 
 @Builder
 public record ActivityLogResponse(Long id, LocalDateTime activityDate, String actor, String action, String entity, String entityId,
-                                  String application, Map<String, Object> metadata, String description) {
+                                  String application, String activity, Map<String, Object> metadata, String description) {
 }
