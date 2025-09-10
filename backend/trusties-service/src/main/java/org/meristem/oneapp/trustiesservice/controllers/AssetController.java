@@ -21,6 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 
 @RequestMapping(ApiConstants.CONTEXT_PATH + "assets")
 @RestController
@@ -119,6 +122,18 @@ public class AssetController {
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetAssetResponse>> getAssets(@RequestParam(name = "asset-name") Assets assetName, @RequestParam(name = "asset-id", required = false) Long assetId) {
         return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.OK.toString(), "Successful");
+    }
+
+
+    @Operation(summary = "Get all assets", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get all assets",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = Map.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets() {
+        return ApiUtil.buildResponse(assetService.getAllAssets(), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get total assets value", method = "GET")
