@@ -7,5 +7,5 @@ import java.util.Map;
 
 @Builder
 public record ActivityLogEventDto(LocalDateTime activityDate, String actor, String action, String entity, Long entityId,
-                                  String application, Map<String, Object> metadata) {
+                                  String application, String activity, Map<String, Object> metadata) {
 }

@@ -3,10 +3,8 @@ package org.meristem.oneapp.trustiesservice.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.trustiesservice.controllers.AssetDeleteResponse;
-import org.meristem.oneapp.trustiesservice.domains.enums.ActivityLogAction;
-import org.meristem.oneapp.trustiesservice.domains.enums.AlternateAssetType;
+import org.meristem.oneapp.trustiesservice.domains.enums.*;
 import org.meristem.oneapp.trustiesservice.domains.enums.Assets;
-import org.meristem.oneapp.trustiesservice.domains.enums.EntityStatus;
 import org.meristem.oneapp.trustiesservice.domains.requests.*;
 import org.meristem.oneapp.trustiesservice.domains.responses.*;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
@@ -40,7 +38,8 @@ public class AssetService {
         Cash cash = assetMapper.cashRequestToCash(request);
         cash.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(cash);
-        activityLogService.sendActivity(Cash.class, ActivityLogAction.CREATED, cash.getId(), new HashMap<>());
+        activityLogService.sendActivity(Cash.class, ActivityLogType.CREATED, cash.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Cash", cash.getAccountName()));
         return assetMapper.cashToCashResponse(customRepository.save(cash));
     }
 
@@ -49,7 +48,8 @@ public class AssetService {
         PublicEquities publicEquities = assetMapper.publicEquitiesRequestToPublicEquities(cashRequest);
         publicEquities.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(publicEquities);
-        activityLogService.sendActivity(PublicEquities.class, ActivityLogAction.CREATED, publicEquities.getId(), new HashMap<>());
+        activityLogService.sendActivity(PublicEquities.class, ActivityLogType.CREATED, publicEquities.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Public Equities", publicEquities.getShareName()));
         return assetMapper.publicEquitiesToPublicEquitiesResponse(publicEquities);
     }
 
@@ -58,7 +58,8 @@ public class AssetService {
         PrivateEquities privateEquitiesRequest = assetMapper.privateEquitiesRequestToPrivateEquities(request);
         privateEquitiesRequest.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(privateEquitiesRequest);
-        activityLogService.sendActivity(PrivateEquities.class, ActivityLogAction.CREATED, privateEquitiesRequest.getId(), new HashMap<>());
+        activityLogService.sendActivity(PrivateEquities.class, ActivityLogType.CREATED, privateEquitiesRequest.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Private Equities", privateEquitiesRequest.getShareName()));
         return assetMapper.privateEquitiesToEquitiesResponse(privateEquitiesRequest);
     }
 
@@ -81,7 +82,8 @@ public class AssetService {
                     .entityName(RealEstate.class.getSimpleName()).build();
             customRepository.save(entityFiles);
         }
-        activityLogService.sendActivity(RealEstate.class, ActivityLogAction.CREATED, realEstate.getId(), new HashMap<>());
+        activityLogService.sendActivity(RealEstate.class, ActivityLogType.CREATED, realEstate.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Real Estate", realEstate.getPropertyAddress()));
         return assetMapper.realEstateToRealEstateResponse(realEstate);
     }
 
@@ -89,7 +91,8 @@ public class AssetService {
         MoneyMarket moneyMarket = assetMapper.moneyMarketRequestToMoneyMarket(request);
         moneyMarket.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(moneyMarket);
-        activityLogService.sendActivity(MoneyMarket.class, ActivityLogAction.CREATED, moneyMarket.getId(), new HashMap<>());
+        activityLogService.sendActivity(MoneyMarket.class, ActivityLogType.CREATED, moneyMarket.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Fixed Income/Money Market", moneyMarket.getInvestmentHouse()));
         return assetMapper.moneyMarketToMoneyMarketResponse(moneyMarket);
     }
 
@@ -97,7 +100,8 @@ public class AssetService {
         IntellectualProperty intellectualProperty = assetMapper.intellectualPropertyRequestToIntellectualProperty(request);
         intellectualProperty.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(intellectualProperty);
-        activityLogService.sendActivity(IntellectualProperty.class, ActivityLogAction.CREATED, intellectualProperty.getId(), new HashMap<>());
+        activityLogService.sendActivity(IntellectualProperty.class, ActivityLogType.CREATED, intellectualProperty.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Intellectual Property", intellectualProperty.getRegisteredName()));
         return assetMapper.intellectualPropertyToIntellectualPropertyResponse(intellectualProperty);
     }
 
@@ -112,7 +116,8 @@ public class AssetService {
         alternateAssets.setAssetType(alternateAssetType.getDescription());
         alternateAssets.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(alternateAssets);
-        activityLogService.sendActivity(AlternateAssets.class, ActivityLogAction.CREATED, alternateAssets.getId(), new HashMap<>());
+        activityLogService.sendActivity(AlternateAssets.class, ActivityLogType.CREATED, alternateAssets.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Alternate Assets", alternateAssets.getAssetType() + " | " + alternateAssets.getPlatform()));
         return assetMapper.alternateAssetsToAlternateAssetsResponse(alternateAssets);
     }
 
@@ -120,7 +125,8 @@ public class AssetService {
         PersonalAssets personalAssets = assetMapper.personalAssetsRequestToPersonalAssets(request);
         personalAssets.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(personalAssets);
-        activityLogService.sendActivity(PersonalAssets.class, ActivityLogAction.CREATED, personalAssets.getId(), new HashMap<>());
+        activityLogService.sendActivity(PersonalAssets.class, ActivityLogType.CREATED, personalAssets.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Personal Assets", personalAssets.getAssetType()));
         return assetMapper.personalAssetsToPersonalAssetsResponse(personalAssets);
     }
 
@@ -128,7 +134,8 @@ public class AssetService {
         Pension pension = assetMapper.pensionRequestToPension(request);
         pension.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(pension);
-        activityLogService.sendActivity(Pension.class, ActivityLogAction.CREATED, pension.getId(), new HashMap<>());
+        activityLogService.sendActivity(Pension.class, ActivityLogType.CREATED, pension.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Pension", pension.getRsa()));
         return assetMapper.pensionToPensionResponse(pension);
     }
 
@@ -136,7 +143,8 @@ public class AssetService {
         LifeInsurance lifeInsurance = assetMapper.lifeInsuranceRequestToLifeInsurance(request);
         lifeInsurance.setOwnerId(AppUtil.getLoggedInUserId());
         customRepository.save(lifeInsurance);
-        activityLogService.sendActivity(LifeInsurance.class, ActivityLogAction.CREATED, lifeInsurance.getId(), new HashMap<>());
+        activityLogService.sendActivity(LifeInsurance.class, ActivityLogType.CREATED, lifeInsurance.getId(), new HashMap<>(),
+                String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Life Insurance", lifeInsurance.getInsuranceCompany()));
         return assetMapper.lifeInsuranceToLifeInsuranceResponse(lifeInsurance);
     }
 
@@ -188,7 +196,8 @@ public class AssetService {
         customRepository.dynamicDelete(PlanAssets.class, Map.of("asset_id", assetId, "asset_type", assets.name()));
         int deleted = customRepository.dynamicDelete(assets.getClazz(), filter);
 
-        activityLogService.sendActivity(assets.getClazz(), ActivityLogAction.DELETED, assetId, Map.of("asset_id", assetId, "asset_type", assets.name(), "deleted", deleted + ""));
+        activityLogService.sendActivity(assets.getClazz(), ActivityLogType.DELETED, assetId, Map.of("asset_id", assetId, "asset_type", assets.name(), "deleted", deleted + ""),
+                String.format(ActivityLogNote.ASSET_REMOVED.getDescription(), assets.getDisplayName()));
         return new AssetDeleteResponse(deleted > 0 ? "Deleted" : "No item deleted", deleted > 0);
     }
 }

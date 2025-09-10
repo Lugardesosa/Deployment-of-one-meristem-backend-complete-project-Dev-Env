@@ -4,5 +4,5 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 public record ActivityLogEventDto(LocalDateTime activityDate, String actor, String action, String entity, Long entityId,
-                                  String application, Map<String, Object> metadata) {
+                                  String application, String activity, Map<String, Object> metadata) {
 }
