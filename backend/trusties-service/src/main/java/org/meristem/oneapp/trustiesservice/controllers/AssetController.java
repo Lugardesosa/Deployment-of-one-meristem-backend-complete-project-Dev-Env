@@ -126,10 +126,7 @@ public class AssetController {
 
 
     @Operation(summary = "Get all assets", method = "GET")
-    @ApiResponse(responseCode = "200", description = "Get all assets",
-            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = Map.class)
-            )})
+    @ApiResponse(responseCode = "200", description = "Get all assets")
     @PreAuthorize("hasRole('ROLE_users.asset.get')")
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets() {
