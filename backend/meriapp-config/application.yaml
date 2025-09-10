@@ -131,3 +131,6 @@ huawei:
 
 call:
   smile-id: true
+
+what-to-sanitize: "password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY"
+headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"
