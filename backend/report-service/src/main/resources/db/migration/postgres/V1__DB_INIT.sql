@@ -66,8 +66,9 @@ CREATE TABLE activity_log
     actor              VARCHAR(255) NOT NULL,
     action             VARCHAR(255) NOT NULL,
     entity             VARCHAR(255) NOT NULL,
-    entity_id          VARCHAR(255),
+    entity_id          BIGINT,
     application        VARCHAR(255) NOT NULL,
+    activity           TEXT         NOT NULL,
 
     CONSTRAINT "pk_activity_log" PRIMARY KEY (id)
 );

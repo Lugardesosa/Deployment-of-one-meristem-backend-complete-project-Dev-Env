@@ -561,7 +561,6 @@ ALTER TABLE roles_permissions
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
 
-
 CREATE INDEX idx_oauth2_registered_client_client_id ON oauth2_registered_client(client_id);
 
 ALTER TABLE users_roles

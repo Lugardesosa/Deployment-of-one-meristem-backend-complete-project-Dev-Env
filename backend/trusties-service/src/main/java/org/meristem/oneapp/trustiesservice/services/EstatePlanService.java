@@ -37,7 +37,8 @@ public class EstatePlanService {
         SimpleWill simpleWill = planMapper.simpleWillRequestToSimpleWill(request);
         saveWill(simpleWill, request, Plans.SIMPLE_WILL);
 
-        activityLogService.sendActivity(Plans.SIMPLE_WILL.getClazz(), ActivityLogAction.DELETED, simpleWill.getId(), Map.of());
+        activityLogService.sendActivity(Plans.SIMPLE_WILL.getClazz(), ActivityLogType.DELETED, simpleWill.getId(), Map.of(),
+                String.format(ActivityLogNote.WILL_CREATED.getDescription(), "Simple Will"));
         return EstatePlanResponse.builder().status(true).message("Completed").id(simpleWill.getId()).build();
     }
 
@@ -57,7 +58,8 @@ public class EstatePlanService {
         comprehensiveWill.setMarriageType(MarriageType.valueOf(request.getMarriageType()).getValue());
 
         saveWill(comprehensiveWill, request, Plans.COMPREHENSIVE_WILL);
-        activityLogService.sendActivity(Plans.COMPREHENSIVE_WILL.getClazz(), ActivityLogAction.DELETED, comprehensiveWill.getId(), Map.of());
+        activityLogService.sendActivity(Plans.COMPREHENSIVE_WILL.getClazz(), ActivityLogType.DELETED, comprehensiveWill.getId(), Map.of(),
+                String.format(ActivityLogNote.WILL_CREATED.getDescription(), "Comprehensive Will"));
         return EstatePlanResponse.builder().status(true).message("Completed").id(comprehensiveWill.getId()).build();
     }
 
@@ -92,14 +94,19 @@ public class EstatePlanService {
                 PlanBeneficiaries.builder().beneficiaryId(b)
                         .planType(request.planType()).planId(request.planId()).build()).toList());
 
-        activityLogService.sendActivity(PlanBeneficiaries.class, ActivityLogAction.ADDED, null, Map.of("ids", request.beneficiaryIds()));
+        int beneficiarySize = request.beneficiaryIds().size();
+        activityLogService.sendActivity(PlanBeneficiaries.class, ActivityLogType.ADDED, null, Map.of("ids", request.beneficiaryIds()),
+                String.format(ActivityLogNote.NEW_BENEFICIARY_ADDED.getDescription(), beneficiarySize, beneficiarySize == 1 ? "Beneficiary" : "Beneficiaries", request.planType()));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
     public EstatePlanResponse removeBeneficiary(RemoveBeneficiaryRequest request) {
 
-        customRepository.deleteAll(customRepository.findAllBy(PlanBeneficiaries.class, Map.of("planId", request.planId(), "beneficiaryId", request.beneficiaryIds(), "planType", request.planType())));
-        activityLogService.sendActivity(PlanBeneficiaries.class, ActivityLogAction.REMOVED, null, Map.of("ids", request.beneficiaryIds()));
+        List<PlanBeneficiaries> beneficiaries = customRepository.findAllBy(PlanBeneficiaries.class, Map.of("planId", request.planId(), "beneficiaryId", request.beneficiaryIds(), "planType", request.planType()));
+        customRepository.deleteAll(beneficiaries);
+
+        activityLogService.sendActivity(PlanBeneficiaries.class, ActivityLogType.REMOVED, null, Map.of("ids", request.beneficiaryIds()),
+                String.format(ActivityLogNote.BENEFICIARY_REMOVED.getDescription(), beneficiaries.size(), beneficiaries.size() == 1 ? "Beneficiary" : "Beneficiaries", request.planType()));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -107,14 +114,15 @@ public class EstatePlanService {
         if (isNull(request.planId())) {
             throw new InvalidRequestException("planId is required");
         }
-        customRepository.saveAll(request.assetIds().stream().map(a -> PlanAssets.builder()
+        List<PlanAssets> planAssets = customRepository.saveAll(request.assetIds().stream().map(a -> PlanAssets.builder()
                 .assetId(a.assetId())
                 .assetType(a.assetType())
                 .planId(request.planId())
                 .planType(request.planType())
                 .build()).toList());
 
-        activityLogService.sendActivity(PlanAssets.class, ActivityLogAction.ADDED, null, Map.of("ids", request.assetIds()));
+        activityLogService.sendActivity(PlanAssets.class, ActivityLogType.ADDED, null, Map.of("ids", request.assetIds()),
+                String.format(ActivityLogNote.ASSET_ASSIGNED.getDescription(), planAssets.size(), planAssets.size() == 1 ? "Asset" : "Assets", request.planType()));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -122,7 +130,8 @@ public class EstatePlanService {
         List<PlanAssets> planAssets = customRepository.findAllBy(PlanAssets.class, Map.of("assetType", request.assetType(), "assetId", request.assetIds(), "planType", request.planType(), "planId", request.planId()));
         customRepository.deleteAll(planAssets);
 
-        activityLogService.sendActivity(PlanAssets.class, ActivityLogAction.REMOVED, null, Map.of("ids", request.assetIds()));
+        activityLogService.sendActivity(PlanAssets.class, ActivityLogType.REMOVED, null, Map.of("ids", request.assetIds()),
+                String.format(ActivityLogNote.ASSET_REMOVED.getDescription(), planAssets.size(), planAssets.size() == 1 ? "Asset" : "Assets", request.planType()));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -130,13 +139,14 @@ public class EstatePlanService {
 
         Long loggedInUserId = AppUtil.getLoggedInUserId();
 
-        customRepository.saveAll(request.executorRequests().stream().map(w ->
+        List<WillExecutors> willExecutors = customRepository.saveAll(request.executorRequests().stream().map(w ->
                         WillExecutors.builder().ownerId(loggedInUserId).willExecutorName(w.willExecutorName()).willExecutorAddress(w.willExecutorAddress())
                                 .planType(request.planType())
                                 .planId(request.planId()).build())
                 .toList());
 
-        activityLogService.sendActivity(WillExecutors.class, ActivityLogAction.ADDED, null, Map.of("names", request.executorRequests().stream().map(AddExecutorRequest.ExecutorRequest::willExecutorName).toList()));
+        activityLogService.sendActivity(WillExecutors.class, ActivityLogType.ADDED, null, Map.of("names", request.executorRequests().stream().map(AddExecutorRequest.ExecutorRequest::willExecutorName).toList()),
+                String.format(ActivityLogNote.WILL_EXECUTOR_ADDED.getDescription(), willExecutors.size(), willExecutors.size() == 1 ? "Executor" : "Executors", request.planType()));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -151,7 +161,8 @@ public class EstatePlanService {
                         .percentage(b.percentage()).build()).toList();
         customRepository.saveAll(planBeneficiaries);
 
-        activityLogService.sendActivity(NominatedFund.class, ActivityLogAction.CREATED, nominatedFund.getId(), Map.of());
+        activityLogService.sendActivity(NominatedFund.class, ActivityLogType.CREATED, nominatedFund.getId(), Map.of(),
+                String.format(ActivityLogNote.WILL_CREATED.getDescription(), "Nominated Fund"));
         return EstatePlanResponse.builder().status(true).message("Completed").id(nominatedFund.getId()).build();
     }
 
@@ -185,7 +196,8 @@ public class EstatePlanService {
                 .representativePhoneNumber(d.representativePhoneNumber()).build()).toList();
         customRepository.saveAll(designatedRepresentatives);
 
-        activityLogService.sendActivity(PrivateTrusts.class, ActivityLogAction.CREATED, privateTrusts.getId(), Map.of());
+        activityLogService.sendActivity(PrivateTrusts.class, ActivityLogType.CREATED, privateTrusts.getId(), Map.of(),
+                String.format(ActivityLogNote.WILL_CREATED.getDescription(), "Private Trusts"));
         return EstatePlanResponse.builder().status(true).message("Plan created").id(privateTrusts.getId()).build();
 
     }

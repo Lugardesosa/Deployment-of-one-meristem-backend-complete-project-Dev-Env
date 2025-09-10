@@ -37,7 +37,8 @@ public class RequestResponseLogging extends OncePerRequestFilter {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> headersToFilterFor = List.of("x-forwarded-for", "host", "user-agent", "content-type");
+    @Value("${headers-to-filter-for}")
+    private List<String> headersToFilterFor;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 

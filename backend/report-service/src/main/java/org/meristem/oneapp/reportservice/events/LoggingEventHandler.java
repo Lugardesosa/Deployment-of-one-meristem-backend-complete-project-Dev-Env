@@ -26,14 +26,14 @@ public class LoggingEventHandler {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> parametersToSanitize = List.of("password", "pin", "X-MERISTEM-KEY");
-    private final List<String> headersToSanitize = List.of("password", "pin", "X-MERISTEM-KEY");
+    @Value("${what-to-sanitize}")
+    private final List<String> whatToSanitize;
 
     private final ObjectMapper objectMapper;
 
     @EventListener
     @Async
-    public void handleLogging(RequestAndResponseLogEvent event) throws JsonProcessingException {
+    public void handleLogging(RequestAndResponseLogEvent event) {
 
         try {
 
@@ -84,7 +84,7 @@ public class LoggingEventHandler {
         headers.append("{");
 
         for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
-            if (headersToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
+            if (whatToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
                 headers.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
                 continue;
             }
@@ -102,7 +102,7 @@ public class LoggingEventHandler {
         parameters.append("{");
 
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            if (parametersToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
+            if (whatToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
                 parameters.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
                 continue;
             }

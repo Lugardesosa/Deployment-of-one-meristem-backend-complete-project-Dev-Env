@@ -12,6 +12,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.meristem.oneapp.trustiesservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.UpstreamServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.*;
@@ -41,7 +42,8 @@ import java.util.concurrent.Executors;
 public class RestClientConfig {
 
     public static final String REDACTED = "[REDACTED]";
-    private final List<String> bodyToSanitize = List.of("password", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN", "Authorization");
+    @Value("${what-to-sanitize}")
+    private List<String> bodyToSanitize;
 
     @Bean
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
