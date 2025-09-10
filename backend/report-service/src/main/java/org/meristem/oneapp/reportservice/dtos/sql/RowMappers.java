@@ -44,7 +44,7 @@ public class RowMappers {
                             .activityDate(rs.getObject("activity_date", LocalDateTime.class))
                             .entity(entity)
                             .entityId(rs.getString("entity_id"))
-                            .actor(actor)
+                            .actor(actor).activity(rs.getString("activity"))
                             .application(rs.getString("application"))
                             .metadata(metadata)
                             .build();

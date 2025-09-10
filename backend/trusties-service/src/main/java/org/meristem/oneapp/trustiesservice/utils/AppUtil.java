@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.Mac;
 import java.security.NoSuchAlgorithmException;
@@ -88,5 +89,10 @@ public final class AppUtil {
 
         return isNull(instances) || instances.isEmpty() ? service.getSecond() :
                 instances.getFirst().getUri().toString().concat(instances.getFirst().getMetadata().getOrDefault("contextPath", ""));
+    }
+
+    public static String _upperCaseToTitleCase(String str) {
+        return String.join(" ", Arrays.stream(str.toLowerCase().split("_"))
+                .map(StringUtils::capitalize).toList());
     }
 }
