@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum ActivityLogAction {
+public enum ActivityLogType {
 
     CREATED("CREATED", "created"),
     UPDATED("UPDATED", "updated"),
