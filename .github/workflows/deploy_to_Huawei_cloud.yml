@@ -123,6 +123,8 @@ jobs:
           # -----------------------------
           echo "Granting Database host file permissions to persisit data on host..."
           chown -R 70:70 ./data/postgres/
+          chown -R 70:70 ./data/redis/
+          chown -R 70:70 ./data/kafka/
           
           echo "Changing into backend directory..."
           cd backend || { echo "Backend folder not found. Check repo structure."; exit 1; }
