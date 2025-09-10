@@ -201,7 +201,7 @@ jobs:
           DEPLOY_STATUS=$?
           set -e
 
-          if [ $DEPLOY_STATUS -ne 0 ]; then
+          if [[ "$DEPLOY_STATUS" -ne 0 ]]; then
             echo "Deployment failed. Rolling back..."
             set +e
             sudo docker-compose -f docker-compose.yml stop \
