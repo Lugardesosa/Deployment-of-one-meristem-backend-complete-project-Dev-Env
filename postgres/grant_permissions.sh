@@ -1,11 +1,8 @@
 #!/bin/bash
 set -e
 
-# Config
-POSTGRES_CONTAINER="postgres"
-ADMIN_USER="admin"
-
-# List of services (databases + roles)
+# List of service databases and roles
+POSTGRES_USER="admin"
 SERVICES=(
   "users-service"
   "notification-service"
@@ -15,14 +12,14 @@ SERVICES=(
 )
 
 for SERVICE in "${SERVICES[@]}"; do
-  echo ">>> Applying grants for database: $SERVICE"
+  echo ">>> Applying grants for $SERVICE"
 
-  docker exec -i $POSTGRES_CONTAINER psql -U $ADMIN_USER -d "$SERVICE" <<EOF
-GRANT USAGE, CREATE ON SCHEMA public TO "$SERVICE";
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "$SERVICE";
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "$SERVICE";
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "$SERVICE";
-EOF
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$SERVICE" <<-EOSQL
+    GRANT USAGE, CREATE ON SCHEMA public TO "$SERVICE";
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "$SERVICE";
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "$SERVICE";
+    GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "$SERVICE";
+EOSQL
 
   echo ">>> Done with $SERVICE"
 done
