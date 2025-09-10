@@ -10,7 +10,8 @@ on:
     branches:
       - dev_env
     paths:
-      - 'backend/**'               # app src              
+      - 'backend/**'               # app src  
+      - 'docker-compose.yml'
       - 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file
 
 # Global environment variables
