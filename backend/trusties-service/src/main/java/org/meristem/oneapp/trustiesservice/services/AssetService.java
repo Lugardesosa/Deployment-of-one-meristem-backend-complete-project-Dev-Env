@@ -15,10 +15,7 @@ import org.meristem.oneapp.trustiesservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -169,6 +166,17 @@ public class AssetService {
             });
         }
         return new GetAssetResponse(all);
+    }
+
+
+    public Map<String, List<?>> getAllAssets() {
+
+        Map<String, List<?>> all = new HashMap<>();
+
+        for (Assets value : Assets.values()) {
+            all.put(value.getName(), getAssets(value, null).results());
+        }
+        return all;
     }
 
     public GetAssetValueResponse getAssetsValue(Assets asset) {

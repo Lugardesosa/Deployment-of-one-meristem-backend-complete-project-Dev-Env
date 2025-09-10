@@ -3,6 +3,8 @@ package org.meristem.oneapp.trustiesservice.services;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.hc.core5.util.TextUtils;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.meristem.oneapp.trustiesservice.domains.enums.*;
 import org.meristem.oneapp.trustiesservice.domains.requests.*;
@@ -96,7 +98,7 @@ public class EstatePlanService {
 
         int beneficiarySize = request.beneficiaryIds().size();
         activityLogService.sendActivity(PlanBeneficiaries.class, ActivityLogType.ADDED, null, Map.of("ids", request.beneficiaryIds()),
-                String.format(ActivityLogNote.NEW_BENEFICIARY_ADDED.getDescription(), beneficiarySize, beneficiarySize == 1 ? "Beneficiary" : "Beneficiaries", request.planType()));
+                String.format(ActivityLogNote.NEW_BENEFICIARY_ADDED.getDescription(), beneficiarySize, beneficiarySize == 1 ? "Beneficiary" : "Beneficiaries", AppUtil._upperCaseToTitleCase(request.planType())));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -106,7 +108,7 @@ public class EstatePlanService {
         customRepository.deleteAll(beneficiaries);
 
         activityLogService.sendActivity(PlanBeneficiaries.class, ActivityLogType.REMOVED, null, Map.of("ids", request.beneficiaryIds()),
-                String.format(ActivityLogNote.BENEFICIARY_REMOVED.getDescription(), beneficiaries.size(), beneficiaries.size() == 1 ? "Beneficiary" : "Beneficiaries", request.planType()));
+                String.format(ActivityLogNote.BENEFICIARY_REMOVED.getDescription(), beneficiaries.size(), beneficiaries.size() == 1 ? "Beneficiary" : "Beneficiaries", AppUtil._upperCaseToTitleCase(request.planType())));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -122,7 +124,7 @@ public class EstatePlanService {
                 .build()).toList());
 
         activityLogService.sendActivity(PlanAssets.class, ActivityLogType.ADDED, null, Map.of("ids", request.assetIds()),
-                String.format(ActivityLogNote.ASSET_ASSIGNED.getDescription(), planAssets.size(), planAssets.size() == 1 ? "Asset" : "Assets", request.planType()));
+                String.format(ActivityLogNote.ASSET_ASSIGNED.getDescription(), planAssets.size(), planAssets.size() == 1 ? "Asset" : "Assets", AppUtil._upperCaseToTitleCase(request.planType())));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -131,7 +133,7 @@ public class EstatePlanService {
         customRepository.deleteAll(planAssets);
 
         activityLogService.sendActivity(PlanAssets.class, ActivityLogType.REMOVED, null, Map.of("ids", request.assetIds()),
-                String.format(ActivityLogNote.ASSET_REMOVED.getDescription(), planAssets.size(), planAssets.size() == 1 ? "Asset" : "Assets", request.planType()));
+                String.format(ActivityLogNote.ASSET_REMOVED.getDescription(), planAssets.size(), planAssets.size() == 1 ? "Asset" : "Assets", AppUtil._upperCaseToTitleCase(request.planType())));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
@@ -146,7 +148,7 @@ public class EstatePlanService {
                 .toList());
 
         activityLogService.sendActivity(WillExecutors.class, ActivityLogType.ADDED, null, Map.of("names", request.executorRequests().stream().map(AddExecutorRequest.ExecutorRequest::willExecutorName).toList()),
-                String.format(ActivityLogNote.WILL_EXECUTOR_ADDED.getDescription(), willExecutors.size(), willExecutors.size() == 1 ? "Executor" : "Executors", request.planType()));
+                String.format(ActivityLogNote.WILL_EXECUTOR_ADDED.getDescription(), willExecutors.size(), willExecutors.size() == 1 ? "Executor" : "Executors", AppUtil._upperCaseToTitleCase(request.planType())));
         return EstatePlanResponse.builder().status(true).message("Completed").build();
     }
 
