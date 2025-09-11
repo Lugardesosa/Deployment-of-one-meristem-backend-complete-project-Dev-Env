@@ -11,7 +11,7 @@ import org.springframework.jdbc.core.RowMapper;
 public enum Assets {
 
     CASH("Cash", "Cash Asset", "Select Cash Asset", "CASH", Cash.class, RowMappers.getCashRowMapper()),
-    PUBLIC_EQUITIES("Public Equities", "Public Equities Asset", "Select Public Equities", "PUBlIC_EQUITIES", PublicEquities.class, RowMappers.getPublicEquitiesRowMapper()),
+    PUBLIC_EQUITIES("Public Equities", "Public Equities Asset", "Select Public Equities", "PUBLIC_EQUITIES", PublicEquities.class, RowMappers.getPublicEquitiesRowMapper()),
     PRIVATE_EQUITIES("Private Equities", "Private Equities Asset", "Select Private Equities Asset", "PRIVATE_EQUITIES", PrivateEquities.class, RowMappers.getEquitiesRowMapper()),
     REAL_ESTATE("Real Estate", "Property", "Select Property", "REAL_ESTATE", RealEstate.class, RowMappers.getRealEstateRowMapper()),
     FIXED_INCOME_MONEY_MARKET("Fixed Income/Money Market", "Money Market Asset", "Select Money Market Asset", "MONEY_MARKET", MoneyMarket.class, RowMappers.getMoneyMarketRowMapper()),
