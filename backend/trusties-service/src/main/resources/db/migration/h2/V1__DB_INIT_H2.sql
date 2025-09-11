@@ -1782,9 +1782,9 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Executed or Filed Docume
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Customary Tradition',
         'Brief Description of Customary Tradition', 'SELECTION', 11, 1, null),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Tradition Details', 'Enter your Occupation/Profession',
-        'STRING', 12, 0, 200),
+        'STRING', 12, 1, 200),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Other Details (Optional)', 'Enter Additional Information',
-        'STRING', 13, 1, 500),
+        'STRING', 13, 0, 300),
 
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 2, 'Beneficiary', 'Select Beneficiary', 'SELECTION', 1, 1, null),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 2, 'Add More Beneficiaries', null, 'ADD_MORE', 2, 0, null),
