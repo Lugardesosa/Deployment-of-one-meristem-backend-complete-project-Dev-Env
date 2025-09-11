@@ -153,14 +153,12 @@ public class AssetService {
             throw new BadRequestException("Estimated value cannot be zero");
         }
 
-        if (request.assetId() < 1 ) {
-            throw new BadRequestException("Asset ID cannot be less than 1");
-        }
         Map<String, Object> updates = new HashMap<>();
         updates.put("estimated_amount", request.value());
 
         Map<String, Object> conditions = new HashMap<>();
         conditions.put("id", request.assetId());
+        conditions.put("owner_id", AppUtil.getLoggedInUserId());
 
         int updated = customRepository.dynamicUpdate(request.asset().getClazz(), updates, conditions);
         return SuccessResponse.builder().status(updated > 0).message(updated > 0 ? "Completed" : "Failed").build();

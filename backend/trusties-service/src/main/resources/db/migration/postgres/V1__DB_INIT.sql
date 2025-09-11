@@ -420,9 +420,9 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CSCS Number', 'Enter CSCS Number', 'STRING', 3, 1, 255,
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CSCS Number', 'Enter CSCS Number', 'STRING', 3, 1, 200,
                 null, 'v1'),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CHN', 'Enter CHN', 'STRING', 4, 1, 255, null, 'v1');
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CHN', 'Enter CHN', 'STRING', 4, 1, 200, null, 'v1');
 
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
@@ -928,7 +928,7 @@ $$
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Shares of Listed Company',
                 'Select Shares of Listed Company',
-                'SELECTION', 3, 1, 255, null, 'v1')
+                'SELECTION', 3, 1, 200, null, 'v1')
         RETURNING id INTO PrivateEquitiesSharesOfListedCompanyID;
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
@@ -2165,9 +2165,9 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, page_no, label, placeholder, type, field_order, mandatory, text_size)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Tradition Details', 'Enter your Occupation/Profession',
-                'STRING', 12, 0, 200),
+                'STRING', 12, 1, 200),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Other Details (Optional)',
-                'Enter Additional Information', 'STRING', 13, 1, 500),
+                'Enter Additional Information', 'STRING', 13, 0, 500),
 
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 2, 'Beneficiary', 'Select Beneficiary', 'SELECTION', 1, 1,
                 null),
@@ -2254,18 +2254,18 @@ $$
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label, placeholder, type, field_order, mandatory, text_size)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Surname', 'John', 'STRING', 1, 1, 150),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'First Name', 'Doe', 'STRING', 2, 1, 150),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Phone Number', '8124077765', 'PHONE_NUMBER', 3, 1, 150),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1, 150),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Address', 'Enter Street, City, State and Country',
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Surname', 'John', 'STRING', 1, 1, 150),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'First Name', 'Doe', 'STRING', 2, 1, 150),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Phone Number', '8124077765', 'PHONE_NUMBER', 3, 1, 150),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Email Address', 'johndoe@gmail.com', 'EMAIL', 4, 1, 150),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Address', 'Enter Street, City, State and Country',
                 'STRING', 5, 1, 300),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Beneficiary Information', null, 'HEADER', 6, 0, null),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Beneficiary', 'Select Beneficiary', 'SELECTION', 7, 1,
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Beneficiary Information', null, 'HEADER', 6, 0, null),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Beneficiary', 'Select Beneficiary', 'SELECTION', 7, 1,
                 null),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Percentage Of Fund For Beneficiary', 'x%', 'STRING', 8, 1,
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Percentage Of Fund For Beneficiary', 'x%', 'STRING', 8, 1,
                 4),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 18, 'Add More Beneficiaries', null, 'ADD_MORE', 9, 0, null);
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 16, 'Add More Beneficiaries', null, 'ADD_MORE', 9, 0, null);
 
 
     END
