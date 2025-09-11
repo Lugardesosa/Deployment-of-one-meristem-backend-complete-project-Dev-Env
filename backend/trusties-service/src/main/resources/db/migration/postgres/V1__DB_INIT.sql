@@ -344,6 +344,7 @@ $$
     DECLARE
         CashAccountTypeID                      integer;
         PublicEquitiesCompanyTypeID            integer;
+        PrivateEquitiesCompanyTypeID            integer;
         PublicEquitiesBrokerageHouseID         integer;
         PrivateEquitiesBrokerageHouseID        integer;
         PrivateEquitiesSharesOfListedCompanyID integer;
@@ -427,9 +428,9 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'Brokerage House', 'Choose Brokerage House', 'SELECTION', 5,
-                1, null,
-                null, 'v1')
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'Shares of Listed Company', 'Select Shares of Listed Company',
+                       'SELECTION', 5, 1, null, null, 'v1')
+
         RETURNING id INTO PrivateEquitiesSharesOfListedCompanyID;
 
 
@@ -912,10 +913,15 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Brokerage House', 'Choose Brokerage House', 'SELECTION', 2,
-                1, null,
-                null, 'v1')
-        RETURNING id INTO PrivateEquitiesBrokerageHouseID;
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Company Type', null, 'SELECTION', 1, 1, null, 'Private', 'v1')
+        RETURNING id INTO PrivateEquitiesCompanyTypeID;
+
+
+        INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
+                           internal_order, label,
+                           placeholder, type, field_order, mandatory, text_size, default_value, form_version)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Brokerage House', 'Choose Brokerage House', 'SELECTION', 2, 1, null,
+                 null, 'v1') RETURNING id INTO PrivateEquitiesBrokerageHouseID;
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
@@ -928,17 +934,21 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Company Type', null, 'STRING', 1, 1, null, 'Private', 'v1'),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Number of Units', 'Enter Number of Units owned', 'NUMBER',
-                6, 1, null,
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Number of Units', 'Enter Number of Units owned', 'NUMBER',
+                4, 1, null,
                 null, 'v1'),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 7, 1,
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 5, 1,
                 null, null,
                 'v1'),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 3, 3, 'Other Details (Optional)', 'Enter Additional Information',
-                'STRING', 8,
+                'STRING', 6,
                 0, 300, null, 'v1');
 
+
+        INSERT INTO selections (created_date, created_by, last_modified_date, last_modified_by, version, form_id,
+                                selection_value)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, PrivateEquitiesCompanyTypeID, 'Private'),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, PrivateEquitiesCompanyTypeID, 'Others');
 
         INSERT INTO selections (created_date, created_by, last_modified_date, last_modified_by, version, form_id,
                                 selection_value)
@@ -1425,13 +1435,13 @@ $$
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 4, 'Property Address', 'Enter street, city, state and country',
                 'STRING',
                 3, 1, 255, null, 'v1', null),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 4, 'Property Document', 'No File Chosen', 'FILE', 7, 1, null,
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 4, 'Property Document', 'No File Chosen', 'FILE', 4, 1, null,
                 'Choose File', 'v1', 'Only supports .jpg, .png and .pdf'),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 4, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 7, 1,
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 4, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 5, 1,
                 null, null,
                 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 4, 4, 'Other Details (Optional)', 'Enter Additional Information',
-                'STRING', 8,
+                'STRING', 6,
                 0, 300, null, 'v1', null);
 
 
@@ -1631,12 +1641,12 @@ $$
                 null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 8, 'Registered Email/Unique ID',
                 'Enter Registered Email or Unique ID',
-                'STRING', 4, 1, 150, null, 'v1', null),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 8, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 7, 1,
+                'STRING', 5, 1, 150, null, 'v1', null),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 8, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 4, 1,
                 null, null,
                 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 8, 'Other Details (Optional)', 'Enter Additional Information',
-                'STRING', 8,
+                'STRING', 6,
                 0, 300, null, 'v1', null);
 
 
@@ -1661,18 +1671,18 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version, subtext)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Platform', 'Enter Asset Platform', 'STRING', 3, 1, 150,
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Platform', 'Enter Asset Platform', 'STRING', 2, 1, 150,
                 null, 'v1',
                 null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Registered Email/Unique ID',
                 'Enter Registered Email or Unique ID',
-                'STRING', 4, 1, 150, null, 'v1', null),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 7, 1,
+                'STRING', 3, 1, 150, null, 'v1', null),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 4, 1,
                 null,
                 null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 9, 'Other Details (Optional)', 'Enter Additional Information',
                 'STRING',
-                8, 0, 300, null, 'v1', null);
+                5, 0, 300, null, 'v1', null);
 
 
         INSERT INTO selections (created_date, created_by, last_modified_date, last_modified_by, version, form_id,
@@ -1792,12 +1802,12 @@ $$
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'RSA (RETIRED SAVINGS ACCOUNT)', 'Enter RSA Number',
                 'STRING', 2, 1,
                 255, null, 'v1', null),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 4, 1,
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 3, 1,
                 null,
                 null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'Other Details (Optional)', 'Enter Additional Information',
                 'STRING',
-                5, 0, 300, null, 'v1', null);
+                4, 0, 300, null, 'v1', null);
 
 
         INSERT INTO selections (created_date, created_by, last_modified_date, last_modified_by, version, form_id,
