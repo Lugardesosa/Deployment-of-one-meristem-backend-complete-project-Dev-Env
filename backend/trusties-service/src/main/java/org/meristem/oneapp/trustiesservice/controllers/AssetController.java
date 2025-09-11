@@ -124,6 +124,17 @@ public class AssetController {
         return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.OK.toString(), "Successful");
     }
 
+    @Operation(summary = "Update an asset's estimated value", method = "PUT")
+    @ApiResponse(responseCode = "200", description = "Update an asset's estimated value",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = SuccessResponse.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PutMapping(value = "/estimated-value", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<SuccessResponse>> updateEstimatedValue(@RequestBody @Valid EstimatedValueRequest request) {
+        return ApiUtil.buildResponse(assetService.updateEstimatedValue(request), HttpStatus.OK.toString(), "Successful");
+    }
+
 
     @Operation(summary = "Get all assets", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get all assets")

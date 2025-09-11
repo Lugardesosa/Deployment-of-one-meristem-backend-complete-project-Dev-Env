@@ -15,6 +15,7 @@ import org.meristem.oneapp.trustiesservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static java.util.Objects.isNull;
@@ -143,6 +144,26 @@ public class AssetService {
         activityLogService.sendActivity(LifeInsurance.class, ActivityLogType.CREATED, lifeInsurance.getId(), new HashMap<>(),
                 String.format(ActivityLogNote.ASSET_CATEGORY_CREATED.getDescription(), "Life Insurance", lifeInsurance.getInsuranceCompany()));
         return assetMapper.lifeInsuranceToLifeInsuranceResponse(lifeInsurance);
+    }
+
+
+    public SuccessResponse updateEstimatedValue(EstimatedValueRequest request) {
+
+        if (request.value().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Estimated value cannot be zero");
+        }
+
+        if (request.assetId() < 1 ) {
+            throw new BadRequestException("Asset ID cannot be less than 1");
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estimated_amount", request.value());
+
+        Map<String, Object> conditions = new HashMap<>();
+        conditions.put("id", request.assetId());
+
+        int updated = customRepository.dynamicUpdate(request.asset().getClazz(), updates, conditions);
+        return SuccessResponse.builder().status(updated > 0).message(updated > 0 ? "Completed" : "Failed").build();
     }
 
     public GetAssetResponse getAssets(Assets asset, Long assetId) {
