@@ -24,6 +24,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 @RequestMapping(ApiConstants.CONTEXT_PATH + "plans")
 @RestController
 @RequiredArgsConstructor
@@ -117,5 +120,13 @@ public class EstatePlanController {
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetPlanResponse>> getPlans(@RequestParam(name = "plan") Plans plan, @RequestParam(name = "plan-id", required = false) Long planId) {
         return ApiUtil.buildResponse(estatePlanService.getPlans(plan, planId), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get all plans", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get all plans")
+    @PreAuthorize("hasRole('ROLE_users.plan.get')")
+    @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets() {
+        return ApiUtil.buildResponse(estatePlanService.getAllPlans(), HttpStatus.OK.toString(), "Successful");
     }
 }
