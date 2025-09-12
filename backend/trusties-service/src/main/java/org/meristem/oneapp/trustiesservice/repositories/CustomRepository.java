@@ -53,7 +53,7 @@ public class CustomRepository extends GeneralRepository {
 
         String sql = "SELECT p.*, " +
 
-                (withAssets ? "pa.asset_id AS assetId, pa.asset_type, " : "") +
+                (withAssets ? "pa.asset_id AS asset_id, pa.asset_type, " : "") +
 
                 "pb.beneficiary_id, pb.percentage FROM " + getTableName(clazz) +
                 " p " +

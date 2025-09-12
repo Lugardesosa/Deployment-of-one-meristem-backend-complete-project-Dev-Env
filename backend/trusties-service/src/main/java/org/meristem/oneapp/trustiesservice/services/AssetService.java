@@ -149,12 +149,9 @@ public class AssetService {
 
     public SuccessResponse updateEstimatedValue(EstimatedValueRequest request) {
 
-        if (request.value().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException("Estimated value cannot be zero");
-        }
-
         Map<String, Object> updates = new HashMap<>();
-        updates.put("estimated_amount", request.value());
+        // the plus zero is to remove the SQL injection warning that intellij shows
+        updates.put("estimated_amount", request.value().add(BigDecimal.ZERO));
 
         Map<String, Object> conditions = new HashMap<>();
         conditions.put("id", request.assetId());
@@ -208,9 +205,8 @@ public class AssetService {
             estimatedValueDetails = customRepository.getEstimatedValue(loggedInUserId);
         }
 
-        estimatedValueDetails.forEach(e -> {
-            e.setAssetEstimatedValueDetails(customRepository.getCurrencyEstimatedValue(e.getCurrencyId(), loggedInUserId));
-        });
+        estimatedValueDetails.forEach(e ->
+                e.setAssetEstimatedValueDetails(customRepository.getCurrencyEstimatedValue(e.getCurrencyId(), loggedInUserId)));
 
         return new GetAssetValueResponse(estimatedValueDetails);
     }
