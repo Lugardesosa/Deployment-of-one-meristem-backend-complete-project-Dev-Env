@@ -3,8 +3,6 @@ package org.meristem.oneapp.trustiesservice.services;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.text.WordUtils;
-import org.apache.hc.core5.util.TextUtils;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.meristem.oneapp.trustiesservice.domains.enums.*;
 import org.meristem.oneapp.trustiesservice.domains.requests.*;
@@ -179,6 +177,17 @@ public class EstatePlanService {
         filter.put("plan_type", plan.name());
 
         return new GetPlanResponse(customRepository.findPlans(plan.getClazz(), filter, plan.getRowMapper(), plan.isWithAssets()));
+    }
+
+
+    public Map<String, List<?>> getAllPlans() {
+
+        Map<String, List<?>> all = new HashMap<>();
+
+        for (Plans plan : Plans.values()) {
+            all.put(plan.getName(), getPlans(plan, null).results());
+        }
+        return all;
     }
 
     public EstatePlanResponse savePrivateTrust(@Valid CreatePrivateTrustsRequest request) {
