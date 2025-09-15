@@ -11,20 +11,20 @@ import java.util.List;
 @Builder
 public record UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, @JsonIgnore String password, String phoneNumber, @JsonIgnore Integer passwordAttempt,
                             @Column("image_key") String image, @JsonIgnore String pin, String gender, @Column("date_of_birth")
-                            LocalDate dateOfBirth, @Column("referral_code") String referralCode, @Column("onboarding_completed") Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses) implements Serializable {
+                            LocalDate dateOfBirth, @Column("referral_code") String referralCode, @Column("onboarding_completed") Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, @Column("biometric_enabled") Boolean biometricEnabled) implements Serializable {
 
-    public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, Integer passwordAttempt) {
-        this(status, id, email, firstName, lastName, middleName, password, phoneNumber, passwordAttempt, "", "", "", null, "", null, null);
+    public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, Integer passwordAttempt, Boolean biometricEnabled) {
+        this(status, id, email, firstName, lastName, middleName, password, phoneNumber, passwordAttempt, "", "", "", null, "", null, null, biometricEnabled);
     }
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                         String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses);
+                         String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean biometricEnabled) {
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, biometricEnabled);
     }
 
     public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                                     String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses) {
-        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses);
+                                     String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean biometricEnabled) {
+        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, biometricEnabled);
     }
 
     @Builder
