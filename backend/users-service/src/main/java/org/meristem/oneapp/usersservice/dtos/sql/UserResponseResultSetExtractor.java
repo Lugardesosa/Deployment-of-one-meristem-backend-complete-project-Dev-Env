@@ -36,6 +36,7 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                 .dateOfBirth(rs.getObject("date_of_birth", LocalDate.class))
                 .pin(rs.getString("pin"))
                 .password(rs.getString("password"))
+                .biometricEnabled(rs.getBoolean("biometric_enabled"))
                 .passwordAttempt(rs.getInt("password_attempt"))
                 .build();
         do {

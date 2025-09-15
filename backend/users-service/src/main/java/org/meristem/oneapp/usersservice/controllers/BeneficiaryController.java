@@ -35,8 +35,8 @@ public class BeneficiaryController {
     })
     @PreAuthorize("hasRole('ROLE_users.beneficiary.get') OR hasAuthority('SCOPE_beneficiaries.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<BeneficiaryResponse>> getBeneficiary(@RequestParam(name = "email")  String email, @RequestParam(name = "userId", required = false) Long userId) {
-        return ApiUtil.buildResponse(beneficiaryService.getBeneficiary(email, userId), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<BeneficiaryResponse>> getBeneficiary(@RequestParam(name = "id")  Long id, @RequestParam(name = "userId", required = false) Long userId) {
+        return ApiUtil.buildResponse(beneficiaryService.getBeneficiary(id, userId), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get beneficiaries")

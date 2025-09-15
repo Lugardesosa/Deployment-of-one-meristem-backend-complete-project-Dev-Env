@@ -171,6 +171,7 @@ CREATE TABLE user_profile
     marital_status       VARCHAR(50),
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
+    biometric_enabled BOOLEAN DEFAULT FALSE                      NOT NULL,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
 
@@ -620,6 +621,7 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.executor.add'),
 
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.state.update'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.biometric.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.country.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_countries'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_states'),
@@ -671,6 +673,7 @@ SET @UsersAssetRemoveID = (SELECT id FROM permissions WHERE name = 'users.asset.
 SET @UsersExecutorAddID = (SELECT id FROM permissions WHERE name = 'users.executor.add');
 
 SET @UsersUpdateStateID = (SELECT id FROM permissions WHERE name = 'users.state.update');
+SET @UsersUpdateBiometricID = (SELECT id FROM permissions WHERE name = 'users.biometric.update');
 SET @UsersUpdateCountryID = (SELECT id FROM permissions WHERE name = 'users.country.update');
 SET @UsersGetCountriesID = (SELECT id FROM permissions WHERE name = 'users.get_countries');
 SET @UsersGetStatesID = (SELECT id FROM permissions WHERE name = 'users.get_states');
@@ -722,6 +725,7 @@ VALUES (@RolesUserID, @UsersGetID),
 
        (@RolesUserID, @UsersGetCountriesID),
        (@RolesUserID, @UsersUpdateStateID),
+       (@RolesUserID, @UsersUpdateBiometricID),
        (@RolesUserID, @UsersAssetCreateID),
        (@RolesUserID, @UsersAssetGetID),
        (@RolesUserID, @UsersActivityLogGetID),

@@ -171,6 +171,7 @@ CREATE TABLE user_profile
     marital_status       VARCHAR(50),
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
+    biometric_enabled BOOLEAN DEFAULT FALSE                      NOT NULL,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
 
@@ -601,8 +602,9 @@ $$
         UsersGetID                integer;
         UsersOtpSendID            integer;
         UsersOtpVerifyID          integer;
-        UsersRiskUpdateID          integer;
+        UsersRiskUpdateID         integer;
         UsersUpdateStateID        integer;
+        UsersUpdateBiometricID    integer;
         UsersAssetCreateID        integer;
         UsersAssetGetID           integer;
         UsersActivityLogGetID     integer;
@@ -719,6 +721,10 @@ $$
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.state.update')
         RETURNING id INTO UsersUpdateStateID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.biometric.update')
+        RETURNING id INTO UsersUpdateBiometricID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.country.update')
@@ -877,6 +883,7 @@ $$
                (RolesUserID, UsersPlanCreateID),
                (RolesUserID, UsersPlanGetID),
                (RolesUserID, UsersUpdateStateID),
+               (RolesUserID, UsersUpdateBiometricID),
                (RolesUserID, UsersUpdateCountryID),
                (RolesUserID, UsersGetCountriesID),
                (RolesUserID, UsersChangePasswordID),

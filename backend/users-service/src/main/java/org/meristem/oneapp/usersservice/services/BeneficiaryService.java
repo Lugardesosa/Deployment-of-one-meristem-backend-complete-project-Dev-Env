@@ -40,11 +40,11 @@ public class BeneficiaryService {
         return beneficiaryMapper.beneficiaryToBeneficiaryResponse(beneficiaries);
     }
 
-    public BeneficiaryResponse getBeneficiary(String email, Long userId) {
+    public BeneficiaryResponse getBeneficiary(Long beneficiaryId, Long userId) {
         Map<String,Object> map = new HashMap<>();
         Long loggedInUserid = nonNull(userId) ? userId: AppUtil.getLoggedInUserId();
-        map.put("ownerId",loggedInUserid);
-        map.put("email",email);
+        map.put("ownerId", loggedInUserid);
+        map.put("id", beneficiaryId);
 
         Optional<Beneficiaries> beneficiaries = customRepository.findOneBy(Beneficiaries.class, map);
         return beneficiaries.isPresent() ? beneficiaryMapper.beneficiaryToBeneficiaryResponse(beneficiaries.get()) : BeneficiaryResponse.builder().build();
