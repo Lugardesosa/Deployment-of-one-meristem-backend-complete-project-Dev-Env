@@ -158,6 +158,16 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 
+    @Operation(summary = "Update biometric log in")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows users to update their biometric log in")
+    })
+    @PreAuthorize("hasRole('ROLE_users.biometric.update')")
+    @PutMapping(value = "/biometric-login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateBiometricOfOrigin(@Valid @RequestBody BiometricLoginUpdateRequest request) {
+        return ApiUtil.buildResponse(usersService.updateBiometricOfOrigin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
     @Hidden
     @Operation(summary = "Update Country")
     @ApiResponses(value = {

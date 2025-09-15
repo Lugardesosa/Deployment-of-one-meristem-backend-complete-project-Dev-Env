@@ -101,9 +101,6 @@ public class SmileIdService {
     @Transactional
     public SmileIdTokenResponse getSmileLink(SmileIdIdTypeRequest smileRequest, Long requirementId) {
 
-        if (idCardRepository.existsByIdValue(smileRequest.idNumber())) {
-            throw new BadRequestException("Id card already exists");
-        }
         // Check if a user has already completed this requirement
         if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
                 requirementId, true)) {

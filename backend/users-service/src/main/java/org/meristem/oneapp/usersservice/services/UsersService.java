@@ -120,7 +120,7 @@ public class UsersService {
             signedUrl = signedUrlResponse.signedUrl();
         }
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses());
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), response.biometricEnabled());
     }
 
     /**
@@ -332,6 +332,15 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
         int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("biometric_enabled", request.biometricLogin());
+        int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
