@@ -13,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.trustiesservice.constants.ApiConstants;
 import org.meristem.oneapp.trustiesservice.domains.enums.Plans;
 import org.meristem.oneapp.trustiesservice.domains.requests.*;
-import org.meristem.oneapp.trustiesservice.domains.responses.AppResponse;
-import org.meristem.oneapp.trustiesservice.domains.responses.EstatePlanResponse;
-import org.meristem.oneapp.trustiesservice.domains.responses.GetPlanResponse;
+import org.meristem.oneapp.trustiesservice.domains.responses.*;
 import org.meristem.oneapp.trustiesservice.services.EstatePlanService;
 import org.meristem.oneapp.trustiesservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
@@ -128,5 +126,17 @@ public class EstatePlanController {
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets() {
         return ApiUtil.buildResponse(estatePlanService.getAllPlans(), HttpStatus.OK.toString(), "Successful");
+    }
+
+
+    @Operation(summary = "Get total assets value", method = "GET")
+    @ApiResponse(responseCode = "200", description = "Get total assets value",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = GetAssetValueResponse.class)
+            )})
+    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @GetMapping(value = "/beneficiary-plans", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GetBeneficiaryPlansResponse>> getBeneficiaryValue(@RequestParam(name = "beneficiary-id") Long beneficiaryId) {
+        return ApiUtil.buildResponse(estatePlanService.getBeneficiaryValue(beneficiaryId), HttpStatus.OK.toString(), "Successful");
     }
 }

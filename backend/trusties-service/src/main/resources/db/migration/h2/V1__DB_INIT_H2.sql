@@ -141,6 +141,7 @@ CREATE TABLE nominated_fund
     phone_number       VARCHAR(50)                             NOT NULL,
     address            VARCHAR(400)                            NOT NULL,
     owner_id           BIGINT                                  NOT NULL,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_nominated_fund PRIMARY KEY (id)
 );
@@ -164,6 +165,7 @@ CREATE TABLE simple_will
     title              VARCHAR(50)                             NOT NULL,
     marital_status     VARCHAR(50)                             NOT NULL,
     owner_id           BIGINT                                  NOT NULL,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_simple_will PRIMARY KEY (id)
 );
@@ -195,6 +197,7 @@ CREATE TABLE comprehensive_will
     customary_tradition VARCHAR(50)                             NOT NULL,
     tradition_details   TEXT,
     other_details       TEXT,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_comprehensive_will PRIMARY KEY (id)
 );
@@ -246,7 +249,7 @@ CREATE TABLE will_executors
     version               INTEGER,
     status                INTEGER DEFAULT 1                       NOT NULL,
     owner_id              BIGINT                                  NOT NULL,
-    plan_type          VARCHAR(100)                            NOT NULL,
+    plan_type             VARCHAR(100)                            NOT NULL,
     plan_id               BIGINT                                  NOT NULL,
     will_executor_name    VARCHAR(300)                            NOT NULL,
     will_executor_address VARCHAR(300)                            NOT NULL,
@@ -820,9 +823,9 @@ SET
 
 SET
     @PrivateEquitiesCompanyTypeID = (SELECT id
-                                    FROM forms
-                                    WHERE internal_order = 2
-                                      AND field_order = 1);
+                                     FROM forms
+                                     WHERE internal_order = 2
+                                       AND field_order = 1);
 INSERT INTO selections (created_date, created_by, last_modified_date, last_modified_by, version, form_id,
                         selection_value)
 VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, @PrivateEquitiesCompanyTypeID, 'Private'),
@@ -1804,10 +1807,10 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 15, 1, 'Executed or Filed Docume
 
 
 SET @FilledDocument = (SELECT id
-                        FROM forms
-                        WHERE internal_order = 15
-                          AND field_order = 1
-                          AND page_no = 1);
+                       FROM forms
+                       WHERE internal_order = 15
+                         AND field_order = 1
+                         AND page_no = 1);
 
 
 SET @MaritalStatusID = (SELECT id
@@ -1845,7 +1848,6 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, @FilledDocument, 'A Will'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, @FilledDocument, 'Joint Ownership'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, @FilledDocument, 'Powers of Attorney'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, @FilledDocument, 'Others');
-
 
 
 
@@ -2024,7 +2026,7 @@ CREATE TABLE alternate_assets
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     asset_type         VARCHAR(255)                            NOT NULL,
     platform           VARCHAR(150)                            NOT NULL,
@@ -2048,7 +2050,7 @@ CREATE TABLE cash
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     account_name       VARCHAR(300)                            NOT NULL,
     account_number     VARCHAR(15)                             NOT NULL,
@@ -2071,7 +2073,7 @@ CREATE TABLE intellectual_property
     owner_id             BIGINT                                  NOT NULL,
     estimated_amount     DECIMAL(19, 4)                          NOT NULL,
     currency_id          BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details        TEXT,
 
     property_type        VARCHAR(100)                            NOT NULL,
     registered_name      VARCHAR(300)                            NOT NULL,
@@ -2093,7 +2095,7 @@ CREATE TABLE life_insurance
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     insurance_company  VARCHAR(100)                            NOT NULL,
     policy_number      VARCHAR(300)                            NOT NULL,
@@ -2115,7 +2117,7 @@ CREATE TABLE money_market
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     asset_type         VARCHAR(100)                            NOT NULL,
     investment_house   VARCHAR(300)                            NOT NULL,
@@ -2137,7 +2139,7 @@ CREATE TABLE pension
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     pfa                VARCHAR(150)                            NOT NULL,
     rsa                VARCHAR(150)                            NOT NULL,
@@ -2158,7 +2160,7 @@ CREATE TABLE personal_assets
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     asset_type         VARCHAR(150)                            NOT NULL,
     asset_description  VARCHAR(300)                            NOT NULL,
@@ -2181,7 +2183,7 @@ CREATE TABLE private_equities
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     company_type       VARCHAR(50)                             NOT NULL,
     brokerage_house    VARCHAR(150)                            NOT NULL,
@@ -2204,7 +2206,7 @@ CREATE TABLE public_equities
     owner_id           BIGINT                                  NOT NULL,
     estimated_amount   DECIMAL(19, 4)                          NOT NULL,
     currency_id        BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details      TEXT,
 
     company_type       VARCHAR(50)                             NOT NULL,
     brokerage_house    VARCHAR(150)                            NOT NULL,
@@ -2229,7 +2231,7 @@ CREATE TABLE real_estate
     owner_id             BIGINT                                  NOT NULL,
     estimated_amount     DECIMAL(19, 4)                          NOT NULL,
     currency_id          BIGINT                                  NOT NULL,
-    other_details       TEXT,
+    other_details        TEXT,
 
     property_type        VARCHAR(100)                            NOT NULL,
     property_description VARCHAR(300)                            NOT NULL,
@@ -2274,20 +2276,20 @@ CREATE INDEX idx_real_estate_owner_id ON real_estate (owner_id);
 
 CREATE TABLE designated_representative
 (
-    id                 BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    created_date       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by         VARCHAR(255) NOT NULL,
-    last_modified_date TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_modified_by   VARCHAR(255) NOT NULL,
-    version            INTEGER      NOT NULL DEFAULT 0,
-    status             INTEGER      NOT NULL DEFAULT 1,
+    id                          BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    created_date                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by                  VARCHAR(255) NOT NULL,
+    last_modified_date          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by            VARCHAR(255) NOT NULL,
+    version                     INTEGER      NOT NULL DEFAULT 0,
+    status                      INTEGER      NOT NULL DEFAULT 1,
 
-    owner_id                    BIGINT                              NOT NULL,
-    representative_name         VARCHAR(300)                        NOT NULL,
-    representative_address      VARCHAR(300)                        NOT NULL,
-    representative_email        VARCHAR(300)                        NOT NULL,
-    representative_phone_number VARCHAR(50)                         NOT NULL,
-    plan_id                     BIGINT                              NOT NULL,
+    owner_id                    BIGINT       NOT NULL,
+    representative_name         VARCHAR(300) NOT NULL,
+    representative_address      VARCHAR(300) NOT NULL,
+    representative_email        VARCHAR(300) NOT NULL,
+    representative_phone_number VARCHAR(50)  NOT NULL,
+    plan_id                     BIGINT       NOT NULL,
     CONSTRAINT pk_designated_representative PRIMARY KEY (id),
     CONSTRAINT uq_designated_representative_owner_email UNIQUE (owner_id, representative_email)
 );
@@ -2320,6 +2322,7 @@ CREATE TABLE private_trusts
     currency_id        BIGINT         NOT NULL,
     fund_contribution  DECIMAL(19, 4) NOT NULL,
     owner_id           BIGINT         NOT NULL,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_private_trusts PRIMARY KEY (id)
 
