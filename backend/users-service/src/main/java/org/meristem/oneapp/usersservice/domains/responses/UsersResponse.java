@@ -11,11 +11,7 @@ import java.util.List;
 @Builder
 public record UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, @JsonIgnore String password, String phoneNumber, @JsonIgnore Integer passwordAttempt,
                             @Column("image_key") String image, @JsonIgnore String pin, String gender, @Column("date_of_birth")
-                            LocalDate dateOfBirth, @Column("referral_code") String referralCode, @Column("onboarding_completed") Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, @Column("biometric_enabled") Boolean biometricEnabled) implements Serializable {
-
-    public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, Integer passwordAttempt, Boolean biometricEnabled) {
-        this(status, id, email, firstName, lastName, middleName, password, phoneNumber, passwordAttempt, "", "", "", null, "", null, null, biometricEnabled);
-    }
+                            LocalDate dateOfBirth, @Column("referral_code") String referralCode, @Column("onboarding_completed") Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, @JsonIgnore @Column("biometric_enabled") Boolean biometricEnabled) implements Serializable {
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
                          String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean biometricEnabled) {

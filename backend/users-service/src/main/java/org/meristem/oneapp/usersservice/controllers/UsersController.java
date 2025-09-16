@@ -158,6 +158,7 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 
+    @Hidden
     @Operation(summary = "Update biometric log in")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their biometric log in")
