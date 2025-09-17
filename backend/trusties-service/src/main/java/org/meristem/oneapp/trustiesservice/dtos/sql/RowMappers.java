@@ -197,7 +197,7 @@ public final class RowMappers {
                             .address(rs.getString("address")).firstName(rs.getString("first_name")).middleName(rs.getString("middle_name"))
                             .ownerId(rs.getLong("owner_id")).maritalStatus(rs.getString("marital_status"))
                             .phoneNumber(rs.getString("phone_number")).title(rs.getString("title"))
-                            .build();
+                            .metainfo(rs.getString("metainfo")).build();
                     Set<PlanAssetResponse> planAssetResponseSet = new HashSet<>();
                     Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet = new HashSet<>();
 
@@ -233,7 +233,7 @@ public final class RowMappers {
                             .phoneNumber(rs.getString("phone_number")).title(rs.getString("title"))
                             .customaryTradition(rs.getString("customary_tradition")).marriageType(rs.getString("marriage_type"))
                             .occupation(rs.getString("occupation")).otherDetails(rs.getString("other_details"))
-                            .religion(rs.getString("religion"))
+                            .religion(rs.getString("religion")).metainfo(rs.getString("metainfo"))
                             .build();
                     Set<PlanAssetResponse> planAssetResponseSet = new HashSet<>();
                     Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet = new HashSet<>();
@@ -266,7 +266,7 @@ public final class RowMappers {
                     nominatedFundResponse = NominatedFundResponse.builder()
                             .id(id).lastName(rs.getString("last_name")).email(rs.getString("email"))
                             .address(rs.getString("address")).firstName(rs.getString("first_name"))
-                            .ownerId(rs.getLong("owner_id"))
+                            .ownerId(rs.getLong("owner_id")).metainfo(rs.getString("metainfo"))
                             .phoneNumber(rs.getString("phone_number"))
                             .build();
                     Set<PlanBeneficiariesResponse> planBeneficiariesResponseSet = new HashSet<>();
@@ -299,7 +299,7 @@ public final class RowMappers {
                             .id(id).lastName(rs.getString("last_name")).email(rs.getString("email"))
                             .address(rs.getString("address")).firstName(rs.getString("first_name"))
                             .ownerId(rs.getLong("owner_id")).id(rs.getLong("id"))
-                            .phoneNumber(rs.getString("phone_number"))
+                            .phoneNumber(rs.getString("phone_number")).metainfo(rs.getString("metainfo"))
                             .title(rs.getString("title")).commencementDate(rs.getObject("commencement_date", LocalDate.class))
                             .terminationDate(rs.getObject("termination_date", LocalDate.class))
                             .powerOfTrustee(rs.getString("power_of_trustee").split(","))
@@ -363,5 +363,9 @@ public final class RowMappers {
 
         return (rs, rn) -> GetAssetValueResponse.EstimatedValueDetails.AssetEstimatedValueDetails
                 .builder().table(rs.getString("table_name")).value(rs.getBigDecimal("total")).build();
+    }
+
+    public static RowMapper<GetBeneficiaryPlansResponse.PlansMetainfo> getPlansMetainfo() {
+        return (rs, rn) -> GetBeneficiaryPlansResponse.PlansMetainfo.builder().metainfo(rs.getString("metainfo")).build();
     }
 }

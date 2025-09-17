@@ -36,8 +36,11 @@ public class NominatedFund extends BaseModel<String> {
     @NotNull(message = "Not null")
     private Long ownerId;
 
+    @NotNull(message = "Not null")
+    private String metainfo;
+
     @Builder
-    public NominatedFund(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String email, String phoneNumber, String address, Long ownerId) {
+    public NominatedFund(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String email, String phoneNumber, String address, Long ownerId, String metainfo) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.lastName = lastName;
         this.firstName = firstName;
@@ -45,6 +48,7 @@ public class NominatedFund extends BaseModel<String> {
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.ownerId = ownerId;
+        this.metainfo = metainfo;
     }
 
     @Override

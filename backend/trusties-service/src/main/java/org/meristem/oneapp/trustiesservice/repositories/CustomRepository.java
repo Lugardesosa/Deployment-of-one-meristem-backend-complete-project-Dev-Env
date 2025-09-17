@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.trustiesservice.domains.enums.Assets;
 import org.meristem.oneapp.trustiesservice.domains.requests.UpdateSelectionRequest;
 import org.meristem.oneapp.trustiesservice.domains.responses.GetAssetValueResponse;
+import org.meristem.oneapp.trustiesservice.domains.responses.GetBeneficiaryPlansResponse;
 import org.meristem.oneapp.trustiesservice.domains.responses.RealEstateResponse;
 import org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
@@ -101,7 +102,7 @@ public class CustomRepository extends GeneralRepository {
 
         stringBuilder.delete(stringBuilder.lastIndexOf("UNION ALL "), stringBuilder.length());
 
-        stringBuilder.append(" ) t JOIN currencies c ON c.id = t.currency_id GROUP BY currency_id ");
+        stringBuilder.append(" ) t JOIN currencies c ON c.id = t.currency_id GROUP BY currency_id, c.currency_logo ");
 
         SqlParameterSource parameterSource = new MapSqlParameterSource("owner_id", ownerId);
         return jdbcTemplate.query(stringBuilder.toString(), parameterSource, RowMappers.getEstimatedAmount());
@@ -183,5 +184,36 @@ public class CustomRepository extends GeneralRepository {
 
         return jdbcTemplate.query(sql, Map.of("ownerId", loggedInUserId, "currencyId", currencyId), RowMappers.getCurrencyEstimatedAmount());
 
+    }
+
+    public List<GetBeneficiaryPlansResponse.PlansMetainfo> getBeneficiaryPlans(Long beneficiaryId, Long ownerId) {
+
+        String sql = """
+                SELECT * FROM
+                (
+                    SELECT pb.beneficiary_id AS beneficiary_id, nf.metainfo, nf.created_date
+                    FROM plan_beneficiaries pb JOIN nominated_fund nf ON nf.id = pb.plan_id AND pb.plan_type = 'NOMINATED_FUND'
+                    WHERE pb.beneficiary_id = :beneficiaryId AND nf.owner_id = :ownerId
+                    UNION ALL
+
+                    SELECT pb.beneficiary_id AS beneficiary_id, sw.metainfo, sw.created_date
+                    FROM plan_beneficiaries pb JOIN simple_will sw ON sw.id = pb.plan_id AND pb.plan_type = 'SIMPLE_WILL'
+                    WHERE pb.beneficiary_id = :beneficiaryId AND sw.owner_id = :ownerId
+                    UNION ALL
+
+                    SELECT pb.beneficiary_id AS beneficiary_id, cw.metainfo, cw.created_date
+                    FROM plan_beneficiaries pb JOIN comprehensive_will cw ON cw.id = pb.plan_id AND pb.plan_type = 'COMPREHENSIVE_WILL'
+                    WHERE pb.beneficiary_id = :beneficiaryId AND cw.owner_id = :ownerId
+                    UNION ALL
+
+                    SELECT pb.beneficiary_id AS beneficiary_id, pt.metainfo, pt.created_date
+                    FROM plan_beneficiaries pb JOIN private_trusts pt ON pt.id = pb.plan_id AND pb.plan_type = 'PRIVATE_TRUSTS'
+                    WHERE pb.beneficiary_id = :beneficiaryId AND pt.owner_id = :ownerId
+                    ORDER BY created_date
+                )
+                ORDER BY created_date DESC
+                """;
+
+        return jdbcTemplate.query(sql, Map.of("ownerId", ownerId, "beneficiaryId", beneficiaryId), RowMappers.getPlansMetainfo());
     }
 }

@@ -41,8 +41,8 @@ public class ComprehensiveWill extends Wills {
     private String otherDetails;
 
     @Builder
-    public ComprehensiveWill(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String middleName, String email, String phoneNumber, String address, String title, String maritalStatus, Long ownerId, String marriageType, String religion, String occupation, String customaryTradition, String traditionDetails, String otherDetails) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, lastName, firstName, middleName, email, phoneNumber, address, title, maritalStatus, ownerId);
+    public ComprehensiveWill(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String middleName, String email, String phoneNumber, String address, String title, String maritalStatus, Long ownerId, String metainfo, String marriageType, String religion, String occupation, String customaryTradition, String traditionDetails, String otherDetails) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, lastName, firstName, middleName, email, phoneNumber, address, title, maritalStatus, ownerId, metainfo);
         this.marriageType = marriageType;
         this.religion = religion;
         this.occupation = occupation;

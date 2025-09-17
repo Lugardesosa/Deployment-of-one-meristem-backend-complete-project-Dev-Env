@@ -72,8 +72,11 @@ public class PrivateTrusts extends BaseModel<String> {
     @NotNull(message = "Not null")
     private Long ownerId;
 
+    @NotNull(message = "Not null")
+    private String metainfo;
+
     @Builder
-    public PrivateTrusts(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String email, String phoneNumber, String address, String title, Integer objective, Integer frequency, LocalDate commencementDate, LocalDate terminationDate, String powerOfTrustee, Long ownerId, Long currencyId, BigDecimal fundContribution) {
+    public PrivateTrusts(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String email, String phoneNumber, String address, String title, Integer objective, Integer frequency, LocalDate commencementDate, LocalDate terminationDate, String powerOfTrustee, Long ownerId, Long currencyId, BigDecimal fundContribution, String metainfo) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.lastName = lastName;
         this.firstName = firstName;
@@ -89,5 +92,6 @@ public class PrivateTrusts extends BaseModel<String> {
         this.currencyId = currencyId;
         this.fundContribution = fundContribution;
         this.ownerId = ownerId;
+        this.metainfo = metainfo;
     }
 }
