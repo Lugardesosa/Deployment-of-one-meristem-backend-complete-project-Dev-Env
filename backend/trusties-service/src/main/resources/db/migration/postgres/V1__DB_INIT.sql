@@ -146,6 +146,7 @@ CREATE TABLE nominated_fund
     phone_number       VARCHAR(50)                             NOT NULL,
     address            VARCHAR(400)                            NOT NULL,
     owner_id           BIGINT                                  NOT NULL,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_nominated_fund PRIMARY KEY (id)
 );
@@ -169,6 +170,7 @@ CREATE TABLE simple_will
     title              VARCHAR(50)                             NOT NULL,
     marital_status     VARCHAR(50)                             NOT NULL,
     owner_id           BIGINT                                  NOT NULL,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_simple_will PRIMARY KEY (id)
 );
@@ -200,6 +202,7 @@ CREATE TABLE comprehensive_will
     customary_tradition VARCHAR(50)                             NOT NULL,
     tradition_details   TEXT,
     other_details       TEXT,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_comprehensive_will PRIMARY KEY (id)
 );
@@ -2590,6 +2593,7 @@ CREATE TABLE private_trusts
     currency_id        BIGINT         NOT NULL,
     fund_contribution  DECIMAL(19, 4) NOT NULL,
     owner_id           BIGINT         NOT NULL,
+    metainfo           VARCHAR(100)   NOT NULL,
 
     CONSTRAINT pk_private_trusts PRIMARY KEY (id)
 

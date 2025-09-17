@@ -17,5 +17,5 @@ public interface UserServiceClient {
     AppBaseResponse<List<BeneficiaryResponse>> getAllBeneficiaries(@RequestParam(name = "userId") Long userId);
 
     @GetExchange(url = "/beneficiary")
-    BeneficiaryResponse getBeneficiary(@RequestParam(name = "email")  String email, @RequestParam(name = "userId") Long userId);
+    AppBaseResponse<BeneficiaryResponse> getBeneficiary(@RequestParam(name = "id") Long beneficiaryId, @RequestParam(name = "userId") Long userId);
 }

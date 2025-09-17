@@ -50,7 +50,10 @@ public class Wills extends BaseModel<String> {
     @NotNull(message = "Not null")
     private Long ownerId;
 
-    public Wills(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String middleName, String email, String phoneNumber, String address, String title, String maritalStatus, Long ownerId) {
+    @NotNull(message = "Not null")
+    private String metainfo;
+
+    public Wills(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String lastName, String firstName, String middleName, String email, String phoneNumber, String address, String title, String maritalStatus, Long ownerId, String metainfo) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.lastName = lastName;
         this.firstName = firstName;
@@ -61,6 +64,7 @@ public class Wills extends BaseModel<String> {
         this.title = title;
         this.maritalStatus = maritalStatus;
         this.ownerId = ownerId;
+        this.metainfo = metainfo;
     }
 
     @Override

@@ -36,4 +36,7 @@ public class PlanResponse {
 
     @Schema(description = "Identifier of the plan owner", example = "42")
     private Long ownerId;
+
+    @Schema(description = "Pseudo unique identifier of a will", example = "3rd october, 2025 03:00 pm")
+    private String metainfo;
 }

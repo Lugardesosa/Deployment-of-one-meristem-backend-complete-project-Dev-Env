@@ -7,7 +7,10 @@ import org.apache.kafka.common.errors.InvalidRequestException;
 import org.meristem.oneapp.trustiesservice.domains.enums.*;
 import org.meristem.oneapp.trustiesservice.domains.requests.*;
 import org.meristem.oneapp.trustiesservice.domains.responses.EstatePlanResponse;
+import org.meristem.oneapp.trustiesservice.domains.responses.GetBeneficiaryPlansResponse;
 import org.meristem.oneapp.trustiesservice.domains.responses.GetPlanResponse;
+import org.meristem.oneapp.trustiesservice.integrations.UserServiceClient;
+import org.meristem.oneapp.trustiesservice.integrations.responses.BeneficiaryResponse;
 import org.meristem.oneapp.trustiesservice.mappers.PlanMapper;
 import org.meristem.oneapp.trustiesservice.models.*;
 import org.meristem.oneapp.trustiesservice.repositories.CustomRepository;
@@ -15,6 +18,8 @@ import org.meristem.oneapp.trustiesservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +36,12 @@ public class EstatePlanService {
     private final CustomRepository customRepository;
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
     private final ActivityLogService activityLogService;
+    private final UserServiceClient userServiceClient;
 
     public EstatePlanResponse saveSimpleWill(CreateWillRequest request) {
 
         SimpleWill simpleWill = planMapper.simpleWillRequestToSimpleWill(request);
+        simpleWill.setMetainfo(getMetainfo(Plans.SIMPLE_WILL));
         saveWill(simpleWill, request, Plans.SIMPLE_WILL);
 
         activityLogService.sendActivity(Plans.SIMPLE_WILL.getClazz(), ActivityLogType.DELETED, simpleWill.getId(), Map.of(),
@@ -54,6 +61,7 @@ public class EstatePlanService {
             comprehensiveWill.setTraditionDetails(request.getTraditionDetails());
         }
 
+        comprehensiveWill.setMetainfo(getMetainfo(Plans.COMPREHENSIVE_WILL));
         comprehensiveWill.setReligion(Religion.valueOf(request.getReligion()).getValue());
         comprehensiveWill.setMarriageType(MarriageType.valueOf(request.getMarriageType()).getValue());
 
@@ -154,6 +162,7 @@ public class EstatePlanService {
 
         NominatedFund nominatedFund = planMapper.createNominatedFundRequestToNominatedFund(request);
         nominatedFund.setOwnerId(AppUtil.getLoggedInUserId());
+        nominatedFund.setMetainfo(getMetainfo(Plans.NOMINATED_FUND));
         customRepository.save(nominatedFund);
         List<PlanBeneficiaries> planBeneficiaries = request.beneficiaryInformation().stream().map(b ->
                 PlanBeneficiaries.builder().planType(Plans.NOMINATED_FUND.name())
@@ -195,6 +204,7 @@ public class EstatePlanService {
         PrivateTrusts privateTrusts = planMapper.privateTrustsRequestToPrivateTrusts(request);
         Long loggedInUserId = AppUtil.getLoggedInUserId();
         privateTrusts.setOwnerId(loggedInUserId);
+        privateTrusts.setMetainfo(getMetainfo(Plans.PRIVATE_TRUSTS));
         customRepository.save(privateTrusts);
 
         List<PlanBeneficiaries> planBeneficiaries = request.beneficiaryIds().stream().map(b ->
@@ -210,6 +220,28 @@ public class EstatePlanService {
         activityLogService.sendActivity(PrivateTrusts.class, ActivityLogType.CREATED, privateTrusts.getId(), Map.of(),
                 String.format(ActivityLogNote.WILL_CREATED.getDescription(), "Private Trusts"));
         return EstatePlanResponse.builder().status(true).message("Plan created").id(privateTrusts.getId()).build();
+    }
 
+    public GetBeneficiaryPlansResponse getBeneficiaryValue(Long beneficiaryId) {
+
+        Long loggedInUserId = AppUtil.getLoggedInUserId();
+
+        BeneficiaryResponse beneficiary = userServiceClient.getBeneficiary(beneficiaryId, loggedInUserId).data();
+        GetBeneficiaryPlansResponse response = planMapper.beneficiaryResponseToGetBeneficiaryPlansResponse(beneficiary);
+        response.setDetails(customRepository.getBeneficiaryPlans(beneficiaryId, loggedInUserId));
+        return response;
+    }
+
+    private String getMetainfo(Plans plans) {
+
+        String formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM, yyyy hh:mm a"));
+
+        return switch (plans) {
+            case SIMPLE_WILL -> "Simple Will - " + formattedDate;
+            case COMPREHENSIVE_WILL -> "Comprehensive Will - " + formattedDate;
+            case NOMINATED_FUND -> "Nominated Fund - " + formattedDate;
+            case PRIVATE_TRUSTS -> "Private Trusts - " + formattedDate;
+            default -> "";
+        };
     }
 }
