@@ -54,6 +54,11 @@ one-app:
     name: TrustiesService
 
 
+#geoip:
+#  db:
+#    location: ${GEOIP_DB_LOCATION}
+#
+
 geoip:
   db:
-    location: ${MOBILE_SECRET}
+    location: "/Users/kingsleygodwin/Downloads/GeoLite2-City_20250916/GeoLite2-City.mmdb"
