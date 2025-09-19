@@ -52,3 +52,8 @@ one-app:
   trusties-service:
     secret: ${TRUSTIES_SECRET}
     name: TrustiesService
+
+
+geoip:
+  db:
+    location: ${GEOIP_DB_LOCATION}

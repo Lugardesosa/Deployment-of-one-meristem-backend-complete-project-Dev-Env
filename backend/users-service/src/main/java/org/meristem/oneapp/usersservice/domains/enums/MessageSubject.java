@@ -9,11 +9,12 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum OtpType {
+public enum MessageSubject {
 
     REGISTRATION(1, "Registration OTP received "),
     PASSWORD_RESET(2, "Password reset OTP received "),
-    ONBOARDING_VERIFICATION (3, "Onboarding Verification OTP received ");
+    ONBOARDING_VERIFICATION (3, "Onboarding Verification OTP received "),
+    LOGIN_ALERT (3, "There was a log into your account ");
 
     private final int code;
     private final String message;
@@ -25,7 +26,7 @@ public enum OtpType {
      * @return String
      */
     public static String getMessageSubject(int code) {
-        for (OtpType messageSubject : OtpType.values()) {
+        for (MessageSubject messageSubject : MessageSubject.values()) {
             if (messageSubject.getCode() == code) {
                 return messageSubject.getMessage();
             }
@@ -33,8 +34,8 @@ public enum OtpType {
         return null;
     }
 
-    public static OtpType valueOf(int code) {
-        for (OtpType messageSubject : OtpType.values()) {
+    public static MessageSubject valueOf(int code) {
+        for (MessageSubject messageSubject : MessageSubject.values()) {
             if (messageSubject.getCode() == code) {
                 return messageSubject;
             }
