@@ -56,4 +56,4 @@ one-app:
 
 geoip:
   db:
-    location: ${GEOIP_DB_LOCATION}
+    location: ${MOBILE_SECRET}
