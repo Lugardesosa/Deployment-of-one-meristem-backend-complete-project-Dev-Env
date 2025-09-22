@@ -1,9 +1,11 @@
 package org.meristem.oneapp.notificationservice.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.notificationservice.config.configProperties.CreditSwitchProperties;
+import org.meristem.oneapp.notificationservice.dtos.messaging.Message;
 import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
 import org.meristem.oneapp.notificationservice.integrations.requests.SmsNotificationRequest;
 import org.meristem.oneapp.notificationservice.integrations.responses.SmsNotificationResponse;
@@ -23,9 +25,12 @@ public class SmsService implements NotificationService<MessageDto> {
 
     private final CreditSwitchClient creditSwitchClient;
     private final CreditSwitchProperties creditSwitchProperties;
+    private final ObjectMapper mapper;
 
     @Override
     public void send(MessageDto messageDto) {
+
+        Message message = unbox(messageDto, mapper);
 
         try {
             String transactionRef = AppUtil.generatePassword(20);
@@ -33,13 +38,14 @@ public class SmsService implements NotificationService<MessageDto> {
                     .loginId(creditSwitchProperties.loginId())
                     .key(creditSwitchProperties.publicKey())
                     .senderId(creditSwitchProperties.senderId())
-                    .msisdn(messageDto.message().recipient().length == 1 ? messageDto.message().recipient()[0] : messageDto.message().recipient())
-                    .messageBody(messageDto.message().body())
+                    .msisdn(message.getRecipient().length == 1 ? message.getRecipient()[0] : message.getRecipient())
+                    .messageBody(message.getBody())
                     .checksum(getCreditSwitchSmsChecksum(transactionRef))
                     .transactionRef(transactionRef)
                     .build();
 
             SmsNotificationResponse response = creditSwitchClient.sendSms(request);
+            log.info("SMS with transactionRef {} sent to {}", response.transactionRef(), maskNumber(message.getRecipient()));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -55,5 +61,13 @@ public class SmsService implements NotificationService<MessageDto> {
         String salt = BCrypt.gensalt();
         byte[] hashedBytes = BCrypt.hashpw(concatString.substring(0, Math.min(bcryptPasswordLen, concatString.length())), salt).getBytes(StandardCharsets.UTF_8);
         return Base64.getEncoder().encodeToString(hashedBytes);
+    }
+
+    private String[] maskNumber(String[] numbers) {
+        String[] maskedNumbers = new String[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            maskedNumbers[i] = numbers[i].substring(0, 3) + "****" + numbers[i].substring(numbers[i].length() - 4);
+        }
+        return maskedNumbers;
     }
 }

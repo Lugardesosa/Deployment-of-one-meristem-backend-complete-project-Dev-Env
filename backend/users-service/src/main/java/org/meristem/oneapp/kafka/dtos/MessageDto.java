@@ -1,11 +1,10 @@
 package org.meristem.oneapp.kafka.dtos;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record MessageDto(MessageMedium medium, MessageType type, MessageDetailsDto message) {
+public record MessageDto(@NonNull MessageMedium medium, @NonNull MessageType type, boolean isHtml, @NonNull Object message, @NonNull String classSimpleName) {
 }
