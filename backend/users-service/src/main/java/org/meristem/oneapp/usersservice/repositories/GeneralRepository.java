@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.meristem.oneapp.usersservice.domains.enums.NullCheck.IS_NOT_NULL;
 import static org.springframework.data.relational.core.query.Criteria.where;
 
 @RequiredArgsConstructor

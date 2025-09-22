@@ -5,12 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.meristem.oneapp.usersservice.validations.constraints.Email;
 import org.meristem.oneapp.usersservice.validations.constraints.Name;
-import org.meristem.oneapp.usersservice.validations.constraints.Password;
 import org.meristem.oneapp.usersservice.validations.constraints.PhoneNumberNG;
-
-import static java.util.Objects.isNull;
 
 
 public record CreateAdminRequest(@Schema(example = "johndoe@gmail.com", description = "Pass the users email") @Pattern(regexp = "[A-Za-z0-9]+@meristemng.com") @NotBlank(message = "cannot be null") @Size(min = 5, max = 200, message = "cannot be longer than 200 and less than 5") String email,

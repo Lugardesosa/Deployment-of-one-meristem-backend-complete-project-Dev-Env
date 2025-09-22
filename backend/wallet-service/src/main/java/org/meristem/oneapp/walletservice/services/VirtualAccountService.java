@@ -15,7 +15,6 @@ import org.meristem.oneapp.walletservice.integrations.responses.CreateProvidusWa
 import org.meristem.oneapp.walletservice.models.VirtualAccounts;
 import org.meristem.oneapp.walletservice.models.Wallets;
 import org.meristem.oneapp.walletservice.repositories.CustomRepository;
-import org.meristem.oneapp.walletservice.repositories.GeneralRepository;
 import org.meristem.oneapp.walletservice.repositories.VirtualAccountRepository;
 import org.meristem.oneapp.walletservice.utils.AppUtil;
 import org.springframework.stereotype.Service;

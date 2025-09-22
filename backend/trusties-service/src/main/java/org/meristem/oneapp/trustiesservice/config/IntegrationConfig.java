@@ -2,9 +2,9 @@ package org.meristem.oneapp.trustiesservice.config;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trustiesservice.config.configProperties.TrustiesServiceProperties;
 import org.meristem.oneapp.trustiesservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.trustiesservice.config.configProperties.ServicesProperties;
+import org.meristem.oneapp.trustiesservice.config.configProperties.TrustiesServiceProperties;
 import org.meristem.oneapp.trustiesservice.integrations.UserServiceClient;
 import org.meristem.oneapp.trustiesservice.utils.AppUtil;
 import org.springframework.cloud.client.ServiceInstance;

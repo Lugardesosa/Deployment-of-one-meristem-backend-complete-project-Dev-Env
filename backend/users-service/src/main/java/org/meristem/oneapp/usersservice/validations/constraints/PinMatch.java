@@ -3,7 +3,6 @@ package org.meristem.oneapp.usersservice.validations.constraints;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import org.meristem.oneapp.usersservice.validations.validators.PasswordMatchValidator;
 import org.meristem.oneapp.usersservice.validations.validators.PinMatchValidator;
 
 import java.lang.annotation.*;

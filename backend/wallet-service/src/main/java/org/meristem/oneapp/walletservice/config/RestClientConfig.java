@@ -2,6 +2,7 @@ package org.meristem.oneapp.walletservice.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -21,7 +22,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
-import io.micrometer.observation.ObservationRegistry;
 
 import java.io.IOException;
 import java.net.URI;
