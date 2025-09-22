@@ -561,6 +561,12 @@ CREATE INDEX idx_beneficiaries_email ON beneficiaries (email);
 
 CREATE INDEX idx_beneficiaries_owner_id ON beneficiaries (owner_id);
 
+ALTER TABLE beneficiaries
+    ADD CONSTRAINT FK_BENEFICIARIES_OWNER_ID_ON_USER FOREIGN KEY (owner_id) REFERENCES users (id);
+
+ALTER TABLE instrument_accessed
+    ADD CONSTRAINT FK_instrument_accessed_user_ID_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
+
 CREATE INDEX idx_users_email ON users (email);
 
 CREATE UNIQUE INDEX idx_onbaording_user_requirement_id ON user_onboarding(user_id, requirement_id);
