@@ -1,7 +1,7 @@
 package org.meristem.oneapp.trustiesservice.domains.responses;
 
-import lombok.Builder;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 
 import java.util.Objects;
 

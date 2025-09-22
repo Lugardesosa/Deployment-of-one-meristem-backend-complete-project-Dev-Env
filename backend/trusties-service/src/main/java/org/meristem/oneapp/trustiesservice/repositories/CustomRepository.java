@@ -9,7 +9,6 @@ import org.meristem.oneapp.trustiesservice.domains.responses.GetBeneficiaryPlans
 import org.meristem.oneapp.trustiesservice.domains.responses.RealEstateResponse;
 import org.meristem.oneapp.trustiesservice.dtos.sql.RowMappers;
 import org.meristem.oneapp.trustiesservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.trustiesservice.models.*;
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;

@@ -25,7 +25,7 @@ server:
 
 one-app:
   users-service:
-    geoip-filepath: "/Users/kingsleygodwin/Downloads/GeoLite2-City_20250916/GeoLite2-City.mmdb"
+    geoip-filepath: "${GEOIP_DB_LOCATION}"
     smile-id:
       server-ips: ${SMILE_ID_PROD_SERVER_IPS}
       api-key: ${SMILE_ID_PROD_API_KEY}

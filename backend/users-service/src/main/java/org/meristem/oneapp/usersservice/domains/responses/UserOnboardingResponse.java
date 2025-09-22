@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
 import lombok.Builder;
-import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.relational.core.mapping.Column;
 
 @Builder

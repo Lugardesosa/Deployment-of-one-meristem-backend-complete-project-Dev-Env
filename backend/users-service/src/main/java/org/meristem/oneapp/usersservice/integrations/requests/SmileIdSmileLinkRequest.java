@@ -1,11 +1,8 @@
 package org.meristem.oneapp.usersservice.integrations.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import org.meristem.oneapp.usersservice.domains.requests.IdTypesRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
 
 import java.util.List;
 import java.util.Map;

@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.reportservice.constants.ApiConstants;
-import org.meristem.oneapp.reportservice.domains.enums.ActivityLogAction;
 import org.meristem.oneapp.reportservice.domains.requests.ActivityLogRequest;
 import org.meristem.oneapp.reportservice.domains.responses.ActivityLogResponse;
 import org.meristem.oneapp.reportservice.domains.responses.AppResponse;

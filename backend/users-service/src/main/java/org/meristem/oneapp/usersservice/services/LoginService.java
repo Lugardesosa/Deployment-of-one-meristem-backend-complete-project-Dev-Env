@@ -38,8 +38,6 @@ public class LoginService {
     @Value("${one-app.users-service.geoip-filepath}")
     private String geoipDbLocation;
 
-    public static final String UNKNOWN = "UNKNOWN";
-
     private final UserAgentAnalyzer parser;
 
     private DatabaseReader dbReader;
@@ -51,7 +49,6 @@ public class LoginService {
 
     @PostConstruct
     public void init() throws IOException {
-        log.info("GeoIP DB location: {}", geoipDbLocation);
         File database = new File(geoipDbLocation);
         dbReader = new DatabaseReader.Builder(database).build();
     }
