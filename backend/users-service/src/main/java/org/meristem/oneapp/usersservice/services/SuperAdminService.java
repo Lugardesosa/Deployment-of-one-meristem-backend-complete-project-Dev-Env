@@ -56,7 +56,7 @@ public class SuperAdminService {
         MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{users.getEmail()})
                 .body("An account was created with your mail, kindly use this password to log in. Password is " + password)
                 .subject(MessageSubjects.ADMIN_ACCOUNT_CREATED).build();
-        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).classSimpleName(MessageDetailsDto.class.getSimpleName()).build();
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED));
         return usersMapper.usersToUserResponse(users);
     }

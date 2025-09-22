@@ -2,8 +2,16 @@ package org.meristem.oneapp.kafka.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record MessageDetailsDto(String[] recipient, String subject, String body) {
+public class MessageDetailsDto {
+
+    private String[] recipient;
+    private String subject;
+    private String body;
+
 }

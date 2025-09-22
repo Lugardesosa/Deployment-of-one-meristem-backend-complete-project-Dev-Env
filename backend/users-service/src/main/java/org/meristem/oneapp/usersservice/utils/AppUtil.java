@@ -1,8 +1,12 @@
 package org.meristem.oneapp.usersservice.utils;
 
+import com.maxmind.geoip2.model.CityResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.models.DeviceMetadata;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.security.core.Authentication;
@@ -11,6 +15,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import javax.crypto.Mac;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
@@ -119,5 +125,21 @@ public final class AppUtil {
         }
 
         return instances.getFirst().getUri().toString().concat(instances.getFirst().getMetadata().getOrDefault("contextPath", ""));
+    }
+
+    public static String extractIp(HttpServletRequest request) {
+        String[] headerNames = {"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR" };
+
+        for (String header : headerNames) {
+            String ip = request.getHeader(header);
+            if (StringUtils.isNotBlank(ip) && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.split(",")[0].trim();
+            }
+        }
+        return request.getRemoteAddr();
+    }
+
+    public static String getUserAgent(HttpServletRequest request) {
+        return request.getHeader("user-agent");
     }
 }

@@ -11,7 +11,7 @@ import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
 import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
-import org.meristem.oneapp.usersservice.domains.enums.OtpType;
+import org.meristem.oneapp.usersservice.domains.enums.MessageSubject;
 import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
@@ -60,12 +60,12 @@ public class NotificationService {
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES);
 
-        if (sendOtpRequest.otpType().equals(OtpType.PASSWORD_RESET.getCode()) && !usersRepository.existsByEmailOrPhoneNumber(sendOtpRequest.recipient(), sendOtpRequest.recipient())) {
+        if (sendOtpRequest.otpType().equals(MessageSubject.PASSWORD_RESET.getCode()) && !usersRepository.existsByEmailOrPhoneNumber(sendOtpRequest.recipient(), sendOtpRequest.recipient())) {
             return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
                     .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), expiresAt)).build();
         }
 
-        if (sendOtpRequest.otpType().equals(OtpType.ONBOARDING_VERIFICATION.getCode())) {
+        if (sendOtpRequest.otpType().equals(MessageSubject.ONBOARDING_VERIFICATION.getCode())) {
             messageMedium = validateAndGetMessageMedium(MessageMedium.SMS.getValue(), sendOtpRequest.recipient());
         }
 
@@ -82,9 +82,9 @@ public class NotificationService {
 
         MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
                 .body("This is the code " + otpVerification.getCode() + ".")
-                .subject(OtpType.getMessageSubject(sendOtpRequest.otpType())).build();
+                .subject(MessageSubject.getMessageSubject(sendOtpRequest.otpType())).build();
 
-        MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).build();
+        MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).classSimpleName(MessageDetailsDto.class.getSimpleName()).build();
 
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC));
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())

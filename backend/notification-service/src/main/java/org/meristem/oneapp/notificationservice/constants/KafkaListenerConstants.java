@@ -6,4 +6,5 @@ import lombok.experimental.UtilityClass;
 public final class KafkaListenerConstants {
 
     public static final String KAFKA_OTP_TOPIC = "otp.topic";
+    public static final String KAFKA_LOGIN_TOPIC = "login.topic";
 }

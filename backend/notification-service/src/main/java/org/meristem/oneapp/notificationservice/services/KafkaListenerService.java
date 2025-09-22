@@ -20,7 +20,7 @@ public class KafkaListenerService {
     private final Map<String, NotificationService<MessageDto>> notificationServices;
 
 
-    @KafkaListener(topicPattern = KafkaListenerConstants.KAFKA_OTP_TOPIC)
+    @KafkaListener(topics = {KafkaListenerConstants.KAFKA_OTP_TOPIC, KafkaListenerConstants.KAFKA_LOGIN_TOPIC})
     public void sendOtp(ConsumerRecord<String, MessageDto> otpRequest) {
         MessageDto notificationRequest = otpRequest.value();
         NotificationService<MessageDto> messageDtoNotificationService = notificationServices.get(notificationRequest.medium().getLabel());

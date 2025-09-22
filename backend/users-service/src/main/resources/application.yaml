@@ -22,7 +22,6 @@ encrypt:
   key: '${ENCRYPTION_KEY}'
 
 
-
 ## TODO: DELETE
 #logging:
 #  level:
