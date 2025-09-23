@@ -1,5 +1,7 @@
 package org.meristem.oneapp.trustiesservice.domains.requests;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -12,9 +14,6 @@ import org.meristem.oneapp.trustiesservice.validations.constraints.ContainsEnum;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor

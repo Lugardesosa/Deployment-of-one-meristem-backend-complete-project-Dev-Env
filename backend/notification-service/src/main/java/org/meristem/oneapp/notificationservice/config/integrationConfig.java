@@ -3,8 +3,8 @@ package org.meristem.oneapp.notificationservice.config;
 
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.notificationservice.config.configProperties.CreditSwitchProperties;
-import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
 import org.meristem.oneapp.notificationservice.config.configProperties.OneAppProperties;
+import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;

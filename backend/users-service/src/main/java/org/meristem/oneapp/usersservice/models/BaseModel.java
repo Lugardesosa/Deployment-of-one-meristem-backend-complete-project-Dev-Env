@@ -3,11 +3,13 @@ package org.meristem.oneapp.usersservice.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.meristem.oneapp.usersservice.domains.enums.EntityStatus;
 import org.springframework.data.annotation.*;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 

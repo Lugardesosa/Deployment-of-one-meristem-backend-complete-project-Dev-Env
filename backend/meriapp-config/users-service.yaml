@@ -25,6 +25,7 @@ server:
 
 one-app:
   users-service:
+    geoip-filepath: "${GEOIP_DB_LOCATION}"
     smile-id:
       server-ips: ${SMILE_ID_PROD_SERVER_IPS}
       api-key: ${SMILE_ID_PROD_API_KEY}

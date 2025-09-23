@@ -3,7 +3,6 @@ package org.meristem.oneapp.usersservice.repositories;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
-import org.meristem.oneapp.usersservice.dtos.sql.RowMappers;
 import org.meristem.oneapp.usersservice.dtos.sql.UserResponseResultSetExtractor;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cache.annotation.CacheEvict;
@@ -13,7 +12,6 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 

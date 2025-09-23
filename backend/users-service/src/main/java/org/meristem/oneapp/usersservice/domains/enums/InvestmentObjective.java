@@ -2,7 +2,6 @@ package org.meristem.oneapp.usersservice.domains.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @AllArgsConstructor
 @Getter

@@ -23,6 +23,7 @@ one-app:
   notification-service:
     context-path: /api/notification
     application-name: notification-service
+    mail-sender: ${MAIL_SENDER}
 
 credit-switch:
   login-id: ${CREDIT_SWITCH_LOGIN_ID}

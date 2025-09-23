@@ -79,7 +79,7 @@ public class UsersService {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.REGISTRATION.getCode(), userRequest.email(), userRequest.phoneNumber(), true, LocalDateTime.now())) {
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.REGISTRATION.getCode(), userRequest.email(), userRequest.phoneNumber(), true, LocalDateTime.now())) {
             throw new BadRequestException("OTP not verified or expired.");
         }
 
@@ -87,7 +87,7 @@ public class UsersService {
         user.setPassword(passwordEncoder.encode(userRequest.password()));
         user = usersRepository.save(user);
 
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), OtpType.REGISTRATION.getCode());
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), MessageSubject.REGISTRATION.getCode());
 
         UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(AppUtil.generateReferralCode(user.getFirstName())).build();
 
@@ -134,7 +134,7 @@ public class UsersService {
     public PasswordResetResponse resetPassword(PasswordResetRequest request) {
 
         // Ensure otp exists and not expired
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), request.recipient(), request.recipient(), true, LocalDateTime.now())) {
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), request.recipient(), request.recipient(), true, LocalDateTime.now())) {
             throw new BadRequestException("OTP not verified or expired.");
         }
 
@@ -146,7 +146,7 @@ public class UsersService {
 
         // Update the password and expire otp
         usersRepository.updateUsersPassword(usersResponse.email(), passwordEncoder.encode(request.password()));
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), OtpType.PASSWORD_RESET.getCode());
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), MessageSubject.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
         notifyUserAboutPasswordChange(usersResponse.email());
@@ -167,7 +167,7 @@ public class UsersService {
         String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
 
         // Ensure otp exists and not expired
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(OtpType.PASSWORD_RESET.getCode(), userEmail, userEmail, true, LocalDateTime.now())) {
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), userEmail, userEmail, true, LocalDateTime.now())) {
             throw new BadRequestException("OTP not verified or expired.");
         }
 
@@ -181,7 +181,7 @@ public class UsersService {
 
         // Update password and return
         usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userEmail, userEmail, OtpType.PASSWORD_RESET.getCode());
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userEmail, userEmail, MessageSubject.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
         notifyUserAboutPasswordChange(userEmail);
@@ -323,7 +323,7 @@ public class UsersService {
         MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{userEmail})
                 .body("Your password was changed, if you didn't initiate this, click this link.")
                 .subject(MessageSubjects.PASSWORD_RESET).build();
-        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.PASSWORD_RESET).message(messageDetailsDto).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.PASSWORD_RESET).message(messageDetailsDto).classSimpleName(MessageDetailsDto.class.getSimpleName()).build();
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
     }
 
