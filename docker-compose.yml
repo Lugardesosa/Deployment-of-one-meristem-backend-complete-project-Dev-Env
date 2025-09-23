@@ -196,6 +196,8 @@ services:
       - MOBILE_SECRET=secret
       - TRUSTIES_SECRET=secret
       - NOTIFICATION_SECRET=secret
+      # This is the GEOIP_DB container location being mapped to the hostfile in the server.
+      - GEOIP_DB_LOCATION=/app/geoip_db/GeoLite2-City.mmdb
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -205,7 +207,8 @@ services:
       # - OTEL_RESOURCE_ATTRIBUTES=service.name=users-service,env=devlocal
       # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
       # - OTEL_JAVAAGENT_ENABLED=true
-    # volumes:
+    volumes:
+      - /root/one_meristem_app/user-service/GeoLite2-City_20250916:/app/geoip_db:ro #it's mounted as read-only.
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
 
@@ -262,6 +265,7 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - MAIL_SENDER=MS_ksWCqv@trial-p7kx4xw1oemg9yjr.mlsender.net
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
