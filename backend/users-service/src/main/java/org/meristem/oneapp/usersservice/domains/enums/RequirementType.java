@@ -11,7 +11,7 @@ public enum RequirementType {
     DEFAULT(1, "DEFAULT"),
     MUTUAL_FUNDS(2, "MUTUAL_FUNDS"),
     TREASURY_BILLS(3, "TREASURY_BILLS"),
-    TRUSTIES(4, "TRUSTIES");
+    TRUSTEES(4, "TRUSTEES");
 
     private final int id;
     private final String name;
@@ -21,7 +21,7 @@ public enum RequirementType {
             case 1 -> RequirementType.DEFAULT;
             case 2 -> RequirementType.MUTUAL_FUNDS;
             case 3 -> RequirementType.TREASURY_BILLS;
-            case 4 -> RequirementType.TRUSTIES;
+            case 4 -> RequirementType.TRUSTEES;
             default -> null;
         };
     }
@@ -31,7 +31,7 @@ public enum RequirementType {
             case "DEFAULT" -> RequirementType.DEFAULT;
             case "MUTUAL_FUNDS" -> RequirementType.MUTUAL_FUNDS;
             case "TREASURY_BILLS" -> RequirementType.TREASURY_BILLS;
-            case "TRUSTIES" -> RequirementType.TRUSTIES;
+            case "TRUSTEES" -> RequirementType.TRUSTEES;
             default -> null;
         };
     }

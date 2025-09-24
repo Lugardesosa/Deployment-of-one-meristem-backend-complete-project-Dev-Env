@@ -2,7 +2,6 @@ package org.meristem.oneapp.usersservice.services;
 
 
 import com.obs.services.model.HttpMethodEnum;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
@@ -101,6 +100,8 @@ public class UsersService {
                 });
         customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
                         .stream().map(i -> InstrumentAccessed.builder().userId(userId).instrumentId(i.getId()).build()).toList());
+        customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
+                .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
         return usersMapper.usersToUserResponse(user);
     }
@@ -120,7 +121,7 @@ public class UsersService {
             signedUrl = signedUrlResponse.signedUrl();
         }
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), response.biometricEnabled());
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), response.userOptionResponses(), response.biometricEnabled());
     }
 
     /**
@@ -327,11 +328,20 @@ public class UsersService {
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
     }
 
-    public UpdateResponse updateInstrumentAccessed(@Valid InstrumentAccessedRequest request) {
+    public UpdateResponse updateInstrumentAccessed(InstrumentAccessedRequest request) {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
-        int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse updateOptionAccessed(OptionAccessedRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("accessed", true);
+        int updated = customRepository.dynamicUpdate(InvestmentOptionsAccessed.class, updates, Map.of("id", request.optionId(), "user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
