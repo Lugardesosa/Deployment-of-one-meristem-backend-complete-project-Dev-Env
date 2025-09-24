@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.core.io.InputStreamSource;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -19,6 +20,8 @@ public class Message {
     private String body;
     private String[] recipient;
     private String[] cc;
-    private Map<String, File> files;
-    private Map<String, InputStreamSource> inputStreamSourceMap;
+    @Builder.Default
+    private Map<String, File> files = new HashMap<>();
+    @Builder.Default
+    private Map<String, InputStreamSource> inputStreamSourceMap = new HashMap<>();
 }
