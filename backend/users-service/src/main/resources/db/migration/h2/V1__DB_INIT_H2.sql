@@ -850,7 +850,7 @@ VALUES (@RolesUserID, @UsersGetID),
 INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
 VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MER-STOCKS'),
-    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Trusties', 'MER-TRUSTEES'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Trustees', 'MER-TRUSTEES'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Loans', 'MER-LOANS'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MER-WEALTH');
