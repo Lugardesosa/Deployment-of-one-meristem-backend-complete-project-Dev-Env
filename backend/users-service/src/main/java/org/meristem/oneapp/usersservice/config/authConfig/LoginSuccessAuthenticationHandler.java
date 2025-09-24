@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
