@@ -52,7 +52,7 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                         .accessed(rs.getBoolean("accessed"))
                         .build());
 
-                user.userOptionResponses().put(rs.getString("code"), new ArrayList<>());
+                user.userOptionResponses().put(rs.getString("code"), new HashSet<>());
             }
             if (nonNull(rs.getString("o_name"))) {
                 user.userOptionResponses().get(rs.getString("code")).add(
