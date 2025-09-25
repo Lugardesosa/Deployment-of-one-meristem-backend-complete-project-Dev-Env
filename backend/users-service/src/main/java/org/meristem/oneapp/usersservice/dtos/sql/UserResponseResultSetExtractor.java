@@ -9,7 +9,9 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.*;
+
+import static java.util.Objects.nonNull;
 
 @Slf4j
 public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersResponse> {
@@ -20,6 +22,7 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
             return null;
         }
 
+
         UsersResponse user = UsersResponse.builder()
                 .id(rs.getLong("id"))
                 .firstName(rs.getString("first_name"))
@@ -27,6 +30,7 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                 .email(rs.getString("email"))
                 .phoneNumber(rs.getString("phone_number"))
                 .userInstrumentResponses(new ArrayList<>())
+                .userOptionResponses(new HashMap<>())
                 .onboardingCompleted(rs.getBoolean("onboarding_completed"))
                 .referralCode(rs.getString("referral_code"))
                 .middleName(rs.getString("middle_name"))
@@ -40,11 +44,22 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                 .passwordAttempt(rs.getInt("password_attempt"))
                 .build();
         do {
-            user.userInstrumentResponses().add(UsersResponse.UserInstrumentResponse.builder()
-                    .name(rs.getString("name")).id(rs.getLong("iiid"))
-                    .code(rs.getString("code"))
-                    .accessed(rs.getBoolean("accessed"))
-                    .build());
+            if (!user.userOptionResponses().containsKey(rs.getString("code"))) {
+
+                user.userInstrumentResponses().add(UsersResponse.UserInstrumentResponse.builder()
+                        .name(rs.getString("name")).id(rs.getLong("iiid"))
+                        .code(rs.getString("code"))
+                        .accessed(rs.getBoolean("accessed"))
+                        .build());
+
+                user.userOptionResponses().put(rs.getString("code"), new ArrayList<>());
+            }
+            if (nonNull(rs.getString("o_name"))) {
+                user.userOptionResponses().get(rs.getString("code")).add(
+                        UsersResponse.UserOptionResponse.builder().accessed(rs.getBoolean("o_accessed"))
+                                .name(rs.getString("o_name")).id(rs.getLong("o_iiid")).build()
+                );
+            }
         } while (rs.next());
         return user;
     }
