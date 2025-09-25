@@ -3,6 +3,7 @@ package org.meristem.oneapp.notificationservice.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.kafka.dtos.LoginDto;
@@ -16,7 +17,8 @@ public interface MessageDtoToMessageMapper {
 
     Message messageDetailsDtoToMessage(MessageDetailsDto dto);
 
-    @Mapping(target = "body", ignore = true)
+    @Mappings(value = {@Mapping(target = "body", ignore = true),
+            @Mapping(target = "recipient", source = "recipients")})
     Message loginDtoToMessage(LoginDto dto);
 
 

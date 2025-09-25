@@ -189,4 +189,14 @@ public class UsersController {
     public ResponseEntity<AppResponse<UpdateResponse>> updateInstrumentAccessed(@Valid @RequestBody InstrumentAccessedRequest request) {
         return ApiUtil.buildResponse(usersService.updateInstrumentAccessed(request), HttpStatus.OK.toString(), "Successful");
     }
+
+    @Operation(summary = "Mark an subsidiary option as visited")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Mark an subsidiary option as visited")
+    })
+    @PreAuthorize("hasRole('ROLE_users.instrument.accessed')")
+    @PutMapping(value = "/option-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateOptionAccessed(@Valid @RequestBody OptionAccessedRequest request) {
+        return ApiUtil.buildResponse(usersService.updateOptionAccessed(request), HttpStatus.OK.toString(), "Successful");
+    }
 }

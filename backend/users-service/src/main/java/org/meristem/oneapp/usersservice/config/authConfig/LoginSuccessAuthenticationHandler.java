@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +60,7 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException {
 
         writeAccessAndRefreshToken(response, authentication);
         notifyUser(request, response, authentication);
@@ -73,9 +72,8 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
             if (authentication.getPrincipal() instanceof UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
                 if (usernamePasswordAuthenticationToken.getPrincipal() instanceof AuthenticatedUser users) {
 
-//                    String ip = AppUtil.extractIp(request);
-                    // TODO: DELETE THE BELOW LINE AND UNCOMMENT THE ABOVE LINE
-                    String ip = "102.88.110.244";
+                    String ip = AppUtil.extractIp(request);
+
                     GeoIPDto location = loginService.getLocation(ip);
                     String deviceDetails = loginService.getDeviceDetails(AppUtil.getUserAgent(request));
 
@@ -93,8 +91,7 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
                 }
             }
         } catch(Exception e) {
-            log.error("An error occurred verifying device or location");
-            throw new RuntimeException(e);
+            log.error("An error occurred verifying device or location: {}", e.getMessage());
         }
     }
 
