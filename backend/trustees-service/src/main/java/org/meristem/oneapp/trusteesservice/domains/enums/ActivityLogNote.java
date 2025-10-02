@@ -10,6 +10,7 @@ public enum ActivityLogNote {
     NEW_ASSET_ADDED("Added a New Asset; %s"),
     NEW_BENEFICIARY_ADDED("%d New %s Added To A %s"),
     ASSET_REMOVED("%d %s Removed From %s"),
+    ASSET_DELETED("%d %s Asset Deleted"),
     BENEFICIARY_REMOVED("%d %s Removed From %s"),
     AMOUNT_ADDED_TRUST("%f Added to %s Trust"),
     WILL_EXECUTOR_ADDED("%d Will %s Added to %s"),

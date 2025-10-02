@@ -223,7 +223,7 @@ public class AssetService {
         int deleted = customRepository.dynamicDelete(assets.getClazz(), filter);
 
         activityLogService.sendActivity(assets.getClazz(), ActivityLogType.DELETED, assetId, Map.of("asset_id", assetId, "asset_type", assets.name(), "deleted", deleted + ""),
-                String.format(ActivityLogNote.ASSET_REMOVED.getDescription(), assets.getDisplayName()));
+                String.format(ActivityLogNote.ASSET_DELETED.getDescription(), deleted, assets.getDisplayName()));
         return new AssetDeleteResponse(deleted > 0 ? "Deleted" : "No item deleted", deleted > 0);
     }
 }

@@ -35,6 +35,8 @@ public class EmailService implements NotificationService<MessageDto> {
     public String SUPPORT_PHONE;
     @Value("${one-app.logo.green-url}")
     private String MERISTEM_GREEN_LOGO;
+    @Value("${spring.profiles.active")
+    private String activeProfile;
 
     private final JavaMailSender mailSender;
     private final MessageDtoToMessageMapper messageMapper = MessageDtoToMessageMapper.INSTANCE;
@@ -44,6 +46,7 @@ public class EmailService implements NotificationService<MessageDto> {
 
     @Override
     public void send(MessageDto request) {
+        if ("local".equals(activeProfile)) return;
         Message message = unbox(request, mapper, messageMapper);
         sendMail(message, request.isHtml());
     }
