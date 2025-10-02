@@ -4,7 +4,7 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
+import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
@@ -80,11 +80,11 @@ public class NotificationService {
 
         otpVerificationRepository.save(otpVerification);
 
-        MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
-                .body("This is the code " + otpVerification.getCode() + ".")
+        OtpDto otpDto = OtpDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
+                .code(String.valueOf(otpVerification.getCode()))
                 .subject(MessageSubject.getMessageSubject(sendOtpRequest.otpType())).build();
 
-        MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(messageDetailsDto).classSimpleName(MessageDetailsDto.class.getSimpleName()).build();
+        MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(otpDto).classSimpleName(OtpDto.class.getSimpleName()).isHtml(messageMedium.equals(MessageMedium.EMAIL)).build();
 
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC));
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())

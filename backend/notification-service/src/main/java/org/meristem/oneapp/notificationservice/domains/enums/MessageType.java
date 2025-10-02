@@ -7,12 +7,13 @@ import lombok.Getter;
 @Getter
 public enum MessageType {
 
-    OTP(1),
-    MARKETING(2),
-    NOTIFICATION(3),
-    PASSWORD_RESET(4),
-    ADMIN_ACCOUNT_CREATED(5),
-    LOGIN_SUCCESSFUL(6);
+    OTP(1, "otp"),
+    MARKETING(2, "marketing"),
+    NOTIFICATION(3, "notification"),
+    PASSWORD_RESET(4, "password_reset"),
+    ADMIN_ACCOUNT_CREATED(5, "admin_account_created"),
+    LOGIN_SUCCESSFUL(6, "login_successful"),;
 
     private final int value;
+    private final String label;
 }

@@ -2,7 +2,8 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
+import org.meristem.oneapp.kafka.dtos.AdminAccountDto;
+import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
@@ -53,10 +54,10 @@ public class SuperAdminService {
 
         log.info("Created admin user, password: ------> {}", password);
         // Notify the user about the password rest via mail
-        MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{users.getEmail()})
-                .body("An account was created with your mail, kindly use this password to log in. Password is " + password)
+        AdminAccountDto messageDetailsDto = AdminAccountDto.builder().recipient(new String[]{users.getEmail()})
+                .password("An account was created with your mail, kindly use this password to log in. Password is " + password)
                 .subject(MessageSubjects.ADMIN_ACCOUNT_CREATED).build();
-        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).classSimpleName(MessageDetailsDto.class.getSimpleName()).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).classSimpleName(AdminAccountDto.class.getSimpleName()).build();
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED));
         return usersMapper.usersToUserResponse(users);
     }
