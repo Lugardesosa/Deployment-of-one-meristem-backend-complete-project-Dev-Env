@@ -46,7 +46,7 @@ jobs:
         id: check_change
         run: |
           git pull origin dev_env
-          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trusties-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
           echo "Changed services: $CHANGED"
 
           if [ -z "$CHANGED" ]; then
@@ -158,7 +158,7 @@ jobs:
 
           for svc in ${{ needs.build.outputs.changed_services }}; do
             case \$svc in
-              cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trusties-service)
+              cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trustees-service)
                 if [ -d "\$svc" ]; then
                   build_service "\$svc"
                 else
@@ -187,15 +187,15 @@ jobs:
           set +e
           # Bring down only app-layer services
           sudo docker-compose -f docker-compose.yml stop \
-            config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway redis
+            config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis
 
           # Remove only containers for app-layer services (keeps infra running)
           sudo docker-compose -f docker-compose.yml rm -f \
-            config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway redis
+            config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis
 
           # Rebuild and start only app-layer services
           sudo docker-compose -f docker-compose.yml up -d --build \
-            config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway redis
+            config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis
           
           DEPLOY_STATUS=$?
           set -e
@@ -204,9 +204,9 @@ jobs:
             echo "Deployment failed. Rolling back..."
             set +e
             sudo docker-compose -f docker-compose.yml stop \
-              config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway redis
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis
             sudo docker-compose -f docker-compose.backup.yml up -d \
-              config-server users-service notification-service report-service wallet-service trusties-service cloud-gateway redis || {
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis || {
                 echo "Rollback failed. Manual intervention required."
                 exit 1
             }
