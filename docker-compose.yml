@@ -199,6 +199,9 @@ services:
       # This is the GEOIP_DB container location being mapped to the hostfile in the server.
       - GEOIP_DB_LOCATION=/app/geoip_db/GeoLite2-City.mmdb
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -267,6 +270,9 @@ services:
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
       - MAIL_SENDER=hello@demomailtrap.co
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -326,6 +332,9 @@ services:
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=report-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -389,6 +398,9 @@ services:
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wallet-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -448,6 +460,9 @@ services:
       - USER_SERVICE_HOSTNAME=users-service
       - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=trusties-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
