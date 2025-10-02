@@ -266,7 +266,7 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTIES_CLIENT_ID=trusties-service
       - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-      - MAIL_SENDER=MS_ksWCqv@trial-p7kx4xw1oemg9yjr.mlsender.net
+      - MAIL_SENDER=hello@demomailtrap.co
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
