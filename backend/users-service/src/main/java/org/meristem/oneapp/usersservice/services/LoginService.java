@@ -83,9 +83,7 @@ public class LoginService {
     public String getDeviceDetails(String userAgent) {
         UserAgent client = this.parser.parse(userAgent);
 
-        return "%s %s %s %s %s".formatted(client.getValue(UserAgent.DEVICE_CLASS), client.getValue(UserAgent.DEVICE_NAME),
-                client.getValue(UserAgent.OPERATING_SYSTEM_NAME_VERSION), client.getValue(UserAgent.AGENT_NAME), client.getValue(UserAgent.AGENT_NAME_VERSION)).replace("?", "");
-
+        return "%s %s".formatted(client.getValue(UserAgent.DEVICE_NAME), client.getValue(UserAgent.AGENT_NAME)).replace("?", "");
     }
 
     public void verifyDevice(Users user, HttpServletRequest request) throws IOException, GeoIp2Exception {

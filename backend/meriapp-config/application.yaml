@@ -66,6 +66,11 @@ one-app:
   server-version: 1.0
   server-app-name: "Meristem One App"
   default-header-name: "X-ONE-APP-CLIENT-NAME"
+  support:
+    email: ${SUPPORT_EMAIL}
+    phone: ${SUPPORT_PHONE}
+  logo:
+    green-url: ${MERISTEM_GREEN_LOGO}
 
   #  USERS SERVICE
   users-service:

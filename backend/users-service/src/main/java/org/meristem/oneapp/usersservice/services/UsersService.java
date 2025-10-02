@@ -5,8 +5,9 @@ import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
-import org.meristem.oneapp.kafka.dtos.MessageDetailsDto;
+import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
+import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -321,10 +322,10 @@ public class UsersService {
     }
 
     private void notifyUserAboutPasswordChange(String userEmail) {
-        MessageDetailsDto messageDetailsDto = MessageDetailsDto.builder().recipient(new String[]{userEmail})
+        PasswordChangeDto otpDto = PasswordChangeDto.builder().recipient(new String[]{userEmail})
                 .body("Your password was changed, if you didn't initiate this, click this link.")
                 .subject(MessageSubjects.PASSWORD_RESET).build();
-        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.PASSWORD_RESET).message(messageDetailsDto).classSimpleName(MessageDetailsDto.class.getSimpleName()).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.PASSWORD_RESET).message(otpDto).classSimpleName(PasswordChangeDto.class.getSimpleName()).build();
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
     }
 

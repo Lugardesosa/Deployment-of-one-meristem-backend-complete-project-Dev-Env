@@ -13,6 +13,8 @@ import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -27,13 +29,21 @@ public class EmailService implements NotificationService<MessageDto> {
 
     @Value("${one-app.notification-service.mail-sender}")
     public String FROM;
+    @Value("${one-app.support.email}")
+    public String SUPPORT_EMAIL;
+    @Value("${one-app.support.phone}")
+    public String SUPPORT_PHONE;
+    @Value("${one-app.logo.green-url}")
+    private String MERISTEM_GREEN_LOGO;
+
     private final JavaMailSender mailSender;
     private final MessageDtoToMessageMapper messageMapper = MessageDtoToMessageMapper.INSTANCE;
     private final ObjectMapper mapper;
+    private final TemplateEngine templateEngine;
+
 
     @Override
     public void send(MessageDto request) {
-
         Message message = unbox(request, mapper, messageMapper);
         sendMail(message, request.isHtml());
     }
@@ -43,10 +53,17 @@ public class EmailService implements NotificationService<MessageDto> {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, isHtml, Charset.defaultCharset().displayName());
 
+            String body = messageDetails.getBody();
+            if (isHtml) {
+                Context context = new Context();
+                context.setVariables(messageDetails.getContext());
+                setContext(context);
+                body = templateEngine.process(messageDetails.getEmailTemplate().getFileName(), context);
+            }
             helper.setFrom(FROM);
             helper.setTo(messageDetails.getRecipient());
             helper.setSubject(messageDetails.getSubject());
-            helper.setText(messageDetails.getBody(), isHtml);
+            helper.setText(body, isHtml);
             if (nonNull(messageDetails.getCc())) {
                 helper.setCc(messageDetails.getCc());
             }
@@ -60,5 +77,11 @@ public class EmailService implements NotificationService<MessageDto> {
         } catch (Exception e) {
             log.error("Error sending email with subject {} to email {}", messageDetails.getSubject(), messageDetails.getRecipient(), e);
         }
+    }
+
+    private void setContext(Context context) {
+        context.setVariable("MERISTEM_GREEN_LOGO", MERISTEM_GREEN_LOGO);
+        context.setVariable("SUPPORT_EMAIL", SUPPORT_EMAIL);
+        context.setVariable("SUPPORT_PHONE", SUPPORT_PHONE);
     }
 }

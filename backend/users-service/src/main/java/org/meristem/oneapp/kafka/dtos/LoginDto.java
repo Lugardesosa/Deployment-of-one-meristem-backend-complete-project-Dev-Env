@@ -15,7 +15,8 @@ public class LoginDto {
     private String subject;
     private String[] recipients;
     private String firstname;
-    private String timestamp;
+    private String date;
+    private String time;
     private String ipAddress;
     private String deviceDetails;
     private GeoIPDto location;
