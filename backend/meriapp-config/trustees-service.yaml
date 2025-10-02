@@ -1,19 +1,19 @@
 spring:
   kafka:
     consumer:
-      group-id: ${spring.cloud.config.profile}-trusties-service
+      group-id: ${spring.cloud.config.profile}-trustees-service
 
   cloud:
     consul:
       discovery:
         metadata:
-          contextPath: ${one-app.trusties-service.context-path}
-        health-check-path: ${one-app.trusties-service.context-path}/actuator/health
+          contextPath: ${one-app.trustees-service.context-path}
+        health-check-path: ${one-app.trustees-service.context-path}/actuator/health
         enabled: true
         fail-fast: true
         catalogServicesWatch:
           enabled: false
-        hostname: ${TRUSTIES_SERVICE_HOSTNAME}
+        hostname: ${TRUSTEES_SERVICE_HOSTNAME}
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
         health-check-interval: 60s
       host: ${CONSUL_HOST}
@@ -21,13 +21,13 @@ spring:
 server:
   port: 20060
   servlet:
-    context-path: ${one-app.trusties-service.context-path}
+    context-path: ${one-app.trustees-service.context-path}
 
 one-app:
-  trusties-service:
+  trustees-service:
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
     logo-url: ${GREEN_LOGO_URL}
     white-logo-url: ${WHITE_LOGO_URL}
     finance-logo-url: ${FINANCE_LOGO_URL}
-    client-name: TrustiesService
+    client-name: TrusteesService

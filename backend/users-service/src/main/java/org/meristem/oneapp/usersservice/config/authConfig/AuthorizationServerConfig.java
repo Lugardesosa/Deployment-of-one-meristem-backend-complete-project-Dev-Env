@@ -82,11 +82,11 @@ public class AuthorizationServerConfig {
     @Value("${one-app.notification-service.name}")
     private String notificationName;
 
-    @Value("${one-app.trusties-service.secret}")
-    private String trustiesSecret;
+    @Value("${one-app.trustees-service.secret}")
+    private String trusteesSecret;
 
-    @Value("${one-app.trusties-service.name}")
-    private String trustiesName;
+    @Value("${one-app.trustees-service.name}")
+    private String trusteesName;
 
     @Order(1)
     @Bean
@@ -259,19 +259,19 @@ public class AuthorizationServerConfig {
             clientRepo.save(notifications);
         }
 
-        if (isNull(clientRepo.findByClientId("trusties-service"))) {
-            RegisteredClient trusties = RegisteredClient
+        if (isNull(clientRepo.findByClientId("trustees-service"))) {
+            RegisteredClient trustees = RegisteredClient
                     .withId(UUID.randomUUID().toString())
-                    .clientId("trusties-service")
-                    .clientName(trustiesName)
-                    .clientSecret(passwordEncoder().encode(trustiesSecret))
+                    .clientId("trustees-service")
+                    .clientName(trusteesName)
+                    .clientSecret(passwordEncoder().encode(trusteesSecret))
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .scope(AuthScopes.GET_BENEFICIARIES)
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                     .build();
-            clientRepo.save(trusties);
+            clientRepo.save(trustees);
         }
         return clientRepo;
     }

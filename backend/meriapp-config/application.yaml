@@ -45,9 +45,9 @@ spring:
 
       client:
         registration:
-          trusties-service:
-            client-id: ${TRUSTIES_CLIENT_ID}
-            client-secret: ${TRUSTIES_CLIENT_SECRET}
+          trustees-service:
+            client-id: ${TRUSTEES_CLIENT_ID}
+            client-secret: ${TRUSTEES_CLIENT_SECRET}
             authorization-grant-type: client_credentials
             provider: users-service
             scope:
@@ -87,17 +87,17 @@ one-app:
     context-path: /api/reports
     application-name: report-service
 
-    #  TRUSTIES SERVICE
-  trusties-service:
-    context-path: /api/trusties
-    application-name: trusties-service
+    #  TRUSTEES SERVICE
+  trustees-service:
+    context-path: /api/trustees
+    application-name: trustees-service
 
     # APP NAMES
   services:
     wallet-service.first: ${one-app.wallet-service.application-name}
     wallet-service.second: ${WALLET_SERVICE_URI}/${one-app.wallet-service.context-path}
-    trusties-service.first: ${one-app.trusties-service.application-name}
-    trusties-service.second: ${TRUSTIES_SERVICE_URI}/${one-app.trusties-service.context-path}
+    trustees-service.first: ${one-app.trustees-service.application-name}
+    trustees-service.second: ${TRUSTEES_SERVICE_URI}/${one-app.trustees-service.context-path}
     report-service.first: ${one-app.report-service.application-name}
     report-service.second: ${REPORT_SERVICE_URI}/${one-app.report-service.context-path}
     users-service.first: ${one-app.users-service.application-name}

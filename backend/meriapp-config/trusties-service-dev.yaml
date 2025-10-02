@@ -1,8 +1,0 @@
-spring:
-
-  datasource:
-    url: ${DB_SERVER}/${TRUSTIES_DB_NAME}
-    password: ${TRUSTIES_DB_PASSWORD}
-    username: ${TRUSTIES_DB_USERNAME}
-    driver-class-name: org.postgresql.Driver
-
