@@ -63,10 +63,10 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
                                         Authentication authentication) throws IOException {
 
         writeAccessAndRefreshToken(response, authentication);
-        notifyUser(request, response, authentication);
+        notifyUser(request, authentication);
     }
 
-    private void notifyUser(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+    private void notifyUser(HttpServletRequest request, Authentication authentication) {
 
         try {
             if (authentication.getPrincipal() instanceof UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
@@ -79,14 +79,15 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
 
                     LocalDateTime localDateTime = LocalDateTime.now();
                     ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss z");
 
-                    LoginDto loginDto = new LoginDto(MessageSubject.LOGIN_ALERT.getMessage(), new String[]{users.getEmail()}, users.getFirstName(), zonedDateTime.format(formatter), ip, deviceDetails,
+                    LoginDto loginDto = new LoginDto(MessageSubject.LOGIN_ALERT.getMessage(), new String[]{users.getEmail()}, users.getFirstName(), zonedDateTime.format(dateFormatter), zonedDateTime.format(timeFormatter), ip, deviceDetails,
                             location, false);
                     DeviceMetadata deviceMetadata = DeviceMetadata.builder().deviceDetails(deviceDetails)
                             .userId(users.getId()).lastLoggedIn(LocalDateTime.now()).location(loginService.formatLocation(location.cityName(), location.country())).build();
                     applicationEventPublisher.publishEvent(new DeviceMetadataEvent(this, deviceMetadata));
-                    MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.LOGIN_SUCCESSFUL).message(loginDto).classSimpleName(LoginDto.class.getSimpleName()).build();
+                    MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.LOGIN_SUCCESSFUL).message(loginDto).classSimpleName(LoginDto.class.getSimpleName()).isHtml(true).build();
                     kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC));
                 }
             }

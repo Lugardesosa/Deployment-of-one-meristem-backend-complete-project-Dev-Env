@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.meristem.oneapp.notificationservice.domains.enums.EmailTemplate;
 import org.springframework.core.io.InputStreamSource;
 
 import java.io.File;
@@ -24,4 +25,7 @@ public class Message {
     private Map<String, File> files = new HashMap<>();
     @Builder.Default
     private Map<String, InputStreamSource> inputStreamSourceMap = new HashMap<>();
+
+    private EmailTemplate emailTemplate;
+    private Map<String, Object> context;
 }
