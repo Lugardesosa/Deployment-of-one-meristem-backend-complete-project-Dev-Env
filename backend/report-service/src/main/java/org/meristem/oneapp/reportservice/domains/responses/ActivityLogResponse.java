@@ -17,7 +17,7 @@ import java.util.Map;
                         "action": "CREATED",
                         "entity": "Cash",
                         "entityId": "4",
-                        "application": "trusties-service",
+                        "application": "trustees-service",
                         "activity": "Asset Category ‘Cash’ Created - Ramiro Luettgen",
                         "metadata": {}
                     }

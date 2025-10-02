@@ -14,6 +14,7 @@ import org.meristem.oneapp.notificationservice.integrations.responses.SmsNotific
 import org.meristem.oneapp.notificationservice.mappers.MessageDtoToMessageMapper;
 import org.meristem.oneapp.notificationservice.services.interfaces.NotificationService;
 import org.meristem.oneapp.notificationservice.utils.AppUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +34,13 @@ public class SmsService implements NotificationService<MessageDto> {
     private final ObjectMapper mapper;
     private final Map<String, String> textMessages;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
 
     @Override
     public void send(MessageDto messageDto) {
+        if ("local".equals(activeProfile)) return;
 
         Message message = unbox(messageDto, mapper, messageMapper);
 
