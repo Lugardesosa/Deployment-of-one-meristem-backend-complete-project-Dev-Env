@@ -119,9 +119,9 @@ services:
       - DB_REPORT_USERNAME=${DB_REPORT_USERNAME}
       - DB_REPORT_PASSWORD=${DB_REPORT_PASSWORD}
 
-      - DB_NAME_TRUSTIES_SERVICE=${DB_NAME_TRUSTIES_SERVICE}
-      - DB_TRUSTIES_USERNAME=${DB_TRUSTIES_USERNAME}
-      - DB_TRUSTIES_PASSWORD=${DB_TRUSTIES_PASSWORD}
+      - DB_NAME_TRUSTEES_SERVICE=${DB_NAME_TRUSTEES_SERVICE}
+      - DB_TRUSTEES_USERNAME=${DB_TRUSTEES_USERNAME}
+      - DB_TRUSTEES_PASSWORD=${DB_TRUSTEES_PASSWORD}
 
         #- POSTGRES_MULTIPLE_DATABASES=${DB_NAME_USER_SERVICES},${DB_NAME_NOTIFICATION_SERVICES}
     volumes:
@@ -191,10 +191,10 @@ services:
       - H2_PASSWORD=${H2_PASSWORD}
       - USER_SERVICE_HOSTNAME=users-service
       - USER_SERVICE_URI=${USER_SERVICE_URI}
-      - TRUSTIES_CLIENT_ID=trusties-service
-      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
       - MOBILE_SECRET=secret
-      - TRUSTIES_SECRET=secret
+      - TRUSTEES_SECRET=secret
       - NOTIFICATION_SECRET=secret
       # This is the GEOIP_DB container location being mapped to the hostfile in the server.
       - GEOIP_DB_LOCATION=/app/geoip_db/GeoLite2-City.mmdb
@@ -267,8 +267,8 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - NOTIFICATION_SERVICE_HOSTNAME=notification-service
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
-      - TRUSTIES_CLIENT_ID=trusties-service
-      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
       - MAIL_SENDER=hello@demomailtrap.co
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
@@ -329,8 +329,8 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - REPORT_SERVICE_HOSTNAME=report-service
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
-      - TRUSTIES_CLIENT_ID=trusties-service
-      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
@@ -395,8 +395,8 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - WALLET_SERVICE_HOSTNAME=wallet-service
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
-      - TRUSTIES_CLIENT_ID=trusties-service
-      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
@@ -415,11 +415,11 @@ services:
     restart: unless-stopped
     
   # ======================
-  # TRUSTIES SERVICE (Internal Only)
+  # TRUSTEES SERVICE (Internal Only)
   # ======================
-  trusties-service:
-    image: trusties-service
-    container_name: trusties-service
+  trustees-service:
+    image: trustees-service
+    container_name: trustees-service
     networks:
       - meristem-network
     depends_on:
@@ -444,12 +444,12 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
-      - TRUSTIES_DB_NAME=${DB_NAME_TRUSTIES_SERVICE}
-      - TRUSTIES_DB_PASSWORD=${DB_TRUSTIES_PASSWORD}
-      - TRUSTIES_DB_USERNAME=${DB_TRUSTIES_USERNAME}
-      - TRUSTIES_CLIENT_ID=trusties-service
-      - TRUSTIES_CLIENT_SECRET=${TRUSTIES_CLIENT_SECRET}
-      - TRUSTIES_SERVICE_HOSTNAME=trusties-service
+      - TRUSTEES_DB_NAME=${DB_NAME_TRUSTEES_SERVICE}
+      - TRUSTEES_DB_PASSWORD=${DB_TRUSTEES_PASSWORD}
+      - TRUSTEES_DB_USERNAME=${DB_TRUSTEES_USERNAME}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
+      - TRUSTEES_SERVICE_HOSTNAME=trustees-service
       - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
       - KAFKA_HOST_URL=${KAFKA_HOST}
       - REDIS_HOST=${REDIS_HOST}
@@ -458,18 +458,18 @@ services:
       - CONSUL_HOST=consul
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - USER_SERVICE_HOSTNAME=users-service
-      - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
+      - TRUSTEES_SERVICE_URI=${TRUSTEES_SERVICE_URI}
       - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
-      # - OTEL_SERVICE_NAME=trusties-service
+      # - OTEL_SERVICE_NAME=trustees-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
       # - OTEL_TRACES_EXPORTER=otlp #---
       # - OTEL_METRICS_EXPORTER=otlp
-      # - OTEL_RESOURCE_ATTRIBUTES=service.name=trusties-service,env=local
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=trustees-service,env=local
       # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
       # - OTEL_JAVAAGENT_ENABLED=true
     # volumes:
@@ -495,7 +495,7 @@ services:
       - postgres
       - kafka
       - consul
-      - trusties-service
+      - trustees-service
       - report-service
       - wallet-service
         #- otel-collector
@@ -516,7 +516,7 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
-      - TRUSTIES_SERVICE_URI=${TRUSTIES_SERVICE_URI}
+      - TRUSTEES_SERVICE_URI=${TRUSTEES_SERVICE_URI}
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI} 
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
