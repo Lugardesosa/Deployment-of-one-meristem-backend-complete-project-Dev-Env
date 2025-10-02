@@ -93,4 +93,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname="${DB_NAME_TRUSTIES
 EOSQL
 
 
-echo "✅ All databases, users, and privileges configured successfully."
+echo "All databases, users, and privileges configured successfully."
