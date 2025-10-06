@@ -209,8 +209,7 @@ public class CustomRepository extends GeneralRepository {
                     FROM plan_beneficiaries pb JOIN private_trusts pt ON pt.id = pb.plan_id AND pb.plan_type = 'PRIVATE_TRUSTS'
                     WHERE pb.beneficiary_id = :beneficiaryId AND pt.owner_id = :ownerId
                     ORDER BY created_date
-                )
-                ORDER BY created_date DESC
+                ) AS metainfo ORDER BY created_date DESC
                 """;
 
         return jdbcTemplate.query(sql, Map.of("ownerId", ownerId, "beneficiaryId", beneficiaryId), RowMappers.getPlansMetainfo());
