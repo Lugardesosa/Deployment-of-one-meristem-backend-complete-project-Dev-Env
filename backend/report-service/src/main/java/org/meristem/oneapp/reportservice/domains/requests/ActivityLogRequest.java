@@ -22,7 +22,7 @@ public class ActivityLogRequest extends PageRequest {
     @Schema(description = "Unique identifier of the activity being queried", example = "123")
     private Long activityId;
 
-    @Schema(description = "Name of the application that generated the activity", example = "trusties-service")
+    @Schema(description = "Name of the application that generated the activity", example = "trustees-service")
     private String application;
 
     @Schema(description = "Identifier of the user or system that performed the action", example = "jane.doe@meristemng.com")

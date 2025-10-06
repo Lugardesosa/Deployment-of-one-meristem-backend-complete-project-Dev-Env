@@ -1,0 +1,8 @@
+spring:
+
+  datasource:
+    url: ${DB_SERVER}/${TRUSTEES_DB_NAME}
+    password: ${TRUSTEES_DB_PASSWORD}
+    username: ${TRUSTEES_DB_USERNAME}
+    driver-class-name: org.postgresql.Driver
+
