@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
+import org.meristem.oneapp.kafka.dtos.OtpVerifiedDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
@@ -39,7 +40,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class OtpService {
 
     private final KafkaSenderService kafkaSenderService;
     private final OtpVerificationRepository otpVerificationRepository;
@@ -140,6 +141,10 @@ public class NotificationService {
         }
         otpVerification.setVerified(true);
         otpVerificationRepository.save(otpVerification);
+
+        if (request.otpType().equals(MessageSubject.EMAIL_VERIFICATION.getCode())) {
+            kafkaSenderService.send(new OtpVerifiedDto(otpVerification.getUserId()), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC));
+        }
         return VerifyOtpResponse.builder().status(true).message("OTP verified").build();
     }
 }

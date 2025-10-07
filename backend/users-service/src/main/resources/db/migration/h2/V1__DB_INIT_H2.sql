@@ -171,7 +171,9 @@ CREATE TABLE user_profile
     marital_status       VARCHAR(50),
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
-    biometric_enabled BOOLEAN DEFAULT FALSE                      NOT NULL,
+    biometric_enabled    BOOLEAN DEFAULT FALSE                   NOT NULL,
+    password_set         BOOLEAN DEFAULT FALSE                   NOT NULL,
+    email_verified       BOOLEAN DEFAULT FALSE                   NOT NULL,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
 
@@ -188,7 +190,7 @@ CREATE TABLE users
     first_name           VARCHAR(150)                            NOT NULL,
     last_name            VARCHAR(150)                            NOT NULL,
     middle_name          VARCHAR(150),
-    password             VARCHAR(200)                            NOT NULL,
+    password             VARCHAR(200),
     phone_number         VARCHAR(50)                             NOT NULL,
     password_attempt     INT DEFAULT 0                           NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY (id)
@@ -732,6 +734,7 @@ VALUES
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.transactions.get'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.next_of_kin.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.phone-number.update'),
+    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.email.update'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob'),
     (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.selection.update'),
@@ -784,6 +787,7 @@ SET @UsersTransactionsGetID = (SELECT id FROM permissions WHERE name = 'users.tr
 SET @UsersGetSmileIdTokenID = (SELECT id FROM permissions WHERE name = 'users.get_smile_id_token');
 SET @AdminNextOfKinUpdateID = (SELECT id FROM permissions WHERE name = 'admin.next_of_kin.update');
 SET @UsersPhoneNumberUpdateID = (SELECT id FROM permissions WHERE name = 'users.phone-number.update');
+SET @UsersEmailUpdateID = (SELECT id FROM permissions WHERE name = 'users.email.update');
 SET @AdminChangePasswordID = (SELECT id FROM permissions WHERE name = 'admin.change.password');
 SET @AdminChangeDobID = (SELECT id FROM permissions WHERE name = 'admin.change.dob');
 SET @AdminSelectionUpdateID = (SELECT id FROM permissions WHERE name = 'admin.selection.update');
@@ -835,6 +839,7 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersGetSmileIdTokenID),
        (@RolesAdminID, @AdminNextOfKinUpdateID),
        (@RolesUserID, @UsersPhoneNumberUpdateID),
+       (@RolesUserID, @UsersEmailUpdateID),
        (@RolesAdminID, @AdminChangePasswordID),
        (@RolesAdminID, @AdminChangeDobID),
        (@RolesAdminID, @AdminSelectionUpdateID),

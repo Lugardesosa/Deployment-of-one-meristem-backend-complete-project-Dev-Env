@@ -5,8 +5,8 @@ import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
-import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
+import org.meristem.oneapp.kafka.dtos.OtpVerifiedDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
@@ -33,10 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
 
 /**
  * Service class for managing user-related operations.
@@ -79,15 +79,11 @@ public class UsersService {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.REGISTRATION.getCode(), userRequest.email(), userRequest.phoneNumber(), true, LocalDateTime.now())) {
-            throw new BadRequestException("OTP not verified or expired.");
-        }
-
         Users user = usersMapper.createUserRequestToUsers(userRequest);
-        user.setPassword(passwordEncoder.encode(userRequest.password()));
+        user.setStatus(UserStatus.EMAIL_NOT_VERIFIED.getValue());
         user = usersRepository.save(user);
 
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), MessageSubject.REGISTRATION.getCode());
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
 
         UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(AppUtil.generateReferralCode(user.getFirstName())).build();
 
@@ -106,6 +102,55 @@ public class UsersService {
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
         return usersMapper.usersToUserResponse(user);
     }
+
+
+
+    public UpdateResponse setPassword(SetPasswordRequest userRequest) {
+        Optional<Users> users = usersRepository.findOneByEmailAndPasswordIsNull(userRequest.email());
+        if (users.isEmpty()) {
+            return UpdateResponse.builder().success(false).message("User not found.").build();
+        }
+        Users user = users.get();
+        user.setPassword(passwordEncoder.encode(userRequest.password()));
+        usersRepository.save(user);
+
+        Optional<UserProfile> userProfile = userProfileRepository.findByUserId(user.getId());
+        userProfile.ifPresent(up -> {
+            up.setPasswordSet(true);
+            if (up.getEmailVerified())
+                up.setStatus(UserStatus.ACTIVE.getValue());
+            userProfileRepository.save(up);
+        });
+        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+    }
+
+    public void emailVerified(OtpVerifiedDto dto) {
+        Optional<Users> users = usersRepository.findOneByEmailAndEmailVerifiedIsNull(dto.email());
+        users.ifPresent(user -> {
+            if (!user.getEmail().equals(dto.email())) return;
+            if (nonNull(user.getPassword()))
+                user.setStatus(UserStatus.ACTIVE.getValue());
+            usersRepository.save(user);
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("email_verified", true);
+            customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", user.getId()));
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(dto.email());
+        });
+    }
+
+    public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
+
+        Long userId = AppUtil.getLoggedInUserId();
+        if (userProfileRepository.existsByUserIdAndEmailVerified(userId, true)) {
+            throw new BadRequestException("Email already verified, so cannot be updated.");
+        }
+
+        usersRepository.updateEmail(userId, userRequest.newEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userRequest.newEmail());
+
+        return UpdateResponse.builder().success(true).message("Email successfully updated").build();
+    }
+
 
     /**
      * Retrieves the currently logged-in user's details.

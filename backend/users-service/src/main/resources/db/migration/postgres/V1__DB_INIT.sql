@@ -172,6 +172,8 @@ CREATE TABLE user_profile
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
     biometric_enabled BOOLEAN DEFAULT FALSE                      NOT NULL,
+    password_set         BOOLEAN DEFAULT FALSE                   NOT NULL,
+    email_verified       BOOLEAN DEFAULT FALSE                   NOT NULL,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
 
@@ -188,7 +190,7 @@ CREATE TABLE users
     first_name           VARCHAR(150)                            NOT NULL,
     last_name            VARCHAR(150)                            NOT NULL,
     middle_name          VARCHAR(150),
-    password             VARCHAR(200)                            NOT NULL,
+    password             VARCHAR(200),
     phone_number         VARCHAR(50)                             NOT NULL,
     password_attempt     INT DEFAULT 0                           NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY (id)
@@ -725,6 +727,7 @@ $$
         UsersDeactivateAccountID  integer;
         UsersGetAvatarID          integer;
         UsersPhoneNumberUpdateID  integer;
+        UsersEmailUpdateID  integer;
         SuperAdminAdminCreateID   integer;
         UsersBeneficiaryAddID     integer;
         UsersBeneficiaryRemoveID  integer;
@@ -904,6 +907,10 @@ $$
         RETURNING id INTO UsersPhoneNumberUpdateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.email.update')
+        RETURNING id INTO UsersEmailUpdateID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password')
         RETURNING id INTO AdminChangePasswordID;
 
@@ -996,6 +1003,7 @@ $$
                (RolesUserID, UsersDeactivateAccountID),
                (RolesUserID, UsersGetAvatarID),
                (RolesUserID, UsersPhoneNumberUpdateID),
+               (RolesUserID, UsersEmailUpdateID),
                (RolesSuperAdminID, SuperAdminAdminCreateID);
     END
 $$;

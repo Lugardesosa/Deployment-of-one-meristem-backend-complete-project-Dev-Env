@@ -11,7 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum MessageSubject {
 
-    REGISTRATION(1, "Registration OTP received "),
+    EMAIL_VERIFICATION(1, "Email verification OTP received "),
     PASSWORD_RESET(2, "Password reset OTP received "),
     ONBOARDING_VERIFICATION (3, "Onboarding Verification OTP received "),
     LOGIN_ALERT (3, "There was a log into your account ");

@@ -47,6 +47,36 @@ public class UsersController {
          return ApiUtil.buildResponse(usersService.createUser(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
+    @Operation(summary = "Set a user's password.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set a user's password after account creation.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SetPasswordRequest.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PutMapping(value = "/set-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> setPassword(@RequestBody @Valid SetPasswordRequest request) {
+        return ApiUtil.buildResponse(usersService.setPassword(request), HttpStatus.OK.toString(), "Created successfully.");
+    }
+
+    @Operation(summary = "Set a user's email.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set a user's email only when it has not been verified.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateEmailRequest.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('ROLE_users.email.update')")
+    @PutMapping(value = "/update-email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createUser(@RequestBody @Valid UpdateEmailRequest request) {
+        return ApiUtil.buildResponse(usersService.updateEmail(request), HttpStatus.OK.toString(), "Created successfully.");
+    }
+
     @Operation(summary = "Gets users.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get a user.")

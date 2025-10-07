@@ -36,7 +36,6 @@ public class Users extends BaseModel<String> {
     private String middleName;
 
     @Size(max = 200, min = 8, message = "Not more than 200 and less than 8")
-    @NotBlank(message = "lastName cannot be null")
     private String password;
 
     // To be saved without the '08024346767'
