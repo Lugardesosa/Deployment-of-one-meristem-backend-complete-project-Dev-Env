@@ -1,0 +1,34 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-notification-service
+      
+  mail:
+    host: ${MAILER_HOST}
+    username: ${MAILER_USERNAME}
+    port: 2525
+    password: ${MAILER_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+
+server:
+  port: 20030
+  servlet:
+    context-path: ${one-app.notification-service.context-path}
+
+one-app:
+
+  notification-service:
+    context-path: /api/notification
+    application-name: notification-service
+    mail-sender: ${MAIL_SENDER}
+
+credit-switch:
+  login-id: ${CREDIT_SWITCH_LOGIN_ID}
+  public-key: ${CREDIT_SWITCH_PUBLIC_KEY}
+  private-key: ${CREDIT_SWITCH_PRIVATE_KEY}
+  sender-id: ${CREDIT_SWITCH_SMS_SENDER_ID}
+  base-url: ${CREDIT_SWITCH_SMS_BASEURL}
+  password: ${CREDIT_SWITCH_SMS_PASSWORD}
