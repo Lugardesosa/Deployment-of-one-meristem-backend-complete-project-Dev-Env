@@ -103,6 +103,14 @@ public class UsersService {
         return usersMapper.usersToUserResponse(user);
     }
 
+    /**
+     * Sets an initial password for a user who currently has no password.
+     * If the user is found, hashes and saves the provided password, marks the profile as passwordSet,
+     * and activates the account if the email is already verified.
+     *
+     * @param userRequest payload containing the user's email and desired password
+     * @return UpdateResponse indicating whether the operation succeeded
+     */
 
 
     public UpdateResponse setPassword(SetPasswordRequest userRequest) {
@@ -124,6 +132,13 @@ public class UsersService {
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
+    /**
+     * Marks a user's email as verified and updates status/cache accordingly.
+     * If the user has already set a password, their overall status is set to ACTIVE.
+     * Also flags email_verified on the user profile and evicts the cache entry for the email.
+     *
+     * @param dto payload containing the verified email
+     */
     public void emailVerified(OtpVerifiedDto dto) {
         Optional<Users> users = usersRepository.findOneByEmailAndEmailVerifiedIsNull(dto.email());
         users.ifPresent(user -> {
@@ -138,6 +153,14 @@ public class UsersService {
         });
     }
 
+    /**
+     * Updates the current user's email if it has not yet been verified.
+     * Evicts the users cache entry for the new email.
+     *
+     * @param userRequest payload with the new email
+     * @return UpdateResponse indicating success
+     * @throws BadRequestException if the existing email is already verified
+     */
     public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
 
         Long userId = AppUtil.getLoggedInUserId();
@@ -317,6 +340,12 @@ public class UsersService {
         return PinResponse.builder().status(true).message("Pin successfully set.").build();
     }
 
+    /**
+     * Retrieves signed URLs for all available avatar images.
+     * Results are cached under the "avatars" cache.
+     *
+     * @return list of signed URL responses for avatars
+     */
     @Cacheable("avatars")
     public List<SignedUrlResponse> getAvatarUrls() {
         List<SignedUrlResponse> responses = new ArrayList<>();
@@ -327,12 +356,23 @@ public class UsersService {
         return responses;
     }
 
+    /**
+     * Deactivates the currently logged-in user's account.
+     *
+     * @return response indicating whether the operation was successful
+     */
     public AccountDeactivationResponse deactivateUser() {
         Long userId = AppUtil.getLoggedInUserId();
         int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
         return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
     }
 
+    /**
+     * Completes onboarding for the specified user if all requirements are submitted,
+     * updates the profile, evicts the cache entry, and emits a KYC_COMPLETED event.
+     *
+     * @param userId the user identifier
+     */
     public void completeUserOnboarding(String userId) {
 
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
@@ -343,6 +383,13 @@ public class UsersService {
         }
     }
 
+    /**
+     * Resets onboarding for the specified user and marks a specific requirement as REJECTED.
+     * Updates the profile status, evicts the cache entry, and emits a KYC_REJECTED event.
+     *
+     * @param userId the user identifier
+     * @param requirementId the requirement that was rejected
+     */
     public void resetUserOnboarding(String userId, Long requirementId) {
 
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
@@ -352,6 +399,12 @@ public class UsersService {
         kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED));
     }
 
+    /**
+     * Updates the logged-in user's state of origin after validating it against the selected country.
+     *
+     * @param request payload containing the state and country identifiers
+     * @return UpdateResponse indicating whether the update succeeded
+     */
     public UpdateResponse updateStateOfOrigin(StateUpdateRequest request) {
         AtomicInteger updated = new AtomicInteger();
         generalRepository.findOneBy(CountryStates.class, Map.of("id", request.stateId(), "countryId", request.countryId()))
@@ -359,6 +412,12 @@ public class UsersService {
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 
+    /**
+     * Updates the logged-in user's country of origin.
+     *
+     * @param request payload containing the country identifier
+     * @return UpdateResponse indicating whether the update succeeded
+     */
     public UpdateResponse updateCountryOfOrigin(CountryUpdateRequest request) {
 
         AtomicInteger updated = new AtomicInteger();
@@ -366,6 +425,11 @@ public class UsersService {
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 
+    /**
+     * Sends a password change notification email event for the specified user.
+     *
+     * @param userEmail recipient email address
+     */
     private void notifyUserAboutPasswordChange(String userEmail) {
         PasswordChangeDto otpDto = PasswordChangeDto.builder().recipient(new String[]{userEmail})
                 .body("Your password was changed, if you didn't initiate this, click this link.")
@@ -374,6 +438,12 @@ public class UsersService {
         kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
     }
 
+    /**
+     * Marks an investment instrument as accessed for the current user and evicts the users cache entry.
+     *
+     * @param request payload containing the instrument access identifier
+     * @return UpdateResponse indicating whether the update succeeded
+     */
     public UpdateResponse updateInstrumentAccessed(InstrumentAccessedRequest request) {
 
         Map<String, Object> updates = new HashMap<>();
@@ -383,6 +453,12 @@ public class UsersService {
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 
+    /**
+     * Marks an investment option as accessed for the current user and evicts the users cache entry.
+     *
+     * @param request payload containing the option access identifier
+     * @return UpdateResponse indicating whether the update succeeded
+     */
     public UpdateResponse updateOptionAccessed(OptionAccessedRequest request) {
 
         Map<String, Object> updates = new HashMap<>();
@@ -392,6 +468,12 @@ public class UsersService {
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 
+    /**
+     * Enables or disables biometric login for the current user and evicts the users cache entry.
+     *
+     * @param request payload indicating whether biometric login should be enabled
+     * @return UpdateResponse indicating whether the update succeeded
+     */
     public UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request) {
 
         Map<String, Object> updates = new HashMap<>();

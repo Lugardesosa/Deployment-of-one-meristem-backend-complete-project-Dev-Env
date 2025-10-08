@@ -26,6 +26,16 @@ public class BeneficiaryService {
     private final CustomRepository customRepository;
     private final BeneficiaryMapper beneficiaryMapper = BeneficiaryMapper.INSTANCE;
 
+    /**
+     * Creates a new beneficiary record for the currently authenticated owner.
+     *
+     * Rules:
+     * - If a beneficiary with the same email already exists for the owner, a BadRequestException is thrown.
+     *
+     * @param request the beneficiary creation payload
+     * @return a representation of the created beneficiary
+     * @throws BadRequestException if a beneficiary with the given email already exists for the owner
+     */
     public BeneficiaryResponse createBeneficiary(BeneficiaryRequest request) {
 
         Long loggedInUserid = AppUtil.getLoggedInUserId();

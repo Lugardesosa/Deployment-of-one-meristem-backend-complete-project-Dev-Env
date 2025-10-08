@@ -18,6 +18,14 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Service for generating temporary signed URLs for Huawei Object Storage (OBS).
+ * <p>
+ * This service builds object keys and delegates to Huawei OBS to create
+ * temporary signatures for secure, time-limited access to objects.
+ * It supports creating URLs for both uploads (PUT) and downloads (GET),
+ * and selects the target bucket based on the requested file type.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,6 +33,20 @@ public class HuaweiService {
 
     private final HuaweiConfigProperties huaweiConfigProperties;
 
+    /**
+     * Generates a temporary signed URL for uploading or downloading a file in Huawei OBS.
+     * <p>
+     * Rules:
+     * - GET: uses the provided {@code fileName} as the existing object key for download.
+     * - PUT: requires {@code contentType}, generates a unique object key using the current user and timestamp,
+     *   and sets the {@code Content-Type} header for the upload.
+     * The target bucket is chosen based on the file type in the request, and the URL TTL is taken
+     * from configuration.
+     *
+     * @param signedUrlRequest request parameters describing desired HTTP method, file name, file type, and content type (for PUT)
+     * @return a response containing the signed URL and resolved object key, along with metadata
+     * @throws BadRequestException if required data is missing or the signed URL cannot be generated
+     */
     public SignedUrlResponse getSignedUrl(SignedUrlRequest signedUrlRequest) {
 
         try (ObsClient obsClient = new ObsClient(huaweiConfigProperties.accessKeyId(), huaweiConfigProperties.accessSecretId(), huaweiConfigProperties.obsEndpoint())) {

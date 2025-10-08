@@ -10,7 +10,7 @@ services:
       - "20000:20000"
     platform: linux/amd64
     env_file:
-      - ../observability/env/one-meristem-app-env.env
+      - ~/otherFiles/mis/one-meristem-app-env-docker.env
     image: config-server:latest
     networks:
       - backend
@@ -22,7 +22,7 @@ services:
       - "20010:20010"
     platform: linux/amd64
     env_file:
-      - ../observability/env/one-meristem-app-env.env
+      - ~/otherFiles/mis/one-meristem-app-env-docker.env
     image: gateway-service:latest
     depends_on:
       - config-server
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
     platform: linux/amd64
     env_file:
-      - ../observability/env/one-meristem-app-env.env
+      -       - ~/otherFiles/mis/one-meristem-app-env-docker.env
     image: users-service:latest
     depends_on:
       - config-server
@@ -75,7 +75,7 @@ services:
     container_name: notification-service
     platform: linux/amd64
     env_file:
-      - ../observability/env/one-meristem-app-env.env
+      -       - ~/otherFiles/mis/one-meristem-app-env-docker.env
     image: notification-service:latest
     restart: unless-stopped
     depends_on:

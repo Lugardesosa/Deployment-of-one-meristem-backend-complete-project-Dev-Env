@@ -47,12 +47,25 @@ public class LoginService {
         this.customRepository = customRepository;
     }
 
+    /**
+     * Initializes the GeoIP database reader after bean construction.
+     *
+     * @throws IOException if the database file cannot be loaded
+     */
     @PostConstruct
     public void init() throws IOException {
         File database = new File(geoipDbLocation);
         dbReader = new DatabaseReader.Builder(database).build();
     }
 
+    /**
+     * Resolves geographic information for the provided IPv4/IPv6 address.
+     *
+     * @param ip textual IP address to look up
+     * @return a DTO containing city, country, latitude and longitude for the IP
+     * @throws IOException      if the underlying database cannot be accessed
+     * @throws GeoIp2Exception  if the IP cannot be resolved in the GeoIP database
+     */
     public GeoIPDto getLocation(String ip)
             throws IOException, GeoIp2Exception {
         InetAddress ipAddress = InetAddress.getByName(ip);
@@ -65,10 +78,28 @@ public class LoginService {
         return new GeoIPDto(ip, cityName, country, latitude, longitude);
     }
 
+    /**
+     * Persists the given device metadata record.
+     *
+     * @param deviceMetadata device information to store
+     */
+    /**
+     * Persists the given device metadata record.
+     *
+     * @param deviceMetadata device information to store
+     */
     public void saveDevice(DeviceMetadata deviceMetadata) {
         customRepository.save(deviceMetadata);
     }
 
+    /**
+     * Builds a displayable "city, country" string from the given parts.
+     * Null inputs are treated as empty strings; leading commas/spaces are removed and the result is trimmed.
+     *
+     * @param cityName city or locality name (nullable)
+     * @param country  country name (nullable)
+     * @return normalized location string, never null
+     */
     public String formatLocation(String cityName, String country) {
         cityName = nonNull(cityName) ? cityName : "";
         country = nonNull(country) ? country : "";
@@ -79,13 +110,29 @@ public class LoginService {
         return location.trim();
     }
 
-
+    /**
+     * Derives a human-readable device label from a User-Agent string.
+     * The label concatenates the detected device name and agent (browser/app) name,
+     * with placeholder characters removed for readability.
+     *
+     * @param userAgent raw User-Agent header value
+     * @return a concise device description, e.g., "iPhone Mobile Safari"
+     */
     public String getDeviceDetails(String userAgent) {
         UserAgent client = this.parser.parse(userAgent);
 
         return "%s %s".formatted(client.getValue(UserAgent.DEVICE_NAME), client.getValue(UserAgent.AGENT_NAME)).replace("?", "");
     }
 
+    /**
+     * Verifies whether the current request originates from a known device for the user.
+     * If unknown, triggers a notification and records the device; otherwise updates the last login timestamp.
+     *
+     * @param user    the authenticated user
+     * @param request the HTTP request containing IP and User-Agent
+     * @throws IOException      if GeoIP lookup fails due to I/O issues
+     * @throws GeoIp2Exception  if the IP cannot be resolved by the GeoIP service
+     */
     public void verifyDevice(Users user, HttpServletRequest request) throws IOException, GeoIp2Exception {
 
         String ip = AppUtil.extractIp(request);
@@ -108,9 +155,27 @@ public class LoginService {
         }
     }
 
+    /**
+     * Sends a notification to the user about a login from an unknown device/location.
+     * Intended to inform the recipient and optionally verify the activity.
+     *
+     * @param deviceDetails human-readable device description
+     * @param location      resolved geographic location of the IP
+     * @param ip            source IP address of the request
+     * @param email         recipient email address
+     * @param locale        preferred locale for message formatting
+     */
     private void unknownDeviceNotification(String deviceDetails, GeoIPDto location, String ip, @Size(max = 200, min = 5, message = "Not more than 200 and less than 5") @NotBlank(message = "recipient cannot be null") String email, Locale locale) {
     }
 
+    /**
+     * Looks up a known device for a user by matching device details and location.
+     *
+     * @param userId        the user identifier
+     * @param deviceDetails normalized device description
+     * @param location      normalized location (typically city)
+     * @return the matching device metadata if found; otherwise null
+     */
     private DeviceMetadata findExistingDevice(
             Long userId, String deviceDetails, String location) {
         List<DeviceMetadata> knownDevices
