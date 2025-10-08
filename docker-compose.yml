@@ -61,7 +61,7 @@ services:
       - kafka
       - postgres
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -149,7 +149,7 @@ services:
       - consul
         #- otel-collector
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -167,7 +167,7 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - APP_PROFILE=dev
       - GITHUB_BRANCH=dev_env
-      - USER="System"
+      - USER=System
       - ONE_APP_SERVER_URL=https://110.238.74.43
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
@@ -232,7 +232,7 @@ services:
       - consul
         #- otel-collector
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -258,7 +258,7 @@ services:
       - CREDIT_SWITCH_LOGIN_ID=315497
       - CREDIT_SWITCH_PUBLIC_KEY=${CREDIT_SWITCH_PUBLIC_KEY}  
       - CREDIT_SWITCH_PRIVATE_KEY=${CREDIT_SWITCH_PRIVATE_KEY} 
-      - CREDIT_SWITCH_SMS_MERCHANT_NAME='Meristem Securities Limited'
+      - CREDIT_SWITCH_SMS_MERCHANT_NAME=Meristem Securities Limited
       - CREDIT_SWITCH_SMS_PASSWORD=${CREDIT_SWITCH_SMS_PASSWORD} 
       - CREDIT_SWITCH_SMS_BASEURL=http://176.58.99.160:9014/api/v1/
       - CREDIT_SWITCH_SMS_SENDER_ID=Meristem
@@ -273,6 +273,7 @@ services:
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - MAIL_SENDER_NAME=One Meristem
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -303,7 +304,7 @@ services:
       - consul
         #- otel-collector
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -364,7 +365,7 @@ services:
       - consul
       # - otel-collector
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -431,7 +432,7 @@ services:
       - users-service
         #- otel-collector
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
@@ -500,7 +501,7 @@ services:
       - wallet-service
         #- otel-collector
     environment:
-      - COMPANY_NAME="Meristem Securities Limited"
+      - COMPANY_NAME=Meristem Securities Limited
       - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
       - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
