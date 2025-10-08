@@ -1,0 +1,83 @@
+# -------------------- CONSUL SERVICE VALUES --------------------
+# This file contains the consul values for the consul service deployment.
+
+environment: dev_env
+
+global:
+  namespace: one-meristem-app
+  
+#Deployment configuration for consul service
+
+replicaCount: 1
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+image:
+  repository: consul
+  tag: "1.15.4" 
+  pullPolicy: IfNotPresent
+  args:
+  - "agent"
+  - "-server"
+  - "-bootstrap-expect"
+  - "1"
+  - "-ui"
+  - "-client"
+  - "0.0.0.0"
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "128Mi"
+  requests:
+    cpu: "250m"
+    memory: "64Mi"
+
+containerPorts:
+  - name: consul-ui
+    port: 8500
+  - name: 8301-port
+    port: 8301
+  - name: 8302-port
+    port: 8302
+  - name: 8600-port
+    port: 8600
+  - name: 8300-port
+    port: 8300
+
+
+restartPolicy: Always
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+# Ingress configuration
+ingress:
+  enabled: true
+  name: cloud-gateway-ingress
+  elbId: "063f9a52-56a7-4d49-9d13-e97397f3eec6" #Internal Elb id
+  elbIp: "10.0.1.89" #ELB IP (Private IP)
+  certificateIds: "3057ba2e0f64435cb74984ec7fe4d044" #Cerificates IDs
+  host: consul.internal.local #Replace with Internal host
+  path: /   # Path to expose Consul
+  servicePort: 8500
+  
+
+#Service configuration
+service:
+  type: ClusterIP  # Internal access only #(NodePort)
+  portName: consul-ui
+  port: 8500
+  targetPort: 8500
+  #nodePort: 31000 # Only if type is NodePort
+
+  

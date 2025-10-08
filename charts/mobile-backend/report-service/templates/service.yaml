@@ -1,0 +1,35 @@
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: report-service
+#   namespace: one-meristem-app
+#   labels:
+#     app: report-service
+# spec:
+#   type: ClusterIP
+#   ports:
+#     - name: report-service
+#       port: 20050
+#       protocol: TCP
+#       targetPort: 20050
+#   selector:
+#     app: report-service
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "report-service.fullname" . }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    app: {{ include "report-service.name" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: {{ .Values.service.name }}
+      port: {{ .Values.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.service.targetPort }}
+  selector:
+    app: {{ include "report-service.name" . }}

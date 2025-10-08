@@ -1,0 +1,27 @@
+{{- if .Values.networkpolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "wallet-service.fullname" . }}-egress-to-middleware
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "wallet-service.name" . }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              ns: middleware-core-app
+        - podSelector:
+            matchLabels:
+              app: {{ include "middleware-service.name" . }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.global.middleware.networkpolicy.port }}
+{{- end }}
+
+
+

@@ -1,0 +1,168 @@
+
+environment: dev_env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false     # Prevent chart from trying to create it
+
+networkpolicy:
+  enabled: true
+
+
+image:
+  repository:  swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-dev-env/wallet-service
+  tag: latest
+  pullPolicy: Always
+
+
+service:
+  type: ClusterIP
+  name: wallet-service
+  port: 8081
+  targetPort: 20040
+
+replicaCount: 2
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+env:
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  GITHUB_BRANCH: "dev_env"
+  APP_PROFILE: "dev"
+  SERVER_PORT: "20030"
+  ONE_APP_SERVER_URL: "http://110.238.74.43:8080" #placeholder for the EIP IP
+  ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+  ADMIN_USERNAME: "admin"
+  CONFIG_SERVER_URI: "http://config-server:20000/config"
+  PROVIDUS_BASE_URL: "https://payment.xpress-wallet.com/api/v1/"
+  WEMA_API_URL: "https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/"
+  WEMA_ACCOUNT_PREFIX: "733"
+  HUAWEI_OBS_ENDPOINT: "obs.af-south-1.myhuaweicloud.com"
+  HUAWEI_OBS_IMAGES_BUCKET: "obs-image-storage-one-meristem-dev-env"
+  HUAWEI_OBS_DOC_BUCKET: "obs-documents-one-meristem-dev-env"
+  OKHI_DEV_AND_PROD_WHITELIST_IP: "52.18.220.93,18.202.96.242"
+  CONSUL_HOST: consul
+  WALLET_SERVICE_HOSTNAME: wallet-service
+  WALLET_SERVICE_URI: "http://wallet-service:20040"
+  USER_SERVICE_URI: "http://users-service:20020"
+  TRUSTEES_CLIENT_ID: trustees-service
+  HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-dev-env"
+  MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  SUPPORT_PHONE: "0700-MERISTEM"
+  SUPPORT_EMAIL: "support@onemeristem.com"
+
+secretEnv:
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: key3
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: key4
+  DB_SERVER:
+    secretName: huawei-csms-credentials
+    secretKey: DB_SERVER
+  WALLET_DB_NAME:
+    secretName: huawei-csms-credentials
+    secretKey: WALLET_DB_NAME
+  WALLET_DB_USERNAME:
+    secretName: huawei-csms-credentials
+    secretKey: WALLET_DB_USERNAME
+  WALLET_DB_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: WALLET_DB_PASSWORD
+  KAFKA_HOST_URL:
+    secretName: huawei-csms-credentials
+    secretKey: KAFKA_HOST_URL
+  REDIS_HOST:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_PASSWORD
+  MAILER_HOST:
+    secretName: credentials
+    secretKey: key5
+  MAILER_USERNAME:
+    secretName: credentials
+    secretKey: key6
+  MAILER_PASSWORD:
+    secretName: credentials
+    secretKey: key7
+  PROVIDUS_API_PUBLIC_KEY:
+    secretName: credentials
+    secretKey: key14
+  PROVIDUS_API_SECRET_KEY:
+    secretName: credentials
+    secretKey: key15
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: key13
+  TRUSTEES_CLIENT_SECRET: 
+    secretName: credentials
+    secretKey: key16
+
+resources:
+  limits:
+    cpu: "0.8"
+    memory: 1Gi
+  requests:
+    cpu: "0.5"
+    memory: 512Mi
+
+volumes:
+  - name: wallet-data
+    emptyDir: {}
+  - name: huawei-csms-credentials
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+volumeMounts:
+  - name: huawei-csms-credentials
+    mountPath: /mnt/secrets-store/wallet-service
+    readOnly: true  
+  - name: wallet-data
+    mountPath: /mnt/wallet
+  - name: secret-volume
+    mountPath: /etc/secrets-store/wallet-service
+    readOnly: true
+
+imagePullSecrets:
+  - name: huawei-swr-auth #relying on CCE's automatic injection
+
+
+#PVC configuration
+# pvc:
+#   name: wallet-service-pvc-evs
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 20Gi
+#   storageClassName: csi-disk-topology
+#   volumeMode: Filesystem
+
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70

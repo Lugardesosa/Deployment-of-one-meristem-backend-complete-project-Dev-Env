@@ -1,0 +1,87 @@
+#--------------------- MIDDLEWARE-SERVICE VALUES ---------------------
+# This file contains the configuration values for the middleware-service service deployment.
+
+environment: dev_env
+
+global:
+  middleware-namespace: middleware-core-app
+  serviceAccountName-middleware: middleware-sa #<----------
+  create: false  # Prevent chart from trying to create it
+  
+networkpolicy:
+  enabled: true
+
+#Deployment configuration for middleware-service service
+replicaCount: 2
+
+image:
+  repository:  swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-dev-env/middleware-service
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: huawei-swr-auth #relying on CCE's automatic injection
+
+SecretEnv:
+  REDIS_MIDDLEWARE_HOST:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_MIDDLEWARE_HOST
+  REDIS_MIDDLEWARE_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_MIDDLEWARE_PASSWORD
+  
+
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+
+resources:
+  limits:
+    cpu: "0.5"
+    memory: 1Gi
+  requests:
+    cpu: "0.3"
+    memory: 512Mi
+
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+# Ingress configuration
+ingress:
+  enabled: true
+  name: middleware-service-ingress
+  elbId: "063f9a52-56a7-4d49-9d13-e97397f3eec6" #Elb id
+  elbIp: "203.123.80.38" #ELB IP
+  certificateIds: "3057ba2e0f64435cb74984ec7fe4d044" #Cerificates IDs
+  host: onemerristem.merristem.com #<----------
+  servicePort: 20010
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 20010 #<----------
+  annotations:
+    kubernetes.io/elb.class: performance
+    kubernetes.io/elb.protocol-port: "https:443"
+    kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
+    kubernetes.io/elb.health-check-flag: "on"
+    kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/health","interval":5,"timeout":10,"rise":2,"fall":2}'
+
+volumeMounts:
+    - name: middleware-data
+      mountPath: /mnt/gateway
+
+volumes:
+    - name: middleware-data
+      emptyDir: {}

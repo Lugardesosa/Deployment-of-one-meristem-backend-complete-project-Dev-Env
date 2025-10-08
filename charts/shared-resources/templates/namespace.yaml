@@ -1,0 +1,22 @@
+# shared-resources/templates/namespaces.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: one-meristem-app
+  labels:
+    ns: one-meristem-app
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: middleware-core-app
+  labels:
+    ns: middleware-core-app
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    ns: argocd

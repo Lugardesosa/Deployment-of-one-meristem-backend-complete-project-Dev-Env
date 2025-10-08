@@ -1,0 +1,13 @@
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata:
+#   name: argocd-reader-binding
+#   namespace: $APP_NAMESPACE
+# subjects:
+#   - kind: ServiceAccount
+#     name: argocd-app-manager
+#     namespace: $ARGOCD_NAMESPACE
+# roleRef:
+#   kind: Role
+#   name: argocd-reader-role
+#   apiGroup: rbac.authorization.k8s.io

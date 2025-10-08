@@ -1,0 +1,14 @@
+apiVersion: v2
+name: config-server
+version: 0.1.0
+description: Config Server microservice for One-Meristem App
+appVersion: "1.0"
+type: application
+icon: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+
+home: https://www.onemerristem.merristem.com
+sources:
+  - https://github.com/Meristem-Innovation-Team/one_meristem_app.git
+maintainers:
+  - name: Esosa Mumen
+    email: esosamumen@meristemng.com

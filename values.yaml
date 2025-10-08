@@ -1,0 +1,1106 @@
+
+
+###############################################################################
+# shared-resources chart values – everything here maps 1‑to‑1 to the          #
+# parameters we templated earlier (PV, SA, RBAC, SecretProviderClass, Secret) #
+###############################################################################
+shared-resources:
+
+  # Namespace & SA -----------------------------------------------------------
+  namespace: one-meristem-app
+  serviceAccount:
+    name: app-spc-sa
+    dewResources:
+      - db-admin-secret-one-meristem-dev-env
+      - redis-credentials-one-meristem-dev-env
+      - kafka-credentials-one-meristem-dev-env
+      - db-notification_service-secret-one-meristem-dev-env
+      - db-users_service-secret-one-meristem-dev-env
+      - db-wallet_service-secret-one-meristem-dev-env
+      - db-report_service-secret-one-meristem-dev-env
+
+  # RBAC ---------------------------------------------------------------------
+  role:
+    name: sa-secret-role
+  roleBinding:
+    name: sa-secret-rolebinding
+
+  # PersistentVolume ---------------------------------------------------------
+  pv:
+    name: pv-evs
+    region: af-south-1
+    diskVolumeType: SSD
+    capacity: 100Gi
+    accessMode: ReadWriteOnce
+    reclaimPolicy: Delete
+    storageClass: csi-disk
+    volumeHandle: volume-abc123        # change per env if you pre‑create EVS
+    chargingMode: prePaid
+    periodType: year
+    periodNum: "1"
+    cryptKeyId: key-xyz456             # your KMS key‑ID (optional)
+
+  # SecretProviderClass ------------------------------------------------------
+  secretProviderClass:
+    name: huawei-csms-credentials
+    provider: cce                      # fixed for Huawei CCE CSI
+    k8sSecretName: huawei-csms-credentials
+
+  # Static “hybrid” Kubernetes Secret ---------------------------------------
+  k8sSecret:
+    name: credentials
+
+
+
+###############################################################################
+# cloud-gateway microservice values                                          #
+###############################################################################
+cloud-gateway:
+  #Deployment configuration for cloud-gateway service
+  replicaCount: 2
+
+  image:
+    repository: swr.cn-south-1.myhuaweicloud.com/one-meristem/cloud-gateway
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  imagePullSecrets:
+    - name: [] #relying on CCE's automatic injection
+
+  serviceAccount:
+    name: app-spc-sa
+
+  resources:
+    limits:
+      cpu: "0.5"
+      memory: 1Gi
+    requests:
+      cpu: "0.3"
+      memory: 512Mi
+
+  volumeMounts:
+    - name: huawei-csms-credentials
+      mountPath: /mnt/secrets-store
+    - name: pv-evs
+      mountPath: /data
+      readOnly: true
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: cloud-gateway-pvc-evs
+    - name: huawei-csms-credentials
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+    - name: secret-volume
+      secret:
+        secretName: credentials
+
+  env:
+    SPRING_PROFILES_ACTIVE: "default"
+    GITHUB_BRANCH: "wallet"
+    APP_PROFILE: "dev"
+    SERVER_PORT: "20010"
+    COMPANY_NAME: "Meristem Securities Limited"
+    DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+    GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+    WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+    FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+    CONFIG_SERVER_URL: "http://config-server:20000/config"
+    USER_SERVICE_URI: "http://users-service:20020"
+    NOTIFICATION_SERVICE_URI: "http://notification-service:20030"
+    WALLET_SERVICE_URI: "http://wallet-service:20040"
+    REPORT_SERVICE_URI: "http://report-service:20050"
+    ADMIN_USERNAME: "admin"
+
+  secretEnv:
+    ADMIN_PASSWORD:
+      secretName: credentials
+      secretKey: key3
+    ENCRYPTION_KEY:
+      secretName: credentials
+      secretKey: key4
+    REDIS_HOST:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_HOST
+    REDIS_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_PASSWORD
+    H2_PASSWORD:
+      secretName: credentials
+      secretKey: key13
+
+  #PVC configuration
+  pvc:
+    name: cloud-gateway-pvc-evs
+    annotations:
+      everest.io/disk-volume-type: SSD
+      #everest.io/crypt-key-id: <key_id>   #Input your key id here
+      #everest.io/csi.charging-mode: prePaid
+      #everest.io/csi.period-type: year
+      #everest.io/csi.period-num: 1
+      failure-domain.beta.kubernetes.io/region: af-south-1
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: csi-disk
+    volumeName: pv-evs
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+
+  # Ingress configuration
+  ingress:
+    enabled: true
+    name: cloud-gateway-ingress
+    elbId: <your_elb_id>
+    elbIp: <your_elb_ip>
+    certificateIds: <your_certificate_ids>
+    host: onemerristem.merristem.com
+    servicePort: 20010
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 443
+    targetPort: 20010
+    annotations:
+      kubernetes.io/elb.class: performance
+      kubernetes.io/elb.protocol-port: "https:443"
+      kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
+      kubernetes.io/elb.health-check-flag: "on"
+      kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/health","interval":5,"timeout":10,"rise":2,"fall":2}'
+###############################################################################
+# config-server microservice values                                          #
+###############################################################################
+
+config-server:
+  #Deployment configuration for config-server service
+  replicaCount: 2
+
+  image:
+    repository: swr.cn-south-1.myhuaweicloud.com/one-meristem/cloud-gateway
+    pullPolicy: IfNotPresent
+    tag: latest
+
+  serviceAccount:
+    name: app-spc-sa
+
+  resources:
+    limits:
+      cpu: "0.5"
+      memory: 1Gi
+    requests:
+      cpu: "0.3"
+      memory: 512Mi
+
+  imagePullSecrets:
+    - name: [] # relying on CCE's automatic injection
+
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: "dev"
+    - name: GITHUB_BRANCH
+      value: "dev"
+    - name: SERVER_PORT
+      value: "20000"
+    - name: ADMIN_USERNAME
+      value: "admin"
+    - name: ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: key3
+    - name: SPRING_CLOUD_CONFIG_SERVER_GIT_URI
+      value: "https://github.com/Meristem-Innovation-Team/one_meristem_app.git"
+    - name: SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: key1
+    - name: SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: key2
+    - name: SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START
+      value: "true"
+    - name: ENCRYPTION_KEY
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: key4
+    - name: SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT
+      value: "30"
+    - name: SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE
+      value: "10"
+
+  secretEnv:
+    ADMIN_PASSWORD:
+      secretName: credentials
+      secretKey: key3
+    SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME:
+      secretName: credentials
+      secretKey: key1
+    SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD:
+      secretName: credentials
+      secretKey: key2
+    ENCRYPTION_KEY:
+      secretName: credentials
+      secretKey: key4
+    H2_PASSWORD:
+      secretName: credentials
+      secretKey: key13
+
+  volumeMounts:
+    - name: secret-volume
+      mountPath: /etc/my-secert
+      readOnly: true
+    - name: pv-evs
+      mountPath: /mnt/evs
+      readOnly: true
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: config-server-pvc-evs
+    - name: secret-volume
+      secret:
+        secretName: credentials
+
+  persistence:
+    enabled: true
+    claimName: config-server-pvc-evs
+    storageClass: csi-disk
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+    annotations:
+      everset.io/disk-volume-type: SSD
+      failure-domain.beta.kubernetes.io/region: af-south-1
+
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+  #PVC configuration
+  pvc:
+    name: config-server-pvc-evs
+    annotations:
+      everest.io/disk-volume-type: SSD
+      #everest.io/crypt-key-id: <key_id>   #Input your key id here
+      #everest.io/csi.charging-mode: prePaid
+      #everest.io/csi.period-type: year
+      #everest.io/csi.period-num: 1
+      failure-domain.beta.kubernetes.io/region: af-south-1
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: csi-disk
+    volumeName: pv-evs
+
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 443
+    targetPort: 20000
+    annotations:
+      kubernetes.io/elb.class: performance
+      kubernetes.io/elb.protocol-port: "https:443"
+      kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
+      kubernetes.io/elb.health-check-flag: "on"
+      kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/health","interval":5,"timeout":10,"rise":2,"fall":2}'
+
+###############################################################################
+# consul microservice values                                   #
+###############################################################################
+consul:
+  #Deployment configuration for consul service
+
+  replicaCount: 1
+
+  image:
+    repository: consul
+    tag: "1.21.2"
+    pullPolicy: IfNotPresent
+    args:
+    - "agent"
+    - "-server"
+    - "-bootstrap-expect"
+    - "1"
+    - "-ui"
+    - "-client"
+    - "0.0.0.0"
+
+  serviceAccount:
+    name: app-spc-sa
+
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "128Mi"
+    requests:
+      cpu: "250m"
+      memory: "64Mi"
+
+  volumeMounts:
+    - name: pv-evs
+      mountPath: /consul/data
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: consul-pvc-evs
+
+  containerPorts:
+    - name: consul-http
+      port: 8500
+    - name: consul-port-8301
+      port: 8301
+    - name: consul-port-8302
+      port: 8302
+    - name: consul-port-8600
+      port: 8600
+    - name: consul-port-8300
+      port: 8300
+
+
+  restartPolicy: Always
+
+  imagePullSecrets:
+    - name: [] # relying on CCE's automatic injection
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+  # Ingress configuration
+  ingress:
+    enabled: true
+    name: consul-ingress
+    elbId: <your_elb_id>
+    elbIp: <your_elb_ip>
+    certificateIds: <your_certificate_ids>
+    host: onemerristem.merristem.com
+    servicePort: 8500
+    
+
+  #Service configuration
+  service:
+    type: NodePort  # or "LoadBalancer" if you prefer ELB directly without Ingress
+    portName: consul
+    port: 8500
+    targetPort: 8500
+    nodePort: 30000  # Optional: only if using NodePort type
+    annotations: 
+      kubernetes.io/elb.class: performance
+      kubernetes.io/elb.protocol-port: "https:443"
+      kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
+      kubernetes.io/elb.health-check-flag: "on"
+      kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/health","interval":5,"timeout":10,"rise":2,"fall":2}'
+    
+
+###############################################################################
+# notification-service microservice values                                          #
+###############################################################################
+notification-service:
+  #Deployment configuration
+  replicaCount: 2
+
+  image:
+    repository: swr.cn-south-1.myhuaweicloud.com/one-meristem/notification-service
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets:
+    name: [] # relying on CCE's automatic injection
+
+  serviceAccount:
+    name: app-spc-sa
+
+  env:
+    COMPANY_NAME: "Meristem Securities Limited"
+    DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+    GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+    WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+    FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+    SPRING_PROFILES_ACTIVE: "default"
+    GITHUB_BRANCH: "wallet"
+    APP_PROFILE: "dev"
+    SERVER_PORT: "20030"
+    ONE_APP_SERVER_URL: "http://110.238.74.43:8080"
+    ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+    ADMIN_USERNAME: "admin"
+    CONFIG_SERVER_URI: "http://config-server:20000/config"
+    CREDIT_SWITCH_LOGIN_ID: "315497"
+    CREDIT_SWITCH_SMS_BASEURL: "http://176.58.99.160:9014/api/v1/sms/send"
+    CREDIT_SWITCH_SMS_SENDER_ID: "Meristem"
+
+  secretEnv:
+    ADMIN_PASSWORD:
+      secretName: credentials
+      secretKey: key3
+    ENCRYPTION_KEY:
+      secretName: credentials
+      secretKey: key4
+    DB_SERVER:
+      secretName: huawei-csms-credentials
+      secretKey: DB_SERVER
+    NOTIFICATION_DB_NAME:
+      secretName: huawei-csms-credentials
+      secretKey: NOTIFICATION_DB_NAME
+    NOTIFICATION_DB_USERNAME:
+      secretName: huawei-csms-credentials
+      secretKey: NOTIFICATION_DB_USERNAME
+    NOTIFICATION_DB_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: NOTIFICATION_DB_PASSWORD
+    KAFKA_HOST_URL:
+      secretName: huawei-csms-credentials
+      secretKey: KAFKA_HOST_URL
+    REDIS_HOST:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_HOST
+    REDIS_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_PASSWORD
+    MAILER_HOST:
+      secretName: credentials
+      secretKey: key5
+    MAILER_USERNAME:
+      secretName: credentials
+      secretKey: key6
+    MAILER_PASSWORD:
+      secretName: credentials
+      secretKey: key7
+    CREDIT_SWITCH_PUBLIC_KEY:
+      secretName: credentials
+      secretKey: key8
+    CREDIT_SWITCH_PRIVATE_KEY:
+      secretName: credentials
+      secretKey: key9
+    CREDIT_SWITCH_SMS_PASSWORD:
+      secretName: credentials
+      secretKey: key10
+    H2_PASSWORD:
+      secretName: credentials
+      secretKey: key13
+
+  resources:
+    limits:
+      cpu: "0.7"
+      memory: 712Mi
+    requests:
+      cpu: "0.5"
+      memory: 512Mi
+
+  secretProviderClass:
+    name: huawei-csms-credentials
+
+  secretVolume:
+    name: credentials
+
+
+  volumeMounts:
+    - name: huawei-csms-credentials
+      mountPath: /mnt/secrets-store
+      readOnly: true
+    - name: pv-evs
+      mountPath: /data
+      readOnly: true
+    - name: secret-volume
+      mountPath: /mnt/secrets-store
+      readOnly: true
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: notification-service-pvc-evs
+    - name: huawei-csms-credentials
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+    - name: secret-volume
+      secret:
+        secretName: credentials
+
+  #PVC configuration
+  pvc:
+    name: notification-service-pvc-evs
+    annotations:
+      everest.io/disk-volume-type: SSD
+      #everest.io/crypt-key-id: <key_id>   #Input your key id here
+      #everest.io/csi.charging-mode: prePaid
+      #everest.io/csi.period-type: year
+      #everest.io/csi.period-num: 1
+      failure-domain.beta.kubernetes.io/region: af-south-1
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: csi-disk
+    volumeName: pv-evs
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+
+  # service configuration
+  service:
+    type: ClusterIP
+    name: notification-service
+    port: 20030
+    targetPort: 20030
+
+
+
+###############################################################################
+# report-service microservice values                                          #
+###############################################################################
+report-service:
+  replicaCount: 2
+
+  image:
+    repository: swr.cn-south-1.myhuaweicloud.com/one-meristem/report-service
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  imagePullSecrets:
+    - name: [] # relying on CCE's automatic injection
+
+  serviceAccount:
+    name: app-spc-sa
+
+  resources:
+    limits:
+      cpu: "0.5"
+      memory: 700Mi
+    requests:
+      cpu: "0.3"
+      memory: 512Mi
+
+  volumeMounts:
+    - name: huawei-csms-credentials
+      mountPath: /mnt/secrets-store
+      readOnly: true
+    - name: pv-evs
+      mountPath: /data
+      readOnly: true
+    - name: secret-volume
+      mountPath: /mnt/secrets-store
+      readOnly: true
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: report-service-pvc-evs
+    - name: huawei-csms-credentials
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+    - name: secret-volume
+      secret:
+        secretName: credentials
+
+  containerPorts:
+    http:
+      containerPort: 20050
+
+
+  env:
+    COMPANY_NAME: "Meristem Securities Limited"
+    DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+    GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+    WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+    FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+    SPRING_PROFILES_ACTIVE: "default"
+    GITHUB_BRANCH: "wallet"
+    APP_PROFILE: "dev"
+    SERVER_PORT: "20050"
+    ONE_APP_SERVER_URL: "http://110.238.74.43:8080"
+    ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+    ADMIN_USERNAME: "admin"
+    CONFIG_SERVER_URI: "http://config-server:20000/config"
+    CREDIT_SWITCH_LOGIN_ID: "315497"
+    CREDIT_SWITCH_SMS_MERCHANT_NAME: "Meristem Securities Limited"
+    CREDIT_SWITCH_SMS_BASEURL: "http://176.58.99.160:9014/api/v1/sms/send"
+    CREDIT_SWITCH_SMS_SENDER_ID: "Meristem"
+
+  secretEnv:
+    ADMIN_PASSWORD:
+      secretName: credentials
+      secretKey: key3
+    ENCRYPTION_KEY:
+      secretName: credentials
+      secretKey: key4
+    DB_SERVER:
+      secretName: huawei-csms-credentials
+      secretKey: DB_SERVER
+    REPORT_DB_NAME:
+      secretName: huawei-csms-credentials
+      secretKey: REPORT_DB_NAME
+    REPORT_DB_USERNAME:
+      secretName: huawei-csms-credentials
+      secretKey: REPORT_DB_USERNAME
+    REPORT_DB_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: REPORT_DB_PASSWORD
+    KAFKA_HOST_URL:
+      secretName: huawei-csms-credentials
+      secretKey: KAFKA_HOST_URL
+    REDIS_HOST:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_HOST
+    REDIS_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_PASSWORD
+    MAILER_HOST:
+      secretName: credentials
+      secretKey: key5
+    MAILER_USERNAME:
+      secretName: credentials
+      secretKey: key6
+    MAILER_PASSWORD:
+      secretName: credentials
+      secretKey: key7
+    CREDIT_SWITCH_PUBLIC_KEY:
+      secretName: credentials
+      secretKey: key8
+    CREDIT_SWITCH_PRIVATE_KEY:
+      secretName: credentials
+      secretKey: key9
+    CREDIT_SWITCH_SMS_PASSWORD:
+      secretName: credentials
+      secretKey: key10
+    H2_PASSWORD:
+      secretName: credentials
+      secretKey: key13
+
+
+  secretProviderClass:
+    name: huawei-csms-credentials
+
+  secretVolume:
+    name: credentials
+
+  #PVC configuration
+  pvc:
+    name: report-service-pvc-evs
+    annotations:
+      everest.io/disk-volume-type: SSD
+      #everest.io/crypt-key-id: <key_id>   #Input your key id here
+      #everest.io/csi.charging-mode: prePaid
+      #everest.io/csi.period-type: year
+      #everest.io/csi.period-num: 1
+      failure-domain.beta.kubernetes.io/region: af-south-1
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: csi-disk
+    volumeName: pv-evs
+
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+
+  # service configuration
+  service:
+    type: ClusterIP
+    name: notification-service
+    port: 20050
+    targetPort: 20050
+
+
+###############################################################################
+# users-service microservice values                                          #
+###############################################################################
+users-service:
+  #Deployment configuration for users-service service
+ 
+  replicaCount: 2
+
+  serviceAccount:
+    name: one-meristem-app
+
+  image:
+    repository: swr.cn-south-1.myhuaweicloud.com/one-meristem/users-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  containerPorts:
+    http:
+      containerPort: 20020
+
+  env:
+    COMPANY_NAME: "Meristem Securities Limited"
+    DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+    GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+    WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+    FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+    SMILE_ID_PARTNER_ID: "7496"
+    SMILE_ID_PROD_API_KEY: "ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI="
+    SMILE_ID_DEV_API_KEY: "3d64d61d-6d64-402d-a5f0-fa288507ec8f"
+    SMILE_ID_PROD_LAMBDA_URL: "https://api.smileidentity.com/v1/"
+    SMILE_ID_TEST_LAMBDA_URL: "https://testapi.smileidentity.com/v1/"
+    SMILE_ID_PROD_WHITELIST_IPS: "34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74"
+    SMILE_ID_DEV_WHITELIST_IPS: "35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141"
+    SMILE_ID_DEV_CALLBACK_URL: "https://www.onemerristem.merristem.com/api/users/onboard/smile-id/webhook"
+    SPRING_PROFILES_ACTIVE: "default"
+    APP_PROFILE: "dev"
+    GITHUB_BRANCH: "dev_env"
+    USER: "System"
+    ONE_APP_SERVER_URL: "http://110.238.74.43:8080"
+    ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+    CONSUL_HOST: "consul"
+    CONFIG_SERVER_URI: "http://config-server:20000/config"
+    HUAWEI_OBS_ENDPOINT: "obs.af-south-1.myhuaweicloud.com"
+    HUAWEI_OBS_IMAGES_BUCKET: "obs-image-storage-one-meristem-dev-env"
+    HUAWEI_OBS_DOC_BUCKET: "obs-documents-one-meristem-dev-env"
+    OKHI_DEV_AND_PROD_WHITELIST_IP: "52.18.220.93,18.202.96.242"
+
+  secretEnv:
+    ADMIN_USERNAME:
+      value: admin
+    ADMIN_PASSWORD:
+      secretName: credentials
+      secretKey: key3
+    DB_SERVER:
+      secretName: huawei-csms-credentials
+      secretKey: DB_SERVER
+    USERS_DB_NAME:
+      secretName: huawei-csms-credentials
+      secretKey: USERS_DB_NAME
+    USERS_DB_USERNAME:
+      secretName: huawei-csms-credentials
+      secretKey: USERS_DB_USERNAME
+    USERS_DB_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: USERS_DB_PASSWORD
+    KAFKA_HOST_URL:
+      secretName: huawei-csms-credentials
+      secretKey: KAFKA_HOST_URL
+    REDIS_HOST:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_HOST
+    REDIS_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_PASSWORD
+    MAILER_HOST:
+      secretName: credentials
+      secretKey: key5
+    MAILER_USERNAME:
+      secretName: credentials
+      secretKey: key6
+    MAILER_PASSWORD:
+      secretName: credentials
+      secretKey: key7
+    HUAWEI_ACCESS_KEY_ID:
+      secretName: credentials
+      secretKey: key11
+    HUAWEI_SECRET_ACCESS_KEY_ID:
+      secretName: credentials
+      secretKey: key12
+    H2_PASSWORD:
+      secretName: credentials
+      secretKey: key13
+
+  volumeMounts:
+    - name: huawei-csms-credentials
+      mountPath: /mnt/secrets-store
+    - name: pv-evs
+      mountPath: /data
+      readOnly: true
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: users-service-pvc-evs
+    - name: huawei-csms-credentials
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+    - name: secret-volume
+      secret:
+        secretName: credentials
+
+  resources:
+    limits:
+      cpu: "0.7"
+      memory: 720Mi
+    requests:
+      cpu: "0.5"
+      memory: 512Mi
+
+  imagePullSecrets: []  # Leave empty to rely on CCE automatic injection
+
+  secretProviderClass:
+    name: huawei-csms-credentials
+
+  secretVolume:
+    name: credentials
+
+  # PVC configuration
+  pvc:
+    name: users-service-pvc-evs
+    annotations:
+      everest.io/disk-volume-type: SSD
+      #everest.io/crypt-key-id: <key_id>   #Input your key id here
+      #everest.io/csi.charging-mode: prePaid
+      #everest.io/csi.period-type: year
+      #everest.io/csi.period-num: 1
+      failure-domain.beta.kubernetes.io/region: af-south-1
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: csi-disk
+    volumeName: pv-evs
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+
+  # service configuration
+  service:
+    type: ClusterIP
+    name: users-service
+    port: 20020
+    targetPort: 20020
+
+
+###############################################################################
+# wallet-service microservice values                                          #
+###############################################################################
+wallet-service:
+  replicaCount: 2
+
+  serviceAccount:
+    name: one-meristem-app
+
+  image:
+    repository: swr.cn-south-1.myhuaweicloud.com/one-meristem/wallet-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  containerPorts:
+    http:
+      containerPort: 20040
+
+  env:
+    COMPANY_NAME: "Meristem Securities Limited"
+    DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+    GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+    WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+    FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+    SPRING_PROFILES_ACTIVE: "default"
+    GITHUB_BRANCH: "wallet"
+    APP_PROFILE: "dev"
+    SERVER_PORT: "20030"
+    ONE_APP_SERVER_URL: "http://110.238.74.43:8080"
+    ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+    ADMIN_USERNAME: "admin"
+    CONFIG_SERVER_URI: "http://config-server:20000/config"
+    PROVIDUS_BASE_URL: "https://payment.xpress-wallet.com/api/v1/"
+    WEMA_API_URL: "https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/"
+    WEMA_ACCOUNT_PREFIX: "733"
+    HUAWEI_OBS_ENDPOINT: "obs.af-south-1.myhuaweicloud.com"
+    HUAWEI_OBS_IMAGES_BUCKET: "obs-image-storage-one-meristem-dev-env"
+    HUAWEI_OBS_DOC_BUCKET: "obs-documents-one-meristem-dev-env"
+    OKHI_DEV_AND_PROD_WHITELIST_IP: "52.18.220.93,18.202.96.242"
+
+  secretEnv:
+    ADMIN_PASSWORD:
+      secretName: credentials
+      secretKey: key3
+    ENCRYPTION_KEY:
+      secretName: credentials
+      secretKey: key4
+    DB_SERVER:
+      secretName: huawei-csms-credentials
+      secretKey: DB_SERVER
+    WALLET_DB_NAME:
+      secretName: huawei-csms-credentials
+      secretKey: WALLET_DB_NAME
+    WALLET_DB_USERNAME:
+      secretName: huawei-csms-credentials
+      secretKey: WALLET_DB_USERNAME
+    WALLET_DB_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: WALLET_DB_PASSWORD
+    KAFKA_HOST_URL:
+      secretName: huawei-csms-credentials
+      secretKey: KAFKA_HOST_URL
+    REDIS_HOST:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_HOST
+    REDIS_PASSWORD:
+      secretName: huawei-csms-credentials
+      secretKey: REDIS_PASSWORD
+    MAILER_HOST:
+      secretName: credentials
+      secretKey: key5
+    MAILER_USERNAME:
+      secretName: credentials
+      secretKey: key6
+    MAILER_PASSWORD:
+      secretName: credentials
+      secretKey: key7
+    PROVIDUS_API_PUBLIC_KEY:
+      secretName: credentials
+      secretKey: key14
+    PROVIDUS_API_SECRET_KEY:
+      secretName: credentials
+      secretKey: key15
+    H2_PASSWORD:
+      secretName: credentials
+      secretKey: key13
+
+  resources:
+    limits:
+      cpu: "0.8"
+      memory: 1Gi
+    requests:
+      cpu: "0.5"
+      memory: 512Mi
+
+  secretProviderClass:
+    name: huawei-csms-credentials
+
+  secretVolume:
+    name: credentials
+
+  volumes:
+    - name: pv-evs
+      persistentVolumeClaim:
+        claimName: wallet-service-pvc-evs
+    - name: huawei-csms-credentials
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+          csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+    - name: secret-volume
+      secret:
+        secretName: credentials
+
+  volumeMounts:
+    - name: huawei-csms-credentials
+      mountPath: /mnt/secrets-store
+    - name: pv-evs
+      mountPath: /data
+      readOnly: true
+    - name: secret-volume
+      mountPath: /mnt/secrets-store
+      readOnly: true
+
+  imagePullSecrets:
+    - name: []  # Leave empty to rely on CCE automatic injection
+
+
+  #PVC configuration
+  pvc:
+    name: wallet-service-pvc-evs
+    annotations:
+      everest.io/disk-volume-type: SSD
+      #everest.io/crypt-key-id: <key_id>   #Input your key id here
+      #everest.io/csi.charging-mode: prePaid
+      #everest.io/csi.period-type: year
+      #everest.io/csi.period-num: 1
+      failure-domain.beta.kubernetes.io/region: af-south-1
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    storageClassName: csi-disk
+    volumeName: pv-evs
+
+
+  # HorizontalPodAutoscaler configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+
+  # service configuration
+  service:
+    type: ClusterIP
+    name: wallet-service
+    port: 20040
+    targetPort: 20040
+
+################################################################################
+# Middleware services                          #
+################################################################################
+
+# values.yaml (umbrella)
+global:
+  middleware:
+    enabled: true
+    networkpolicy:
+      port: 8080 #<---- This is the port for the middleware service
+  corebanking:
+    cidr: "203.0.113.25/32"   # replace with your external core banking IP
+    port: 443   # replace with your external core banking port
