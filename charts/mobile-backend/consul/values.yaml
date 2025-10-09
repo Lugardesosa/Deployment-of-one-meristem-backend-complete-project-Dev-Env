@@ -63,13 +63,40 @@ autoscaling:
 # Ingress configuration
 ingress:
   enabled: true
-  name: cloud-gateway-ingress
-  elbId: "063f9a52-56a7-4d49-9d13-e97397f3eec6" #Internal Elb id
-  elbIp: "10.0.1.89" #ELB IP (Private IP)
-  certificateIds: "3057ba2e0f64435cb74984ec7fe4d044" #Cerificates IDs
-  host: consul.internal.local #Replace with Internal host
-  path: /   # Path to expose Consul
-  servicePort: 8500
+  name: consul-ui-ingress
+  namespace: one-meristem-app
+  className: cce
+  annotations:
+    kubernetes.io/elb.class: performance # Use a high-performance load balancer
+    kubernetes.io/elb.id: ${ARGO_ELB_ID} # Existing ELB ID
+    kubernetes.io/elb.listener-master-ingress: argocd/argocd-ui-ingress # Link Ingress to ELB listener
+    kubernetes.io/elb.port: "443"  # ELB listener port for HTTPS
+    kubernetes.io/elb.keepalive_timeout: "2500" # How long (ms) to keep the TCP connection alive between client and ELB
+    kubernetes.io/elb.client_timeout: "250" # Timeout (seconds) for client idle connections before ELB closes it
+    kubernetes.io/elb.tls-certificate-ids: ${ARGO_CERTIFICATE_ID} # TLS certificate ID on Huawei ELB
+
+    kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
+    kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
+    kubernetes.io/elb.gzip-enabled: "true" # Enable GZIP compression to reduce response size and improve speed
+    kubernetes.io/elb.x-real-ip: "true" # Forward the client’s real IP address to backend pods (for logs and tracing)
+    kubernetes.io/elb.member_timeout: "90" # Maximum time (seconds) the ELB waits before removing an unresponsive backend pod
+    # --- Recommended health check for Argo CD ---
+    kubernetes.io/elb.health-check-flag: "on" # Enable ELB health checks for backend pods
+    kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/","interval":5,"timeout":10,"rise":2,"fall":2}' # Health check config for HTTPS path /
+# spec:
+#   ingressClassName: cce
+  tls:
+    enabled: true
+    secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
+  rules:
+    - host: ${ARGO_INGRESS_HOST}
+      paths:
+        - path: /consul
+          pathType: ImplementationSpecific
+          service:
+            name: consul
+            port:
+              number: 8500
   
 
 #Service configuration
