@@ -176,5 +176,5 @@ autoscaling:
 service:
   type: ClusterIP
   name: users-service
-  port: 8081
+  port: 8082
   targetPort: 20020
