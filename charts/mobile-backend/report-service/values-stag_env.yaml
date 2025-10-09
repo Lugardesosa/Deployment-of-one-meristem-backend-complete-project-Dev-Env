@@ -165,7 +165,7 @@ autoscaling:
 service:
   type: ClusterIP
   name: notification-service
-  port: 8081
+  port: 8082
   targetPort: 20050
 
 # To overiede the default name and fullname of the chart (for networkpolicy)
