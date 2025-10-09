@@ -44,7 +44,7 @@ public class EmailService implements NotificationService<MessageDto> {
     public String SUPPORT_PHONE;
     @Value("${one-app.logo.green-url}")
     private String MERISTEM_GREEN_LOGO;
-    @Value("${spring.profiles.active")
+    @Value("${spring.profiles.active}")
     private String activeProfile;
 
     private final JavaMailSender mailSender;

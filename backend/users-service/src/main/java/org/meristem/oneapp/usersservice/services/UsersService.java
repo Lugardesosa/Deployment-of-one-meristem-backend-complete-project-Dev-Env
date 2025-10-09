@@ -448,7 +448,7 @@ public class UsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
-        int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
@@ -463,7 +463,7 @@ public class UsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
-        int updated = customRepository.dynamicUpdate(InvestmentOptionsAccessed.class, updates, Map.of("id", request.optionId(), "user_id", AppUtil.getLoggedInUserId()));
+        int updated = customRepository.dynamicUpdate(InvestmentOptionsAccessed.class, updates, Map.of("option_id", request.optionId(), "user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
