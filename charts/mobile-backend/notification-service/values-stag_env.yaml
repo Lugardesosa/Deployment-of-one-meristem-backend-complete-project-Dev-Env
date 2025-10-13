@@ -50,7 +50,7 @@ env:
   MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
   SUPPORT_PHONE: "0700-MERISTEM"
   SUPPORT_EMAIL: "support@onemeristem.com"
-  MAIL_SENDER_NAME: "One Meristem"
+  MAIL_SENDER_NAME: "One Meristem" #Mail Sender
 
 secretEnv:
   ADMIN_PASSWORD:
