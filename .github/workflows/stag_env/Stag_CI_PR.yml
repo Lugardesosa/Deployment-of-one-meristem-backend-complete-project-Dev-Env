@@ -16,7 +16,7 @@ on:
       - ".github/workflows/stag_env/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
 env:
-  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
   ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
   GIT_BRANCH: ${{ vars.GIT_BRANCH }}
   HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
