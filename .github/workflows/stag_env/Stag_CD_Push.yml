@@ -9,10 +9,10 @@ on:
   push:
     branches:
       - stag_env
-    paths:
-      - ".github/workflows/stag_env/Stag_CD_PR.yml"  # CI/CD Pipeline config file
-      - "charts/**"            # helm charts
-      - "backend/**"          # backend services
+    # paths:
+    #   - ".github/workflows/stag_env/Stag_CD_PR.yml"  # CI/CD Pipeline config file
+    #   - "charts/**"            # helm charts
+    #   - "backend/**"          # backend services
 
 
 
