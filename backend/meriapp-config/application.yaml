@@ -1,0 +1,141 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  flyway:
+    enabled: true
+    validate-migration-naming: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      repositories:
+        enabled: false
+
+  datasource:
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      idle-timeout: 30000
+      connection-timeout: 2000
+      max-lifetime: 1800000
+
+  kafka:
+    producer:
+      bootstrap-servers: ${KAFKA_HOST_URL}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    bootstrap-servers: ${KAFKA_HOST_URL}
+
+    consumer:
+      bootstrap-servers: ${KAFKA_HOST_URL}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: 'org.meristem.oneapp.kafka.*'
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:keys/public.pem
+
+      client:
+        registration:
+          trustees-service:
+            client-id: ${TRUSTEES_CLIENT_ID}
+            client-secret: ${TRUSTEES_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            provider: users-service
+            scope:
+              - beneficiaries.get
+        provider:
+          users-service:
+            token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
+
+rsa:
+  private-key: classpath:keys/private.pem
+  public-key: classpath:keys/public.pem
+
+one-app:
+  server-url: ${ONE_APP_SERVER_URL}
+  email: ${ONE_APP_EMAIL}
+  server-version: 1.0
+  server-app-name: "Meristem One App"
+  default-header-name: "X-ONE-APP-CLIENT-NAME"
+  support:
+    email: ${SUPPORT_EMAIL}
+    phone: ${SUPPORT_PHONE}
+  logo:
+    green-url: ${MERISTEM_GREEN_LOGO}
+
+  #  USERS SERVICE
+  users-service:
+    context-path: /api/users
+    application-name: users-service
+
+  #  WALLET SERVICE
+  wallet-service:
+    context-path: /api/wallets
+    application-name: wallet-service
+
+  #  REPORT SERVICE
+  report-service:
+    context-path: /api/reports
+    application-name: report-service
+
+    #  TRUSTEES SERVICE
+  trustees-service:
+    context-path: /api/trustees
+    application-name: trustees-service
+
+    # APP NAMES
+  services:
+    wallet-service.first: ${one-app.wallet-service.application-name}
+    wallet-service.second: ${WALLET_SERVICE_URI}/${one-app.wallet-service.context-path}
+    trustees-service.first: ${one-app.trustees-service.application-name}
+    trustees-service.second: ${TRUSTEES_SERVICE_URI}/${one-app.trustees-service.context-path}
+    report-service.first: ${one-app.report-service.application-name}
+    report-service.second: ${REPORT_SERVICE_URI}/${one-app.report-service.context-path}
+    users-service.first: ${one-app.users-service.application-name}
+    users-service.second: ${USER_SERVICE_URI}/${one-app.users-service.context-path}
+
+
+logging:
+  file:
+    max-size: 2MB
+    name: ./logs/${spring.application.name}.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
+      max-file-size: 1GB
+      max-history: 30
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx'
+    file: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx'
+
+springdoc.api-docs.path: /api-docs
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health'
+
+huawei:
+  access_key_id: ${HUAWEI_ACCESS_KEY_ID}
+  access_secret_id: ${HUAWEI_SECRET_ACCESS_KEY_ID}
+  obs_endpoint: ${HUAWEI_OBS_ENDPOINT}
+  signed_url_ttl_sec: 3600
+  images_bucket_name: ${HUAWEI_OBS_IMAGES_BUCKET}
+  document_bucket_name: ${HUAWEI_OBS_DOC_BUCKET}
+
+call:
+  smile-id: true
+
+what-to-sanitize: "password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY"
+headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"

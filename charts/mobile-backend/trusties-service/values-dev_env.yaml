@@ -1,0 +1,150 @@
+environment: dev_env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false     # Prevent chart from trying to create it
+
+networkpolicy:
+  enabled: true
+
+
+#Deployment configuration
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-dev-env/notification-service
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: huawei-swr-auth #relying on CCE's automatic injection
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+env:
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  GITHUB_BRANCH: "dev_env"
+  APP_PROFILE: "dev"
+  ONE_APP_SERVER_URL: "https://${ELB_IP}" #placeholder for the EIP IP
+  ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+  ADMIN_USERNAME: "admin"
+  CONFIG_SERVER_URI: "http://config-server:20000/config"
+  TRUSTEES_CLIENT_ID: trustees-service
+  TRUSTEES_SERVICE_HOSTNAME: trustees-service
+  CONSUL_HOST: consul
+  USER_SERVICE_HOSTNAME: users-service
+  USER_SERVICE_URI: "http://users-service:20020"
+  TRUSTEES_SERVICE_URI: "http://trustees-service:20060"
+  HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-dev-env"
+  MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  SUPPORT_PHONE: "0700-MERISTEM"
+  SUPPORT_EMAIL: "support@onemeristem.com"
+
+secretEnv:
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: key3
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: key4
+  DB_SERVER:
+    secretName: huawei-csms-credentials
+    secretKey: DB_SERVER
+  TRUSTEES_DB_NAME:
+    secretName: huawei-csms-credentials
+    secretKey: TRUSTEES_DB_NAME
+  TRUSTEES_DB_USERNAME:
+    secretName: huawei-csms-credentials
+    secretKey: TRUSTEES_DB_USERNAME
+  TRUSTEES_DB_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: TRUSTEES_DB_PASSWORD
+  KAFKA_HOST_URL:
+    secretName: huawei-csms-credentials
+    secretKey: KAFKA_HOST_URL
+  REDIS_HOST:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_PASSWORD
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: key13
+  TRUSTEES_CLIENT_SECRET: 
+    secretName: credentials
+    secretKey: key16
+
+resources:
+  limits:
+    cpu: "0.7"
+    memory: 712Mi
+  requests:
+    cpu: "0.5"
+    memory: 512Mi
+
+
+volumeMounts:
+  - name: huawei-csms-credentials
+    mountPath: /mnt/secrets-store/notification-service
+    readOnly: true
+  - name: trustees-data
+    mountPath: /mnt/trustees
+  - name: secret-volume
+    mountPath: /etc/secrets-store/trustees-service
+    readOnly: true
+
+volumes:
+  - name: trustees-data
+    emptyDir: {}
+  - name: huawei-csms-credentials
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+#PVC configuration
+# pvc:
+#   name: trustees-service-pvc-evs
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 20Gi
+#   storageClassName: csi-disk-topology
+#   volumeMode: Filesystem
+ 
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+
+# service configuration
+service:
+  type: ClusterIP
+  name: trustees-service
+  port: 8082
+  targetPort: 20060
+
+
+

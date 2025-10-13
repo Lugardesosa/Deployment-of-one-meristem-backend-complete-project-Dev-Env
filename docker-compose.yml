@@ -1,0 +1,622 @@
+services:
+  # ======================
+  # REDIS SERVICE (Internal only)
+  # ======================
+  redis:
+    image: redis:7.4.2-alpine
+    container_name: redis
+    command: redis-server --requirepass 'AHjsoie67&8*'
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=AHjsoie67&8*
+    volumes:
+      - ./data/redis:/data   #persistent host path
+    networks:
+      - meristem-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
+  # ======================
+  # KAFKA SERVICE (Internal only)
+  # ======================
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: kafka
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_NUM_PARTITIONS=3
+    volumes:
+      - ./data/kafka:/var/lib/kafka/data  #persistent host path
+      - ./data/kafka/secrets:/etc/kafka/secrets
+    networks:
+      - meristem-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 9092"]
+      interval: 10s
+      timeout: 30s
+      retries: 2  # Kafka can take 2-3 minutes to start
+
+  # ======================
+  # CONFIG SERVER (Internal only)
+  # ======================
+  config-server:
+    image: config-server
+    container_name: config-server
+    networks:
+      - meristem-network
+    depends_on:
+      - redis
+      - kafka
+      - postgres
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - GITHUB_URL=${GITHUB_URL}
+      - GITHUB_BRANCH=dev_env
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+      - GITHUB_PASSWORD=${GITHUB_PASSWORD}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE_ON_START=true
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT=30  # Default is 5s (often too short)
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE=10  # Check for updates every 10s
+      - H2_PASSWORD=${H2_PASSWORD} 
+    restart: unless-stopped
+
+  # --------------------
+  # CONSUL
+  # ---------------------
+  consul:
+    container_name: consul
+    command: "agent -server -bootstrap-expect 1 -ui -client 0.0.0.0"
+    networks:
+      - meristem-network
+    ports:
+      - "8500:8500"
+    restart: unless-stopped
+    image: consul:1.15.4
+
+  # ======================
+  # POSTGRESQL DATABASE (Internal only)
+  # ======================
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+      # === Database & user configs ===
+      - DB_NAME_USERS_SERVICE=${DB_NAME_USERS_SERVICE}
+      - DB_USERS_USERNAME=${DB_USERS_USERNAME}
+      - DB_USERS_PASSWORD=${DB_USERS_PASSWORD}
+
+      - DB_NAME_NOTIFICATION_SERVICE=${DB_NAME_NOTIFICATION_SERVICE}
+      - DB_NOTIFICATION_USERNAME=${DB_NOTIFICATION_USERNAME}
+      - DB_NOTIFICATION_PASSWORD=${DB_NOTIFICATION_PASSWORD}
+
+      - DB_NAME_WALLET_SERVICE=${DB_NAME_WALLET_SERVICE}
+      - DB_WALLET_USERNAME=${DB_WALLET_USERNAME}
+      - DB_WALLET_PASSWORD=${DB_WALLET_PASSWORD}
+
+      - DB_NAME_REPORT_SERVICE=${DB_NAME_REPORT_SERVICE}
+      - DB_REPORT_USERNAME=${DB_REPORT_USERNAME}
+      - DB_REPORT_PASSWORD=${DB_REPORT_PASSWORD}
+
+      - DB_NAME_TRUSTEES_SERVICE=${DB_NAME_TRUSTEES_SERVICE}
+      - DB_TRUSTEES_USERNAME=${DB_TRUSTEES_USERNAME}
+      - DB_TRUSTEES_PASSWORD=${DB_TRUSTEES_PASSWORD}
+
+        #- POSTGRES_MULTIPLE_DATABASES=${DB_NAME_USER_SERVICES},${DB_NAME_NOTIFICATION_SERVICES}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data   #host path for persistence
+      - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh  # The Database init-db.sh to be run in order to create the databases
+    networks:
+      - meristem-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}"]
+
+  # ======================
+  # USERS SERVICE (Internal only)
+  # ======================
+  users-service:
+    image: users-service
+    container_name: users-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - redis
+      - kafka
+      - consul
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - SMILE_ID_PARTNER_ID=7496
+      - SMILE_ID_PROD_API_KEY=ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI=
+      - SMILE_ID_DEV_API_KEY=3d64d61d-6d64-402d-a5f0-fa288507ec8f
+      - SMILE_ID_PROD_LAMBDA_URL=https://api.smileidentity.com/v1/
+      - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com/v1/
+      - SMILE_ID_PROD_WHITELIST_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
+      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141
+      - SMILE_ID_DEV_CALLBACK_URL=https://www.onemerristem.merristem.com/api/users/onboard/smile-id/webhook
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - APP_PROFILE=dev
+      - GITHUB_BRANCH=dev_env
+      - USER=System
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - USERS_DB_NAME=${DB_NAME_USERS_SERVICE}
+      - USERS_DB_USERNAME=${DB_USERS_USERNAME}
+      - USERS_DB_PASSWORD=${DB_USERS_PASSWORD}
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - MAILER_HOST=${MAILER_HOST}
+      - MAILER_USERNAME=${MAILER_USERNAME}
+      - MAILER_PASSWORD=${MAILER_PASSWORD}
+      - CONSUL_HOST=consul
+      - HUAWEI_ACCESS_KEY_ID=${HUAWEI_ACCESS_KEY_ID}
+      - HUAWEI_SECRET_ACCESS_KEY_ID=${HUAWEI_SECRET_ACCESS_KEY_ID} 
+      - HUAWEI_OBS_ENDPOINT=obs.af-south-1.myhuaweicloud.com
+      - HUAWEI_OBS_IMAGES_BUCKET=obs-image-storage-one-meristem-dev-env
+      - HUAWEI_OBS_DOC_BUCKET=obs-documents-one-meristem-dev-env
+      - OKHI_DEV_AND_PROD_WHITELIST_IP=52.18.220.93,18.202.96.242
+      - H2_PASSWORD=${H2_PASSWORD}
+      - USER_SERVICE_HOSTNAME=users-service
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
+      - MOBILE_SECRET=secret
+      - TRUSTEES_SECRET=secret
+      - NOTIFICATION_SECRET=secret
+      # This is the GEOIP_DB container location being mapped to the hostfile in the server.
+      - GEOIP_DB_LOCATION=/app/geoip_db/GeoLite2-City.mmdb
+      - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=users-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=users-service,env=devlocal
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    volumes:
+      - /root/one_meristem_app/user-service/GeoLite2-City_20250916:/app/geoip_db:ro #it's mounted as read-only.
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+
+  # ======================
+  # NOTIFICATION SERVICE (Internal only)
+  # ======================
+  notification-service:
+    image: notification-service
+    container_name: notification-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - NOTIFICATION_DB_NAME=${DB_NAME_NOTIFICATION_SERVICE}
+      - NOTIFICATION_DB_PASSWORD=${DB_NOTIFICATION_PASSWORD}
+      - NOTIFICATION_DB_USERNAME=${DB_NOTIFICATION_USERNAME}
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MAILER_HOST=${MAILER_HOST}
+      - MAILER_USERNAME=${MAILER_USERNAME}
+      - MAILER_PASSWORD=${MAILER_PASSWORD}
+      - CREDIT_SWITCH_LOGIN_ID=315497
+      - CREDIT_SWITCH_PUBLIC_KEY=${CREDIT_SWITCH_PUBLIC_KEY}  
+      - CREDIT_SWITCH_PRIVATE_KEY=${CREDIT_SWITCH_PRIVATE_KEY} 
+      - CREDIT_SWITCH_SMS_MERCHANT_NAME=Meristem Securities Limited
+      - CREDIT_SWITCH_SMS_PASSWORD=${CREDIT_SWITCH_SMS_PASSWORD} 
+      - CREDIT_SWITCH_SMS_BASEURL=http://176.58.99.160:9014/api/v1/
+      - CREDIT_SWITCH_SMS_SENDER_ID=Meristem
+      - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - NOTIFICATION_SERVICE_HOSTNAME=notification-service
+      - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
+      - MAIL_SENDER=hello@demomailtrap.co
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - MAIL_SENDER_NAME=One Meristem
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=notification-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=notification-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+
+
+   # ======================
+  # REPORT SERVICE (Internal only)
+  # ======================
+  report-service:
+    image: report-service
+    container_name: report-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - REPORT_DB_NAME=${DB_NAME_REPORT_SERVICE}
+      - REPORT_DB_PASSWORD=${DB_REPORT_PASSWORD}
+      - REPORT_DB_USERNAME=${DB_REPORT_USERNAME}
+      - REPORT_SERVICE_HOSTNAME=report-service
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD} 
+      - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - REPORT_SERVICE_HOSTNAME=report-service
+      - REPORT_SERVICE_URI=${REPORT_SERVICE_URI}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
+      - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=report-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=report-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+
+  # ======================
+  # WALLET SERVICE (Internal only)
+  # ======================
+  wallet-service:
+    image: wallet-service
+    container_name: wallet-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+      # - otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - WALLET_DB_NAME=${DB_NAME_WALLET_SERVICE}
+      - WALLET_DB_PASSWORD=${DB_WALLET_PASSWORD}
+      - WALLET_DB_USERNAME=${DB_WALLET_USERNAME}
+      - WALLET_SERVICE_HOSTNAME=wallet-service
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - PROVIDUS_BASE_URL=https://payment.xpress-wallet.com/api/v1/
+      - PROVIDUS_API_PUBLIC_KEY=${PROVIDUS_API_PUBLIC_KEY}
+      - PROVIDUS_API_SECRET_KEY=${PROVIDUS_API_SECRET_KEY} 
+      - WEMA_API_URL=https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/
+      - WEMA_ACCOUNT_PREFIX=733
+      - H2_PASSWORD=${H2_PASSWORD}
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - WALLET_SERVICE_HOSTNAME=wallet-service
+      - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
+      - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=wallet-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=wallet-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+    
+  # ======================
+  # TRUSTEES SERVICE (Internal Only)
+  # ======================
+  trustees-service:
+    image: trustees-service
+    container_name: trustees-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+      - users-service
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - TRUSTEES_DB_NAME=${DB_NAME_TRUSTEES_SERVICE}
+      - TRUSTEES_DB_PASSWORD=${DB_TRUSTEES_PASSWORD}
+      - TRUSTEES_DB_USERNAME=${DB_TRUSTEES_USERNAME}
+      - TRUSTEES_CLIENT_ID=trustees-service
+      - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
+      - TRUSTEES_SERVICE_HOSTNAME=trustees-service
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD} 
+      - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - USER_SERVICE_HOSTNAME=users-service
+      - TRUSTEES_SERVICE_URI=${TRUSTEES_SERVICE_URI}
+      - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=trustees-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=trustees-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+  # ======================
+  # API GATEWAY (Exposed publicly)
+  # ======================
+  cloud-gateway:
+    image: cloud-gateway
+    container_name: cloud-gateway
+    ports:
+      - "443:8443"
+      #- "8080:20010"  # Exposed for HTTP
+        #- "443:20010" # Exposed for HTTPS
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - users-service
+      - notification-service
+      - redis
+      - postgres
+      - kafka
+      - consul
+      - trustees-service
+      - report-service
+      - wallet-service
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      #- SERVER_PORT=20010 #Reinforce the port setting
+        #- MANAGEMENT_SERVER=-1 #Disable the actuator port
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
+      - WALLET_SERVICE_URI=${WALLET_SERVICE_URI}
+      - TRUSTEES_SERVICE_URI=${TRUSTEES_SERVICE_URI}
+      - REPORT_SERVICE_URI=${REPORT_SERVICE_URI} 
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - SSL_KEY_ALIAS=one-meristem-app
+      - KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=cloud-gateway
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=cloud-gateway,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+        #- SSL_CERT_PATH=/etc/ssl/certs/certificate.pem
+        #- SSL_CERT_PASSWORD=${CERT_PASSWORD}  
+      #- SERVER_ADDRESS=${VM_PUBLIC_IP}   # Add this line with your public IP, Use your public endpoint here for the HTTP
+      #- JWT_SECRET=${JWT_SECRET}
+    restart: unless-stopped
+    #healthcheck:
+      #test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]   
+
+  #OBSERVABILITY
+  # otel-collector:
+  #   container_name: otel-collector
+  #   image: otel/opentelemetry-collector-contrib:0.123.0
+  #   command: [ "--config=/etc/otel-collector-config.yaml" ]
+  #   ports:
+  #     - "4317:4317" # OTLP gRPC receiver
+  #   volumes:
+  #     - /one_meristem_app/logs_collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+  #   networks:
+  #     - meristem-network
+  #   restart: unless-stopped
+
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     - GF_USERS_DEFAULT_THEME=dark
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=password
+  #   volumes:
+  #     - /one_meristem_app/logs_collector/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/provisioning-datasources.yaml:ro
+  #   depends_on:
+  #     - tempo
+  #     - loki
+  #     - prometheus
+  #   restart: unless-stopped
+  #   networks:
+  #     - meristem-network
+
+
+  # tempo:
+  #   image: grafana/tempo:latest
+  #   container_name: tempo
+  #   volumes:
+  #     - /one_meristem_app/logs_collector/tempo/tempo-local.yaml:/etc/tempo-local.yaml:ro
+  #   command: "-config.file=/etc/tempo-local.yaml" 
+  #   restart: unless-stopped
+  #   networks:
+  #     - meristem-network
+
+
+  # loki:
+  #   image: grafana/loki:latest
+  #   container_name: loki
+  #   command: -config.file=/etc/loki/local-config.yaml
+  #   networks:
+  #     - meristem-network
+  #   restart: unless-stopped
+
+
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   command:
+  #     - --config.file=/etc/prometheus/prometheus.yaml
+  #     - --web.enable-remote-write-receiver
+  #     - --enable-feature=exemplar-storage
+  #   volumes:
+  #     - /one_meristem_app/monitoring/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - meristem-network
+
+# ======================
+# INFRASTRUCTURE
+# ======================
+networks:
+  meristem-network:
+    driver: bridge
+
+volumes:
+  consul:
+

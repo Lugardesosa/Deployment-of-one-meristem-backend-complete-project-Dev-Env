@@ -1,0 +1,14 @@
+apiVersion: v2
+name: middleware-service
+description: Helm chart for deploying the Cloud Gateway microservice for the One-Meristem app.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+icon: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+
+home: https://www.onemerristem.merristem.com
+sources:
+  - https://github.com/Meristem-Innovation-Team/one_meristem_app.git
+maintainers:
+  - name: Esosa Mumen
+    email: esosamumen@meristemng.com
