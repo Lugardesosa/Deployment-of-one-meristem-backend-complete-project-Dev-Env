@@ -1,4 +1,3 @@
-
 # ----------------------------------------
 # One-Meristem Mobile-backend CI for Staging Env
 # ----------------------------------------
@@ -17,32 +16,33 @@ on:
       - ".github/workflows/stag_env/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
 env:
-  APP_NAMESPACE: "one-meristem-app"
-  ARGOCD_NAMESPACE: "argocd"
-  GIT_BRANCH: "stag_env"
-  HELM_REPO_PATH: "charts"
-  HELM_MOBILE_REPO_PATH: "charts/mobile-backend"
-  APP_NAME: "one-meristem-app"
-  INGRESS_HOST: ""
-  CLUSTER_SERVER_URL: "https://kubernetes.default.svc"
-  CONFIG_SERVER_APP_NAME: "config-server"
-  CLOUD_GATEWAY_APP_NAME: "cloud-gateway"
-  CONSUL_APP_NAME: "consul"
-  NOTIFICATION_SERVICE_APP_NAME: "notification-service"
-  WALLET_SERVICE_APP_NAME: "wallet-service"
-  REPORT_SERVICE_APP_NAME: "report-service"
-  USERS_SERVICE_APP_NAME: "users-service"
-  TRUSTEES_SERVICE_APP_NAME: "trustees-service"
-  VALUES_FILE: "values-stag_env.yaml"
-  GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git" #---watch this
-  MOBILE_CERTIFICATE_IDS: "dcb530c4d28d45f5a637e1b63479e6ee, 2bd8f2d18c8d4f8c99396c389095575b"
-  ARGO_CERTIFICATE_ID: "c365e23a49f54cee9aa502c87311988c, 2bd8f2d18c8d4f8c99396c389095575b"
-  MOBILE_ELB_ID: "45a2852f-6dfc-463f-9461-3369674b0912"
-  ARGO_ELB_ID: "bf08ff17-662f-4a93-a512-5f6d59b75552"
-  MOBILE_ELB_IP: "203.123.83.49"
-  ARGO_ELB_IP: "203.123.87.172"
-  ARGOCD_PROJECT: "one-meristem-app"
-  ARGO_INGRESS_HOST: "argocd.internal.local" #<-- Change this to your ArgoCD ingress host
+  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+  ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+  GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+  HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+  HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
+  APP_NAME: ${{ vars.APP_NAME }}
+  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
+  CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
+  CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
+  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
+  CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
+  NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
+  WALLET_SERVICE_APP_NAME: ${{ vars.WALLET_SERVICE_APP_NAME }}
+  REPORT_SERVICE_APP_NAME: ${{ vars.REPORT_SERVICE_APP_NAME }}
+  USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
+  TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
+  VALUES_FILE: ${{ vars.VALUES_FILE }}
+  GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
+  MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
+  ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
+  MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
+  ARGO_ELB_ID: ${{ vars.ARGO_ELB_ID }}
+  MOBILE_ELB_IP: ${{ vars.MOBILE_ELB_IP }}
+  ARGO_ELB_IP: ${{ vars.ARGO_ELB_IP }}
+  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
+  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
   
   # Stored Secrets in Github Secrets
   SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
@@ -50,13 +50,16 @@ env:
   HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
   SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
   SWR_REGION: ${{ secrets.SWR_REGION }}
+  ELB_IP: ${{ secrets.ELB_IP }}
+  ELB_ID: ${{ secrets.ELB_ID }}
+  CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
   KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
   USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
   USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
   SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
 
-  SERVICES_DIR: backend
-  REPO_NAME: mit-meristem/one_meristem_app
+  SERVICES_DIR: ${{ vars.SERVICES_DIR }}
+  REPO_NAME: ${{ vars.REPO_NAME }}
 
 jobs:
   commit-info:
@@ -254,15 +257,15 @@ jobs:
       run:
         shell: bash
     env:
-      APP_NAMESPACE: "one-meristem-app"
-      ARGOCD_NAMESPACE: "argocd"
-      APP_NAME: "one-meristem-app"
-      GIT_BRANCH: "stag_env"
-      HELM_REPO_PATH: "charts"
+      APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+      ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+      HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
       SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
       SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
       SWR_REGION: ${{ secrets.SWR_REGION }}
-      STAG_INGRESS_HOST: "onemeristem.meristemng.com"
+      STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
@@ -287,4 +290,5 @@ jobs:
           echo "Push script completed."
           echo "All CI Workflow actions completed successfully!"
           echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
+
 
