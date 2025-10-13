@@ -1,0 +1,293 @@
+# ----------------------------------------
+# One-Meristem Mobile-backend CI for Staging Env
+# ----------------------------------------
+
+
+name: One-Meristem-Mobile-backend CI for Staging Env 
+
+on:
+  pull_request:
+    branches:
+      - stag_env
+    paths:
+      - "backend/**"
+      - "charts/**"
+      - "scripts/**"
+      - ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
+
+env:
+  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
+  ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+  GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+  HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+  HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
+  APP_NAME: ${{ vars.APP_NAME }}
+  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
+  CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
+  CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
+  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
+  CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
+  NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
+  WALLET_SERVICE_APP_NAME: ${{ vars.WALLET_SERVICE_APP_NAME }}
+  REPORT_SERVICE_APP_NAME: ${{ vars.REPORT_SERVICE_APP_NAME }}
+  USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
+  TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
+  VALUES_FILE: ${{ vars.VALUES_FILE }}
+  GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
+  MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
+  ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
+  MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
+  ARGO_ELB_ID: ${{ vars.ARGO_ELB_ID }}
+  MOBILE_ELB_IP: ${{ vars.MOBILE_ELB_IP }}
+  ARGO_ELB_IP: ${{ vars.ARGO_ELB_IP }}
+  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
+  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
+  
+  # Stored Secrets in Github Secrets
+  SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+  HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+  HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+  SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+  SWR_REGION: ${{ secrets.SWR_REGION }}
+  ELB_IP: ${{ secrets.ELB_IP }}
+  ELB_ID: ${{ secrets.ELB_ID }}
+  CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+  KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
+  USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
+  USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
+  SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+
+  SERVICES_DIR: ${{ vars.SERVICES_DIR }}
+  REPO_NAME: ${{ vars.REPO_NAME }}
+
+jobs:
+  commit-info:
+    name: Commit Info & Detect Changed Services
+    runs-on: [self-hosted, linux-runner]
+    outputs:
+      changed_services: ${{ steps.detect_changes.outputs.changed_services }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+    #Add git log for commit info & Author that pushed the code
+      - name: Show Commit Info and Who Pushed
+        run: |
+          echo "Commit Info:"
+          git log -1 --pretty=format:"%h by %an on %ad: %s" --date=short
+          echo ""
+          echo "Files Changed:"
+          git show --name-only --oneline -1
+          echo ""
+          echo "Triggered by GitHub user: ${{ github.actor }}"
+# ----------------------------------------
+# 🔎 Step 3: Detect Changed Folders
+# ----------------------------------------
+
+      - name: Detect Changes Services/Files
+        id: detect_changes
+        run: |
+          git fetch origin stag_env
+          echo "Detecting changed folders under backend/, charts/, and scripts/..."
+          
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "^(backend|charts|scripts)/" | awk -F/ '{print $1"/"$2}' | sort -u)
+          
+          echo "Changed subfolders detected:"
+          echo "$CHANGED"
+          
+          if [ -z "$CHANGED" ]; then
+            echo "No relevant subfolder changes detected."
+            echo "changed_services=none" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_services=$CHANGED" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    name: Code Quality and Security Checks
+    runs-on: [self-hosted, linux-runner]
+    needs: commit-info
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java']
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      - name: Run Unit Tests
+        run: |
+          echo "Running Unit Tests..."
+          mvn test --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V
+
+      - name: Run Static Code Analysis (SpotBugs)
+        run: |
+          echo "Running Static Code Analysis..."
+          mvn com.github.spotbugs:spotbugs-maven-plugin:check
+
+      - name: Run Dependency Vulnerability Scan
+        run: |
+          echo "Running Dependency Vulnerability Scan..."
+          mvn org.owasp:dependency-check-maven:check -Dformat=ALL -DfailOnError=true
+
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+
+      - name: Secret Scanning
+        uses: github/secret-scanning-action@v1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+ # -------------------------------
+  # Build the Docker Images for various Microservices
+  # -------------------------------
+
+  build:
+    name: Build and Push Docker Images to Huawei SWR
+    runs-on: [self-hosted, linux-runner]
+    needs: test
+    env:
+      IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        #with:
+          #fetch-depth: 2 (only for changes in microservices)
+
+      #Add git log for debugging
+      - name: Show Commit History
+        run: git log --oneline -n 2
+
+      #Adding a secret validate check
+      - name: Validate Required Secrets
+        run: |
+          echo "Validating secrets..."
+          if [ -z "${{ secrets.SWR_REGISTRY_URL }}" ] || [ -z "${{ secrets.HUAWEI_SWR_USERNAME }}" ] || [ -z "${{ secrets.HUAWEI_SWR_PASSWORD }}" ]; then
+            echo "Missing required secrets."
+            exit 1
+          fi
+          echo "All secrets available."
+
+      - name: Create and Inject Keys
+        env:
+          USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
+          USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
+          SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+        run: |
+          echo "Injecting public/private keys..."
+          mkdir -p backend/users-service/src/main/resources/keys
+          echo "${USERS_PRIVATE_KEY}" > backend/users-service/src/main/resources/keys/private.pem
+          echo "${USERS_PUBLIC_KEY}" > backend/users-service/src/main/resources/keys/public.pem
+          echo "Injected keys for users-service"
+
+          for svc in notification-service wallet-service report-service trustees-service; do
+            mkdir -p backend/$svc/src/main/resources/keys
+            echo "${SERVICE_PUBLIC_KEY}" > backend/$svc/src/main/resources/keys/public.pem
+            echo "Injected public.pem into $svc"
+          done
+
+        #Make the build script executable 
+      - name: Make Build Script Executable
+        run: chmod +x ./scripts/backend-scripts/build-images-swr.sh
+        #Run the build script to build the microservices 
+      - name: Build Images for various Microservices
+        env:
+          SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+          HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+          SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+          SWR_REGION: ${{ secrets.SWR_REGION }}
+        run: |
+          echo "Building Docker images..."
+          export IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
+          echo "Using image tag: $IMAGE_TAG"
+          bash ./scripts/backend-scripts/build-images-swr.sh
+
+  image-scan:
+    name: Scan Built Docker Images for Vulnerabilities
+    runs-on: [self-hosted, linux-runner]
+    needs: build
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      - name: Scan Docker Images (Trivy)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: "${{ secrets.SWR_REGISTRY_URL }}/${{ secrets.SWR_ORGANIZATION_NAME }}/backend:${{ github.sha }}-${{ github.run_number }}"
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+
+  # -------------------------------
+  # Push Built Images & Validate Manifests (Env Substitution)
+  # -------------------------------
+  deploy:
+    name: Validate Deployment Manifests
+    runs-on: [self-hosted, linux-runner]
+    needs: test
+    defaults:
+      run:
+        shell: bash
+    env:
+      APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+      ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+      HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+      SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+      SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+      SWR_REGION: ${{ secrets.SWR_REGION }}
+      STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      # Substitute env vars in manifests for validation (no commit)
+      - name: Substitute Env in Argo CD & Helm Manifests
+        run: |
+          echo "Substituting environment variables into manifests..."
+          for file in $(find ./argocd/apps/argocd-apps.yaml ./charts/mobile-backend/* -type f \( -name "*.yaml" -o -name "*.yml" \)); do
+            echo "Processing: $file"
+            envsubst < "$file" > "${file}.rendered"
+            mv "${file}.rendered" "$file"
+          done
+
+          echo "Env substitution completed. Manifests ready for deployment validation."
+      # Run Push script to Huawei SWR
+      - name: Push Images to Huawei SWR
+        run: |
+          echo "Running push script..."
+          chmod +x ./scripts/backend-scripts/push-image-swr-dev_env.sh
+          bash ./scripts/backend-scripts/push-image-swr-dev_env.sh
+          echo "Push script completed."
+          echo "All CI Workflow actions completed successfully!"
+          echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
+
