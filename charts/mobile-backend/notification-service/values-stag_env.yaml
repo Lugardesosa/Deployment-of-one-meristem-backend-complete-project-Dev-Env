@@ -32,7 +32,7 @@ env:
   GITHUB_BRANCH: "stag_env"
   APP_PROFILE: "dev"
   #SERVER_PORT: "20030"
-  ONE_APP_SERVER_URL: ${ELB_IP} #placeholder for the EIP IP
+  ONE_APP_SERVER_URL: "https://${ELB_IP}" #placeholder for the EIP IP
   ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
   ADMIN_USERNAME: "admin"
   CONFIG_SERVER_URI: "http://config-server:20000/config"
