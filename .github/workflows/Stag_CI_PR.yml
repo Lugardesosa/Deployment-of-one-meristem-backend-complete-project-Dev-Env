@@ -73,6 +73,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 2   # This is to fetch at least 2 commits
     #Add git log for commit info & Author that pushed the code
       - name: Show Commit Info and Who Pushed
         run: |
