@@ -8,7 +8,7 @@ global:
   
 #Deployment configuration for consul service
 
-replicaCount: 1
+replicaCount: 1 #replica  count
 
 strategy:
   type: RollingUpdate
