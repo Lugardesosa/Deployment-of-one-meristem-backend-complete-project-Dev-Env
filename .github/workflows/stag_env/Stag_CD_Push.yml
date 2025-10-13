@@ -1,1 +1,147 @@
 
+
+# ----------------------------------------
+# One-Meristem Mobile-backend CD for Staging Env
+# ----------------------------------------
+
+name: One-Meristem-Mobile-backend CD for Staging Env 
+
+on:
+  push:
+    branches:
+      - stag_env
+    paths:
+      - ".github/workflows/Stag_CD_PR.yml"  # CI/CD Pipeline config file
+      - "charts/**"            # helm charts
+      - "backend/**"          # backend services
+
+
+
+env:
+  APP_NAMESPACE: "one-meristem-app"
+  ARGOCD_NAMESPACE: "argocd"
+  GIT_BRANCH: "dev_env"
+  HELM_REPO_PATH: "charts"
+  HELM_MOBILE_REPO_PATH: "charts/mobile-backend"
+  APP_NAME: "one-meristem-app"
+  INGRESS_HOST: "argocd.internal.local"
+  CLUSTER_SERVER_URL: "https://kubernetes.default.svc"
+  CONFIG_SERVER_APP_NAME: "config-server"
+  CLOUD_GATEWAY_APP_NAME: "cloud-gateway"
+  CONSUL_APP_NAME: "consul"
+  NOTIFICATION_SERVICE_APP_NAME: "notification-service"
+  WALLET_SERVICE_APP_NAME: "wallet-service"
+  REPORT_SERVICE_APP_NAME: "report-service"
+  USERS_SERVICE_APP_NAME: "users-service"
+  TRUSTEES_SERVICE_APP_NAME: "trustees-service"
+  VALUES_FILE: "values-dev_env.yaml"
+  GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
+  MOBILE_CERTIFICATE_IDS: "f4e5e3f0a5b44b2c8e6f3d2e1a4b5c6d, b600fcfed48f40d5a1f643303fca4a4f"
+  ARGO_CERTIFICATE_ID: "b600fcfed48f40d5a1f643303fca4a4f, f4e5e3f0a5b44b2c8e6f3d2e1a4b5c6d"
+  MOBILE_ELB_ID: "elb-0a1b2c3d4e5f6g7h8"
+  ARGO_ELB_ID: "elb-1h2g3f4e56d7c8b9"
+  MOBILE_ELB_IP: "The ELB IP of the mobile app"
+  ARGO_ELB_IP: "The ELB IP of the Argo CD"
+  ARGOCD_PROJECT: "one-meristem-app"
+  ARGO_INGRESS_HOST: "argocd.internal.local" #<-- Change this to your ArgoCD ingress host
+  STAG_INGRESS_HOST: "onemeristemstag.meristemng.com" #<-- Change this to your Staging ingress host
+  
+  # Stored Secrets in Github Secrets
+  SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+  HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+  HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+  SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+  SWR_REGION: ${{ secrets.SWR_REGION }}
+  ELB_IP: ${{ secrets.ELB_IP }}
+  ELB_ID: ${{ secrets.ELB_ID }}
+  CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+  KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
+  USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
+  USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
+  SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+  
+
+  SERVICES_DIR: backend
+  REPO_NAME: mit-meristem/one_meristem_app
+
+
+jobs:
+  deploy:
+    name: Validate and Commit Manifests for Argo CD
+    runs-on: [self-hosted, linux-runner]
+    environment:
+      name: stag
+
+    env:
+      APP_NAMESPACE: "one-meristem-app"
+      ARGOCD_NAMESPACE: "argocd"
+      APP_NAME: "one-meristem-app"
+      GIT_BRANCH: "stag_env"
+      HELM_REPO_PATH: "charts"
+      SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+      SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+      SWR_REGION: ${{ secrets.SWR_REGION }}
+      STAG_INGRESS_HOST: "onemeristem.meristemng.com"
+
+    steps:
+      # ----------------------------------------
+      # Step 1: Checkout Code
+      # ----------------------------------------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Needed for git diff detection
+
+      # ----------------------------------------
+      # Step 2: Detect Changed Subfolders
+      # ----------------------------------------
+      - name: Detect Changed Services
+        id: detect_changes
+        run: |
+          echo "Detecting changed subfolders in backend/, charts/, and scripts/..."
+          CHANGED_DIRS=$(git diff --name-only HEAD^ HEAD | grep -E "^(backend|charts|scripts)/" | awk -F'/' '{print $1"/"$2}' | sort -u)
+          
+          echo "Changed directories:"
+          echo "$CHANGED_DIRS"
+
+          if [ -z "$CHANGED_DIRS" ]; then
+            echo "No relevant subfolder changes detected."
+            echo "changed_dirs=none" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_dirs=$CHANGED_DIRS" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ----------------------------------------
+      # Step 3: Substitute Env Vars in Manifests
+      # ----------------------------------------
+      - name: Substitute Env Vars in Helm & Argo CD Manifests
+        if: steps.detect_changes.outputs.changed_dirs != 'none'
+        run: |
+          echo "Substituting environment variables into manifests..."
+          for file in $(find ./argocd/apps/argocd-apps.yaml ./charts/mobile-backend -type f \( -name "*.yaml" -o -name "*.yml" \)); do
+            echo "Processing: $file"
+            envsubst < "$file" > "${file}.rendered"
+            mv "${file}.rendered" "$file"
+          done
+
+      # ----------------------------------------
+      # Step 4: Commit and Push Updated Manifests
+      # ----------------------------------------
+      - name: Commit and Push Updated Manifests
+        if: steps.detect_changes.outputs.changed_dirs != 'none'
+        run: |
+          echo "Committing updated manifests for Argo CD..."
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add ./argocd/apps ./charts
+          git diff --quiet && echo "No changes to commit." || git commit -m "Update manifests for changed services"
+          git push origin $GIT_BRANCH
+
+      # ----------------------------------------
+      # Step 5: Post Deployment (Argo CD will Deploy Automatically)
+      # ----------------------------------------
+      - name: Post Deployment
+        run: |
+          echo "Changes have been pushed to '${GIT_BRANCH}'. Argo CD will handle the deployment automatically."
+          echo "Thank you for using the One-Meristem Mobile Backend CD pipeline! See you next time! I love you!"
