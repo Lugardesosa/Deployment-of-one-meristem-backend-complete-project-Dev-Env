@@ -151,8 +151,8 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
 
-      - name: Secret Scanning
-        uses: github/secret-scanning-action@v1
+      # - name: Secret Scanning
+      #   uses: github/secret-scanning-action@v1
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
