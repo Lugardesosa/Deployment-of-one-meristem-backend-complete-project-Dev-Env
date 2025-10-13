@@ -65,7 +65,7 @@ env:
   GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
   WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
   FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
-  GITHUB_BRANCH: "dev_env"
+  GITHUB_BRANCH: "dev_env" #github branch
   APP_PROFILE: "dev"
   SERVER_PORT: "20050"
   ONE_APP_SERVER_URL: "https://${ELB_IP}" #placeholder for the EIP IP
