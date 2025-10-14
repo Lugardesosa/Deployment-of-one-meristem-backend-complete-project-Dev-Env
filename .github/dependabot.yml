@@ -1,0 +1,70 @@
+#Customized Dependabot Config scans for vulnerability three times in a week, with two reviewers for the backend code
+
+version: 2
+updates:
+  #Backend Maven dependencies (3x weekly)
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "12:00"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    commit-message:
+      prefix: "⬆️ Maven Upgrade"
+      include: "scope"
+    reviewers:
+      - "esosaluggard"
+      - "backend-dev-guy"
+    labels:
+      - "dependabot"
+      - "security"
+      - "automated"
+
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "12:00"
+    reviewers:
+      - "esosaluggard"
+      - "backend-dev-guy"
+    labels:
+      - "dependabot"
+      - "security"
+      - "automated"
+
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "12:00"
+    reviewers:
+      - "esosaluggard"
+      - "backend-dev-guy"
+    labels:
+      - "dependabot"
+      - "security"
+      - "automated"
+
+  # GitHub Actions workflow updates (once a week) (to monitor your GitHub Actions workflows and automatically propose updates when it finds new stable versions of the actions used)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "GitHub Actions Update"
+    reviewers:
+      - "esosaluggard"
+      - "backend-dev-guy"
+    labels:
+      - "ci"
+      - "automation"
