@@ -243,6 +243,24 @@ jobs:
           name: dependency-check-reports
           path: reports/
 
+      - name: Parse JSON reports and fail if high severity vulnerabilities exist
+        if: false  # This disables the step for now
+        run: |
+          found=0
+          for f in reports/*/dependency-check-report.json; do
+            if [ -f "$f" ]; then
+              high=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.cvssScore >= 1)] | length' "$f")
+              if [ "$high" -gt 0 ]; then
+                echo "Found $high high-severity vulnerabilities in $f"
+                found=1
+              fi
+            fi
+          done
+          if [ "$found" -eq 1 ]; then
+            exit 1
+          fi
+
+
       # - name: Secret Scanning
       #   uses: github/secret-scanning-action@v1
 
