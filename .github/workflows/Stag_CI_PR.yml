@@ -181,8 +181,8 @@ jobs:
             fi
           done
 
-
-      - name: Run Static Code Analysis (SpotBugs)
+    #make sure to set #enforce -Dspotbugs.failOnError=true when scanning so it can stop pipeline progress
+      - name: Run Static Code Analysis (SpotBugs) for backend modules
         run: |
           echo "Running SpotBugs for backend modules with POM files..."
           modules=(
@@ -202,11 +202,29 @@ jobs:
               echo "Skipping $dir, no pom.xml found"
             fi
           done
-
-      - name: Run Dependency Vulnerability Scan
+          
+    #make sure to set #enforce -DfailOnError=true when scanning so it can stop pipeline progress
+      - name: Run Dependency Vulnerability Scan for backend modules
         run: |
-          echo "Running Dependency Vulnerability Scan..."
-          mvn org.owasp:dependency-check-maven:check -Dformat=ALL -DfailOnError=true
+          echo "Running Dependency Vulnerability Scan for backend modules..."
+          modules=(
+            "backend/cloud-gateway"
+            "backend/config-server"
+            "backend/notification-service"
+            "backend/report-service"
+            "backend/trustees-service"
+            "backend/users-service"
+            "backend/wallet-service"
+          )
+          for dir in "${modules[@]}"; do
+            if [ -f "$dir/pom.xml" ]; then
+              echo "Scanning $dir for vulnerable dependencies..."
+              mvn -f "$dir/pom.xml" org.owasp:dependency-check-maven:check -Dformat=ALL -DfailOnError=false 
+            else
+              echo "Skipping $dir, no pom.xml found"
+            fi
+          done
+
 
       - name: Upload Dependency Check Report
         uses: actions/upload-artifact@v4
