@@ -9,7 +9,7 @@ global:
   create: false     # Prevent chart from trying to create it
 
 #Deployment configuration for config-server service
-replicaCount: 2
+replicaCount: 2 #replicas
 
 image:
   repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-dev-env/config-server
