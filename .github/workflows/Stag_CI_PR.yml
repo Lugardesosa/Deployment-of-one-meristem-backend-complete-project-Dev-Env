@@ -57,6 +57,7 @@ env:
   USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
   USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
   SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
   SERVICES_DIR: ${{ vars.SERVICES_DIR }}
   REPO_NAME: ${{ vars.REPO_NAME }}
@@ -205,6 +206,8 @@ jobs:
           
     #make sure to set #enforce -DfailOnError=true when scanning so it can stop pipeline progress
       - name: Run Dependency Vulnerability Scan for backend modules
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           echo "Running Dependency Vulnerability Scan for backend modules..."
           modules=(
@@ -225,15 +228,20 @@ jobs:
             fi
           done
 
+      - name: Gather Dependency Check Reports into a single folder
+        run: |
+          mkdir -p reports
+          for dir in backend/*; do
+            if [ -f "$dir/pom.xml" ]; then
+              cp "$dir/target/dependency-check-report.html" reports/ || true
+            fi
+          done
 
       - name: Upload Dependency Check Report
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-check-report
-          path: target/dependency-check-report.html
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+          name: dependency-check-reports
+          path: reports/
 
       # - name: Secret Scanning
       #   uses: github/secret-scanning-action@v1
