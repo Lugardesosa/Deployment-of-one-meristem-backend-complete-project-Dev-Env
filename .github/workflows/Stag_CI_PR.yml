@@ -13,7 +13,7 @@ on:
       - "backend/**"
       - "charts/**"
       - "scripts/**"
-      #- ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
+      - ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
 env:
   APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
@@ -104,7 +104,9 @@ jobs:
             echo "No relevant subfolder changes detected."
             echo "changed_services=none" >> "$GITHUB_OUTPUT"
           else
-            echo "changed_services=$CHANGED" >> "$GITHUB_OUTPUT"
+            echo "changed_services<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$CHANGED" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
           fi
 
   test:
