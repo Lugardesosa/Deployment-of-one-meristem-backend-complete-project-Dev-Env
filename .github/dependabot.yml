@@ -5,6 +5,7 @@ updates:
   #Backend Maven dependencies (3x weekly)
   - package-ecosystem: "maven"
     directory: "/backend"
+    target-branch: "stag_env"
     schedule:
       interval: "weekly"
       day: "monday"
