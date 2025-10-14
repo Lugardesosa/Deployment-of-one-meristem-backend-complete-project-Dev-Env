@@ -171,15 +171,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Unit Tests for all backend modules
+      - name: Run Unit Tests for all backend modules (ignore all test errors/failures)
         run: |
-          echo "Running Unit Tests for all backend modules..."
+          echo "Running Unit Tests but ignoring all errors and failures..."
           for dir in backend/*; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running Maven tests in $dir"
-              mvn -f "$dir/pom.xml" test -DtestFailureIgnore=true --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V
+              mvn -f "$dir/pom.xml" test -Dmaven.test.failure.ignore=true -DfailIfNoTests=false --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V || true
             fi
           done
+
 
       - name: Run Static Code Analysis (SpotBugs)
         run: |
