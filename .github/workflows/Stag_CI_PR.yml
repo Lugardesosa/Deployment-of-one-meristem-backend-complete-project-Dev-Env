@@ -156,10 +156,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Unit Tests
+      - name: Run Unit Tests for all backend modules
         run: |
-          echo "Running Unit Tests..."
-          mvn test --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V
+          echo "Running Unit Tests for all backend modules..."
+          for dir in backend/*; do
+            if [ -f "$dir/pom.xml" ]; then
+              echo "Running Maven tests in $dir"
+              mvn -f "$dir/pom.xml" test --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V
+            fi
+          done
 
       - name: Run Static Code Analysis (SpotBugs)
         run: |
