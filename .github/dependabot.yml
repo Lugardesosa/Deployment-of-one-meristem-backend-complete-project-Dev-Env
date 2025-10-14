@@ -1,0 +1,160 @@
+version: 2
+updates:
+  # ─────────────────────────────
+  # STAGING BRANCH SCANS
+  # ─────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "stag_env"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "12:00"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    commit-message:
+      prefix: "Maven Upgrade"
+      include: "scope"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "automated"
+
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "stag_env"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "12:00"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "automated"
+
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "stag_env"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "12:00"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "automated"
+
+  # ─────────────────────────────
+  # PRODUCTION BRANCH SCANS
+  # ─────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "prod_env"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "12:00"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "production"
+
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "prod_env"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "12:00"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "production"
+
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "prod_env"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "12:00"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "production"
+
+  # ─────────────────────────────
+  # GITHUB ACTIONS WORKFLOW UPDATES
+  # ─────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "stag_env"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "14:00"
+    reviewers:
+      - "lugardesosa100"
+    labels:
+      - "ci"
+      - "automation"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "stag_env"
+    schedule:
+      interval: "weekly"
+      day: "Friday"
+      time: "14:00"
+    reviewers:
+      - "lugardesosa100"
+    labels:
+      - "ci"
+      - "automation"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "prod_env"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "14:00"
+    reviewers:
+      - "lugardesosa100"
+    labels:
+      - "ci"
+      - "automation"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "prod_env"
+    schedule:
+      interval: "weekly"
+      day: "Friday"
+      time: "14:00"
+    reviewers:
+      - "lugardesosa100"
+    labels:
+      - "ci"
+      - "automation"
