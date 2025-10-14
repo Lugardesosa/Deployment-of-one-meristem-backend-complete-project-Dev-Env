@@ -4,7 +4,7 @@
 environment: dev_env
 
 global:
-  namespace: one-meristem-app
+  namespace: one-meristem-app #global
   serviceAccountName: app-spc-sa
   create: false     # Prevent chart from trying to create it
 
