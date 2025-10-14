@@ -129,10 +129,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
 
-      - name: Install GitHub CLI
+      - name: Install GitHub CLI and jq (if missing)
         run: |
-          apt-get update
-          apt-get install -y gh jq
+          if ! command -v gh &> /dev/null; then
+            echo "gh CLI not found, installing..."
+            sudo apt-get update
+            sudo apt-get install -y gh
+          else
+            echo "gh CLI already installed, skipping."
+          fi
+      
+          if ! command -v jq &> /dev/null; then
+            echo "jq not found, installing..."
+            sudo apt-get install -y jq
+          else
+            echo "jq already installed, skipping."
+          fi
+
 
       # Fetch Dependabot Metadata (used to read dependency info)
       - name: Fetch Dependabot Metadata
