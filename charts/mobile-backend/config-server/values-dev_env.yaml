@@ -134,6 +134,6 @@ autoscaling:
 # Service configuration
 service:
   type: ClusterIP
-  port: 8082
+  port: 8082 #port
   targetPort: 20000
   name: config-server
