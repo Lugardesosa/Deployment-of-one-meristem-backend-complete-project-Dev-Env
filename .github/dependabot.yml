@@ -32,8 +32,8 @@ updates:
       day: "wednesday"
       time: "12:00"
     reviewers:
-      - "esosaluggard"
-      - "backend-dev-guy"
+      - "lugardesosa100"
+      - "realninety5"
     labels:
       - "dependabot"
       - "security"
@@ -64,7 +64,7 @@ updates:
       prefix: "GitHub Actions Update"
     reviewers:
       - "esosaluggard"
-      - "backend-dev-guy"
+      #- "devops-guy"
     labels:
       - "ci"
       - "automation"
