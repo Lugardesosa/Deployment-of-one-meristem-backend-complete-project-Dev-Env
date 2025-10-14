@@ -13,7 +13,7 @@ on:
       - "backend/**"
       - "charts/**"
       - "scripts/**"
-      - ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
+      #- ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
 env:
   APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
@@ -127,6 +127,35 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
 
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh jq
+
+      # Fetch Dependabot Metadata (used to read dependency info)
+      - name: Fetch Dependabot Metadata
+        id: dependabot
+        uses: dependabot/fetch-metadata@v2
+        if: ${{ github.actor == 'dependabot[bot]' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Fail the build if Dependabot alert exists
+      - name: Check for Open Dependabot Alerts
+        if: ${{ github.actor == 'dependabot[bot]' }}
+        run: |
+          echo "Checking Dependabot alerts..."
+          ALERTS=$(gh api repos/${{ github.repository }}/dependabot/alerts --jq '. | length')
+          echo "Found $ALERTS open Dependabot alerts"
+          if [ "$ALERTS" -gt 0 ]; then
+            echo "Security alerts detected. Failing build until alerts are resolved."
+            exit 1
+          else
+            echo "No Dependabot alerts found. Continuing build."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run Unit Tests
         run: |
           echo "Running Unit Tests..."
@@ -167,6 +196,7 @@ jobs:
   # -------------------------------
 
   build:
+    if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
     name: Build and Push Docker Images to Huawei SWR
     runs-on: [self-hosted, linux-runner]
     needs: test
@@ -231,6 +261,7 @@ jobs:
           bash ./scripts/backend-scripts/build-images-swr.sh
 
   image-scan:
+    if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no image-scan.
     name: Scan Built Docker Images for Vulnerabilities
     runs-on: [self-hosted, linux-runner]
     needs: build
@@ -252,9 +283,10 @@ jobs:
   # Push Built Images & Validate Manifests (Env Substitution)
   # -------------------------------
   deploy:
+    if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
     name: Validate Deployment Manifests
     runs-on: [self-hosted, linux-runner]
-    needs: test
+    needs: image-scan
     defaults:
       run:
         shell: bash
