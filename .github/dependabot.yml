@@ -15,7 +15,7 @@ updates:
       - dependency-type: "direct"
       - dependency-type: "indirect"
     commit-message:
-      prefix: "⬆️ Maven Upgrade"
+      prefix: "Maven Upgrade"
       include: "scope"
     reviewers:
       - "esosaluggard"
