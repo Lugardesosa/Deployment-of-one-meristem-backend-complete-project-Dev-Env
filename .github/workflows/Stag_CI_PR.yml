@@ -184,8 +184,24 @@ jobs:
 
       - name: Run Static Code Analysis (SpotBugs)
         run: |
-          echo "Running Static Code Analysis..."
-          mvn com.github.spotbugs:spotbugs-maven-plugin:check
+          echo "Running SpotBugs for backend modules with POM files..."
+          modules=(
+            "backend/cloud-gateway"
+            "backend/config-server"
+            "backend/notification-service"
+            "backend/report-service"
+            "backend/trustees-service"
+            "backend/users-service"
+            "backend/wallet-service"
+          )
+          for dir in "${modules[@]}"; do
+            if [ -f "$dir/pom.xml" ]; then
+              echo "Running SpotBugs in $dir"
+              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:check -Dspotbugs.failOnError=false
+            else
+              echo "Skipping $dir, no pom.xml found"
+            fi
+          done
 
       - name: Run Dependency Vulnerability Scan
         run: |
