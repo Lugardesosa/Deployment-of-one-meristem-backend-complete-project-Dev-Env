@@ -237,11 +237,19 @@ jobs:
             fi
           done
 
+      # Before uploading, remove any existing artifact with the same name
+      - name: Delete Previous Dependency Check Artifact
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: dependency-check-reports
+
+      # Upload the latest artifact, overwriting old ones
       - name: Upload Dependency Check Report
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-reports
           path: reports/
+          overwrite: true
 
       - name: Parse JSON reports and fail if high severity vulnerabilities exist
         if: false  # This disables the step for now
