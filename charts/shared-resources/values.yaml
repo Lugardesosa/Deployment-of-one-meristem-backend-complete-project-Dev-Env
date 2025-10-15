@@ -2,8 +2,8 @@
 pv:
   name: pv-obs-users-service
   size: 500Mi
-  volumeHandle: obs-microservice-storage-one-meristem-app-dev-env # <-- Replace with actual OBS bucket name
-  enterpriseProjectID: 7686053e-ba62-4706-b49b-5bf9a93ddf34 # <-- Replace with actual Enterprise Project ID
+  volumeHandle: obs-microservice-storage-one-meristem-app-stag-env # <-- Replace with actual OBS bucket name
+  enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb # <-- Replace with actual Enterprise Project ID
   region: af-south-1
   obsVolumeType: STANDARD
   secretName: huawei-credentials-obs-ak
