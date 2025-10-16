@@ -411,14 +411,22 @@ jobs:
             echo "IMAGE_TAG=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           fi
 
-      - name: Install Trivy
+      - name: Install Trivy (if not installed)
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update -y
-          sudo apt-get install -y trivy
+          if ! command -v trivy &> /dev/null; then
+            echo "🔍 Trivy not found — installing..."
+            sudo apt-get update -y
+            sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+            echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+            sudo apt-get update -y
+            sudo apt-get install -y trivy
+            echo "Trivy installation complete."
+          else
+            echo "Trivy already installed — skipping installation."
+            trivy --version
+          fi
+
 
       - name: Scan built images (local only)
         run: |
