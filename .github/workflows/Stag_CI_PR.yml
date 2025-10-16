@@ -43,6 +43,7 @@ env:
   ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
   ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
   STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
+  environment: ${{ github.event.pull_request.base.ref }}  
   
   # Stored Secrets in Github Secrets
   SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
@@ -66,6 +67,7 @@ jobs:
   commit-info:
     name: Commit Info & Detect Changed Services
     runs-on: [self-hosted, linux-runner]
+    environment: ${{ github.event.pull_request.base.ref }}  
     outputs:
       changed_services: ${{ steps.detect_changes.outputs.changed_services }}
     defaults:
@@ -113,6 +115,7 @@ jobs:
   test:
     name: Code Quality and Security Checks
     runs-on: [self-hosted, linux-runner]
+    environment: ${{ github.event.pull_request.base.ref }}  
     needs: commit-info
     permissions:
       contents: read
@@ -288,7 +291,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
     name: Build and Push Docker Images to Huawei SWR
     runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable
+    environment: ${{ github.event.pull_request.base.ref }}  # Branch Environment variable
     needs: test
     env:
       IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
@@ -357,7 +360,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no image-scan.
     name: Scan Built Docker Images for Vulnerabilities
     runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable
+    environment: ${{ github.event.pull_request.base.ref }}  
     needs: build
     defaults:
       run:
@@ -380,7 +383,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
     name: Validate Deployment Manifests
     runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable
+    environment: ${{ github.event.pull_request.base.ref }}   # Branch Environment variable
     needs: image-scan
     defaults:
       run:
