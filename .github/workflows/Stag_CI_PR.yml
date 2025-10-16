@@ -435,6 +435,19 @@ jobs:
           path: ~/.cache/trivy
           key: ${{ runner.os }}-trivy-db
 
+
+      # 👇 Check if Trivy HTML template exists before downloading
+      - name: Ensure Trivy HTML report template
+        run: |
+          mkdir -p contrib
+          if [ -f "contrib/html.tpl" ]; then
+            echo "Trivy HTML template already exists, skipping download..."
+          else
+            echo "Downloading Trivy HTML template..."
+            wget -q https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -O contrib/html.tpl
+            echo "Download completed."
+          fi
+
       # Scan local images built previously
       - name: Scan built images (local only)
         run: |
