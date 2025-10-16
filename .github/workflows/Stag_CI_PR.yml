@@ -414,7 +414,7 @@ jobs:
       - name: Install Trivy (if not installed)
         run: |
           if ! command -v trivy &> /dev/null; then
-            echo "🔍 Trivy not found — installing..."
+            echo "Trivy not found — installing..."
             sudo apt-get update -y
             sudo apt-get install -y wget apt-transport-https gnupg lsb-release
             wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
