@@ -69,7 +69,7 @@ jobs:
   deploy:
     name: Validate and Commit Manifests for Argo CD
     runs-on: [self-hosted, linux-runner]
-    environment: ${{ github.event.pull_request.base.ref }}  
+    environment: stag  # Branch Environment variable 
 
     env:
       APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
