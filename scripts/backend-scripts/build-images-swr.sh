@@ -39,7 +39,7 @@ sudo apt-get install -y pack-cli
 # ----------------------------------------
 # Detect Changed Services (PR aware)
 # ----------------------------------------
-SVC_NAMES=(users-service notification-service cloud-gateway consul config-server wallet-service report-service trustees-service)
+SVC_NAMES=(users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service)
 BASE_PATH=backend
 PACK_BUILDER=paketobuildpacks/builder-jammy-base
 
