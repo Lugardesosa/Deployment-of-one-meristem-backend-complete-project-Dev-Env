@@ -1,6 +1,17 @@
 spring:
   cloud:
     gateway:
+      filter:
+        request-rate-limiter:
+          deny-empty-key: false
+
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+            redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+            redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+            redis-rate-limiter.key-resolver: '#{@keyResolver}'
       routes:
         - id: ${one-app.users-service.application-name}
           uri: ${USER_SERVICE_URI}
@@ -21,3 +32,6 @@ spring:
           uri: ${TRUSTEES_SERVICE_URI}
           predicates:
             - Path=${one-app.trustees-service.context-path}/**
+
+whitelisted:
+  ips: ${WHITELISTED_IPS}

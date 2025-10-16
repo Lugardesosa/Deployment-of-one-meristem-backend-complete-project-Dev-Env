@@ -59,7 +59,7 @@ public class UsersController {
     @PreAuthorize("hasAuthority('SCOPE_create_user')")
     @PutMapping(value = "/set-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> setPassword(@RequestBody @Valid SetPasswordRequest request) {
-        return ApiUtil.buildResponse(usersService.setPassword(request), HttpStatus.OK.toString(), "Created successfully.");
+        return ApiUtil.buildResponse(usersService.setPassword(request), HttpStatus.OK.toString(), "Successful.");
     }
 
     @Operation(summary = "Set a user's email.")

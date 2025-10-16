@@ -116,7 +116,7 @@ public class UsersService {
     public UpdateResponse setPassword(SetPasswordRequest userRequest) {
         Optional<Users> users = usersRepository.findOneByEmailAndPasswordIsNull(userRequest.email());
         if (users.isEmpty()) {
-            return UpdateResponse.builder().success(false).message("User not found.").build();
+            throw new BadRequestException("Password already set or user not found. Please contact support if the issue persists.");
         }
         Users user = users.get();
         user.setPassword(passwordEncoder.encode(userRequest.password()));
