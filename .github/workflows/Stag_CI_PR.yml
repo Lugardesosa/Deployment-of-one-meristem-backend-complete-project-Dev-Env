@@ -11,7 +11,7 @@ on:
       - stag_env
     paths:
       - "backend/**"
-      - "charts/**"
+      #- "charts/**"
       #- "scripts/**"
       #- ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
