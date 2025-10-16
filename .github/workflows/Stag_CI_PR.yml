@@ -370,6 +370,8 @@ jobs:
     name: Scan Built Docker Images for Vulnerabilities
     runs-on: [self-hosted, linux-runner]
     environment: stag  # Branch Environment variable 
+    env:
+      IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
     needs: build
     defaults:
       run:
