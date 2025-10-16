@@ -186,9 +186,10 @@ jobs:
           done
 
     #make sure to set #enforce -Dspotbugs.failOnError=true when scanning so it can stop pipeline progress
-      - name: Run Static Code Analysis (SpotBugs) for backend modules
+      - name: Run Static Code Analysis (SpotBugs HTML Reports)
         run: |
           echo "Running SpotBugs for backend modules with POM files..."
+          mkdir -p reports/spotbugs
           modules=(
             "backend/cloud-gateway"
             "backend/config-server"
@@ -201,11 +202,25 @@ jobs:
           for dir in "${modules[@]}"; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running SpotBugs in $dir"
-              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:check -Dspotbugs.failOnError=false
+              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:spotbugs \
+                -Dspotbugs.failOnError=false \
+                -Dspotbugs.report.format=html \
+                -Dspotbugs.outputDirectory=reports/spotbugs/$(basename $dir)
             else
               echo "Skipping $dir, no pom.xml found"
             fi
           done
+      
+          echo "SpotBugs HTML reports generated in reports/spotbugs/"
+
+
+      #Upload the bugs report 
+      - name: Upload SpotBugs HTML Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-html reports
+          path: reports/spotbugs/
+
           
     #make sure to set #enforce -DfailOnError=true when scanning so it can stop pipeline progress
       - name: Run Dependency Vulnerability Scan for backend modules
