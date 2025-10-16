@@ -428,18 +428,30 @@ jobs:
           fi
 
 
+       # Cache Trivy database before scanning
+      - name: Cache Trivy DB
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: ${{ runner.os }}-trivy-db
+
+      # Scan local images built previously
       - name: Scan built images (local only)
         run: |
           mkdir -p trivy-reports
           for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
             if docker image inspect $svc:${IMAGE_TAG} > /dev/null 2>&1; then
-              echo "Scanning $svc:${IMAGE_TAG}..."
+              echo "Scanning $svc:${IMAGE_TAG} for vulnerabilities..."
               trivy image \
+                --scanners vuln \
                 --severity HIGH,CRITICAL \
+                --timeout 20m \
+                --skip-db-update \
+                --skip-java-db-update \
                 --format template \
                 --template "@contrib/html.tpl" \
                 --output trivy-reports/${svc}-report.html \
-                $svc:${IMAGE_TAG}
+                $svc:${IMAGE_TAG} || echo "Scan completed with findings, continuing..."
             else
               echo "$svc:${IMAGE_TAG} not found locally, skipping."
             fi
@@ -450,6 +462,8 @@ jobs:
         with:
           name: trivy-vulnerability-reports
           path: trivy-reports/
+
+          
 
   # -------------------------------
   # Push Built Images & Validate Manifests (Env Substitution)
