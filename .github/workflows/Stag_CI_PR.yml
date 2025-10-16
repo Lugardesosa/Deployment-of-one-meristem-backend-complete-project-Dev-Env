@@ -378,12 +378,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
 
-      - name: Scan Docker Images (Trivy)
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          image-ref: "${{ secrets.SWR_REGISTRY_URL }}/${{ secrets.SWR_ORGANIZATION_NAME }}/backend:${{ github.sha }}-${{ github.run_number }}"
-          format: 'table'
-          severity: 'HIGH,CRITICAL'
+      - name: Scan built images (Trivy)
+        run: |
+          for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+            if docker image inspect $svc:${IMAGE_TAG} > /dev/null 2>&1; then
+              echo "Scanning $svc:${IMAGE_TAG}..."
+              trivy image --severity HIGH,CRITICAL --exit-code 0 --no-progress $svc:${IMAGE_TAG}
+            else
+              echo "$svc:${IMAGE_TAG} not found, skipping."
+            fi
+          done
+
 
   # -------------------------------
   # Push Built Images & Validate Manifests (Env Substitution)
