@@ -31,10 +31,18 @@ fi
 # ----------------------------------------
 # Install pack CLI
 # ----------------------------------------
-echo "Installing pack CLI..."
-sudo add-apt-repository -y ppa:cncf-buildpacks/pack-cli
-sudo apt-get update -y
-sudo apt-get install -y pack-cli
+echo "Checking if pack CLI is already installed..."
+
+if command -v pack &> /dev/null; then
+  echo "pack CLI is already installed. Skipping installation."
+else
+  echo "Installing pack CLI..."
+  sudo add-apt-repository -y ppa:cncf-buildpacks/pack-cli
+  sudo apt-get update -y
+  sudo apt-get install -y pack-cli
+  echo "pack CLI installation complete."
+fi
+
 
 # ----------------------------------------
 # Detect Changed Services (PR aware)
