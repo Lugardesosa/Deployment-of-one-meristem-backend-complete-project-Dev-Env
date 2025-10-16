@@ -288,6 +288,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
     name: Build and Push Docker Images to Huawei SWR
     runs-on: [self-hosted, linux-runner]
+    environment: stag  # Branch Environment variable
     needs: test
     env:
       IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
@@ -353,6 +354,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no image-scan.
     name: Scan Built Docker Images for Vulnerabilities
     runs-on: [self-hosted, linux-runner]
+    environment: stag  # Branch Environment variable
     needs: build
     defaults:
       run:
@@ -375,6 +377,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
     name: Validate Deployment Manifests
     runs-on: [self-hosted, linux-runner]
+    environment: stag  # Branch Environment variable
     needs: image-scan
     defaults:
       run:
