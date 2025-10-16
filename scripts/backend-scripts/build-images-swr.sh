@@ -73,20 +73,56 @@ echo "$CHANGED_SERVICES" > changed_services.txt
 export CHANGED_SERVICES
 echo "Exported changed services: $CHANGED_SERVICES"
 
+
+# ----------------------------------------
+# Prepare existing metadata for stable tags
+# ----------------------------------------
+mkdir -p build_output
+METADATA_FILE="build_output/image_metadata.env"
+
+if [ -f "$METADATA_FILE" ]; then
+  echo "Found previous image metadata file. Reusing unchanged service tags where applicable..."
+else
+  echo "No previous metadata file found. All services will get new tags."
+fi
+
+
 # ----------------------------------------
 # Build only changed microservices
 # ----------------------------------------
 cd ${BASE_PATH}
 
-for SERVICE in $CHANGED_SERVICES; do
+for SERVICE in "${SVC_NAMES[@]}"; do
   if [ -d "$SERVICE" ]; then
-    echo "Building image for $SERVICE..."
-    cd $SERVICE
-    sudo pack build $SERVICE \
-      --builder ${PACK_BUILDER} \
-      --path . \
-      --tag ${SERVICE}:${IMAGE_TAG}
-    cd ..
+    if [[ " $CHANGED_SERVICES " == *" $SERVICE "* ]]; then
+      # Service has changed → generate new tag
+      SERVICE_TAG="${IMAGE_TAG}"
+      echo "Detected changes in $SERVICE → building new image ($SERVICE_TAG)"
+      cd $SERVICE
+      sudo pack build $SERVICE \
+        --builder ${PACK_BUILDER} \
+        --path . \
+        --tag ${SERVICE}:${SERVICE_TAG}
+      cd ..
+    else
+      # If Service remains unchanged → reuse previous tag if available
+      if [ -f "$METADATA_FILE" ]; then
+        PREV_TAG=$(grep "^${SERVICE}_TAG=" "$METADATA_FILE" | cut -d'=' -f2)
+        if [ -n "$PREV_TAG" ]; then
+          SERVICE_TAG="${PREV_TAG}"
+          echo "$SERVICE unchanged → reusing previous tag ($SERVICE_TAG)"
+        else
+          SERVICE_TAG="${IMAGE_TAG}"
+          echo "No previous tag found for $SERVICE → using new tag ($SERVICE_TAG)"
+        fi
+      else
+        SERVICE_TAG="${IMAGE_TAG}"
+        echo "No metadata file found → using new tag ($SERVICE_TAG)"
+      fi
+    fi
+
+    # Save service tag for later stages
+    echo "${SERVICE}_TAG=${SERVICE_TAG}" >> ../build_output/image_metadata.env
   else
     echo "Directory not found for $SERVICE, skipping."
   fi
@@ -94,12 +130,10 @@ done
 
 cd .. # Return to root
 
-
 # ----------------------------------------
-# Persist build metadata for next stage
+# Save metadata and changed services
 # ----------------------------------------
-mkdir -p build_output
-mv changed_services.txt build_output/
-echo "IMAGE_TAG=$IMAGE_TAG" > build_output/image_metadata.env
+echo "$CHANGED_SERVICES" > build_output/changed_services.txt
+echo "IMAGE_TAG=$IMAGE_TAG" >> build_output/image_metadata.env
 
 echo "Build completed successfully!"
