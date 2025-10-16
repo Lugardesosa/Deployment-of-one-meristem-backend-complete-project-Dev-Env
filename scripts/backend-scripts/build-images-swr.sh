@@ -34,7 +34,7 @@ fi
 echo "Checking if pack CLI is already installed..."
 
 if command -v pack &> /dev/null; then
-  echo "pack CLI is already installed. Skipping installation."
+  echo "pack CLI is already installed. Skipping installation..."
 else
   echo "Installing pack CLI..."
   sudo add-apt-repository -y ppa:cncf-buildpacks/pack-cli
@@ -67,6 +67,13 @@ else
 fi
 
 # ----------------------------------------
+# Export changed services
+# ----------------------------------------
+echo "$CHANGED_SERVICES" > changed_services.txt
+export CHANGED_SERVICES
+echo "Exported changed services: $CHANGED_SERVICES"
+
+# ----------------------------------------
 # Build only changed microservices
 # ----------------------------------------
 cd ${BASE_PATH}
@@ -86,3 +93,13 @@ for SERVICE in $CHANGED_SERVICES; do
 done
 
 cd .. # Return to root
+
+
+# ----------------------------------------
+# Persist build metadata for next stage
+# ----------------------------------------
+mkdir -p build_output
+mv changed_services.txt build_output/
+echo "IMAGE_TAG=$IMAGE_TAG" > build_output/image_metadata.env
+
+echo "Build completed successfully!"
