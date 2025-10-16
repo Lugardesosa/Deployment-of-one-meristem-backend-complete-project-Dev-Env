@@ -336,14 +336,17 @@ jobs:
         #Make the build script executable 
       - name: Make Build Script Executable
         run: chmod +x ./scripts/backend-scripts/build-images-swr.sh
+
         #Run the build script to build the microservices 
-      - name: Build Images for various Microservices
+      - name: Incremental Build Images for various Microservices 
         env:
           SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
           HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
           HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
           SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
           SWR_REGION: ${{ secrets.SWR_REGION }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           echo "Building Docker images..."
           export IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
