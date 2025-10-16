@@ -350,11 +350,20 @@ jobs:
           SWR_REGION: ${{ secrets.SWR_REGION }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: |
           echo "Building Docker images..."
           export IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
           echo "Using image tag: $IMAGE_TAG"
           bash ./scripts/backend-scripts/build-images-swr.sh
+
+      #Upload the build metadata checking for changed services
+      - name: Upload build metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_output
+          path: build_output/
 
   image-scan:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no image-scan.
@@ -413,6 +422,13 @@ jobs:
           done
 
           echo "Env substitution completed. Manifests ready for deployment validation."
+
+      #Download the build metadata checking for changed services
+      - name: Download build metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: build_output
+          path: build_output/
       # Run Push script to Huawei SWR
       - name: Push Images to Huawei SWR
         run: |
