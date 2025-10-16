@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import org.springframework.data.relational.core.mapping.Column;
 
@@ -11,19 +12,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+
+//@Column("password_set")
+//@NotNull(message = "passwordSet cannot be null")
+//private Boolean passwordSet = Boolean.FALSE;
+//
+//@Column("email_verified")
+//@NotNull(message = "emailVerified cannot be null")
+//private Boolean emailVerified = Boolean.FALSE;
 @Builder
 public record UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, @JsonIgnore String password, String phoneNumber, @JsonIgnore Integer passwordAttempt,
-                            @Column("image_key") String image, @JsonIgnore String pin, String gender, @Column("date_of_birth")
-                            LocalDate dateOfBirth, @Column("referral_code") String referralCode, @Column("onboarding_completed") Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Map<String, Set<UserOptionResponse>> userOptionResponses, @JsonIgnore @Column("biometric_enabled") Boolean biometricEnabled) implements Serializable {
+                            @Column("image_key") String image, @JsonIgnore String pin, String gender, @Column("date_of_birth") LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified,
+                            @Column("referral_code") String referralCode, @Column("onboarding_completed") Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Map<String, Set<UserOptionResponse>> userOptionResponses, @JsonIgnore @Column("biometric_enabled") Boolean biometricEnabled) implements Serializable {
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                         String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
+                         String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
     }
 
     public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                                     String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
-        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
+                                     String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
+        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
     }
 
     @Builder

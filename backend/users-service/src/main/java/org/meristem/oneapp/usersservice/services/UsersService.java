@@ -190,7 +190,7 @@ public class UsersService {
             signedUrl = signedUrlResponse.signedUrl();
         }
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), response.userOptionResponses(), response.biometricEnabled());
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.passwordSet(), response.emailVerified(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), response.userOptionResponses(), response.biometricEnabled());
     }
 
     /**

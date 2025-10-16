@@ -41,6 +41,8 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                 .pin(rs.getString("pin"))
                 .password(rs.getString("password"))
                 .biometricEnabled(rs.getBoolean("biometric_enabled"))
+                .passwordSet(rs.getBoolean("password_set"))
+                .emailVerified(rs.getBoolean("email_verified"))
                 .passwordAttempt(rs.getInt("password_attempt"))
                 .build();
         do {
