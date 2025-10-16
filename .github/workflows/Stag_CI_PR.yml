@@ -12,8 +12,8 @@ on:
     paths:
       - "backend/**"
       - "charts/**"
-      - "scripts/**"
-      - ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
+      #- "scripts/**"
+      #- ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
 env:
   APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
