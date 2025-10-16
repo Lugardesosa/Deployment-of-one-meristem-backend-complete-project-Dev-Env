@@ -44,6 +44,7 @@ env:
   ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
   ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
   STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
+  environment: ${{ github.event.pull_request.base.ref }}  
   
   # Stored Secrets in Github Secrets
   SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
@@ -68,8 +69,7 @@ jobs:
   deploy:
     name: Validate and Commit Manifests for Argo CD
     runs-on: [self-hosted, linux-runner]
-    environment:
-      name: stag
+    environment: ${{ github.event.pull_request.base.ref }}  
 
     env:
       APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
