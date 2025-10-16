@@ -448,7 +448,7 @@ jobs:
   # -------------------------------
   deploy:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no Docker build, no image push, no deployment.
-    name: Validate Deployment Manifests
+    name: Push to Huawei Cloud & Validate Deployment Manifests
     runs-on: [self-hosted, linux-runner]
     environment: stag  # Branch Environment variable
     needs: image-scan
