@@ -89,7 +89,7 @@ jobs:
           echo ""
           echo "Triggered by GitHub user: ${{ github.actor }}"
 # ----------------------------------------
-# 🔎 Step 3: Detect Changed Folders
+# Step 3: Detect Changed Folders
 # ----------------------------------------
 
       - name: Detect Changes Services/Files
@@ -395,17 +395,53 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
 
-      - name: Scan built images (Trivy)
+      - name: Download build metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build_output
+          path: build_output/
+
+      - name: Load IMAGE_TAG From Built Artifact
         run: |
+          if [ -f build_output/image_metadata.env ]; then
+            echo "Loading image tag from metadata..."
+            cat build_output/image_metadata.env >> $GITHUB_ENV
+          else
+            echo "No image_metadata.env found — using fallback tag"
+            echo "IMAGE_TAG=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          fi
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy
+
+      - name: Scan built images (local only)
+        run: |
+          mkdir -p trivy-reports
           for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
             if docker image inspect $svc:${IMAGE_TAG} > /dev/null 2>&1; then
               echo "Scanning $svc:${IMAGE_TAG}..."
-              trivy image --severity HIGH,CRITICAL --exit-code 0 --no-progress $svc:${IMAGE_TAG}
+              trivy image \
+                --severity HIGH,CRITICAL \
+                --format template \
+                --template "@contrib/html.tpl" \
+                --output trivy-reports/${svc}-report.html \
+                $svc:${IMAGE_TAG}
             else
-              echo "$svc:${IMAGE_TAG} not found, skipping."
+              echo "$svc:${IMAGE_TAG} not found locally, skipping."
             fi
           done
 
+      - name: Upload Trivy HTML reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-vulnerability-reports
+          path: trivy-reports/
 
   # -------------------------------
   # Push Built Images & Validate Manifests (Env Substitution)
