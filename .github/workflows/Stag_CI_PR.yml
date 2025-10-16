@@ -43,7 +43,7 @@ env:
   ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
   ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
   STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
-  environment: ${{ github.event.pull_request.base.ref }}  
+  BRANCH_ENV: ${{ github.event.pull_request.base.ref }} #<---- To represent the helm values.yaml used via branch  
   
   # Stored Secrets in Github Secrets
   SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
