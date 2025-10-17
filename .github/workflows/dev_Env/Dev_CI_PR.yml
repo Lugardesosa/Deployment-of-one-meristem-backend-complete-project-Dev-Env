@@ -10,7 +10,7 @@ on:
       - dev_env
 
 env:
-  REPO_NAME: Meristem-Innovation-Team/one_meristem_app
+  REPO_NAME: mit-meristem/one_meristem_app
   SERVICES_DIR: backend
 
 jobs:
