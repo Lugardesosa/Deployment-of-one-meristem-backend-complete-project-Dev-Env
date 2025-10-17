@@ -189,6 +189,9 @@ jobs:
       - name: Run Static Code Analysis (SpotBugs HTML Reports)
         run: |
           echo "Running SpotBugs for backend modules with POM files..."
+          echo "Deleting Old Scan files..."
+          # Clean old reports to avoid stale data
+          rm -rf reports/spotbugs
           mkdir -p reports/spotbugs
           modules=(
             "backend/cloud-gateway"
@@ -202,10 +205,10 @@ jobs:
           for dir in "${modules[@]}"; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running SpotBugs in $dir"
-              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:spotbugs \
-                -Dspotbugs.failOnError=false \
-                -Dspotbugs.report.format=html \
-                -Dspotbugs.outputDirectory=reports/spotbugs/$(basename $dir)
+              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:4.7.3.0:spotbugs \
+                -Dspotbugs.htmlOutput=true \
+                -Dspotbugs.outputDirectory=reports/spotbugs/$(basename $dir) \
+                -Dspotbugs.failOnError=false
             else
               echo "Skipping $dir, no pom.xml found"
             fi
@@ -213,12 +216,11 @@ jobs:
       
           echo "SpotBugs HTML reports generated in reports/spotbugs/"
 
-
-      #Upload the bugs report 
+      #Upload the latest bugs report 
       - name: Upload SpotBugs HTML Reports
         uses: actions/upload-artifact@v4
         with:
-          name: spotbugs-html reports
+          name: spotbugs-html-reports
           path: reports/spotbugs/
 
           
@@ -307,6 +309,10 @@ jobs:
     name: Build and Push Docker Images to Huawei SWR
     runs-on: [self-hosted, linux-runner]
     environment: stag  # Branch Environment variable
+    permissions:
+      contents: read
+      actions: write
+
     needs: test
     env:
       IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
@@ -385,6 +391,9 @@ jobs:
     name: Scan Built Docker Images for Vulnerabilities
     runs-on: [self-hosted, linux-runner]
     environment: stag  # Branch Environment variable 
+    permissions:
+      contents: read
+      actions: write
     env:
       IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
     needs: build
@@ -436,7 +445,7 @@ jobs:
           key: ${{ runner.os }}-trivy-db
 
 
-      # 👇 Check if Trivy HTML template exists before downloading
+      # Check if Trivy HTML template exists before downloading
       - name: Ensure Trivy HTML report template
         run: |
           mkdir -p contrib
@@ -486,6 +495,12 @@ jobs:
     name: Push to Huawei Cloud & Validate Deployment Manifests
     runs-on: [self-hosted, linux-runner]
     environment: stag  # Branch Environment variable
+    permissions:
+      contents: read  #Read repo files
+      actions: write  #Read repo files
+      id-token: write #Authenticate to cloud via OIDC
+      packages: write #Push Docker for container registry uploads
+
     needs: image-scan
     defaults:
       run:
