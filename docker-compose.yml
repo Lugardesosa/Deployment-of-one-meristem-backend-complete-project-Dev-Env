@@ -269,7 +269,7 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTEES_CLIENT_ID=trustees-service
       - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
-      - MAIL_SENDER=hello@demomailtrap.co
+      - MAIL_SENDER=no-reply@onemeristem.meristemng.com
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
