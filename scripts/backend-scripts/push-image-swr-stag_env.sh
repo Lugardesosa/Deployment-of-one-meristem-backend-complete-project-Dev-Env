@@ -5,12 +5,17 @@ set -e
 # Load metadata
 # ----------------------------------------
 if [ -f "build_output/image_metadata.env" ]; then
+  # Fix invalid variable names before sourcing
+  sed -i 's/-/_/g' build_output/image_metadata.env
   source build_output/image_metadata.env
 else
   echo "image_metadata.env not found! Exiting..."
   exit 1
 fi
 
+# ----------------------------------------
+# Ensure changed services file exists
+# ----------------------------------------
 if [ ! -f "build_output/changed_services.txt" ] && [ ! -f "build_output/changed_services" ]; then
   echo "changed_services file not found! Exiting..."
   exit 1
