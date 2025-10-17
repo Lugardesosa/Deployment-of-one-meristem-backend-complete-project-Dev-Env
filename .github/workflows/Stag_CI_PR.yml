@@ -497,7 +497,7 @@ jobs:
     environment: stag  # Branch Environment variable
     permissions:
       contents: read  #Read repo files
-      actions: write  #Read repo files
+      actions: write  #Use caches or artifacts
       id-token: write #Authenticate to cloud via OIDC
       packages: write #Push Docker for container registry uploads
 
