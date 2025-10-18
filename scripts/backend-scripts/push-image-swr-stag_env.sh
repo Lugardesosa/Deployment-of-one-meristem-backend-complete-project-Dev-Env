@@ -21,9 +21,9 @@ if [ ! -f "build_output/changed_services.txt" ] && [ ! -f "build_output/changed_
   exit 1
 fi
 
-CHANGED_SERVICES=$(cat build_output/changed_services.txt || cat build_output/changed_services)
-echo "Pushing services: $CHANGED_SERVICES"
-echo "Using image tag: $IMAGE_TAG"
+# CHANGED_SERVICES=$(cat build_output/changed_services.txt || cat build_output/changed_services)
+# echo "Pushing services: $CHANGED_SERVICES"
+# echo "Using image tag: $IMAGE_TAG"
 
 # ----------------------------------------
 # Authenticate with Huawei Cloud SWR (Secure)
@@ -43,7 +43,12 @@ fi
 # ----------------------------------------
 # Tag and Push only built images
 # ----------------------------------------
-for SERVICE in $CHANGED_SERVICES; do
+# for SERVICE in $CHANGED_SERVICES; do
+#   echo "Processing $SERVICE..."
+
+echo "Pushing services from changed_services.txt"
+while IFS= read -r SERVICE || [ -n "$SERVICE" ]; do
+  SERVICE=$(echo "$SERVICE" | tr -d '\r')  # ---> Remove Windows CR (^M) characters
   echo "Processing $SERVICE..."
   
   # Check if image exists locally before pushing
@@ -58,6 +63,8 @@ for SERVICE in $CHANGED_SERVICES; do
   echo "Pushing image to SWR..."
   docker push ${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}
 
+done < build_output/changed_services.txt  # ---> Feed the file into the while loop
+
 
 # ----------------------------------------
 # Update Helm values
@@ -71,6 +78,6 @@ else
   echo "Values file ${VALUES_FILE} not found, skipping Helm update."
 fi
 
-done
+done 
 
 echo "All detected images processed successfully!"
