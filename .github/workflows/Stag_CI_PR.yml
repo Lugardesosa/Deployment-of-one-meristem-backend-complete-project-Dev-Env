@@ -387,20 +387,24 @@ jobs:
           path: build_output/
 
       # Clean up saved images to free space on self-hosted runner
-      - name: Clean up local image tarballs
+      - name: Clean up previous local image 
         run: |
-          echo "Cleaning up local image tarballs..."
+          echo "Cleaning up previous local image saved..."
           rm -rf build_output/*.tar
           echo "Cleanup complete."
 
       # Save Docker images as tar files and upload them as artifacts
       - name: Save built Docker images
         run: |
-          mkdir -p build_output
-          for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
-            echo "Saving $svc:${IMAGE_TAG}..."
-            docker save -o build_output/${svc}.tar $svc:${IMAGE_TAG} || echo "$svc image not found, skipping save."
-          done
+           mkdir -p build_output
+           for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+             if docker image inspect "${svc}:${IMAGE_TAG}" > /dev/null 2>&1; then
+               echo "Saving ${svc}:${IMAGE_TAG}..."
+               docker save "${svc}:${IMAGE_TAG}" -o "build_output/${svc}.tar"
+             else
+               echo "No new image for ${svc}, skipping save."
+             fi
+           done
 
       - name: Upload Docker images as artifacts
         uses: actions/upload-artifact@v4
