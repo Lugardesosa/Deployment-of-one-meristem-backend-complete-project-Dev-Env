@@ -437,12 +437,16 @@ jobs:
           fi
 
 
-       # Cache Trivy database before scanning
-      - name: Cache Trivy DB
-        uses: actions/cache@v4
+      # -----------------------------------------
+      # Cache & Prepare Trivy Database (Optimized)
+      # -----------------------------------------
+      - name: Restore Trivy DB cache
+        uses: actions/cache/restore@v4
         with:
-          path: ~/.cache/trivy
-          key: ${{ runner.os }}-trivy-db
+          path: ~/.cache/trivy/db
+          key: ${{ runner.os }}-trivy-db-v1-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-db-v1-
 
       # Ensure Trivy database exists before running scans
       - name: Download Trivy DB if missing
