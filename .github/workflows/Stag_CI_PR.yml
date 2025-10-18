@@ -7,6 +7,7 @@ name: One-Meristem-Mobile-backend CI for Staging Env
 
 on:
   pull_request:
+    types: [opened, closed]
     branches:
       - stag_env
     paths:
@@ -379,6 +380,13 @@ jobs:
           echo "Using image tag: $IMAGE_TAG"
           bash ./scripts/backend-scripts/build-images-swr.sh
 
+      - name: Persist IMAGE_TAG
+        run: |
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "Loaded IMAGE_TAG=$IMAGE_TAG for later steps"
+
+
       # Upload the build metadata checking for changed services
       - name: Upload build metadata
         uses: actions/upload-artifact@v4
@@ -598,12 +606,26 @@ jobs:
           else
             echo "No saved Docker images found. Skipping load step."
           fi
+
+      # ----------------------------------------
+      # Extract IMAGE_TAG from metadata
+      # ----------------------------------------
+      - name: Retrieve IMAGE_TAG from metadata
+        id: get_tag
+        run: |
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
+          if [ -z "$IMAGE_TAG" ]; then
+            echo "IMAGE_TAG not found in metadata. Check your build job export step."
+            exit 1
+          fi
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "Loaded IMAGE_TAG=$IMAGE_TAG for push operations"
           
       # Run Push script to Huawei SWR
       - name: Push Images to Huawei SWR
         run: |
           echo "Running push script..."
-          chmod +x ./scripts/backend-scripts/push-image-swr-dev_env.sh
+          chmod +x ./scripts/backend-scripts/push-image-swr-stag_env.sh
           bash ./scripts/backend-scripts/push-image-swr-stag_env.sh
           echo "Push script completed."
           echo "All CI Workflow actions completed successfully!"
