@@ -444,6 +444,16 @@ jobs:
           path: ~/.cache/trivy
           key: ${{ runner.os }}-trivy-db
 
+      # Ensure Trivy database exists before running scans
+      - name: Download Trivy DB if missing
+        run: |
+          if [ ! -d ~/.cache/trivy/db ] || [ -z "$(ls -A ~/.cache/trivy/db 2>/dev/null)" ]; then
+            echo "No cached Trivy DB found. Downloading..."
+            trivy --download-db-only
+          else
+            echo "Using cached Trivy DB."
+          fi
+
 
       # Check if Trivy HTML template exists before downloading
       - name: Ensure Trivy HTML report template
@@ -468,7 +478,6 @@ jobs:
                 --scanners vuln \
                 --severity HIGH,CRITICAL \
                 --timeout 20m \
-                --skip-db-update \
                 --skip-java-db-update \
                 --format template \
                 --template "@contrib/html.tpl" \
