@@ -587,10 +587,17 @@ jobs:
 
       - name: Load Docker images
         run: |
-          for tar in build_output/*.tar; do
-            echo "Loading image from $tar..."
-            docker load -i $tar
-          done
+          echo "Checking for saved Docker images..."
+          if ls build_output/*.tar 1> /dev/null 2>&1; then
+            echo "Found saved images. Loading them into Docker..."
+            for tar in build_output/*.tar; do
+              echo "Loading image from $tar..."
+              docker load -i "$tar"
+            done
+            echo "All images loaded successfully."
+          else
+            echo "No saved Docker images found. Skipping load step."
+          fi
           
       # Run Push script to Huawei SWR
       - name: Push Images to Huawei SWR
