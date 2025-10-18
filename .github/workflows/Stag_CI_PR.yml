@@ -379,12 +379,35 @@ jobs:
           echo "Using image tag: $IMAGE_TAG"
           bash ./scripts/backend-scripts/build-images-swr.sh
 
-      #Upload the build metadata checking for changed services
+      # Upload the build metadata checking for changed services
       - name: Upload build metadata
         uses: actions/upload-artifact@v4
         with:
           name: build_output
           path: build_output/
+
+      # Clean up saved images to free space on self-hosted runner
+      - name: Clean up local image tarballs
+        run: |
+          echo "Cleaning up local image tarballs..."
+          rm -rf build_output/*.tar
+          echo "Cleanup complete."
+
+      # Save Docker images as tar files and upload them as artifacts
+      - name: Save built Docker images
+        run: |
+          mkdir -p build_output
+          for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+            echo "Saving $svc:${IMAGE_TAG}..."
+            docker save -o build_output/${svc}.tar $svc:${IMAGE_TAG} || echo "$svc image not found, skipping save."
+          done
+
+      - name: Upload Docker images as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker_images
+          path: build_output/
+
 
   image-scan:
     if: ${{ github.actor != 'dependabot[bot]' }} #so that when Dependabot raises a PR, it only runs tests and scans —no image-scan.
@@ -544,12 +567,27 @@ jobs:
 
           echo "Env substitution completed. Manifests ready for deployment validation."
 
-      #Download the build metadata checking for changed services
+      # Download the build metadata checking for changed services
       - name: Download build metadata
         uses: actions/download-artifact@v4
         with:
           name: build_output
           path: build_output/
+
+      # Download and load Docker image tarballs into local Docker
+      - name: Download Docker image from build stage
+        uses: actions/download-artifact@v4
+        with:
+          name: docker_images
+          path: build_output/
+
+      - name: Load Docker images
+        run: |
+          for tar in build_output/*.tar; do
+            echo "Loading image from $tar..."
+            docker load -i $tar
+          done
+          
       # Run Push script to Huawei SWR
       - name: Push Images to Huawei SWR
         run: |
