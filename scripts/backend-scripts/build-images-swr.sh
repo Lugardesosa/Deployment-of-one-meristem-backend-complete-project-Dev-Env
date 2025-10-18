@@ -55,8 +55,17 @@ PACK_BUILDER=paketobuildpacks/builder-jammy-base
 echo "Fetching base (${BASE_BRANCH}) and head (${HEAD_BRANCH}) branches..."
 git fetch origin "${BASE_BRANCH}" "${HEAD_BRANCH}"
 
-# Detect changes between PR source and destination branches
-CHANGED_SERVICES=$(git diff --name-only origin/${BASE_BRANCH}...origin/${HEAD_BRANCH} | grep "^backend/" | cut -d/ -f2 | sort -u)
+# ----------------------------------------
+# Handle case where branches have no merge base (e.g., new branch)
+# ----------------------------------------
+if ! git merge-base --is-ancestor "origin/${BASE_BRANCH}" "origin/${HEAD_BRANCH}" 2>/dev/null; then
+  echo "No merge base found between ${BASE_BRANCH} and ${HEAD_BRANCH}."
+  echo "This is A New branch — so building all microservices..."
+  CHANGED_SERVICES="${SVC_NAMES[@]}"
+else
+  # Detect changes between PR source and destination branches
+  CHANGED_SERVICES=$(git diff --name-only origin/${BASE_BRANCH}...origin/${HEAD_BRANCH} | grep "^backend/" | cut -d/ -f2 | sort -u)
+fi
 
 # If no specific changes detected, build all (first run or new branch)
 if [ -z "$CHANGED_SERVICES" ]; then
