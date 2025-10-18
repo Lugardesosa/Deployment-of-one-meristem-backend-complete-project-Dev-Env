@@ -26,10 +26,19 @@ echo "Pushing services: $CHANGED_SERVICES"
 echo "Using image tag: $IMAGE_TAG"
 
 # ----------------------------------------
-# Authenticate with Huawei Cloud SWR
+# Authenticate with Huawei Cloud SWR (Secure)
 # ----------------------------------------
 echo "Logging into Huawei SWR..."
-docker login -u "${SWR_REGION}@${HUAWEI_SWR_USERNAME}" -p "${HUAWEI_SWR_PASSWORD}" "${SWR_REGISTRY_URL}"
+echo "${HUAWEI_SWR_PASSWORD}" | docker login \
+  -u "${SWR_REGION}@${HUAWEI_SWR_USERNAME}" \
+  --password-stdin "${SWR_REGISTRY_URL}"
+
+if [ $? -ne 0 ]; then
+  echo "Huawei SWR login failed. Please check your credentials or token expiration."
+  exit 1
+else
+  echo "Successfully logged into Huawei SWR."
+fi
 
 # ----------------------------------------
 # Tag and Push only built images
