@@ -205,7 +205,7 @@ jobs:
           for dir in "${modules[@]}"; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running SpotBugs in $dir"
-              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:spotbugs \
+              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:4.9.6.0:spotbugs \
                 -Dspotbugs.htmlOutput=true \
                 -Dspotbugs.outputDirectory=reports/spotbugs/$(basename $dir) \
                 -Dspotbugs.failOnError=false
