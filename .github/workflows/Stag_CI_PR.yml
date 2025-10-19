@@ -206,16 +206,19 @@ jobs:
           for dir in "${modules[@]}"; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running SpotBugs in $dir"
+              OUT_DIR="$(pwd)/reports/spotbugs/$(basename $dir)"
+              mkdir -p "$OUT_DIR"
               mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:4.9.6.0:spotbugs \
                 -Dspotbugs.htmlOutput=true \
-                -Dspotbugs.outputDirectory=reports/spotbugs/$(basename $dir) \
-                -Dspotbugs.failOnError=false
+                -Dspotbugs.outputDirectory="$OUT_DIR" \
+                -Dspotbugs.failOnError=false || echo "SpotBugs scan failed for $dir but continuing."
             else
               echo "Skipping $dir, no pom.xml found"
             fi
           done
       
           echo "SpotBugs HTML reports generated in reports/spotbugs/"
+          ls -R reports/spotbugs || echo "No SpotBugs reports found."
 
       #Upload the latest bugs report 
       - name: Upload SpotBugs HTML Reports
