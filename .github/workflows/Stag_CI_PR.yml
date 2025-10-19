@@ -586,11 +586,20 @@ jobs:
           name: build_output
           path: build_output/
 
-      #Install yq so helm update suceeds
-      - name: Install yq
+      # Install yq so Helm update succeeds
+      - name: Ensure yq is installed
         run: |
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-          sudo chmod +x /usr/bin/yq
+          if command -v yq >/dev/null 2>&1; then
+            echo "yq already installed at $(command -v yq) — skipping download."
+            yq --version
+          else
+            echo "yq not found, installing..."
+            sudo wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+            sudo chmod +x /usr/bin/yq
+            echo "yq installed successfully at /usr/bin/yq."
+            yq --version
+          fi
+
 
 
       # Download and load Docker image tarballs into local Docker
