@@ -2,18 +2,6 @@
 set -e
 
 # ----------------------------------------
-# Load metadata
-# ----------------------------------------
-if [ -f "build_output/image_metadata.env" ]; then
-  # Fix invalid variable names before sourcing
-  sed -i 's/-/_/g' build_output/image_metadata.env
-  source build_output/image_metadata.env
-else
-  echo "image_metadata.env not found! Exiting..."
-  exit 1
-fi
-
-# ----------------------------------------
 # Ensure changed services file exists
 # ----------------------------------------
 if [ ! -f "build_output/changed_services.txt" ] && [ ! -f "build_output/changed_services" ]; then
@@ -21,47 +9,67 @@ if [ ! -f "build_output/changed_services.txt" ] && [ ! -f "build_output/changed_
   exit 1
 fi
 
-CHANGED_SERVICES=$(cat build_output/changed_services.txt || cat build_output/changed_services)
-echo "Pushing services: $CHANGED_SERVICES"
-echo "Using image tag: $IMAGE_TAG"
+# ----------------------------------------
+# Read changed services and convert to array
+# ----------------------------------------
+LINE=$(cat build_output/changed_services.txt | tr -d '\r\n')
+IFS=' ' read -r -a SERVICES_ARRAY <<< "$LINE"
+
+echo "DEBUG: Raw changed_services.txt content:"
+cat build_output/changed_services.txt
+echo "DEBUG: Services array parsed from changed_services.txt:"
+printf '  - %s\n' "${SERVICES_ARRAY[@]}"
+echo "Using IMAGE_TAG=$IMAGE_TAG"
 
 # ----------------------------------------
 # Authenticate with Huawei Cloud SWR
 # ----------------------------------------
 echo "Logging into Huawei SWR..."
-docker login -u "${SWR_REGION}@${HUAWEI_SWR_USERNAME}" -p "${HUAWEI_SWR_PASSWORD}" "${SWR_REGISTRY_URL}"
+echo "${HUAWEI_SWR_PASSWORD}" | docker login \
+  -u "${SWR_REGION}@${HUAWEI_SWR_USERNAME}" \
+  --password-stdin "${SWR_REGISTRY_URL}"
+
+if [ $? -ne 0 ]; then
+  echo "Huawei SWR login failed. Please check your credentials or token expiration."
+  exit 1
+else
+  echo "Successfully logged into Huawei SWR."
+fi
 
 # ----------------------------------------
-# Tag and Push only built images
+# Loop over array and push images
 # ----------------------------------------
-for SERVICE in $CHANGED_SERVICES; do
-  echo "Processing $SERVICE..."
-  
-  # Check if image exists locally before pushing
-  if ! docker image inspect ${SERVICE}:${IMAGE_TAG} > /dev/null 2>&1; then
+for SERVICE in "${SERVICES_ARRAY[@]}"; do
+  echo "------------------------------"
+  echo "Processing service: $SERVICE"
+
+  if ! docker image inspect "${SERVICE}:${IMAGE_TAG}" > /dev/null 2>&1; then
     echo "Image ${SERVICE}:${IMAGE_TAG} not found locally — skipping."
     continue
   fi
 
   echo "Tagging image ${SERVICE}:${IMAGE_TAG}..."
-  docker tag ${SERVICE}:${IMAGE_TAG} ${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}
+  docker tag "${SERVICE}:${IMAGE_TAG}" "${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}"
 
-  echo "Pushing image to SWR..."
-  docker push ${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}
+  echo "Pushing image ${SERVICE}:${IMAGE_TAG} to SWR..."
+  docker push "${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}"
 
+  # Update Helm values
+  VALUES_FILE="${HELM_MOBILE_REPO_PATH}/${SERVICE}/values-${BRANCH_ENV}.yaml"
+  if [[ -f "$VALUES_FILE" ]]; then
+      echo "Updating Helm values for ${SERVICE}..."
+      yq e -i ".image.repository = \"${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}\"" "$VALUES_FILE"
+      yq e -i ".image.tag = \"${IMAGE_TAG}\"" "$VALUES_FILE"
 
-# ----------------------------------------
-# Update Helm values
-# ----------------------------------------
-VALUES_FILE="${HELM_MOBILE_REPO_PATH}/${SERVICE}/values-${BRANCH_ENV}.yaml"
-if [[ -f "$VALUES_FILE" ]]; then
-  echo "Updating Helm values for ${SERVICE}..."
-  yq e -i ".image.repository = \"${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}\"" "$VALUES_FILE"
-  yq e -i ".image.tag = \"${IMAGE_TAG}\"" "$VALUES_FILE"
-else
-  echo "Values file ${VALUES_FILE} not found, skipping Helm update."
-fi
-
+      # Debug: print updated values
+      UPDATED_REPO=$(yq e '.image.repository' "$VALUES_FILE")
+      UPDATED_TAG=$(yq e '.image.tag' "$VALUES_FILE")
+      echo "DEBUG: ${VALUES_FILE} updated:"
+      echo "  image.repository = $UPDATED_REPO"
+      echo "  image.tag        = $UPDATED_TAG"
+  else
+      echo "Values file ${VALUES_FILE} not found, skipping Helm update."
+  fi
 done
 
 echo "All detected images processed successfully!"
