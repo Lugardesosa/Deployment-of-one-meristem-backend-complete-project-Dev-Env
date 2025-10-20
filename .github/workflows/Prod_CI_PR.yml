@@ -644,8 +644,8 @@ jobs:
       - name: Push Images to Huawei SWR
         run: |
           echo "Running push script..."
-          chmod +x ./scripts/backend-scripts/push-image-swr-stag_env.sh
-          bash ./scripts/backend-scripts/push-image-swr-stag_env.sh
+          chmod +x ./scripts/backend-scripts/push-image-swr-prod_env.sh
+          bash ./scripts/backend-scripts/push-image-swr-prod_env.sh
           echo "Push script completed."
           echo "All CI Workflow actions completed successfully!"
           echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
