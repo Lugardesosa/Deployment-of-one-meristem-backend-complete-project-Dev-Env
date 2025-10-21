@@ -23,6 +23,11 @@ public record UsersResponse(Integer status, Long id, String email, String firstN
         this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
     }
 
+    public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
+                         String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, Boolean biometricEnabled) {
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, null, null, biometricEnabled);
+    }
+
     public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
                                      String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
         return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);

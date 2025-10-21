@@ -296,7 +296,7 @@ public class SmileIdService {
             profile.setStateOfOrigin(notification.placeOfBirth());
             userProfileRepository.save(profile);
 
-            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getEmail());
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getId());
         }
     }
 

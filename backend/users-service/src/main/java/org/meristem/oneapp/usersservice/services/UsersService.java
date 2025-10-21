@@ -149,7 +149,7 @@ public class UsersService {
             Map<String, Object> updates = new HashMap<>();
             updates.put("email_verified", true);
             customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", user.getId()));
-            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(dto.email());
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(user.getId());
         });
     }
 
@@ -164,13 +164,12 @@ public class UsersService {
     public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
 
         Long userId = AppUtil.getLoggedInUserId();
-        String oldEmail = AppUtil.getLoggedInUserEmail();
         if (userProfileRepository.existsByUserIdAndEmailVerified(userId, true)) {
             throw new BadRequestException("Email already verified, so cannot be updated.");
         }
 
         usersRepository.updateEmail(userId, userRequest.newEmail());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(oldEmail);
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
 
         return UpdateResponse.builder().success(true).message("Email successfully updated").build();
     }
@@ -183,7 +182,7 @@ public class UsersService {
      * @throws BadRequestException if the user is not found
      */
     public UsersResponse getUser() {
-        UsersResponse response =  usersRepository.findUserDetailsByEmail(AppUtil.getLoggedInSubject()).orElseThrow(() -> new BadRequestException("User not found."));
+        UsersResponse response =  usersRepository.findUserDetailsById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new BadRequestException("User not found."));
         String signedUrl = null;
         if (StringUtils.hasText(response.image())) {
             SignedUrlResponse signedUrlResponse = huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(response.image())
@@ -217,6 +216,7 @@ public class UsersService {
 
         // Update the password and expire otp
         usersRepository.updateUsersPassword(usersResponse.email(), passwordEncoder.encode(request.password()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(usersResponse.id());
         otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), MessageSubject.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
@@ -235,6 +235,7 @@ public class UsersService {
     public UpdateResponse updatePassword(UpdatePasswordRequest request) {
 
         String userEmail = AppUtil.getLoggedInUserEmail();
+        Long userId = AppUtil.getLoggedInUserId();
         String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
 
         // Ensure otp exists and not expired
@@ -252,6 +253,7 @@ public class UsersService {
 
         // Update password and return
         usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userEmail, userEmail, MessageSubject.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
@@ -268,8 +270,10 @@ public class UsersService {
     public UpdatePhoneNumberResponse updatePhoneNumber(UpdatePhoneNumberRequest request) {
 
         String userEmail = AppUtil.getLoggedInUserEmail();
+        Long userId = AppUtil.getLoggedInUserId();
 
         usersRepository.updateUsersPhoneNumber(request.phoneNumber(), userEmail);
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         return UpdatePhoneNumberResponse.builder().status(true).message("User phone number updated").build();
     }
 
@@ -297,7 +301,7 @@ public class UsersService {
         }
 
         userProfileRepository.updateUsersImage(imageKey, userId);
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         return UpdateImageResponse.builder().status(true).message("User image updated").build();
     }
 
@@ -337,7 +341,7 @@ public class UsersService {
 
         // Update newPin and return
         userProfileRepository.updateUsersPin(passwordEncoder.encode(request.newPin()), userId);
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         return PinResponse.builder().status(true).message("Pin successfully set.").build();
     }
 
@@ -363,8 +367,10 @@ public class UsersService {
      * @return response indicating whether the operation was successful
      */
     public AccountDeactivationResponse deactivateUser() {
-        String userId = AppUtil.getLoggedInUserEmail();
-        int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
+        String userEmail = AppUtil.getLoggedInUserEmail();
+        Long userId = AppUtil.getLoggedInUserId();
+        int updated = usersRepository.updateUsersStatus(userEmail, UserStatus.DEACTIVATED.getValue());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
     }
 
@@ -379,7 +385,7 @@ public class UsersService {
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
         if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
             userProfileRepository.completeOnboarding(kycCompletedDto.userId());
-            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.email());
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
             kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
         }
     }
@@ -396,7 +402,7 @@ public class UsersService {
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
         userProfileRepository.resetOnboarding(kycCompletedDto.userId());
         userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.email());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
         kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED));
     }
 
@@ -450,7 +456,7 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
         int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 
@@ -465,7 +471,7 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
         int updated = customRepository.dynamicUpdate(InvestmentOptionsAccessed.class, updates, Map.of("option_id", request.optionId(), "user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 
@@ -480,7 +486,7 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("biometric_enabled", request.biometricLogin());
         int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 }

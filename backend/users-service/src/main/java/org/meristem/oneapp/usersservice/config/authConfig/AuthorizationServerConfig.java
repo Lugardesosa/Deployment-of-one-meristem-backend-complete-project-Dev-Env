@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -92,7 +93,7 @@ public class AuthorizationServerConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JdbcTemplate jdbcTemplate, JdbcOperations jdbcOperations, RsaKeys rsaKeys,
                                                    CustomUserDetailsService userDetailsService, UsersRepository usersRepository, KafkaSenderService kafkaSenderService,
-                                                   LoginService loginService, ApplicationEventPublisher publisher) throws Exception {
+                                                   LoginService loginService, ApplicationEventPublisher publisher, RedisCacheManager cacheManager) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
         http.securityMatcher(configurer.getEndpointsMatcher())
                 .with(configurer, (customizer) -> {
@@ -100,7 +101,7 @@ public class AuthorizationServerConfig {
                         customizer.oidc(Customizer.withDefaults())
                                 .tokenEndpoint(te -> te.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
                                         .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(jdbcOperations, jdbcTemplate),
-                                                tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository)
+                                                tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository, cacheManager)
                                         ).accessTokenResponseHandler(new LoginSuccessAuthenticationHandler(kafkaSenderService, loginService, publisher))
                                 );
 
