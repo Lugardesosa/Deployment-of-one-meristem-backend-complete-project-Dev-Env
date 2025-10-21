@@ -1077,14 +1077,16 @@ DO $$
     DECLARE
         TrusteesId integer;
         WealthId integer;
-    
+
 BEGIN
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
         VALUES
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MER-STOCKS'),
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Loans', 'MER-LOANS'),
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS');
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MER-STOCKS');
+
+        INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
+        VALUES
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MER-WEALTH') RETURNING id INTO WealthId;
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
         VALUES
@@ -1092,9 +1094,13 @@ BEGIN
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
         VALUES
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MER-WEALTH') RETURNING id INTO WealthId;
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Loans', 'MER-LOANS'),
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS'),
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'AI Agent', 'MER-AI-AGENT');
 
-        
+
+
+
         INSERT INTO investment_options (created_date, created_by, last_modified_date, last_modified_by, version, investment_id, name)
         VALUES
             (NOW(), 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM', 0, WealthId, 'Money Market Fund'),

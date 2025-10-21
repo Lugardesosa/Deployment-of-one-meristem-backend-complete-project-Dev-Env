@@ -164,12 +164,13 @@ public class UsersService {
     public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
 
         Long userId = AppUtil.getLoggedInUserId();
+        String oldEmail = AppUtil.getLoggedInUserEmail();
         if (userProfileRepository.existsByUserIdAndEmailVerified(userId, true)) {
             throw new BadRequestException("Email already verified, so cannot be updated.");
         }
 
         usersRepository.updateEmail(userId, userRequest.newEmail());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userRequest.newEmail());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(oldEmail);
 
         return UpdateResponse.builder().success(true).message("Email successfully updated").build();
     }
@@ -362,7 +363,7 @@ public class UsersService {
      * @return response indicating whether the operation was successful
      */
     public AccountDeactivationResponse deactivateUser() {
-        Long userId = AppUtil.getLoggedInUserId();
+        String userId = AppUtil.getLoggedInUserEmail();
         int updated = usersRepository.updateUsersStatus(userId, UserStatus.DEACTIVATED.getValue());
         return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
     }

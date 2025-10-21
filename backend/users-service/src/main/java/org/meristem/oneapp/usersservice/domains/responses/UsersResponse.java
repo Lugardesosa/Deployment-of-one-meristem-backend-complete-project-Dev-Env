@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import org.springframework.data.relational.core.mapping.Column;
 
@@ -13,13 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 
-//@Column("password_set")
-//@NotNull(message = "passwordSet cannot be null")
-//private Boolean passwordSet = Boolean.FALSE;
-//
-//@Column("email_verified")
-//@NotNull(message = "emailVerified cannot be null")
-//private Boolean emailVerified = Boolean.FALSE;
+
 @Builder
 public record UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, @JsonIgnore String password, String phoneNumber, @JsonIgnore Integer passwordAttempt,
                             @Column("image_key") String image, @JsonIgnore String pin, String gender, @Column("date_of_birth") LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified,

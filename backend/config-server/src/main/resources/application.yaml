@@ -13,6 +13,8 @@ spring:
           clone-on-start: true
           username: ${GITHUB_USERNAME}
           password: ${GITHUB_PASSWORD}
+          default-label: ${GITHUB_BRANCH}
+          try-master-branch: false
         encrypt:
           enabled: true
       fail-fast: true

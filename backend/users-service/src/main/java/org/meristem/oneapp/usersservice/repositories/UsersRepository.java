@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
@@ -71,8 +70,8 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     Optional<Users> findOneByEmail(String email);
 
     @UsersQueryModifier
-    @Query("UPDATE users SET status = :status WHERE id = :id ")
-    int updateUsersStatus(long id, Integer status);
+    @Query("UPDATE users SET status = :status WHERE email = :email ")
+    int updateUsersStatus(String email, Integer status);
 
     Long findIdByEmail(String email);
 
@@ -88,7 +87,8 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
             " WHERE u.email = :email AND up.email_verified = FALSE ")
     Optional<Users> findOneByEmailAndEmailVerifiedIsNull(String email);
 
-    @UsersQueryModifier
-    @Query("UPDATE users SET email = :email WHERE id = :id ")
+    @Modifying
+    @Transactional
+    @Query("UPDATE users SET email = :email WHERE id = :userId ")
     int updateEmail(Long userId, String email);
 }
