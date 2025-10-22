@@ -46,15 +46,13 @@ public class LoggingEventHandler {
             HashMap<String, Object> bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {
             });
 
-            sanitize(event, bodyResponse, bodyRequest);
-
             log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
                     event.getStatus(),
                     event.getMethod(),
                     event.getRequestURI(),
-                    getRequestHeaders(event.getHeaders()),
-                    objectMapper.writeValueAsString(bodyRequest),
-                    objectMapper.writeValueAsString(bodyResponse),
+                    sanitise(event.getHeaders()),
+                    sanitise(bodyRequest),
+                    sanitise(bodyResponse),
                     event.getDuration(),
                     getRequestParameters(event.getParameters())
             );
@@ -64,15 +62,12 @@ public class LoggingEventHandler {
         }
     }
 
-    private void sanitize(RequestAndResponseLogEvent event, HashMap<String, Object> bodyResponse, HashMap<String, Object> bodyRequest) {
 
-    }
-
-    private String getRequestHeaders(Map<String, String> requestHeaders) {
+    private String sanitise(Map<String, Object> requestHeaders) {
         StringBuilder headers = new StringBuilder();
         headers.append("{");
 
-        for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
+        for (Map.Entry<String, Object> entry : requestHeaders.entrySet()) {
             if (whatToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
                 headers.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
                 continue;

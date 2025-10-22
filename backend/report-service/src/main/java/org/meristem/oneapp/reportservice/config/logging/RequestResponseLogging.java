@@ -55,7 +55,7 @@ public class RequestResponseLogging extends OncePerRequestFilter {
         byte[] requestBody = nonNull(requestWrapper.getHeader("content-type")) && contentTypeToSkipForBody.contains(requestWrapper.getHeader("content-type")) ? new byte[0] : requestWrapper.getContentAsByteArray();
         byte[] responseBody = responseWrapper.getContentAsByteArray();
 
-        Map<String, String> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         for (String headerName : headersToFilterFor) {
             headers.put(headerName, requestWrapper.getHeader(headerName));
         }

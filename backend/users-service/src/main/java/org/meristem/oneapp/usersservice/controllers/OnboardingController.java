@@ -9,7 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.SmileIdService;
@@ -46,9 +46,9 @@ public class OnboardingController {
             @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
     })
     @PreAuthorize("hasRole('ROLE_users.get_smile_id_token')")
-    @PostMapping(value = "/smile-id/smart-link", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<SmileIdTokenResponse>> getSmileIdToken(@RequestBody @Valid SmileIdIdTypeRequest idType, @RequestParam(name = "requirement-id") Long requirementId) {
-        return ApiUtil.buildResponse(smileIdService.getSmileLink(idType, requirementId), HttpStatus.OK.toString(), "Token successfully generated");
+    @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> getSmileIdToken(@RequestBody @Valid SmileIdIdRequest smileRequest) {
+        return ApiUtil.buildResponse(smileIdService.saveSmileIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
     }
 
     @Operation(summary = "Smile Id webhook")

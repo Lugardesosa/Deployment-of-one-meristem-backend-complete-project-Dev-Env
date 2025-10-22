@@ -1,21 +1,18 @@
 package org.meristem.oneapp.usersservice.services;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.*;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdTypeRequest;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdTokenResponse;
+import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
+import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
-import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
-import org.meristem.oneapp.usersservice.integrations.requests.SmileIdSmileLinkRequest;
-import org.meristem.oneapp.usersservice.integrations.responses.SmileIdSmileLinkResponse;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -31,13 +28,10 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -61,14 +55,13 @@ import static java.util.Objects.requireNonNull;
 @Service
 public class SmileIdService {
 
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    @Value("${one-app.users-service.smile-id.server-ips}")
+    private List<String> smileIps;
     private static final String DOCUMENT_APPROVED_STATUS = "0810";
     private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
     private static final List<Integer> DOC_AND_ENHANCED_JOB_TYPES = List.of(DOCUMENT_JOB_TYPE, ENHANCED_JOB_TYPE);
 
-    @Value("${call.smile-id:true}")
-    private boolean callSmileId;
     private final SmileIdRecordRepository smileIdRecordRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
@@ -78,14 +71,13 @@ public class SmileIdService {
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
     private final SimpMessagingTemplate messagingTemplate;
-    private final SmileIdClient smileIdClient;
     private final UsersService usersService;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final CustomRepository customRepository;
+    private final HttpServletRequest httpServletRequest;
 
 
     private final SmileIdProperties smileIdProperties;
-    private final OneAppUsersProperties oneAppUsersProperties;
 
     List<String> dataStatus = List.of("1012", DOCUMENT_APPROVED_STATUS);
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
@@ -95,53 +87,20 @@ public class SmileIdService {
     /**
      * Generates a Smile ID smart link for user verification.
      *
-     * @param smileRequest The request containing ID type and number for verification.
-     * @param requirementId The ID of the requirement being verified.
-     * @return A {@link SmileIdTokenResponse} containing the generated smart link and job ID.
+     * @param smileRequest The request containing job ID and requirement id for verification.
+     * @return A {@link UpdateResponse} containing a successful message.
      * @throws BadRequestException If the ID card already exists or the requirement is already completed.
      * @throws UpstreamServiceException If the token generation fails.
      */
     @Transactional
-    public SmileIdTokenResponse getSmileLink(SmileIdIdTypeRequest smileRequest, Long requirementId) {
+    public UpdateResponse saveSmileIdTask(SmileIdIdRequest smileRequest) {
 
-        // Check if a user has already completed this requirement
-        if (userOnboardingRepository.existsByUserIdAndRequirementIdAndCompleted(AppUtil.getLoggedInUserId(),
-                requirementId, true)) {
-            throw new BadRequestException("User has already completed this requirement");
-        }
-
-        Requirements requirements = requirementsRepository.findByIdAndStatus(requirementId, EntityStatus.ACTIVE.getValue())
+        Requirements requirements = requirementsRepository.findByIdAndStatus(smileRequest.requirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
-        try {
-
-            String userId = AppUtil.getLoggedInUserEmail();
-            String timestamp = new SimpleDateFormat(DATE_TIME_FORMAT).format(System.currentTimeMillis());
-            String jobId = UUID.randomUUID().toString();
-            String signature = generateSignature(timestamp);
-            String expiresAt = LocalDate.now().plusDays(smileIdProperties.expiresAt()).atStartOfDay(ZoneId.systemDefault()).toInstant().toString();
-
-            SmileIdSmileLinkRequest request = SmileIdSmileLinkRequest.builder()
-                    .partnerId(smileIdProperties.partnerId()).signature(signature)
-                    .name(AppUtil.getLoggedInUserFullName())
-                    .timestamp(timestamp)
-                    .companyName(oneAppUsersProperties.companyName()).dataPrivacyPolicyUrl(oneAppUsersProperties.dataPrivacyPolicyUrl())
-                    .logoUrl(oneAppUsersProperties.logoUrl()).isSingleUse(smileIdProperties.isSingleUse())
-                    .expiresAt(expiresAt).userId(userId)
-                    .idTypes(smileRequest.smileRequest()).partnerParams(Map.of("job_id", jobId)).build();
-
-            smileIdRecordRepository.save(SmileIdRecord.builder().jobId(jobId).requirementId(requirements.getId()).userId(userId)
-                    .timestamp(timestamp).build());
-
-            if (callSmileId) {
-                return getSmartLinkResponse(request, jobId);
-            } else {
-                return getTestSmartLinkResponse(jobId, signature, timestamp);
-            }
-
-        } catch (Exception e) {
-            throw new UpstreamServiceException("Can not generate token.");
-        }
+        smileIdRecordRepository.save(SmileIdRecord.builder().jobId(smileRequest.jobId()).requirementId(requirements.getId()).userId(AppUtil.getLoggedInUserEmail())
+                .build());
+        return UpdateResponse.builder().message("Success").success(true).build();
     }
 
     /**
@@ -157,7 +116,7 @@ public class SmileIdService {
 
         try {
             SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.partnerParams().jobId());
-            if (!confirmSignature(request.signature(), request.timestamp())) {
+            if (!confirmSignature(request.signature(), request.timestamp()) || !smileIps.contains(AppUtil.extractIp(httpServletRequest))) {
                 return new SmileIdWebhookResponse("Failed", false);
             }
             if (rejectionsStatus.contains(request.resultCode())) {
@@ -312,22 +271,6 @@ public class SmileIdService {
     }
 
     /**
-     * Generates a signature for Smile ID API requests using HMAC-SHA256.
-     *
-     * @param timestamp The timestamp to include in the signature.
-     * @return The generated signature as a Base64-encoded string.
-     * @throws UpstreamServiceException If the signature generation fails.
-     */
-    private String generateSignature(String timestamp) {
-        try {
-            Mac mac = getMac(timestamp);
-            return Base64.getEncoder().encodeToString(mac.doFinal());
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new UpstreamServiceException("Can not generate token.");
-        }
-    }
-
-    /**
      * Confirms the validity of a received signature by comparing it with a generated signature.
      *
      * @param receivedSignature The signature received in the request.
@@ -361,30 +304,6 @@ public class SmileIdService {
         mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
         mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
         return mac;
-    }
-
-    /**
-     * Sends a request to the Smile ID API to generate a smart link.
-     *
-     * @param request The request containing the details for the smart link.
-     * @param jobId The job ID associated with the request.
-     * @return A {@link SmileIdTokenResponse} containing the generated smart link and job ID.
-     */
-    private SmileIdTokenResponse getSmartLinkResponse(SmileIdSmileLinkRequest request, String jobId) {
-        SmileIdSmileLinkResponse response = smileIdClient.createSmileLink(request);
-        return new SmileIdTokenResponse(response.link(), jobId);
-    }
-
-    /**
-     * Generates a test smart link response for local or development environments.
-     *
-     * @param jobId The job ID associated with the test response.
-     * @param signature A placeholder value for the test response.
-     * @param timestamp A placeholder value for the test response.
-     * @return A {@link SmileIdTokenResponse} containing the test smart link and job ID.
-     */
-    private SmileIdTokenResponse getTestSmartLinkResponse(String jobId, String signature, String timestamp) {
-        return new SmileIdTokenResponse("", jobId, signature, timestamp);
     }
 
     /**
