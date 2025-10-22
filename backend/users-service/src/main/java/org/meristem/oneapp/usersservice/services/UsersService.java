@@ -165,6 +165,10 @@ public class UsersService {
 
         Long userId = AppUtil.getLoggedInUserId();
 
+        if (userRequest.newEmail().equals(AppUtil.getLoggedInUserEmail())) {
+            throw new BadRequestException("Email cannot be the same as your current email.");
+        }
+
         if (usersRepository.existsByEmail(userRequest.newEmail())) {
             throw new BadRequestException("Email already in use.");
         }
