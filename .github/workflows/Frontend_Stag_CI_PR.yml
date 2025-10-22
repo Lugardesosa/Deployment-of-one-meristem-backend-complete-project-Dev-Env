@@ -1,1 +1,352 @@
+# ----------------------------------------
+# One-Meristem Mobile-Frontend CI for Staging Env
+# ----------------------------------------
+
+
+
+name: One-Meristem-Mobile-Frontend CI For Staging Env
+
+on:
+  push:
+    branches:
+      - stag_env
+    paths:
+      - 'mobile/**'      # app src 
+  #Event types:
+  # opened - creates a new pull request
+  # synchronize - commits pushed to an existing pull request
+  # ready_for_review - when a draft pull request is marked as ready for review
+  # reopened - when a closed pull request is reopened
+    types: [opened, synchronize, ready_for_review, reopened]            
+      
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  actions: read
+
+env:            
+  EXPO_PROFILE: "preview"
+  RELEASE_CHANNEL: "internal"
+  
+  # Android
+  GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+  
+   # iOS
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+jobs:
+  commit-info:
+    name: Commit Info Logger 
+    runs-on:  [self-hosted, linux-runner]
+    environment: stag
+    outputs:
+      changed_services: ${{ steps.detect_changes.outputs.changed_services }}
+    defaults:
+      run:
+        shell: bash
+    steps: 
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 2  # This is to fetch at least 2 commits
+        
+      #Add git log for commit info & Author that pushed the code
+      - name: Show Commit Info and Who Pushed
+        run: |
+          echo "Commit Info:"
+          git log -1 --pretty=format:"%h by %an, on %ad: %s" --date=short
+          echo "Files Changed:"
+          git show --name-only --oneline -1
+          echo "Triggered by GitHub user: ${{ github.actor }}"
+          echo "Pushed by: ${{ github.actor }}"
+
+  Code-Test:
+    name: Code Test and Securoity checks
+    runs-on: [self-hosted, macos-runner]
+    needs: commit-info
+    # startegy:
+    #   fail-fast: false
+    #   matrix:
+    #     node-version: [22]
+    environment: stag
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@4.1.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+  # Cache dependencies before installing
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+            ~/.yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+  # Install yarn with frozen-lockfile ensures that the yarn.lock file is not modified during installation
+      - name: Install Dependencies
+        run: |
+          echo "Installing dependencies..."
+          yarn install --frozen-lockfile
+          echo "Dependencies installed successfully."
+
+      #Lint the code to Keep the code clean, consistent and bugs free
+      - name: Lint & Format Check
+        continue-on-error: true
+        run: |
+          echo "Running lint and format checks..."
+          yarn lint && yarn prettier --check . || { echo "Lint or format check failed"; exit 1; }
+          echo "Lint & format checks passed." 
+
+      # - name: Type Check
+      #   run: |
+      #     echo "Running type checks..."
+      #     npm run type-check || { echo "Type checks failed"; exit 1; }
+      #     echo "Type checks completed successfully."
+
+      - name: Unit & Integration Tests
+        continue-on-error: true
+        run: |
+          echo "Running unit and integration tests..."
+          if ! yarn test --ci --coverage; then
+            echo "Some tests failed — review test results before merging."
+          else
+            echo "All tests passed successfully!"
+          fi
+
+      - name: Dependency Security Audit
+        continue-on-error: true
+        run: |
+          echo "Running dependency vulnerability audit..."
+          if ! yarn audit --level high; then
+            echo "Security vulnerabilities found in dependencies!"
+            echo "Please review and update affected packages before deploying to production."
+          else
+            echo "No high-severity vulnerabilities detected."
+          fi
+
+      - name: License Compliance Check
+        continue-on-error: true
+        run: |
+          echo "Checking dependency licenses for compliance..."
+          if ! npx license-checker --summary; then
+            echo "License check encountered issues. Review the report for details."
+          else
+            echo "All dependencies have valid, compliant licenses."
+          fi
+
+      #Save License Report as Artifact
+      - name: Generate License Report
+        continue-on-error: true
+        run: |
+          echo "Generating full license report..."
+          npx license-checker --json > license-report.json || true
+
+      - name: Upload License Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-compliance-report
+          path: license-report.json
+
+      # Secret scanning for accidental keys
+      - name: Secret Scan
+        continue-on-error: true
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          output: trufflehog-results.json
+          #redact: true  # hides actual secrets in the logs
+
+      # Convert TruffleHog JSON results to HTML
+      - name: Convert TruffleHog JSON to HTML
+        if: always()  # Ensure it runs even if the scan fails
+        run: |
+          echo "Converting TruffleHog JSON report to HTML..."
+          echo "<html><head><title>TruffleHog Secret Scan Report</title></head><body><h1>TruffleHog Secret Scan Report</h1><pre>" > trufflehog-report.html
+          cat trufflehog-results.json | jq . >> trufflehog-report.html
+          echo "</pre></body></html>" >> trufflehog-report.html
+          echo "HTML report generated successfully."
+
+      # Upload Secret Scan HTML Report as Artifact
+      - name: Upload Secret Scan HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-scan-html-report
+          path: trufflehog-report.html
+
+      # Static Code Analysis & CodeQL for deeper code analysis
+      - name: Initialize CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+        continue-on-error: true # ensures this doesn't fail the whole workflow if CodeQL fails
+        env:
+          CODEQL_DEBUG: true #prints more details in logs
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true # ensures this doesn't fail the whole workflow if CodeQL have issues
+        with:
+          category: "/language:javascript"
+
+      # Convert CodeQL SARIF report to HTML
+      - name: Convert CodeQL SARIF to HTML Report
+        if: always()  # Ensures it runs even if the analysis step fails
+        run: |
+          echo "Generating HTML report from CodeQL results..."
+          mkdir -p codeql-html
+          npx @microsoft/sarif-multitool transform codeql-results/javascript.sarif --output codeql-html/codeql-report.html --format HTML
+          echo "HTML report generated successfully."
+
+      # Upload CodeQL HTML Report as an Artifact
+      - name: Upload CodeQL HTML Report
+        if: always()  # Always upload, even if there are issues
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-html-report
+          path: codeql-html/codeql-report.html
+
+
+
+
+
+
+
+
+
+
+
+  Build:
+    name: Build and test Expo images
+    runs-on: [self-hosted, macos-runner]
+    needs: Code-Test
+    env:
+      EXPO_PROFILE: "preview"
+      RELEASE_CHANNEL: "internal"
+      GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Dependencies
+        run: |
+          echo "Installing dependencies..."
+          npm install
+          echo "Dependencies installed successfully."
+      - name: Install & Log in to Expo
+        run: |
+          echo "Installing Expo CLI..."
+          npm install -g eas-cli || { echo "Expo CLI installation failed"; exit 1; }
+          echo "Expo CLI installed successfully."
+          echo "Checking Expo CLI version..."
+          eas --version || { echo "Expo CLI version check failed"; exit 1; }
+          echo "Expo CLI version checked successfully."
+          echo "Logging in to Expo..."
+          echo "${{ secrets.EXPO_TOKEN }}" | eas login --token "${{ secrets.EXPO_TOKEN }}" || { echo "Expo login failed"; exit 1; }
+          echo "Logged in to Expo successfully."
+      - name: Build Android APK
+        run: |
+          echo "Building Android APK..."
+          eas build --platform android --profile ${ env.EXPO_PROFILE } --non-interactive || { echo "Android APK build failed"; exit 1; }
+          echo "Android APK built successfully."
+      - name: Build iOS IPA
+        run: |
+          echo "Building iOS IPA..."
+          eas build --platform ios --profile ${ env.EXPO_PROFILE } --non-interactive || { echo "iOS IPA build failed"; exit 1; }
+          echo "iOS IPA built successfully."
+      # Artifact verification (without launching emulator/simulator)
+      - name: Verify Android APK
+        run: |
+          echo "Checking Android APK..."
+          APK_FILE=$(find . -name "*.apk" | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "No APK found!"
+            exit 1
+          fi
+          file "$APK_FILE"
+          unzip -l "$APK_FILE" | head -n 20
+      - name: Verify iOS IPA
+        run: |
+          echo "Checking iOS IPA..."
+          IPA_FILE=$(find . -name "*.ipa" | head -n 1)
+          if [ -z "$IPA_FILE" ]; then
+            echo "No IPA found!"
+            exit 1
+          fi
+          file "$IPA_FILE"
+          unzip -l "$IPA_FILE" | head -n 20
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-builds
+          path: |
+            **/*.apk
+            **/*.ipa
+
+  deploy:
+    name: Deploy Mobile App
+    runs-on: [self-hosted, macos-runner]
+    needs: Build 
+    env:
+      EXPO_PROFILE: "preview"
+      RELEASE_CHANNEL: "internal"
+      GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@4
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-builds
+          path: ./build-outputs
+      - name: Deploy to App Store
+        run: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          packageName: com.meristem.one-meristem-app
+          releaseFile: ./build-outputs/**/*.apk
+          track: ${env.RELEASE_CHANNEL} #release channel on Google Play to push to.(internal, alpha, beta, production)
+      - name: Deploy to App Store
+        run: apple-actions/upload-testflight-build@v1
+        with:
+          app-path: ./build-outputs/**/*.ipa
+          apple-id: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Post-deployment Actions
+        run: |
+          echo "Post-deployment actions..."
+          echo "Deployment completed successfully."
+
+
+
+
+
+
+
+
+
+
+
+
+
 
