@@ -97,4 +97,6 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Transactional
     @Query("UPDATE users SET email = :email WHERE id = :userId ")
     int updateEmail(Long userId, String email);
+
+    boolean existsByEmail(String email);
 }

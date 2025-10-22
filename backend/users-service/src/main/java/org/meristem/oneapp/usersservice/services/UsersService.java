@@ -164,6 +164,11 @@ public class UsersService {
     public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
 
         Long userId = AppUtil.getLoggedInUserId();
+
+        if (usersRepository.existsByEmail(userRequest.newEmail())) {
+            throw new BadRequestException("Email already in use.");
+        }
+
         if (userProfileRepository.existsByUserIdAndEmailVerified(userId, true)) {
             throw new BadRequestException("Email already verified, so cannot be updated.");
         }
