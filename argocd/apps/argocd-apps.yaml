@@ -11,7 +11,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH} 
     path: ${HELM_REPO_PATH}/shared-resources
     helm:
@@ -38,7 +38,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH}
     path: ${HELM_MOBILE_REPO_PATH}/${CONFIG_SERVER_APP_NAME}
     helm:
@@ -65,7 +65,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH} 
     path: ${HELM_MOBILE_REPO_PATH}/${CONSUL_APP_NAME}
     helm:
@@ -91,7 +91,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH}
     path: ${HELM_MOBILE_REPO_PATH}/${NOTIFICATION_SERVICE_APP_NAME}
     helm:
@@ -118,7 +118,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH} 
     path: ${HELM_MOBILE_REPO_PATH}/${WALLET_SERVICE_APP_NAME}
     helm:
@@ -145,7 +145,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH} 
     path: ${HELM_MOBILE_REPO_PATH}/${REPORT_SERVICE_APP_NAME}
     helm:
@@ -172,7 +172,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH}
     path: ${HELM_MOBILE_REPO_PATH}/${USERS_SERVICE_APP_NAME}
     helm:
@@ -199,7 +199,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH}
     path: ${HELM_MOBILE_REPO_PATH}/${TRUSTEES_SERVICE_APP_NAME}
     helm:
@@ -225,7 +225,7 @@ metadata:
 spec:
   project: ${ARGOCD_PROJECT}
   source:
-    repoURL: ${GIT_REPO_URL}
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
     targetRevision: ${GIT_BRANCH}
     path: ${HELM_MOBILE_REPO_PATH}/${CLOUD_GATEWAY_APP_NAME}
     helm:
