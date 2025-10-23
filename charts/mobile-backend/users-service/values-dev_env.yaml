@@ -166,8 +166,10 @@ pv:
   name: pv-obs-users-service
 
 pvc:
+  enabled: true
   name: users-service-pvc
-  size: 500Mi
+  size: "1Gi"
+  storageClassName: csi-obs
 
 
 
