@@ -128,6 +128,29 @@ jobs:
           done
 
       # ----------------------------------------
+      # Step 3b: Debug substituted manifests
+      # ----------------------------------------
+      - name: Debug substitution results
+        if: steps.detect_changes.outputs.changed_dirs != 'none'
+        run: |
+          echo "===== DEBUG: Checking substituted placeholders in Argo CD apps ====="
+          grep -R "\${" ./argocd/apps || echo "No unresolved placeholders found in ./argocd/apps"
+
+          echo ""
+          echo "===== DEBUG: Checking substituted placeholders in Helm charts ====="
+          grep -R "\${" ./charts/mobile-backend || echo "No unresolved placeholders found in ./charts/mobile-backend"
+
+          echo ""
+          echo "===== SAMPLE OUTPUT FROM argocd-apps.yaml ====="
+          head -n 40 ./argocd/apps/argocd-apps.yaml || echo "No argocd-apps.yaml found"
+
+          echo ""
+          echo "===== SAMPLE OUTPUT FROM one of the Helm chart templates ====="
+          find ./charts/mobile-backend -type f -name "*.yaml" | head -n 1 | xargs -r head -n 40
+
+
+
+      # ----------------------------------------
       # Step 4: Commit and Push Updated Manifests
       # ----------------------------------------
       - name: Commit and Push Updated Manifests
