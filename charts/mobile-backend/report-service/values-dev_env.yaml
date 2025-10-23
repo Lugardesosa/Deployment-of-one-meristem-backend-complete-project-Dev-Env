@@ -68,7 +68,7 @@ env:
   GITHUB_BRANCH: "dev_env" #github branch
   APP_PROFILE: "dev"
   SERVER_PORT: "20050"
-  ONE_APP_SERVER_URL: "https://${ELB_IP}" #placeholder for the EIP IP
+  ONE_APP_SERVER_URL: "https://" #placeholder for the EIP IP
   ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
   ADMIN_USERNAME: "admin"
   CONFIG_SERVER_URI: "http://config-server:20000/config"

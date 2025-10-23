@@ -40,7 +40,7 @@ env:
   APP_PROFILE: "dev"
   GITHUB_BRANCH: "stag_env"
   USER: "System"
-  ONE_APP_SERVER_URL: "https://${ELB_IP}" #placeholder for the EIP IP
+  ONE_APP_SERVER_URL: "https://" #placeholder for the EIP IP
   ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
   CONSUL_HOST: "consul"
   USERS_SERVICE_HOSTNAME: users-service

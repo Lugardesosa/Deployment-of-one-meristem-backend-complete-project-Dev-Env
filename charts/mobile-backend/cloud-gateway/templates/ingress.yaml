@@ -74,8 +74,8 @@ metadata:
   name: {{ .Values.ingress.name }}
   namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
   annotations:
-{{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: "{{ $value }}"
+{{- range ,  := .Values.ingress.annotations }}
+    {{  }}: "{{  }}"
 {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className | default "cce" }}

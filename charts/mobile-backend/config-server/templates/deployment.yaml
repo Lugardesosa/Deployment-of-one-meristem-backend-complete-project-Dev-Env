@@ -160,12 +160,12 @@ spec:
             failureThreshold: 3
           env:
 {{ toYaml .Values.env | indent 12 }}
-{{- range $key, $val := .Values.secretEnv }}
-            - name: {{ $key }}
+{{- range ,  := .Values.secretEnv }}
+            - name: {{  }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ $val.secretName }}
-                  key: {{ $val.secretKey }}
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
 {{- end }}
           volumeMounts:
             {{- toYaml .Values.volumeMounts | nindent 12 }}
