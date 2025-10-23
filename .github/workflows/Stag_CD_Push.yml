@@ -114,39 +114,36 @@ jobs:
             echo "changed_dirs=$CHANGED_DIRS" >> "$GITHUB_OUTPUT"
           fi
 
+            # ----------------------------------------
+      # Step 3c: Substitute environment variables
       # ----------------------------------------
-      # Step 3: Substitute Env Vars in Manifests
-      # ----------------------------------------
-      - name: Substitute Env Vars in Helm & Argo CD Manifests
+      - name: Substitute environment variables in manifests
         if: steps.detect_changes.outputs.changed_dirs != 'none'
         run: |
-          echo "Substituting environment variables into manifests..."
-          for file in $(find ./argocd/apps/argocd-apps.yaml ./charts/mobile-backend -type f \( -name "*.yaml" -o -name "*.yml" \)); do
-            echo "Processing: $file"
-            envsubst < "$file" > "${file}.rendered"
-            mv "${file}.rendered" "$file"
+          echo "Substituting environment variables in Argo CD manifests..."
+          find ./argocd -type f -name "*.yaml" -print0 | while IFS= read -r -d '' file; do
+            echo "Processing $file"
+            envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
           done
 
-      # ----------------------------------------
-      # Step 3b: Debug substituted manifests
-      # ----------------------------------------
-      - name: Debug substitution results
-        if: steps.detect_changes.outputs.changed_dirs != 'none'
-        run: |
-          echo "===== DEBUG: Checking substituted placeholders in Argo CD apps ====="
-          grep -R "\${" ./argocd/apps || echo "No unresolved placeholders found in ./argocd/apps"
+          echo "Substituting environment variables in Helm charts (if any)..."
+          find ./charts -type f -name "*.yaml" -print0 | while IFS= read -r -d '' file; do
+            echo "Processing $file"
+            envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+          done
 
-          echo ""
-          echo "===== DEBUG: Checking substituted placeholders in Helm charts ====="
-          grep -R "\${" ./charts/mobile-backend || echo "No unresolved placeholders found in ./charts/mobile-backend"
+          echo "Substitution complete. Checking for unreplaced placeholders..."
+          grep -R "\${" ./argocd || echo "All placeholders substituted in argocd/"
+          grep -R "\${" ./charts || echo "All placeholders substituted in charts/"
 
           echo ""
           echo "===== SAMPLE OUTPUT FROM argocd-apps.yaml ====="
           head -n 40 ./argocd/apps/argocd-apps.yaml || echo "No argocd-apps.yaml found"
 
           echo ""
-          echo "===== SAMPLE OUTPUT FROM one of the Helm chart templates ====="
-          find ./charts/mobile-backend -type f -name "*.yaml" | head -n 1 | xargs -r head -n 40
+          echo "===== SAMPLE OUTPUT FROM one Helm chart template ====="
+          find ./charts -type f -name "*.yaml" | head -n 1 | xargs -r head -n 40
+
 
 
 
