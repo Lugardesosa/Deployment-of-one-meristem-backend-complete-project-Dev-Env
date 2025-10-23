@@ -75,7 +75,7 @@ metadata:
   namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
   annotations:
 {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: "{{ $value }}"
+    {{ $key }}: {{ $value | quote }}
 {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className | default "cce" }}
@@ -93,7 +93,7 @@ spec:
             pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
               service:
-                name: {{ include "cloud-gateway.fullname" . }}
+                name: {{ include "cloud-gateway.fullname" $ }}
                 port:
                   number: {{ .service.port }}
 {{- end }}
