@@ -25,9 +25,6 @@ secretProviderClass:
   provider: huawei
   k8sSecretName: cloud-gateway-secrets
 
-k8sSecret:
-  name: credentials
-
 strategy:
   type: RollingUpdate
   rollingUpdate:
