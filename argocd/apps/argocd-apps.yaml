@@ -16,7 +16,7 @@ spec:
     path: ${HELM_REPO_PATH}/shared-resources
     helm:
       valueFiles:
-        - ${VALUES_FILE}
+        - values.yaml
   destination:
     server: ${CLUSTER_SERVER_URL}
     namespace: ${APP_NAMESPACE}
