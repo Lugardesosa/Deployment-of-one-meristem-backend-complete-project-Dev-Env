@@ -7,7 +7,7 @@ name: One-Meristem-Mobile-backend CI for Staging Env
 
 on:
   pull_request:
-    types: [opened, closed]
+    types: [opened, synchronize, reopened]
     branches:
       - stag_env
     paths:
