@@ -141,7 +141,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
-          # ✅ HEALTH CHECKS START HERE
+          # HEALTH CHECKS START HERE
           livenessProbe:
             httpGet:
               path: /config/actuator/health
@@ -160,18 +160,18 @@ spec:
             failureThreshold: 3
           env:
 {{ toYaml .Values.env | indent 12 }}
-{{- range ,  := .Values.secretEnv }}
-            - name: {{  }}
+{{- range .Values.secretEnv }}
+            - name: {{ .name }}
               valueFrom:
                 secretKeyRef:
                   name: {{ .secretName }}
                   key: {{ .secretKey }}
 {{- end }}
           volumeMounts:
-            {{- toYaml .Values.volumeMounts | nindent 12 }}
+{{- toYaml .Values.volumeMounts | nindent 12 }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+{{- toYaml .Values.resources | nindent 12 }}
       imagePullSecrets:
-        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+{{- toYaml .Values.imagePullSecrets | nindent 8 }}
       volumes:
-        {{- toYaml .Values.volumes | nindent 8 }}
+{{- toYaml .Values.volumes | nindent 8 }}
