@@ -142,7 +142,7 @@ volumes:
 pvc:
   enabled: true
   name: users-service-pvc
-  size: "10Gi"
+  size: "1Gi"
   storageClassName: csi-obs
 
 resources:
