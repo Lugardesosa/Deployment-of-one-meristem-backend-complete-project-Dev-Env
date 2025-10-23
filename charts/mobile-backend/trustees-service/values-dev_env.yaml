@@ -6,7 +6,7 @@ global:
   create: false     # Prevent chart from trying to create it
 
 networkpolicy:
-  enabled: true
+  enabled: false
 
 
 #Deployment configuration
@@ -34,7 +34,7 @@ env:
   FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
   GITHUB_BRANCH: "dev_env"
   APP_PROFILE: "dev"
-  ONE_APP_SERVER_URL: "https://${ELB_IP}" #placeholder for the EIP IP
+  ONE_APP_SERVER_URL: "https://" #placeholder for the EIP IP
   ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
   ADMIN_USERNAME: "admin"
   CONFIG_SERVER_URI: "http://config-server:20000/config"
@@ -145,6 +145,5 @@ service:
   name: trustees-service
   port: 8082
   targetPort: 20060
-
 
 
