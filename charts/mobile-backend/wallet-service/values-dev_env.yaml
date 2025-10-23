@@ -7,7 +7,7 @@ global:
   create: true     # Prevent chart from trying to create it
 
 networkpolicy:
-  enabled: true
+  enabled: false
 
 
 image:
