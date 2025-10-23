@@ -1,5 +1,5 @@
-#--------------------- CLOUD-GATEWAY VALUES ---------------------
-# This file contains the configuration values for the cloud-gateway service deployment.
+##--------------------- CLOUD-GATEWAY VALUES ---------------------
+## This file contains the configuration values for the cloud-gateway service deployment.
 
 environment: stag_env
 
