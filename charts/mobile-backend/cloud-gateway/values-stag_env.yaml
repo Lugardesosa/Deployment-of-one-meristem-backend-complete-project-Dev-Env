@@ -22,7 +22,7 @@ imagePullSecrets:
 #Secret provider class
 secretProviderClass:
   name: cloud-gateway-secrets
-  provider: huawei
+  provider: cce
   k8sSecretName: cloud-gateway-secrets
 
 resources:
