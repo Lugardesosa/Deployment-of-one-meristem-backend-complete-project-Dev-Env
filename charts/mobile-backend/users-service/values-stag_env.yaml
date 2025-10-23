@@ -139,6 +139,12 @@ volumes:
     persistentVolumeClaim:
       claimName: users-service-pvc
 
+pvc:
+  enabled: true
+  name: users-service-pvc
+  size: "1Gi"
+  storageClassName: csi-obs
+
 resources:
   limits:
     cpu: "0.7"
