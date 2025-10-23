@@ -215,17 +215,17 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           env:
-            {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
+            {{- range ,  := .Values.env }}
+            - name: {{  }}
+              value: {{  | quote }}
             {{- end }}
             {{- if .Values.secretEnv }}
-            {{- range $index, $secret := .Values.secretEnv }}
-            - name: {{ $secret.name }}
+            {{- range ,  := .Values.secretEnv }}
+            - name: {{ .name }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ $secret.secretName }}
-                  key: {{ $secret.secretKey }}
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
             {{- end }}
             {{- end }}
           volumeMounts:
