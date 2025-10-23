@@ -17,6 +17,13 @@ image:
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
 
+# Secret provider class
+secretProviderClass:
+  name: notification-service-secrets
+  provider: cce
+  k8sSecretName: notification-service-secrets
+
+
 strategy:
   type: RollingUpdate
   rollingUpdate:
