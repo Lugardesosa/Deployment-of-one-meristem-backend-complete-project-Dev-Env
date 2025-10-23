@@ -12,7 +12,7 @@ echo "Using image tag: $IMAGE_TAG"
 export IMAGE_TAG
 
 # ----------------------------------------
-# Install Docker if missing
+# Install Docker if missing 
 # ----------------------------------------
 echo "Checking dependencies for Docker..."
 sudo apt update -y
@@ -29,7 +29,7 @@ else
 fi
 
 # ----------------------------------------
-# Install pack CLI
+# Install pack CLI for build
 # ----------------------------------------
 echo "Checking if pack CLI is already installed..."
 
