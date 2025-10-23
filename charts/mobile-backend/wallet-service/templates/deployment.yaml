@@ -197,7 +197,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
-          # ✅ HEALTH CHECKS START HERE
+          # HEALTH CHECKS START HERE
           livenessProbe:
             httpGet:
               path: /api/wallets/actuator/health
@@ -215,17 +215,17 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           env:
-            {{- range ,  := .Values.env }}
-            - name: {{  }}
-              value: {{  | quote }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
             {{- end }}
             {{- if .Values.secretEnv }}
-            {{- range ,  := .Values.secretEnv }}
-            - name: {{  }}
+            {{- range $index, $secret := .Values.secretEnv }}
+            - name: {{ $secret.name }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secretName }}
-                  key: {{ .secretKey }}
+                  name: {{ $secret.secretName }}
+                  key: {{ $secret.secretKey }}
             {{- end }}
             {{- end }}
           volumeMounts:
