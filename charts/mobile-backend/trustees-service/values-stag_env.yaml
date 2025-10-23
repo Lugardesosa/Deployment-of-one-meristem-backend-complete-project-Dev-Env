@@ -3,7 +3,7 @@ environment: stag-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-stag
   create: false     # Prevent chart from trying to create it
 
 #Deployment configuration
