@@ -30,14 +30,15 @@ secretProviderClass:
 serviceAccount:
   name: app-spc-sa
   dewResources:
-    - "db-admin-secret-one-meristem-dev-env"
-    - "redis-middleware-credentials-one-meristem-dev-env"
-    - "redis-mobile-backend-credentials-one-meristem-dev-env"
-    - "kafka-credentials-one-meristem-dev-env"
-    - "db-notification_service-secret-one-meristem-dev-env"
-    - "db-users_service-secret-one-meristem-dev-env"
-    - "db-wallet_service-secret-one-meristem-dev-env"
-    - "db-report_service-secret-one-meristem-dev-env"
+    - "db-admin-secret-one-meristem-app-{{ .Values.environment }}"
+    - "redis-middleware-credentials-one-meristem-app-{{ .Values.environment }}"
+    - "redis-mobile-backend-credentials-one-meristem-app-{{ .Values.environment }}"
+    - "kafka-credentials-one-meristem-app-{{ .Values.environment }}"
+    - "db-notification_service-secret-one-meristem-app-{{ .Values.environment }}"
+    - "db-users_service-secret-one-meristem-app-{{ .Values.environment }}"
+    - "db-wallet_service-secret-one-meristem-app-{{ .Values.environment }}"
+    - "db-report_service-secret-one-meristem-app-{{ .Values.environment }}"
+    - "db-trustees_service-secret-one-meristem-app-{{ .Values.environment }}"
 
 # image pull secret
 imagePullSecret:
