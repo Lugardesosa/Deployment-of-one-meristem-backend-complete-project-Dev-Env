@@ -120,6 +120,9 @@ metadata:
     app: {{ include "cloud-gateway.name" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "cloud-gateway.name" . }}
   #The Rolling Update strategy is used to ensure zero downtime during updates.
   strategy:
     type: {{ .Values.strategy.type }}
@@ -138,7 +141,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
-          # ✅ HEALTH CHECKS START HERE
+          # HEALTH CHECKS START HERE
           livenessProbe:
             httpGet:
               path: /actuator/health
