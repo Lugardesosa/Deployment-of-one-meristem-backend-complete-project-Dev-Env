@@ -1,7 +1,7 @@
 # -------------------- CONSUL SERVICE VALUES --------------------
 # This file contains the consul values for the consul service deployment.
 
-environment: dev_env
+environment: dev-env
 
 global:
   namespace: one-meristem-app

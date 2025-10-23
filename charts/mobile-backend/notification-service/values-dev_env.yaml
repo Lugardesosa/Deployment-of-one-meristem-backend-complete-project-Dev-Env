@@ -1,4 +1,4 @@
-environment: dev_env
+environment: dev-env
 
 global:
   namespace: one-meristem-app

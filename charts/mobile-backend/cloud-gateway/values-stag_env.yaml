@@ -1,7 +1,7 @@
 ##--------------------- CLOUD-GATEWAY VALUES ---------------------
 ## This file contains the configuration values for the cloud-gateway service deployment.
 
-environment: stag_env
+environment: stag-env
 
 global:
   namespace: one-meristem-app

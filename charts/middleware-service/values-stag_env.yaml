@@ -1,7 +1,7 @@
 #--------------------- MIDDLEWARE-SERVICE VALUES ---------------------
 # This file contains the configuration values for the middleware-service service deployment.
 
-environment: stag_env
+environment: stag-env
 
 global:
   middleware-namespace: middleware-core-app
