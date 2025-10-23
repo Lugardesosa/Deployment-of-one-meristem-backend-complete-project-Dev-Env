@@ -19,6 +19,12 @@ image:
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
 
+#Secret provider class
+secretProviderClass:
+  name: cloud-gateway-secrets
+  provider: huawei
+  k8sSecretName: cloud-gateway-secrets
+
 resources:
   limits:
     cpu: "0.5"
