@@ -1,7 +1,7 @@
 #--------------------- CONFIG-SERVER VALUES ---------------------
 # This file contains the configuration values for the config-server service deployment.
 
-environment: dev_env
+environment: dev-env
 
 global:
   namespace: one-meristem-app #global

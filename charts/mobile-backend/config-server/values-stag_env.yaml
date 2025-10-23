@@ -1,7 +1,7 @@
 #--------------------- CONFIG-SERVER VALUES ---------------------
 # This file contains the configuration values for the config-server service deployment.
 
-environment: stag_env
+environment: stag-env
 
 global:
   namespace: one-meristem-app

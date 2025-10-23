@@ -1,5 +1,5 @@
 
-environment: stag_env
+environment: stag-env
 
 global:
   namespace: one-meristem-app
