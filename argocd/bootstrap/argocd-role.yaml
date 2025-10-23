@@ -2,7 +2,7 @@
 # kind: Role
 # metadata:
 #   name: argocd-reader-role
-#   namespace: $APP_NAMESPACE
+#   namespace: one-meristem-app
 # rules:
 #   - apiGroups: [""]
 #     resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims"]

@@ -2,4 +2,4 @@
 # kind: ServiceAccount
 # metadata:
 #   name: argocd-app-manager
-#   namespace: $ARGOCD_NAMESPACE
+#   namespace: argocd
