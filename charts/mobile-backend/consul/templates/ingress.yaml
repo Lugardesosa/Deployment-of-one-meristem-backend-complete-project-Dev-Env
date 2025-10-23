@@ -8,7 +8,7 @@ metadata:
   namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
   annotations:
 {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: "{{ $value }}"
+    {{ $key }}: {{ $value | quote }}
 {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className | default "cce" }}
@@ -22,11 +22,11 @@ spec:
       http:
         paths:
 {{- range .paths }}
-          - path: {{ .path }}
+          - path: {{ .path | default "/" }}
             pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
               service:
-                name: {{ include "consul.fullname" . }}
+                name: {{ include "consul.fullname" $ }}
                 port:
                   number: {{ .service.port }}
 {{- end }}
