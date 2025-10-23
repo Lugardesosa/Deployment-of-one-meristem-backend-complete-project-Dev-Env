@@ -159,13 +159,14 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
           env:
-{{ toYaml .Values.env | indent 12 }}
-{{- range .Values.secretEnv }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .secretName }}
-                  key: {{ .secretKey }}
+          {{- toYaml .Values.env | nindent 10 }}
+          {{- range $key, $val := .Values.secretEnv }}
+          - name: {{ $key }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $val.secretName }}
+                key: {{ $val.secretKey }}
+          {{- end }}
 {{- end }}
           volumeMounts:
 {{- toYaml .Values.volumeMounts | nindent 12 }}
