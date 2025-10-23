@@ -3,7 +3,7 @@ environment: dev-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-dev
   create: true     # Prevent chart from trying to create it
 
 networkpolicy:
