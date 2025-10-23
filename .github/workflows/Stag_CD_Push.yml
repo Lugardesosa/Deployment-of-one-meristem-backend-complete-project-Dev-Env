@@ -108,6 +108,7 @@ jobs:
             echo "No relevant subfolder changes detected."
             echo "changed_dirs=none" >> "$GITHUB_OUTPUT"
           else
+            CHANGED_DIRS=$(echo "$CHANGED_DIRS" | tr '\n' ',' | sed 's/,$//')
             echo "changed_dirs=$CHANGED_DIRS" >> "$GITHUB_OUTPUT"
           fi
 
