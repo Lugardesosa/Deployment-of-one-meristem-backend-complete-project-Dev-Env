@@ -95,22 +95,22 @@ jobs:
       # ----------------------------------------
       # Step 2: Detect Changed Subfolders
       # ----------------------------------------
-      - name: Detect Changed Services
-        id: detect_changes
-        run: |
-          echo "Detecting changed subfolders in backend/, charts/, and scripts/..."
-          CHANGED_DIRS=$(git diff --name-only HEAD^ HEAD | grep -E "^(backend|charts|scripts)/" | awk -F'/' '{print $1"/"$2}' | sort -u)
+      # - name: Detect Changed Services
+      #   id: detect_changes
+      #   run: |
+      #     echo "Detecting changed subfolders in backend/, charts/, and scripts/..."
+      #     CHANGED_DIRS=$(git diff --name-only HEAD^ HEAD | grep -E "^(backend|charts|scripts)/" | awk -F'/' '{print $1"/"$2}' | sort -u)
           
-          echo "Changed directories:"
-          echo "$CHANGED_DIRS"
+      #     echo "Changed directories:"
+      #     echo "$CHANGED_DIRS"
 
-          if [ -z "$CHANGED_DIRS" ]; then
-            echo "No relevant subfolder changes detected."
-            echo "changed_dirs=none" >> "$GITHUB_OUTPUT"
-          else
-            CHANGED_DIRS=$(echo "$CHANGED_DIRS" | tr '\n' ',' | sed 's/,$//')
-            echo "changed_dirs=$CHANGED_DIRS" >> "$GITHUB_OUTPUT"
-          fi
+      #     if [ -z "$CHANGED_DIRS" ]; then
+      #       echo "No relevant subfolder changes detected."
+      #       echo "changed_dirs=none" >> "$GITHUB_OUTPUT"
+      #     else
+      #       CHANGED_DIRS=$(echo "$CHANGED_DIRS" | tr '\n' ',' | sed 's/,$//')
+      #       echo "changed_dirs=$CHANGED_DIRS" >> "$GITHUB_OUTPUT"
+      #     fi
 
       # ----------------------------------------
       # Step 3: Substitute Env Vars in Manifests
