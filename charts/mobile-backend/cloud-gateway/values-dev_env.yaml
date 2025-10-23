@@ -151,7 +151,7 @@ ingress:
     kubernetes.io/elb.listener-master-ingress: one-meristem-app/cloud-gateway-ingress #This annotation links this Ingress as the master listener for the ELB
     kubernetes.io/elb.port: "443"
     kubernetes.io/elb.slowstart: "30" # Newly added pods receive limited traffic for 30s to warm up before full load
-    kubernetes.io/elb.tls-certificate-ids: cf67274e67144a40a4a66afd0cac1a98, 53a9841f73f040a7a7a0c7a8ffd6325d #Cerificates IDs
+    kubernetes.io/elb.tls-certificate-ids: cf67274e67144a40a4a66afd0cac1a98 #Cerificates IDs
     kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
     kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
     kubernetes.io/elb.gzip-enabled: "true" # Enable GZIP compression to reduce response size and improve speed
