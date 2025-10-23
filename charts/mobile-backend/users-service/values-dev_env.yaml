@@ -17,6 +17,13 @@ image:
   tag: latest
   pullPolicy: Always
 
+# Secret provider class
+secretProviderClass:
+  name: users-service-secrets
+  provider: cce
+  k8sSecretName: users-service-secrets
+
+
 strategy:
   type: RollingUpdate
   rollingUpdate:
