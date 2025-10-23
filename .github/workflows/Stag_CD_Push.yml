@@ -156,15 +156,21 @@ jobs:
           echo "Committing updated manifests for Argo CD..."
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+      
+          # Stage all changes (new, modified, deleted) in argocd and charts
+          git add -A ./argocd ./charts
+      
+          # Commit changes if there are any
+          git diff --cached --quiet || git commit -m "Update manifests for changed services"
+      
+          # Push to the current branch
+          git push origin $GIT_BRANCH || echo "No changes to push"
 
-          git add ./argocd/apps ./charts
-          git diff --quiet && echo "No changes to commit." || git commit -m "Update manifests for changed services"
-          git push origin $GIT_BRANCH
 
       # ----------------------------------------
       # Step 5: Post Deployment (Argo CD will Deploy Automatically)
       # ----------------------------------------
       - name: Post Deployment
         run: |
-          echo "Changes have been pushed to '${GIT_BRANCH}'. Argo CD will handle the deployment automatically."
+          echo "Changes have been pushed to '$GIT_BRANCH'. Argo CD will handle the deployment automatically."
           echo "Thank you for using the One-Meristem Mobile Backend CD pipeline! See you next time! I love you!"
