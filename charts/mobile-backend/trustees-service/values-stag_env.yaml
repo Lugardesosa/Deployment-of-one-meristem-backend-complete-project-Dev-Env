@@ -10,7 +10,7 @@ global:
 replicaCount: 2
 
 networkpolicy:
-  enabled: true
+  enabled: false
 
 
 image:
