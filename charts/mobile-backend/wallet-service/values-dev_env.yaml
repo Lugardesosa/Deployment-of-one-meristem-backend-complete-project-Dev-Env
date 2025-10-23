@@ -15,6 +15,12 @@ image:
   tag: latest
   pullPolicy: Always
 
+# Secret provider class
+secretProviderClass:
+  name: wallet-service-secrets
+  provider: cce
+  k8sSecretName: wallet-service-secrets
+
 
 service:
   type: ClusterIP
