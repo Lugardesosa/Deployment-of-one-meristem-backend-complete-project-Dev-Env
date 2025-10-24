@@ -1,14 +1,14 @@
 namespace: one-meristem-app
 
 serviceAccount:
-  name: app-spc-sa-dev
+  name: app-spc-sa-stag
   dewResources:
-    - "db-admin-secret-one-meristem-app-dev-env"
-    - "redis-middleware-credentials-one-meristem-app-dev-env"
-    - "redis-mobile-backend-credentials-one-meristem-app-dev-env"
-    - "kafka-credentials-one-meristem-app-dev-env"
-    - "db-notification_service-secret-one-meristem-app-dev-env"
-    - "db-users_service-secret-one-meristem-app-dev-env"
-    - "db-wallet_service-secret-one-meristem-app-dev-env"
-    - "db-report_service-secret-one-meristem-app-dev-env"
-    - "db-trustees_service-secret-one-meristem-app-dev-env"
+    - "db-admin-secret-one-meristem-app-stag-env"
+    - "redis-middleware-credentials-one-meristem-app-stag-env"
+    - "redis-mobile-backend-credentials-one-meristem-app-stag-env"
+    - "kafka-credentials-one-meristem-app-stag-env"
+    - "db-notification_service-secret-one-meristem-app-stag-env"
+    - "db-users_service-secret-one-meristem-app-stag-env"
+    - "db-wallet_service-secret-one-meristem-app-stag-env"
+    - "db-report_service-secret-one-meristem-app-stag-env"
+    - "db-trustees_service-secret-one-meristem-app-stag-env"
