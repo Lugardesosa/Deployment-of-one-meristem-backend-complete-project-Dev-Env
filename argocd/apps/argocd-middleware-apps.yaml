@@ -2,20 +2,20 @@
 # apiVersion: argoproj.io/v1alpha1
 # kind: Application
 # metadata:
-#   name: ${MIDDLEWARE_SERVICE_APP_NAME}
-#   namespace: ${ARGOCD_NAMESPACE}
+#   name: 
+#   namespace: argocd
 # spec:
-#   project: ${ARGOCD_PROJECT}
+#   project: one-meristem-app
 #   source:
-#     repoURL: ${GIT_REPO_URL}
-#     targetRevision: ${GIT_BRANCH} 
-#     path: ${HELM_REPO_PATH}/${MIDDLEWARE_SERVICE_APP_NAME}
+#     repoURL: 
+#     targetRevision: stag_env 
+#     path: charts/
 #     helm:
 #       valueFiles:
-#         - ${VALUES_FILE}
+#         - values-stag_env.yaml
 #   destination:
-#     server: ${CLUSTER_SERVER_URL}
-#     namespace: ${MIDDLEWARE_NAMESPACE}
+#     server: https://kubernetes.default.svc
+#     namespace: 
 #   syncPolicy:
 #     automated:
 #       prune: true

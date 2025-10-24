@@ -80,6 +80,10 @@ env:
   REPORT_SERVICE_URI: "http://report-service:20050"
   TRUSTEES_SERVICE_URI: "http://trustees_service:20060"
   ADMIN_USERNAME: "admin"
+  GATEWAY_REPLENISH_RATE: 10
+  GATEWAY_BURST_CAPACITY: 20
+  GATEWAY_REQUESTED_TOKENS: 2
+  WHITELISTED_IPS: 52.18.220.93,18.202.96.242
 
 secretEnv:
   ADMIN_PASSWORD:
@@ -122,9 +126,9 @@ autoscaling:
 # ingress:
 #   enabled: true
 #   name: cloud-gateway-ingress
-#   elbId: ${MOBILE_ELB_ID} #Elb id
-#   elbIp: ${MOBILE_ELB_IP} #ELB IP
-#   certificateIds: "${MOBILE_CERTIFICATE_IDS}" #Cerificates IDs
+#   elbId: f3ed8005-ee73-462f-927c-79d906db0d1b #Elb id
+#   elbIp: 121.91.157.92 #ELB IP
+#   certificateIds: "cf67274e67144a40a4a66afd0cac1a98, 53a9841f73f040a7a7a0c7a8ffd6325d" #Cerificates IDs
 #   host: onemerristem.merristem.com
 #   servicePort: 20010
 
@@ -149,11 +153,11 @@ ingress:
 
   annotations:
     kubernetes.io/elb.class: performance  # Specifies the ELB performance mode (best for production use)
-    kubernetes.io/elb.id: ${MOBILE_ELB_ID} #Elb id
+    kubernetes.io/elb.id: f3ed8005-ee73-462f-927c-79d906db0d1b #Elb id
     kubernetes.io/elb.listener-master-ingress: one-meristem-app/cloud-gateway-ingress #This annotation links this Ingress as the master listener for the ELB
     kubernetes.io/elb.port: "443"
     kubernetes.io/elb.slowstart: "30" # Newly added pods receive limited traffic for 30s to warm up before full load
-    kubernetes.io/elb.tls-certificate-ids: ${MOBILE_CERTIFICATE_IDS} #Cerificates IDs
+    kubernetes.io/elb.tls-certificate-ids: cf67274e67144a40a4a66afd0cac1a98 #Cerificates IDs
     kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
     kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
     kubernetes.io/elb.gzip-enabled: "true" # Enable GZIP compression to reduce response size and improve speed
@@ -165,7 +169,7 @@ ingress:
     secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
 
   rules:
-    - host: ${DEV_INGRESS_HOST}  # Access via ELB public IP or DNS
+    - host:   # Access via ELB public IP or DNS
       paths:
         - path: /
           pathType: ImplementationSpecific

@@ -68,12 +68,12 @@ ingress:
   className: cce
   annotations:
     kubernetes.io/elb.class: performance # Use a high-performance load balancer
-    kubernetes.io/elb.id: ${ARGO_ELB_ID} # Existing ELB ID
+    kubernetes.io/elb.id: db5b9628-6305-4efc-a068-4f5064fead4f # Existing ELB ID
     kubernetes.io/elb.listener-master-ingress: argocd/argocd-ui-ingress # Link Ingress to ELB listener
     kubernetes.io/elb.port: "443"  # ELB listener port for HTTPS
     kubernetes.io/elb.keepalive_timeout: "2500" # How long (ms) to keep the TCP connection alive between client and ELB
     kubernetes.io/elb.client_timeout: "250" # Timeout (seconds) for client idle connections before ELB closes it
-    kubernetes.io/elb.tls-certificate-ids: ${ARGO_CERTIFICATE_ID} # TLS certificate ID on Huawei ELB
+    kubernetes.io/elb.tls-certificate-ids: 47455b43f4c14444aebb36948bc4b4c1 # TLS certificate ID on Huawei ELB
 
     kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
     kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
@@ -89,7 +89,7 @@ ingress:
     enabled: true
     secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
   rules:
-    - host: ${ARGO_INGRESS_HOST}
+    - host: onemeristemargocd.meristemng.com
       paths:
         - path: /consul
           pathType: ImplementationSpecific

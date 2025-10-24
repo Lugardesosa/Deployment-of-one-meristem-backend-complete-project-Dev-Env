@@ -5,16 +5,16 @@
 # kind: Application
 # metadata:
 #   name: argocd-custom-setup
-#   namespace: ${ARGOCD_NAMESPACE}
+#   namespace: argocd
 # spec:
-#   project: ${ARGOCD_PROJECT}
+#   project: one-meristem-app
 #   source:
-#     repoURL: ${GIT_REPO_URL}
-#     targetRevision: ${GIT_BRANCH}
+#     repoURL: 
+#     targetRevision: stag_env
 #     path: /applications/bootstrap
 #   destination:
-#     server: ${CLUSTER_SERVER_URL}
-#     namespace: ${ARGOCD_NAMESPACE}
+#     server: https://kubernetes.default.svc
+#     namespace: argocd
 #   syncPolicy:
 #     automated:
 #       prune: true
