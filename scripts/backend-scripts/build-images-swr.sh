@@ -14,19 +14,31 @@ export IMAGE_TAG
 # ----------------------------------------
 # Install Docker if missing 
 # ----------------------------------------
-echo "Checking dependencies for Docker..."
-sudo apt update -y
-sudo apt install -y git curl wget apt-transport-https ca-certificates gnupg lsb-release software-properties-common
+echo "Checking Docker and dependency setup..."
 
+# Check if Docker is installed
 if ! command -v docker &> /dev/null; then
+  echo "Docker not found — installing required dependencies and Docker..."
+  
+  # Install required base dependencies only if missing
+  if ! dpkg -s git curl wget apt-transport-https ca-certificates gnupg lsb-release software-properties-common &> /dev/null; then
+    echo "Installing missing base dependencies..."
+    sudo apt update -y
+    sudo apt install -y git curl wget apt-transport-https ca-certificates gnupg lsb-release software-properties-common
+  else
+    echo "Base dependencies already installed — skipping."
+  fi
+
   echo "Installing Docker..."
   curl -fsSL https://get.docker.com | sudo bash
   sudo groupadd docker || true
   sudo usermod -aG docker $USER
-  echo "Docker installed."
+  echo "Docker installation complete."
 else
   echo "Docker already installed."
 fi
+
+
 
 # ----------------------------------------
 # Install pack CLI for build
@@ -34,7 +46,7 @@ fi
 echo "Checking if pack CLI is already installed..."
 
 if command -v pack &> /dev/null; then
-  echo "pack CLI is already installed. Skipping installation..."
+  echo "pack CLI already installed — skipping installation."
 else
   echo "Installing pack CLI..."
   sudo add-apt-repository -y ppa:cncf-buildpacks/pack-cli
@@ -51,29 +63,65 @@ SVC_NAMES=(users-service notification-service cloud-gateway config-server wallet
 BASE_PATH=backend
 PACK_BUILDER=paketobuildpacks/builder-jammy-base
 
-# Fetch both base and head branches
-echo "Fetching base (${BASE_BRANCH}) and head (${HEAD_BRANCH}) branches..."
-git fetch origin "${BASE_BRANCH}" "${HEAD_BRANCH}"
+
+echo "----------------------------------------"
+echo "🔍 Detecting changed microservices for build..."
+echo "----------------------------------------"
+
+CHANGED_SERVICES=""
+
+# Auto-detect branches if not provided
+BASE_BRANCH=${BASE_BRANCH:-${GITHUB_BASE_REF:-"main"}}
+HEAD_BRANCH=${HEAD_BRANCH:-${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD)}}
+
+echo "Base branch: ${BASE_BRANCH}"
+echo "Head branch: ${HEAD_BRANCH}"
+
+git fetch origin "${BASE_BRANCH}" "${HEAD_BRANCH}" --quiet
 
 # ----------------------------------------
-# Handle case where branches have no merge base (e.g., new branch)
+# STEP 1: Detect changes from PR diff (if available)
 # ----------------------------------------
-if ! git merge-base --is-ancestor "origin/${BASE_BRANCH}" "origin/${HEAD_BRANCH}" 2>/dev/null; then
-  echo "No merge base found between ${BASE_BRANCH} and ${HEAD_BRANCH}."
-  echo "This is A New branch — so building all microservices..."
-  CHANGED_SERVICES="${SVC_NAMES[@]}"
+if [[ -n "${GITHUB_BASE_REF}" && -n "${GITHUB_HEAD_REF}" ]]; then
+  echo "PR context detected — comparing '${GITHUB_BASE_REF}' → '${GITHUB_HEAD_REF}'"
+  
+  CHANGED_SERVICES=$(git diff --name-only "origin/${GITHUB_BASE_REF}"..."origin/${GITHUB_HEAD_REF}" | grep "^backend/" | cut -d/ -f2 | sort -u || true)
+
+  if [ -n "$CHANGED_SERVICES" ]; then
+    echo "Changed services from PR diff: $CHANGED_SERVICES"
+  else
+    echo "No differences detected from PR diff. Proceeding to merge-base detection..."
+  fi
 else
-  # Detect changes between PR source and destination branches
-  CHANGED_SERVICES=$(git diff --name-only origin/${BASE_BRANCH}...origin/${HEAD_BRANCH} | grep "^backend/" | cut -d/ -f2 | sort -u)
+  echo "No PR context found — continuing to merge-base check..."
 fi
 
-# If no specific changes detected, build all (first run or new branch)
+# ----------------------------------------
+# STEP 2: Fallback to merge-base diff (if PR diff empty)
+# ----------------------------------------
+if [ -z "$CHANGED_SERVICES" ]; then
+  echo "Checking for merge-base between origin/${BASE_BRANCH} and origin/${HEAD_BRANCH}..."
+  if ! git merge-base --is-ancestor "origin/${BASE_BRANCH}" "origin/${HEAD_BRANCH}" 2>/dev/null; then
+    echo "No merge base found — likely a new branch."
+  else
+    echo "Merge base found. Detecting file changes..."
+    CHANGED_SERVICES=$(git diff --name-only "origin/${BASE_BRANCH}"..."origin/${HEAD_BRANCH}" | grep "^backend/" | cut -d/ -f2 | sort -u || true)
+  fi
+fi
+
+# ----------------------------------------
+# STEP 3: Default fallback — build all
+# ----------------------------------------
 if [ -z "$CHANGED_SERVICES" ]; then
   echo "No specific changes detected — building all services."
   CHANGED_SERVICES="${SVC_NAMES[@]}"
 else
   echo "Changed services detected: $CHANGED_SERVICES"
 fi
+
+echo "----------------------------------------"
+echo "Services selected for build: $CHANGED_SERVICES"
+echo "----------------------------------------"
 
 # ----------------------------------------
 # Export changed services
