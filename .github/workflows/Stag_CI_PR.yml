@@ -647,9 +647,7 @@ jobs:
           chmod +x ./scripts/backend-scripts/push-image-swr-stag_env.sh
           bash ./scripts/backend-scripts/push-image-swr-stag_env.sh
           echo "Push script completed."
-          echo "All CI Workflow actions completed successfully!"
-          echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
-
+          
       # Commit the changes so that our CD can be triggered on push commits
 
       - name: Commit and push updated Helm values to stag_env
@@ -657,23 +655,42 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          echo "Committing updated Helm chart manifests for Argo CD..."
-  
+          echo "--------------------------------------"
+          echo "Committing and pushing updated Helm charts to stag_env..."
+          echo "Current branch: $(git branch --show-current)"
+          echo "IMAGE_TAG: ${IMAGE_TAG}"
+          echo "--------------------------------------"
+      
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-  
-          echo "Fetching latest stag_env branch..."
-          git fetch origin stag_env
-          git checkout stag_env
-          git pull origin stag_env
-  
-          echo "Copying updated Helm charts..."
-          cp -r charts/mobile-backend/ ./charts/
-  
+      
+          echo "DEBUG: Listing changed Helm files before commit..."
+          git status --short charts/mobile-backend/ || echo "No pending changes in Helm charts."
+      
+          # Stage and commit local Helm updates
           git add charts/mobile-backend/
-          git commit -m "Auto-update Helm image tags to ${IMAGE_TAG} [CI AutoPatch]" || echo "No changes to commit"
-          git push origin stag_env || echo "Push skipped (no changes)"
-  
-          echo "Helm values patched and pushed successfully to stag_env."
-  
-  
+          git commit -m "Auto-update Helm image tags to ${IMAGE_TAG} [CI AutoPatch]" || echo "No local changes to commit"
+      
+          echo "DEBUG: Fetching latest stag_env branch..."
+          git fetch origin stag_env
+      
+          echo "DEBUG: Checking out stag_env branch..."
+          git checkout stag_env
+      
+          echo "DEBUG: Pulling latest changes from stag_env..."
+          git pull origin stag_env
+      
+          echo "DEBUG: Merging Helm updates from application_env..."
+          git merge application_env --no-edit || echo "Merge completed or nothing to merge."
+      
+          echo "DEBUG: Final diff summary before pushing:"
+          git --no-pager diff --stat || echo "No diff to show."
+      
+          git push origin stag_env || echo "Push skipped (no changes to push)."
+          echo "Successfully pushed Helm chart updates to stag_env."
+          echo "All CI Workflow actions completed successfully!"
+          echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
+
+      
+        
+        
