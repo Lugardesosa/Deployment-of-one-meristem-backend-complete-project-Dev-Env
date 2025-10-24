@@ -28,7 +28,7 @@ spec:
               service:
                 name: {{ include "consul.fullname" $ }}
                 port:
-                  number: {{ .service.port }}
+                  number: {{ int .service.port }}
 {{- end }}
 {{- end }}
 {{- end }}
