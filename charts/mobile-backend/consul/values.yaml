@@ -73,7 +73,7 @@ ingress:
     kubernetes.io/elb.port: "443"  # ELB listener port for HTTPS
     kubernetes.io/elb.keepalive_timeout: "2500" # How long (ms) to keep the TCP connection alive between client and ELB
     kubernetes.io/elb.client_timeout: "250" # Timeout (seconds) for client idle connections before ELB closes it
-    kubernetes.io/elb.tls-certificate-ids: 47455b43f4c14444aebb36948bc4b4c1, 30b607d17404432ea3ded3c3b2c99cad # TLS certificate ID on Huawei ELB
+    kubernetes.io/elb.tls-certificate-ids: 47455b43f4c14444aebb36948bc4b4c1 # TLS certificate ID on Huawei ELB
 
     kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
     kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
