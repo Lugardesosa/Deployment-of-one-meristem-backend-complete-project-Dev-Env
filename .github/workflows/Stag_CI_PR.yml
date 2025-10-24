@@ -650,3 +650,30 @@ jobs:
           echo "All CI Workflow actions completed successfully!"
           echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
 
+      # Commit the changes so that our CD can be triggered on push commits
+
+      - name: Commit and push updated Helm values to stag_env
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          echo "Committing updated Helm chart manifests for Argo CD..."
+  
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+  
+          echo "Fetching latest stag_env branch..."
+          git fetch origin stag_env
+          git checkout stag_env
+          git pull origin stag_env
+  
+          echo "Copying updated Helm charts..."
+          cp -r charts/mobile-backend/ ./charts/
+  
+          git add charts/mobile-backend/
+          git commit -m "Auto-update Helm image tags to ${IMAGE_TAG} [CI AutoPatch]" || echo "No changes to commit"
+          git push origin stag_env || echo "Push skipped (no changes)"
+  
+          echo "Helm values patched and pushed successfully to stag_env."
+  
+  
