@@ -57,6 +57,17 @@ for SERVICE in "${SERVICES_ARRAY[@]}"; do
   # Update Helm values
   VALUES_FILE="${HELM_MOBILE_REPO_PATH}/${SERVICE}/values-${BRANCH_ENV}.yaml"
   if [[ -f "$VALUES_FILE" ]]; then
+      echo "Found values file: $VALUES_FILE"
+      
+      # Show files in the service directory before changes
+      echo "Files in ${HELM_MOBILE_REPO_PATH}/${SERVICE}:"
+      ls -la "${HELM_MOBILE_REPO_PATH}/${SERVICE}/"
+      
+      # Show current content of values file
+      echo "Current content of ${VALUES_FILE}:"
+      cat "$VALUES_FILE"
+      echo "---"
+  
       echo "Updating Helm values for ${SERVICE}..."
       yq e -i ".image.repository = \"${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}\"" "$VALUES_FILE"
       yq e -i ".image.tag = \"${IMAGE_TAG}\"" "$VALUES_FILE"
@@ -67,9 +78,45 @@ for SERVICE in "${SERVICES_ARRAY[@]}"; do
       echo "DEBUG: ${VALUES_FILE} updated:"
       echo "  image.repository = $UPDATED_REPO"
       echo "  image.tag        = $UPDATED_TAG"
+
+      # Show the updated file content
+      echo "Updated content of ${VALUES_FILE}:"
+      cat "$VALUES_FILE"
+      echo "---"
   else
       echo "Values file ${VALUES_FILE} not found, skipping Helm update."
+      echo "Available files in ${HELM_MOBILE_REPO_PATH}/${SERVICE}:"
+      ls -la "${HELM_MOBILE_REPO_PATH}/${SERVICE}/" || echo "Directory not found"
   fi
 done
+
+# ----------------------------------------
+# Commit and push changes to Git
+# ----------------------------------------
+echo "Committing and pushing changes to ${BRANCH_ENV} branch..."
+
+# Show git status before commit
+echo "Git status before commit:"
+git status
+
+# Add all changes
+git add .
+
+# Show git status before commit
+echo "Git status after commit:"
+git status
+
+# Show what's being committed
+echo "Files to be committed:"
+git diff --cached --name-only
+
+# Commit changes
+git commit -m "ci: update image tags to ${IMAGE_TAG} for services: ${SERVICES_ARRAY[*]}"
+
+# Push to remote branch
+echo "Pushing to origin/${BRANCH_ENV}..."
+git push origin ${BRANCH_ENV}
+
+echo "All detected images processed and changes pushed to ${BRANCH_ENV} successfully!"
 
 echo "All detected images processed successfully!"
