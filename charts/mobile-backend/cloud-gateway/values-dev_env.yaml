@@ -19,7 +19,7 @@ image:
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
 
-#Secret provider class
+#Secret provider class.
 secretProviderClass:
   name: cloud-gateway-secrets
   provider: cce
