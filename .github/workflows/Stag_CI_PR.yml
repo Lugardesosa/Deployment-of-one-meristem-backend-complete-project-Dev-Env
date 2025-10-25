@@ -612,6 +612,17 @@ jobs:
           name: docker_images
           path: build_output/
 
+      #Check artifact integrity
+      - name: Verify saved image integrity
+        run: |
+          echo "Verifying integrity of saved Docker images..."
+          ls -lh build_output/*.tar
+          echo "Calculating checksums..."
+          for tar in build_output/*.tar; do
+            echo "$(sha256sum $tar)"
+          done
+
+
       - name: Load Docker images
         run: |
           echo "Checking for saved Docker images..."
