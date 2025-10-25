@@ -8,19 +8,18 @@ if [ -z "$IMAGE_TAG" ]; then
   IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
 fi
 echo "Using image tag: $IMAGE_TAG"
-
 export IMAGE_TAG
+
 
 # ----------------------------------------
 # Install Docker if missing 
 # ----------------------------------------
 echo "Checking Docker and dependency setup..."
 
-# Check if Docker is installed
 if ! command -v docker &> /dev/null; then
   echo "Docker not found — installing required dependencies and Docker..."
-  
-  # Install required base dependencies only if missing
+
+  # Install dependencies if missing
   if ! dpkg -s git curl wget apt-transport-https ca-certificates gnupg lsb-release software-properties-common &> /dev/null; then
     echo "Installing missing base dependencies..."
     sudo apt update -y
@@ -39,12 +38,10 @@ else
 fi
 
 
-
 # ----------------------------------------
 # Install pack CLI for build
 # ----------------------------------------
 echo "Checking if pack CLI is already installed..."
-
 if command -v pack &> /dev/null; then
   echo "pack CLI already installed — skipping installation."
 else
@@ -57,66 +54,69 @@ fi
 
 
 # ----------------------------------------
-# Detect Changed Services (PR aware)
+# Detect Changed Services (Smart diff + new folder aware)
 # ----------------------------------------
 SVC_NAMES=(users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service)
 BASE_PATH=backend
 PACK_BUILDER=paketobuildpacks/builder-jammy-base
 
-
 echo "----------------------------------------"
-echo "🔍 Detecting changed microservices for build..."
+echo "Detecting changed microservices for build..."
 echo "----------------------------------------"
 
-CHANGED_SERVICES=""
-
-# Auto-detect branches if not provided
+# Auto-detect branches if not set
 BASE_BRANCH=${BASE_BRANCH:-${GITHUB_BASE_REF:-"main"}}
 HEAD_BRANCH=${HEAD_BRANCH:-${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD)}}
 
 echo "Base branch: ${BASE_BRANCH}"
 echo "Head branch: ${HEAD_BRANCH}"
 
+# Fetch both branches for comparison
 git fetch origin "${BASE_BRANCH}" "${HEAD_BRANCH}" --quiet
 
 # ----------------------------------------
-# STEP 1: Detect changes from PR diff (if available)
+# STEP 1: Detect backend differences between branches
 # ----------------------------------------
-if [[ -n "${GITHUB_BASE_REF}" && -n "${GITHUB_HEAD_REF}" ]]; then
-  echo "PR context detected — comparing '${GITHUB_BASE_REF}' → '${GITHUB_HEAD_REF}'"
-  
-  CHANGED_SERVICES=$(git diff --name-only "origin/${GITHUB_BASE_REF}"..."origin/${GITHUB_HEAD_REF}" | grep "^backend/" | cut -d/ -f2 | sort -u || true)
+CHANGED_SERVICES=$(git diff --name-only "origin/${BASE_BRANCH}"..."origin/${HEAD_BRANCH}" | grep "^backend/" | cut -d/ -f2 | sort -u || true)
 
-  if [ -n "$CHANGED_SERVICES" ]; then
-    echo "Changed services from PR diff: $CHANGED_SERVICES"
-  else
-    echo "No differences detected from PR diff. Proceeding to merge-base detection..."
-  fi
-else
-  echo "No PR context found — continuing to merge-base check..."
-fi
+echo "Files changed under backend/:"
+git diff --name-only "origin/${BASE_BRANCH}"..."origin/${HEAD_BRANCH}" | grep '^backend/' || echo "No files changed under backend/"
 
 # ----------------------------------------
-# STEP 2: Fallback to merge-base diff (if PR diff empty)
+# STEP 2: Handle case when no changes found
 # ----------------------------------------
 if [ -z "$CHANGED_SERVICES" ]; then
-  echo "Checking for merge-base between origin/${BASE_BRANCH} and origin/${HEAD_BRANCH}..."
-  if ! git merge-base --is-ancestor "origin/${BASE_BRANCH}" "origin/${HEAD_BRANCH}" 2>/dev/null; then
-    echo "No merge base found — likely a new branch."
+  echo "No backend diffs detected — checking for merge base or new branch..."
+  if git merge-base --is-ancestor "origin/${BASE_BRANCH}" "origin/${HEAD_BRANCH}" 2>/dev/null; then
+    echo "Common history exists but no diffs — building all services (safe default)."
+    CHANGED_SERVICES="${SVC_NAMES[@]}"
   else
-    echo "Merge base found. Detecting file changes..."
-    CHANGED_SERVICES=$(git diff --name-only "origin/${BASE_BRANCH}"..."origin/${HEAD_BRANCH}" | grep "^backend/" | cut -d/ -f2 | sort -u || true)
+    echo "No merge base found (new branch or first PR to target) — building all services."
+    CHANGED_SERVICES="${SVC_NAMES[@]}"
   fi
-fi
-
-# ----------------------------------------
-# STEP 3: Default fallback — build all
-# ----------------------------------------
-if [ -z "$CHANGED_SERVICES" ]; then
-  echo "No specific changes detected — building all services."
-  CHANGED_SERVICES="${SVC_NAMES[@]}"
 else
   echo "Changed services detected: $CHANGED_SERVICES"
+fi
+
+# ----------------------------------------
+# STEP 3: Detect newly added backend folders
+# ----------------------------------------
+for svc in $(ls ${BASE_PATH}); do
+  if [ -d "${BASE_PATH}/${svc}" ]; then
+    if [[ ! " ${SVC_NAMES[@]} " =~ " ${svc} " ]]; then
+      echo "New microservice folder detected: ${svc} — adding to build list."
+      SVC_NAMES+=("$svc")
+      CHANGED_SERVICES+=" ${svc}"
+    fi
+  fi
+done
+
+# ----------------------------------------
+# Final service list for build
+# ----------------------------------------
+if [ -z "$CHANGED_SERVICES" ]; then
+  echo "No specific services detected — building all."
+  CHANGED_SERVICES="${SVC_NAMES[@]}"
 fi
 
 echo "----------------------------------------"
@@ -152,7 +152,7 @@ cd ${BASE_PATH}
 for SERVICE in "${SVC_NAMES[@]}"; do
   if [ -d "$SERVICE" ]; then
     if [[ " $CHANGED_SERVICES " == *" $SERVICE "* ]]; then
-      # Service has changed → generate new tag
+      # Service changed or new → build fresh
       SERVICE_TAG="${IMAGE_TAG}"
       echo "Detected changes in $SERVICE → building new image ($SERVICE_TAG)"
       cd $SERVICE
@@ -162,7 +162,7 @@ for SERVICE in "${SVC_NAMES[@]}"; do
         --tag ${SERVICE}:${SERVICE_TAG}
       cd ..
     else
-      # If Service remains unchanged → reuse previous tag if available
+      # Reuse previous tag if unchanged
       if [ -f "$METADATA_FILE" ]; then
         PREV_TAG=$(grep "^${SERVICE}_TAG=" "$METADATA_FILE" | cut -d'=' -f2)
         if [ -n "$PREV_TAG" ]; then
@@ -178,14 +178,13 @@ for SERVICE in "${SVC_NAMES[@]}"; do
       fi
     fi
 
-    # Save service tag for later stages
     echo "${SERVICE}_TAG=${SERVICE_TAG}" >> ../build_output/image_metadata.env
   else
     echo "Directory not found for $SERVICE, skipping."
   fi
 done
 
-cd .. # Return to root
+cd .. # back to root
 
 # ----------------------------------------
 # Save metadata and changed services
