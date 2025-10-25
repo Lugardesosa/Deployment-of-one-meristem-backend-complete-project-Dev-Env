@@ -3,7 +3,7 @@ environment: dev-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-dev
   create: true     # Prevent chart from trying to create it
 
 networkpolicy:
@@ -14,6 +14,12 @@ image:
   repository:  swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-dev-env/wallet-service
   tag: latest
   pullPolicy: Always
+
+# Secret provider class
+secretProviderClass:
+  name: wallet-service-secrets
+  provider: cce
+  k8sSecretName: wallet-service-secrets
 
 
 service:

@@ -2,7 +2,7 @@ environment: stag-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-stag
   create: false     # Prevent chart from trying to create it
 
 networkpolicy:
@@ -13,6 +13,12 @@ image:
   repository:  swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/wallet-service
   tag: latest
   pullPolicy: Always
+
+# Secret provider class
+secretProviderClass:
+  name: wallet-service-secrets
+  provider: cce
+  k8sSecretName: wallet-service-secrets
 
 service:
   type: ClusterIP

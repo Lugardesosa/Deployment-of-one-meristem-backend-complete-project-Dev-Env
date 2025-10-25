@@ -28,16 +28,17 @@ secretProviderClass:
   k8sSecretName: huawei-csms-credentials
 
 serviceAccount:
-  name: app-spc-sa
+  name: app-spc-sa-dev
   dewResources:
-    - "db-admin-secret-one-meristem-dev-env"
-    - "redis-middleware-credentials-one-meristem-dev-env"
-    - "redis-mobile-backend-credentials-one-meristem-dev-env"
-    - "kafka-credentials-one-meristem-dev-env"
-    - "db-notification_service-secret-one-meristem-dev-env"
-    - "db-users_service-secret-one-meristem-dev-env"
-    - "db-wallet_service-secret-one-meristem-dev-env"
-    - "db-report_service-secret-one-meristem-dev-env"
+    - "db-admin-secret-one-meristem-app-dev-env"
+    - "redis-middleware-credentials-one-meristem-app-dev-env"
+    - "redis-mobile-backend-credentials-one-meristem-app-dev-env"
+    - "kafka-credentials-one-meristem-app-dev-env"
+    - "db-notification_service-secret-one-meristem-app-dev-env"
+    - "db-users_service-secret-one-meristem-app-dev-env"
+    - "db-wallet_service-secret-one-meristem-app-dev-env"
+    - "db-report_service-secret-one-meristem-app-dev-env"
+    - "db-trustees_service-secret-one-meristem-app-dev-env"
 
 # image pull secret
 imagePullSecret:

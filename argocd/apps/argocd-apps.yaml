@@ -12,11 +12,64 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/shared-resources
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_REPO_PATH}/shared-resources
     helm:
       valueFiles:
         - values.yaml
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+# Shared Resources Application for Stag_env (due to individual provider class and the just one service account which is in the shared resources folder)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shared-resources-sa-stag
+  namespace: ${ARGOCD_NAMESPACE}
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_REPO_PATH}/shared-resources
+    helm:
+      valueFiles:
+        - values-stag_env.yaml
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shared-resources-sa-prod
+  namespace: ${ARGOCD_NAMESPACE}
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: https://github.com/mit-meristem/one_meristem_app.git
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_REPO_PATH}/shared-resources
+    helm:
+      valueFiles:
+        - values-prod_env.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: one-meristem-app
@@ -39,8 +92,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/config-server
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${CONFIG_SERVER_APP_NAME}
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -66,8 +119,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/mobile-backend/consul
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_MOBILE_REPO_PATH}/${CONSUL_APP_NAME}
     helm:
       valueFiles:
         - values.yaml
@@ -92,8 +145,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/notification-service
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${NOTIFICATION_SERVICE_APP_NAME}
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -119,8 +172,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/mobile-backend/wallet-service
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_MOBILE_REPO_PATH}/${WALLET_SERVICE_APP_NAME}
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -146,8 +199,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/mobile-backend/report-service
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_MOBILE_REPO_PATH}/${REPORT_SERVICE_APP_NAME}
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -173,8 +226,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/users-service
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${USERS_SERVICE_APP_NAME}
     helm:
       valueFiles: 
         - values-stag_env.yaml
@@ -200,8 +253,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/trustees-service
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${TRUSTEES_SERVICE_APP_NAME}
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -226,8 +279,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/cloud-gateway
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${CLOUD_GATEWAY_APP_NAME}
     helm:
       valueFiles:
         - values-stag_env.yaml

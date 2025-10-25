@@ -3,7 +3,7 @@ environment: dev-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-dev
   create: false     # Prevent chart from trying to create it
 
 networkpolicy:
@@ -18,6 +18,13 @@ image:
 
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
+
+# Secret provider class
+secretProviderClass:
+  name: report-service-secrets
+  provider: cce
+  k8sSecretName: report-service-secrets
+
 
 strategy:
   type: RollingUpdate
@@ -166,5 +173,4 @@ service:
   name: report-service
   port: 8082
   targetPort: 20050
-
 

@@ -2,7 +2,7 @@ environment: dev-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-dev
   create: false     # Prevent chart from trying to create it
 
 #Deployment configuration
@@ -16,6 +16,13 @@ image:
 
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
+
+# Secret provider class
+secretProviderClass:
+  name: notification-service-secrets
+  provider: cce
+  k8sSecretName: notification-service-secrets
+
 
 strategy:
   type: RollingUpdate

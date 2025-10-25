@@ -5,7 +5,7 @@ environment: stag-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa
+  serviceAccountName: app-spc-sa-stag
   create: false     # Prevent chart from trying to create it
 
 #Deployment configuration for config-server service
@@ -45,7 +45,7 @@ env:
   - name: COMPANY_NAME
     value: "Meristem Securities Limited"
   - name: GITHUB_BRANCH
-    value: "stag_env"
+    value: "dev_env"
   - name: SERVER_PORT
     value: "20000"
   - name: ADMIN_USERNAME

@@ -5,7 +5,7 @@ environment: dev-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa #sa
+  serviceAccountName: app-spc-sa-dev 
   create: false  # Prevent chart from trying to create it
   
 #Deployment configuration for cloud-gateway service
@@ -18,6 +18,12 @@ image:
 
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
+
+#Secret provider class
+secretProviderClass:
+  name: cloud-gateway-secrets
+  provider: cce
+  k8sSecretName: cloud-gateway-secrets
 
 strategy:
   type: RollingUpdate
