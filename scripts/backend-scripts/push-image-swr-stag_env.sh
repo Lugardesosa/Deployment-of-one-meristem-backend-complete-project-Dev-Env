@@ -91,6 +91,51 @@ for SERVICE in "${SERVICES_ARRAY[@]}"; do
 done
 
 # ----------------------------------------
+# Ensure we're on the correct branch
+# ----------------------------------------
+echo "Ensuring we're on the ${BRANCH_ENV} branch..."
+
+# Check if we're in detached HEAD state
+if git symbolic-ref -q HEAD >/dev/null; then
+    CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+    echo "Currently on branch: $CURRENT_BRANCH"
+    
+    # If we're not on the target branch, switch to it
+    if [ "$CURRENT_BRANCH" != "$BRANCH_ENV" ]; then
+        echo "Switching from $CURRENT_BRANCH to $BRANCH_ENV..."
+        git checkout ${BRANCH_ENV}
+    fi
+else
+    echo "Currently in detached HEAD state, need to checkout/create branch"
+    
+    # Check if the target branch exists locally
+    if git show-ref --verify --quiet refs/heads/${BRANCH_ENV}; then
+        echo "Local branch ${BRANCH_ENV} exists, checking it out..."
+        git checkout ${BRANCH_ENV}
+    else
+        echo "Local branch ${BRANCH_ENV} doesn't exist, checking if remote exists..."
+        if git show-ref --verify --quiet refs/remotes/origin/${BRANCH_ENV}; then
+            echo "Remote branch origin/${BRANCH_ENV} exists, creating local branch..."
+            git checkout -b ${BRANCH_ENV} origin/${BRANCH_ENV}
+        else
+            echo "ERROR: Branch ${BRANCH_ENV} doesn't exist locally or remotely!"
+            echo "Available branches:"
+            git branch -a
+            exit 1
+        fi
+    fi
+fi
+
+# Verify we're now on the correct branch
+FINAL_BRANCH=$(git symbolic-ref --short HEAD)
+echo "Now on branch: $FINAL_BRANCH"
+
+if [ "$FINAL_BRANCH" != "$BRANCH_ENV" ]; then
+    echo "ERROR: Failed to switch to branch $BRANCH_ENV"
+    exit 1
+fi
+
+# ----------------------------------------
 # Commit and push changes to Git
 # ----------------------------------------
 echo "Committing and pushing changes to ${BRANCH_ENV} branch..."
@@ -102,21 +147,26 @@ git status
 # Add all changes
 git add .
 
-# Show git status before commit
-echo "Git status after commit:"
+# Show git status after add
+echo "Git status after add:"
 git status
 
 # Show what's being committed
 echo "Files to be committed:"
 git diff --cached --name-only
 
-# Commit changes
-git commit -m "ci: update image tags to ${IMAGE_TAG} for services: ${SERVICES_ARRAY[*]}"
-
-# Push to remote branch
-echo "Pushing to origin/${BRANCH_ENV}..."
-git push origin ${BRANCH_ENV}
-
-echo "All detected images processed and changes pushed to ${BRANCH_ENV} successfully!"
+# Check if there are any changes to commit
+if git diff --cached --quiet; then
+    echo "No changes to commit."
+else
+    # Commit changes
+    git commit -m "ci: update image tags to ${IMAGE_TAG} for services: ${SERVICES_ARRAY[*]}"
+    
+    # Push to remote branch
+    echo "Pushing to origin/${BRANCH_ENV}..."
+    git push origin ${BRANCH_ENV}
+    
+    echo "All detected images processed and changes pushed to ${BRANCH_ENV} successfully!"
+fi
 
 echo "All detected images processed successfully!"
