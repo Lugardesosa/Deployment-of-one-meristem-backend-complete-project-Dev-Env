@@ -5,7 +5,7 @@ environment: dev-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa-dev #sa
+  serviceAccountName: app-spc-sa-dev 
   create: false  # Prevent chart from trying to create it
   
 #Deployment configuration for cloud-gateway service
