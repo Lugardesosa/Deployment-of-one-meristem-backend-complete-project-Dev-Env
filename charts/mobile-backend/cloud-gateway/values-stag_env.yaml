@@ -146,7 +146,7 @@ ingress:
     secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
 
   rules:
-    - host:    # Access via ELB public IP or DNS
+    - host: ${INGRESS_HOST}   # Access via ELB public IP or DNS
       paths:
         - path: /
           pathType: ImplementationSpecific
