@@ -28,7 +28,7 @@ secretProviderClass:
   k8sSecretName: huawei-csms-credentials
 
 serviceAccount:
-  name: app-spc-sa-dev
+  name: app-spc-sa
   dewResources:
     - "db-admin-secret-one-meristem-app-dev-env"
     - "redis-middleware-credentials-one-meristem-app-dev-env"
