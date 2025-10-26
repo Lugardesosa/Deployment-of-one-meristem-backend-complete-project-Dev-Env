@@ -74,28 +74,28 @@ metadata:
   name: {{ .Values.ingress.name }}
   namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
   annotations:
-{{- range $key, $value := .Values.ingress.annotations }}
+    {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
-{{- end }}
+    {{- end }}
 spec:
-  ingressClassName: {{ .Values.ingress.className | default "cce" }}
+  ingressClassName: {{ .Values.ingress.className | default "cce" | quote }}
   tls:
-{{- if .Values.ingress.tls.enabled }}
+  {{- if .Values.ingress.tls.enabled }}
     - secretName: {{ .Values.ingress.tls.secretName | default "" | quote }}
-{{- end }}
+  {{- end }}
   rules:
-{{- range .Values.ingress.rules }}
+  {{- range .Values.ingress.rules }}
     - host: {{ .host | default "" | quote }}
       http:
         paths:
-{{- range .paths }}
-          - path: {{ .path }}
+        {{- range .paths }}
+          - path: {{ .path | default "/" }}
             pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
               service:
-                name: {{ include "cloud-gateway.fullname" $ }}
+                name: {{ .service.name | default (include "cloud-gateway.fullname" $) }}
                 port:
                   number: {{ .service.port }}
-{{- end }}
-{{- end }}
+        {{- end }}
+  {{- end }}
 {{- end }}
