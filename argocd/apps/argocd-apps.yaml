@@ -29,59 +29,6 @@ spec:
 
 ---
 
-# Shared Resources Application for Stag_env (due to individual provider class and the just one service account which is in the shared resources folder)
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: shared-resources-sa-stag
-  namespace: ${ARGOCD_NAMESPACE}
-spec:
-  project: ${ARGOCD_PROJECT}
-  source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH} 
-    path: ${HELM_REPO_PATH}/shared-resources
-    helm:
-      valueFiles:
-        - values-stag_env.yaml
-  destination:
-    server: ${CLUSTER_SERVER_URL}
-    namespace: ${APP_NAMESPACE}
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-
----
-
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: shared-resources-sa-prod
-  namespace: ${ARGOCD_NAMESPACE}
-spec:
-  project: ${ARGOCD_PROJECT}
-  source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH} 
-    path: ${HELM_REPO_PATH}/shared-resources
-    helm:
-      valueFiles:
-        - values-prod_env.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-
----
-
 # Config Server Application
 apiVersion: argoproj.io/v1alpha1
 kind: Application
