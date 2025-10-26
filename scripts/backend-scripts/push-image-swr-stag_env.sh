@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+echo "=================================================="
+echo "STARTING PUSH SCRIPT (Dry-run mode: no git push)"
+echo "=================================================="
+
 # ----------------------------------------
 # Ensure changed services file exists
 # ----------------------------------------
@@ -15,22 +19,25 @@ fi
 LINE=$(cat build_output/changed_services.txt | tr -d '\r\n')
 IFS=' ' read -r -a SERVICES_ARRAY <<< "$LINE"
 
-echo "DEBUG: Raw changed_services.txt content:"
+echo "--------------------------------------------------"
+echo "DEBUG: Raw content of build_output/changed_services.txt"
 cat build_output/changed_services.txt
-echo "DEBUG: Services array parsed from changed_services.txt:"
+echo "--------------------------------------------------"
+echo "DEBUG: Parsed services:"
 printf '  - %s\n' "${SERVICES_ARRAY[@]}"
-echo "Using IMAGE_TAG=$IMAGE_TAG"
+echo "Using IMAGE_TAG=${IMAGE_TAG}"
+echo "=================================================="
 
 # ----------------------------------------
 # Authenticate with Huawei Cloud SWR
 # ----------------------------------------
-echo "Logging into Huawei SWR..."
+echo "🔐 Logging into Huawei SWR..."
 echo "${HUAWEI_SWR_PASSWORD}" | docker login \
   -u "${SWR_REGION}@${HUAWEI_SWR_USERNAME}" \
   --password-stdin "${SWR_REGISTRY_URL}"
 
 if [ $? -ne 0 ]; then
-  echo "Huawei SWR login failed. Please check your credentials or token expiration."
+  echo "Huawei SWR login failed. Check your credentials or token expiration."
   exit 1
 else
   echo "Successfully logged into Huawei SWR."
@@ -40,8 +47,8 @@ fi
 # Loop over array and push images
 # ----------------------------------------
 for SERVICE in "${SERVICES_ARRAY[@]}"; do
-  echo "------------------------------"
-  echo "Processing service: $SERVICE"
+  echo "--------------------------------------------------"
+  echo "Processing service: ${SERVICE}"
 
   if ! docker image inspect "${SERVICE}:${IMAGE_TAG}" > /dev/null 2>&1; then
     echo "Image ${SERVICE}:${IMAGE_TAG} not found locally — skipping."
@@ -54,116 +61,64 @@ for SERVICE in "${SERVICES_ARRAY[@]}"; do
   echo "Pushing image ${SERVICE}:${IMAGE_TAG} to SWR..."
   docker push "${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}"
 
+  # ----------------------------------------
   # Update Helm values
+  # ----------------------------------------
   VALUES_FILE="${HELM_MOBILE_REPO_PATH}/${SERVICE}/values-${BRANCH_ENV}.yaml"
   if [[ -f "$VALUES_FILE" ]]; then
       echo "Found values file: $VALUES_FILE"
       
-      # Show files in the service directory before changes
-      echo "Files in ${HELM_MOBILE_REPO_PATH}/${SERVICE}:"
+      echo "--------------------------------------------------"
+      echo "DEBUG: Files in ${HELM_MOBILE_REPO_PATH}/${SERVICE}:"
       ls -la "${HELM_MOBILE_REPO_PATH}/${SERVICE}/"
       
-      # Show current content of values file
-      echo "Current content of ${VALUES_FILE}:"
-      cat "$VALUES_FILE"
-      echo "---"
-  
-      echo "Updating Helm values for ${SERVICE}..."
+      echo "DEBUG: Before update — current image config in ${VALUES_FILE}:"
+      yq e '.image' "$VALUES_FILE"
+      echo "--------------------------------------------------"
+
+      echo "Updating Helm image.repository and image.tag for ${SERVICE}..."
       yq e -i ".image.repository = \"${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}\"" "$VALUES_FILE"
       yq e -i ".image.tag = \"${IMAGE_TAG}\"" "$VALUES_FILE"
 
-      # Debug: print updated values
-      UPDATED_REPO=$(yq e '.image.repository' "$VALUES_FILE")
-      UPDATED_TAG=$(yq e '.image.tag' "$VALUES_FILE")
-      echo "DEBUG: ${VALUES_FILE} updated:"
-      echo "  image.repository = $UPDATED_REPO"
-      echo "  image.tag        = $UPDATED_TAG"
+      echo "Updated image fields successfully!"
+      echo "DEBUG: After update — new image config:"
+      yq e '.image' "$VALUES_FILE"
 
-      # Show the updated file content
-      echo "Updated content of ${VALUES_FILE}:"
-      cat "$VALUES_FILE"
-      echo "---"
   else
-      echo "Values file ${VALUES_FILE} not found, skipping Helm update."
-      echo "Available files in ${HELM_MOBILE_REPO_PATH}/${SERVICE}:"
+      echo "Values file ${VALUES_FILE} not found. Skipping Helm substitution."
+      echo "DEBUG: Available files in ${HELM_MOBILE_REPO_PATH}/${SERVICE}:"
       ls -la "${HELM_MOBILE_REPO_PATH}/${SERVICE}/" || echo "Directory not found"
   fi
 done
 
 # ----------------------------------------
-# Ensure we're on the correct branch
+# Simulate commit (Dry Run)
 # ----------------------------------------
-echo "Ensuring we're on the ${BRANCH_ENV} branch..."
+echo "=================================================="
+echo "GIT DEBUG SECTION (No push or commit performed)"
+echo "=================================================="
 
-# Detect detached HEAD state
-if git symbolic-ref -q HEAD >/dev/null; then
-    CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
-    echo "Currently on branch: $CURRENT_BRANCH"
-else
-    echo "Currently in detached HEAD state, proceeding safely..."
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    # ----------------------------------------
-    # Commit and push changes BEFORE checkout
-    # ----------------------------------------
-    echo "Preparing to commit and push modified Helm/Argo/Scripts files..."
+echo "DEBUG: Current branch info:"
+git status
 
-    git config user.name "github-actions[bot]"
-    git config user.email "github-actions[bot]@users.noreply.github.com"
+echo "DEBUG: Staging relevant directories (dry-run)"
+for DIR in charts argocd scripts backend; do
+  if [ -d "$DIR" ]; then
+    echo "Would stage directory: $DIR"
+    git add -n "$DIR" || true  # -n means dry-run add
+  else
+    echo "Directory not found (skipping): $DIR"
+  fi
+done
 
-    echo "DEBUG: Git status before staging:"
-    git status
+# Skip build_output
+echo "Ensuring build_output/ is excluded..."
+git status --ignored | grep "build_output" || echo "build_output not staged."
 
-    echo "Staging only relevant directories..."
-    # Add only these directories if they exist
-    for DIR in charts argocd scripts backend; do
-      if [ -d "$DIR" ]; then
-        echo "Adding directory: $DIR"
-        git add -A "$DIR"
-      else
-        echo "Directory not found (skipping): $DIR"
-      fi
-    done
-
-    # Make sure build_output/ is ignored
-    git reset build_output/ >/dev/null 2>&1 || true
-
-    echo "DEBUG: Git status after staging:"
-    git status
-
-    # Check if there are any staged changes
-    if git diff --cached --quiet; then
-        echo "No changes to commit — skipping commit step."
-    else
-        COMMIT_MSG="ci: update image tags to ${IMAGE_TAG} for services: ${SERVICES_ARRAY[*]}"
-        echo "Committing changes with message: ${COMMIT_MSG}"
-        git commit -m "${COMMIT_MSG}"
-    fi
-
-    # ----------------------------------------
-    # Push changes from detached HEAD to target branch
-    # ----------------------------------------
-    echo "Pushing committed changes to origin/${BRANCH_ENV}..."
-    git fetch origin ${BRANCH_ENV} --quiet || echo "DEBUG: could not fetch ${BRANCH_ENV}, continuing..."
-    git push origin HEAD:${BRANCH_ENV} || {
-        echo "ERROR: Git push failed. Check repo permissions or branch protection."
-        exit 1
-    }
-
-    echo "Successfully pushed changes to ${BRANCH_ENV}."
-
-    # ----------------------------------------
-    # Optional verification: checkout the target branch
-    # ----------------------------------------
-    echo "Switching to branch ${BRANCH_ENV} for verification..."
-
-    if git show-ref --verify --quiet refs/heads/${BRANCH_ENV}; then
-        git checkout ${BRANCH_ENV}
-    else
-        git checkout -b ${BRANCH_ENV} origin/${BRANCH_ENV}
-    fi
-
-    FINAL_BRANCH=$(git symbolic-ref --short HEAD)
-    echo "Now on branch: $FINAL_BRANCH"
-fi
-
-echo "All detected images processed successfully!"
+echo "=================================================="
+echo "DEBUG COMPLETE — Substitutions verified."
+echo "No code has been committed or pushed in this run."
+echo "=================================================="
