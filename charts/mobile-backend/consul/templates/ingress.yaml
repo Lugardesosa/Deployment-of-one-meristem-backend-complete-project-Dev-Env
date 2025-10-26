@@ -17,13 +17,13 @@ spec:
     - secretName: {{ .Values.ingress.tls.secretName | default "" | quote }}
 {{- end }}
   rules:
-{{- range .Values.ingress.rules }}
-    - host: {{ .host | default "" | quote }}
+{{- range $ruleIndex, $rule := .Values.ingress.rules }}
+    - host: {{ $rule.host | default "" | quote }}
       http:
         paths:
-{{- range .paths }}
-          - path: {{ .path | default "/" }}
-            pathType: {{ .pathType | default "ImplementationSpecific" }}
+{{- range $pathIndex, $path := $rule.paths }}
+          - path: {{ $path.path | default "/" }}
+            pathType: {{ $path.pathType | default "ImplementationSpecific" }}
             backend:
               service:
                 name: {{ include "consul.fullname" $ }}
