@@ -33,7 +33,7 @@ serviceAccount:
   dewResources:
     - "db-admin-secret-one-meristem-app-stag-env"
     - "redis-middleware-credentials-one-meristem-app-stag-env"
-    - "redis-micro-backend-credentials-one-meristem-app-stag-env"
+    - "redis-mobile-backend-credentials-one-meristem-app-stag-env"  
     - "kafka-credentials-one-meristem-app-stag-env"
     - "db-notification_service-secret-one-meristem-app-stag-env"
     - "db-users_service-secret-one-meristem-app-stag-env"
