@@ -208,7 +208,7 @@ spec:
       serviceAccountName: {{ .Values.global.serviceAccountName | default "app-spc-sa" }}
       containers:
         - name: {{ include "users-service.name" . }}
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
@@ -230,20 +230,16 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
           env:
-            {{- if .Values.env }}
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- end }}
-            {{- if .Values.secretEnv }}
             {{- range $key, $value := .Values.secretEnv }}
             - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $value.secretName }}
                   key: {{ $value.secretKey }}
-            {{- end }}
             {{- end }}
           volumeMounts:
             {{- if .Values.volumeMounts }}
