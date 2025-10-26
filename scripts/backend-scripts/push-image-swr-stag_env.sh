@@ -22,78 +22,6 @@ printf '  - %s\n' "${SERVICES_ARRAY[@]}"
 echo "Using IMAGE_TAG=$IMAGE_TAG"
 
 # ----------------------------------------
-# Handle branch management with stash support
-# ----------------------------------------
-echo "Ensuring we're on the ${BRANCH_ENV} branch..."
-
-# Check if there are any uncommitted changes
-HAS_CHANGES=false
-if ! git diff --quiet HEAD 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-    HAS_CHANGES=true
-    echo "Detected uncommitted changes, will stash them temporarily"
-fi
-
-# Stash changes if they exist
-STASH_CREATED=false
-if [ "$HAS_CHANGES" = true ]; then
-    echo "Stashing current changes..."
-    git stash push -m "temp-stash-for-branch-switch-$(date +%s)"
-    STASH_CREATED=true
-fi
-
-# Check if we're in detached HEAD state and handle branch switching
-if git symbolic-ref -q HEAD >/dev/null; then
-    CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
-    echo "Currently on branch: $CURRENT_BRANCH"
-    
-    # If we're not on the target branch, switch to it
-    if [ "$CURRENT_BRANCH" != "$BRANCH_ENV" ]; then
-        echo "Switching from $CURRENT_BRANCH to $BRANCH_ENV..."
-        git checkout ${BRANCH_ENV}
-    fi
-else
-    echo "Currently in detached HEAD state, need to checkout/create branch"
-    
-    # Check if the target branch exists locally
-    if git show-ref --verify --quiet refs/heads/${BRANCH_ENV}; then
-        echo "Local branch ${BRANCH_ENV} exists, checking it out..."
-        git checkout ${BRANCH_ENV}
-    else
-        echo "Local branch ${BRANCH_ENV} doesn't exist, checking if remote exists..."
-        if git show-ref --verify --quiet refs/remotes/origin/${BRANCH_ENV}; then
-            echo "Remote branch origin/${BRANCH_ENV} exists, creating local branch..."
-            git checkout -b ${BRANCH_ENV} origin/${BRANCH_ENV}
-        else
-            echo "ERROR: Branch ${BRANCH_ENV} doesn't exist locally or remotely!"
-            echo "Available branches:"
-            git branch -a
-            exit 1
-        fi
-    fi
-fi
-
-# Verify we're now on the correct branch
-FINAL_BRANCH=$(git symbolic-ref --short HEAD)
-echo "Now on branch: $FINAL_BRANCH"
-
-if [ "$FINAL_BRANCH" != "$BRANCH_ENV" ]; then
-    echo "ERROR: Failed to switch to branch $BRANCH_ENV"
-    exit 1
-fi
-
-# Restore stashed changes if we created a stash
-if [ "$STASH_CREATED" = true ]; then
-    echo "Restoring previously stashed changes..."
-    if git stash pop; then
-        echo "Successfully restored stashed changes"
-    else
-        echo "WARNING: Could not restore stashed changes automatically"
-        echo "You may need to resolve conflicts manually"
-        echo "Stashed changes are still available in git stash"
-    fi
-fi
-
-# ----------------------------------------
 # Authenticate with Huawei Cloud SWR
 # ----------------------------------------
 echo "Logging into Huawei SWR..."
@@ -163,37 +91,79 @@ for SERVICE in "${SERVICES_ARRAY[@]}"; do
 done
 
 # ----------------------------------------
-# Commit and push changes to Git
+# Ensure we're on the correct branch
 # ----------------------------------------
-echo "Committing and pushing changes to ${BRANCH_ENV} branch..."
+echo "Ensuring we're on the ${BRANCH_ENV} branch..."
 
-# Show git status before commit
-echo "Git status before commit:"
-git status
-
-# Add all changes
-git add .
-
-# Show git status after add
-echo "Git status after add:"
-git status
-
-# Show what's being committed
-echo "Files to be committed:"
-git diff --cached --name-only
-
-# Check if there are any changes to commit
-if git diff --cached --quiet; then
-    echo "No changes to commit."
+# Detect detached HEAD state
+if git symbolic-ref -q HEAD >/dev/null; then
+    CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+    echo "Currently on branch: $CURRENT_BRANCH"
 else
-    # Commit changes
-    git commit -m "ci: update image tags to ${IMAGE_TAG} for services: ${SERVICES_ARRAY[*]}"
-    
-    # Push to remote branch
-    echo "Pushing to origin/${BRANCH_ENV}..."
-    git push origin ${BRANCH_ENV}
-    
-    echo "All detected images processed and changes pushed to ${BRANCH_ENV} successfully!"
+    echo "Currently in detached HEAD state, proceeding safely..."
+
+    # ----------------------------------------
+    # Commit and push changes BEFORE checkout
+    # ----------------------------------------
+    echo "Preparing to commit and push modified Helm/Argo/Scripts files..."
+
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    echo "DEBUG: Git status before staging:"
+    git status
+
+    echo "Staging only relevant directories..."
+    # Add only these directories if they exist
+    for DIR in charts argocd scripts backend; do
+      if [ -d "$DIR" ]; then
+        echo "Adding directory: $DIR"
+        git add -A "$DIR"
+      else
+        echo "Directory not found (skipping): $DIR"
+      fi
+    done
+
+    # Make sure build_output/ is ignored
+    git reset build_output/ >/dev/null 2>&1 || true
+
+    echo "DEBUG: Git status after staging:"
+    git status
+
+    # Check if there are any staged changes
+    if git diff --cached --quiet; then
+        echo "No changes to commit — skipping commit step."
+    else
+        COMMIT_MSG="ci: update image tags to ${IMAGE_TAG} for services: ${SERVICES_ARRAY[*]}"
+        echo "Committing changes with message: ${COMMIT_MSG}"
+        git commit -m "${COMMIT_MSG}"
+    fi
+
+    # ----------------------------------------
+    # Push changes from detached HEAD to target branch
+    # ----------------------------------------
+    echo "Pushing committed changes to origin/${BRANCH_ENV}..."
+    git fetch origin ${BRANCH_ENV} --quiet || echo "DEBUG: could not fetch ${BRANCH_ENV}, continuing..."
+    git push origin HEAD:${BRANCH_ENV} || {
+        echo "ERROR: Git push failed. Check repo permissions or branch protection."
+        exit 1
+    }
+
+    echo "Successfully pushed changes to ${BRANCH_ENV}."
+
+    # ----------------------------------------
+    # Optional verification: checkout the target branch
+    # ----------------------------------------
+    echo "Switching to branch ${BRANCH_ENV} for verification..."
+
+    if git show-ref --verify --quiet refs/heads/${BRANCH_ENV}; then
+        git checkout ${BRANCH_ENV}
+    else
+        git checkout -b ${BRANCH_ENV} origin/${BRANCH_ENV}
+    fi
+
+    FINAL_BRANCH=$(git symbolic-ref --short HEAD)
+    echo "Now on branch: $FINAL_BRANCH"
 fi
 
 echo "All detected images processed successfully!"
