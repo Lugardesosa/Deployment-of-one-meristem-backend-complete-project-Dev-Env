@@ -206,7 +206,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
-          # HEALTH CHECKS
+          #HEALTH CHECKS START HERE
+          #Uses TCP Socket Probe since to endpoint exposed in the application
           livenessProbe:
             tcpSocket:
               port: {{ .Values.service.targetPort }}
@@ -221,45 +222,32 @@ spec:
             periodSeconds: 15
             timeoutSeconds: 3
             failureThreshold: 3
-
-          # ENVIRONMENT VARIABLES
           env:
-            {{- if .Values.env }}
-            {{- range .Values.env }}
-            - name: {{ .name }}
-              value: {{ .value | quote }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
             {{- end }}
-            {{- end }}
-
-            {{- if .Values.secretEnv }}
-            {{- range .Values.secretEnv }}
-            - name: {{ .name }}
+            {{- range $key, $value := .Values.secretEnv }}
+            - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secretName }}
-                  key: {{ .secretKey }}
+                  name: {{ $value.secretName }}
+                  key: {{ $value.secretKey }}
             {{- end }}
-            {{- end }}
-
-          # VOLUME MOUNTS
           volumeMounts:
             {{- if .Values.volumeMounts }}
             {{- toYaml .Values.volumeMounts | nindent 12 }}
             {{- end }}
-
-          # RESOURCES
           resources:
             {{- if .Values.resources }}
             {{- toYaml .Values.resources | nindent 12 }}
             {{- else }}
             {}
             {{- end }}
-
       imagePullSecrets:
         {{- if .Values.imagePullSecrets }}
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
         {{- end }}
-
       volumes:
         {{- if .Values.volumes }}
         {{- toYaml .Values.volumes | nindent 8 }}
