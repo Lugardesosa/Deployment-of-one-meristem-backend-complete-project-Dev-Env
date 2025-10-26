@@ -2,7 +2,7 @@ environment: stag-env
 
 global:
   namespace: one-meristem-app
-  serviceAccountName: app-spc-sa-stag
+  serviceAccountName: app-spc-sa
   create: false     # Prevent chart from trying to create it
 
 networkpolicy:
