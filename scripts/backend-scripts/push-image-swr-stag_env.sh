@@ -31,7 +31,7 @@ echo "=================================================="
 # ----------------------------------------
 # Authenticate with Huawei Cloud SWR
 # ----------------------------------------
-echo "🔐 Logging into Huawei SWR..."
+echo "Logging into Huawei SWR..."
 echo "${HUAWEI_SWR_PASSWORD}" | docker login \
   -u "${SWR_REGION}@${HUAWEI_SWR_USERNAME}" \
   --password-stdin "${SWR_REGISTRY_URL}"
@@ -42,6 +42,20 @@ if [ $? -ne 0 ]; then
 else
   echo "Successfully logged into Huawei SWR."
 fi
+
+# ensure a single place for storing pushed image info (clean each run)
+rm -rf image_output || true
+mkdir -p image_output
+echo "dircetory image_output/ created for pushed image and tags pushed to SWR"
+# files we will maintain:
+# image_output/image_tag.txt      -> last IMAGE_TAG used (single scalar)
+# image_output/built_images.txt   -> newline-separated list of pushed image full refs
+# image_output/image_map.csv      -> CSV: service,full_image_ref (handy for lookups)
+> image_output/built_images.txt
+> image_output/image_map.csv
+#Explicitly stores the image tag used for reference
+echo "${IMAGE_TAG}" > image_output/image_tag.txt 
+echo "DEBUG: image_output initialized (will be overwritten each run)"
 
 # ----------------------------------------
 # Loop over array and push images
@@ -60,6 +74,11 @@ for SERVICE in "${SERVICES_ARRAY[@]}"; do
 
   echo "Pushing image ${SERVICE}:${IMAGE_TAG} to SWR..."
   docker push "${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}"
+
+  # Output export block for tracking pushed images**
+  FULL_IMAGE_REF="${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE}:${IMAGE_TAG}"
+  echo "${FULL_IMAGE_REF}" >> image_output/built_images.txt
+  echo "${SERVICE},${FULL_IMAGE_REF}" >> image_output/image_map.csv
 
   # ----------------------------------------
   # Update Helm values
