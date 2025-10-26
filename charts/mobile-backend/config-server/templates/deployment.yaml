@@ -162,12 +162,14 @@ spec:
             {{- if .Values.env }}
             {{- toYaml .Values.env | nindent 12 }}
             {{- end }}
+            {{- if .Values.secretEnv }}
             {{- range $key, $val := .Values.secretEnv }}
             - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $val.secretName }}
                   key: {{ $val.secretKey }}
+            {{- end }}
             {{- end }}
           volumeMounts:
             {{- if .Values.volumeMounts }}
