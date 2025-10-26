@@ -22,6 +22,7 @@ k8sSecret:
   name: credentials
 
 #SecretProviderClass
+environment: stag-env
 secretProviderClass:
   name: huawei-csms-credentials
   provider: cce
