@@ -93,7 +93,7 @@ spec:
             pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
               service:
-                name: {{ .service.name | default (include "cloud-gateway.fullname" $) }}
+                name: {{ include "cloud-gateway.fullname" $ }}  # Use the same fullname
                 port:
                   number: {{ .service.port }}
         {{- end }}
