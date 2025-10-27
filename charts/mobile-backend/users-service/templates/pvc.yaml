@@ -34,6 +34,28 @@
 #   volumeMode: {{ .Values.pvc.volumeMode | default "Filesystem" }}
 */}}
 
+{{/*
+# {{- if .Values.pvc.enabled }}
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: {{ .Values.pvc.name | default (include "users-service.fullname" .) }}
+#   namespace: {{ .Values.global.namespace }}
+# spec:
+#   accessModes:
+#     - ReadWriteMany
+#   resources:
+#     requests:
+#       storage: {{ .Values.pvc.size | default "500Mi" }}
+#   storageClassName: {{ .Values.pvc.storageClassName | default "csi-obs" }}
+#   volumeMode: Filesystem
+#   {{- if .Values.pvc.useExistingBucket }}
+#   volumeName: {{ include "users-service.fullname" . }}-obs-pv  # Reference the PV
+#   {{- end }}
+# {{- end }}
+*/}}
+
+
 {{- if .Values.pvc.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -42,10 +64,16 @@ metadata:
   namespace: {{ .Values.global.namespace }}
 spec:
   accessModes:
-    - ReadWriteMany
+    {{- if .Values.pvc.useExistingBucket }}
+    - ReadWriteMany  # OBS supports RWX
+    {{- else }}
+    - ReadWriteOnce  # Default for dynamic provisioning
+    {{- end }}
   resources:
     requests:
-      storage: {{ .Values.pvc.size | default "500Mi" }}
+      storage: {{ .Values.pvc.size | default "1Gi" }}
   storageClassName: {{ .Values.pvc.storageClassName | default "csi-obs" }}
-  volumeMode: Filesystem
+  {{- if .Values.pvc.useExistingBucket }}
+  volumeName: {{ include "users-service.fullname" . }}-obs-pv  # Reference the PV
+  {{- end }}
 {{- end }}
