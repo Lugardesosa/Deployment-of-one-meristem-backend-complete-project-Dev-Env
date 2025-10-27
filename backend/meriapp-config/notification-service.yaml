@@ -6,7 +6,7 @@ spring:
   mail:
     host: ${MAILER_HOST}
     username: ${MAILER_USERNAME}
-    port: 2525
+    port: ${MAILER_PORT}
     password: ${MAILER_PASSWORD}
     properties:
       mail.smtp.auth: true
