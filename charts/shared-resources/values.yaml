@@ -22,7 +22,7 @@ k8sSecret:
   name: credentials
 
 #SecretProviderClass
-environment: stag-env
+environment: stag_env
 secretProviderClass:
   name: huawei-csms-credentials
   provider: cce
@@ -33,7 +33,7 @@ serviceAccount:
   dewResources:
     - "db-admin-secret-one-meristem-app-stag-env"
     - "redis-middleware-credentials-one-meristem-app-stag-env"
-    - "redis-mobile-backend-credentials-one-meristem-app-stag-env"  
+    - "redis-mobile-backend-credentials-one-meristem-app-stag-env" 
     - "kafka-credentials-one-meristem-app-stag-env"
     - "db-notification_service-secret-one-meristem-app-stag-env"
     - "db-users_service-secret-one-meristem-app-stag-env"
@@ -43,7 +43,9 @@ serviceAccount:
 
 # image pull secret
 imagePullSecret:
-  dockerconfigjson: "eyJhdXRocyI6eyJzd3IuYWYtc291dGgtMS5teWh1YXdlaWNsb3VkLmNvbSI6eyJ1c2VybmFtZSI6ImFmLXNvdXRoLTFASFBVQUVaSzNETExQTFZGWFpJQzUiLCJwYXNzd29yZCI6ImJiZTFhYzgxZjBkNjRjZDczYWM0MmFhOWEzYmZlODBiY2MzNGE4MmM1M2VkMmMwNWQ4MGU5NTQ5NDM5NzlkZWIiLCJlbWFpbCI6InRhbGsybHVnYXJkQGdtYWlsLmNvbSIsImF1dGgiOiJZV1l0YzI5MWRHZ3RNVUJJVUZWQlJWcExNMFJNVEZCTVZrWllXa2xETlRvM05UVTVNVFU1TkRVNE9UVXpPRFF3In19fQ=="
+  dockerconfigjson: eyJhdXRocyI6eyJzd3IuYWYtc291dGgtMS5teWh1YXdlaWNsb3VkLmNvbSI6eyJ1c2VybmFtZSI6ImFmLXNvdXRoLTFASFBVQUVaSzNETExQTFZGWFpJQzUiLCJwYXNzd29yZCI6ImJiZTFhYzgxZjBkNjRjZDczYWM0MmFhOWEzYmZlODBiY2MzNGE4MmM1M2VkMmMwNWQ4MGU5NTQ5NDM5NzlkZWIiLCJlbWFpbCI6InRhbGsybHVnYXJkQGdtYWlsLmNvbSIsImF1dGgiOiJZV1l0YzI5MWRHZ3RNVUJJVUZWQlJWcExNMFJNVEZCTVZrWllXa2xETlRwaVltVXhZV000TVdZd1pEWTBZMlEzTTJGak5ESmhZVGxoTTJKbVpUZ3dZbU5qTXpSaE9ESmpOVE5sWkRKak1EVmtPREJsT1RVME9UUXpPVGM1WkdWaSJ9fX0K 
+
+#OBS Access
 obsSecret:
   enabled: true
   name: huawei-credentials-obs-ak
