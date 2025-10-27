@@ -12,20 +12,30 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH} 
-    path: ${HELM_REPO_PATH}/shared-resources
+    targetRevision: stag_env 
+    path: charts/shared-resources
     helm:
       valueFiles:
         - values.yaml
+      parameters:  # The secret for OBS auth for Users-service
+        - name: obsSecret.data.accessKey
+          value: "SFBVQUVaSzNETExQTFZGWFpJQzU="
+        - name: obsSecret.data.secretKey
+          value: "c05weTlSN0FjN0JIZU9VcDVhRGhyRERkY1lFYWh1M1BVQnNWM0s0NQ=="
   destination:
-    server: ${CLUSTER_SERVER_URL}
-    namespace: ${APP_NAMESPACE}
+    server: https://kubernetes.default.svc
+    namespace: one-meristem-app
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+    managedNamespaceMetadata:  # For Cross-Namespace Access
+      labels:
+        argocd.argoproj.io/managed-by: shared-resources
+  # Allow resources in other namespaces
+  ignoreDifferences: [] 
 
 ---
 
@@ -39,8 +49,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH}
-    path: ${HELM_MOBILE_REPO_PATH}/${CONFIG_SERVER_APP_NAME}
+    targetRevision: stag_env
+    path: charts/mobile-backend/config-server
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -66,8 +76,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH} 
-    path: ${HELM_MOBILE_REPO_PATH}/${CONSUL_APP_NAME}
+    targetRevision: stag_env 
+    path: charts/mobile-backend/consul
     helm:
       valueFiles:
         - values.yaml
@@ -92,8 +102,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH}
-    path: ${HELM_MOBILE_REPO_PATH}/${NOTIFICATION_SERVICE_APP_NAME}
+    targetRevision: stag_env
+    path: charts/mobile-backend/notification-service
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -119,8 +129,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH} 
-    path: ${HELM_MOBILE_REPO_PATH}/${WALLET_SERVICE_APP_NAME}
+    targetRevision: stag_env 
+    path: charts/mobile-backend/wallet-service
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -146,8 +156,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH} 
-    path: ${HELM_MOBILE_REPO_PATH}/${REPORT_SERVICE_APP_NAME}
+    targetRevision: stag_env 
+    path: charts/mobile-backend/report-service
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -173,8 +183,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH}
-    path: ${HELM_MOBILE_REPO_PATH}/${USERS_SERVICE_APP_NAME}
+    targetRevision: stag_env
+    path: charts/mobile-backend/users-service
     helm:
       valueFiles: 
         - values-stag_env.yaml
@@ -200,8 +210,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH}
-    path: ${HELM_MOBILE_REPO_PATH}/${TRUSTEES_SERVICE_APP_NAME}
+    targetRevision: stag_env
+    path: charts/mobile-backend/trustees-service
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -226,8 +236,8 @@ spec:
   project: one-meristem-app
   source:
     repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: ${GIT_BRANCH}
-    path: ${HELM_MOBILE_REPO_PATH}/${CLOUD_GATEWAY_APP_NAME}
+    targetRevision: stag_env
+    path: charts/mobile-backend/cloud-gateway
     helm:
       valueFiles:
         - values-stag_env.yaml
@@ -240,4 +250,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
