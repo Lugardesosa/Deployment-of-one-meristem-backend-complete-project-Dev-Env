@@ -66,18 +66,18 @@ secretEnv:
   ENCRYPTION_KEY:
     secretName: credentials
     secretKey: key4
-  DB_SERVER:
-    secretName: huawei-csms-credentials
-    secretKey: DB_SERVER
-  NOTIFICATION_DB_NAME:
-    secretName: huawei-csms-credentials
-    secretKey: NOTIFICATION_DB_NAME
-  NOTIFICATION_DB_USERNAME:
-    secretName: huawei-csms-credentials
-    secretKey: NOTIFICATION_DB_USERNAME
-  NOTIFICATION_DB_PASSWORD:
-    secretName: huawei-csms-credentials
-    secretKey: NOTIFICATION_DB_PASSWORD
+  # DB_SERVER:
+  #   secretName: huawei-csms-credentials
+  #   secretKey: DB_SERVER
+  # NOTIFICATION_DB_NAME:
+  #   secretName: huawei-csms-credentials
+  #   secretKey: NOTIFICATION_DB_NAME
+  # NOTIFICATION_DB_USERNAME:
+  #   secretName: huawei-csms-credentials
+  #   secretKey: NOTIFICATION_DB_USERNAME
+  # NOTIFICATION_DB_PASSWORD:
+  #   secretName: huawei-csms-credentials
+  #   secretKey: NOTIFICATION_DB_PASSWORD
   KAFKA_HOST_URL:
     secretName: huawei-csms-credentials
     secretKey: KAFKA_HOST_URL
