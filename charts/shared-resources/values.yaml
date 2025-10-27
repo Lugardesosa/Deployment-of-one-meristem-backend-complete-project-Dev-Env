@@ -45,9 +45,25 @@ serviceAccount:
 imagePullSecret:
   dockerconfigjson: eyJhdXRocyI6eyJzd3IuYWYtc291dGgtMS5teWh1YXdlaWNsb3VkLmNvbSI6eyJ1c2VybmFtZSI6ImFmLXNvdXRoLTFASFBVQUVaSzNETExQTFZGWFpJQzUiLCJwYXNzd29yZCI6ImJiZTFhYzgxZjBkNjRjZDczYWM0MmFhOWEzYmZlODBiY2MzNGE4MmM1M2VkMmMwNWQ4MGU5NTQ5NDM5NzlkZWIiLCJlbWFpbCI6InRhbGsybHVnYXJkQGdtYWlsLmNvbSIsImF1dGgiOiJZV1l0YzI5MWRHZ3RNVUJJVUZWQlJWcExNMFJNVEZCTVZrWllXa2xETlRwaVltVXhZV000TVdZd1pEWTBZMlEzTTJGak5ESmhZVGxoTTJKbVpUZ3dZbU5qTXpSaE9ESmpOVE5sWkRKak1EVmtPREJsT1RVME9UUXpPVGM1WkdWaSJ9fX0K 
 
+# obsSecret:
+#   enabled: true
+#   name: huawei-credentials-obs-ak
+#   data:
+#     accessKey: ""
+#     secretKey: ""
+
 obsSecret:
   enabled: true
   name: huawei-credentials-obs-ak
   data:
-    accessKey: ""
-    secretKey: ""
+    accessKey: "SFBVQUVaSzNETExQTFZGWFpJQzU="
+    secretKey: "c05weTlSN0FjN0JIZU9VcDVhRGhyRERkY1lFYWh1M1BVQnNWM0s0NQ=="
+
+
+# Huawei Cloud Storage Authentication (for OBS, EVS, SFS CSI drivers)
+huaweiCloudStorage:
+  enabled: true
+  accessKey: "HPUAEZK3DLLPLVFXZIC5"  # Your decoded AK
+  secretKey: "nPy9R7Ac7BhMOUp5aDhrDDdcYEahu3PUBsV3K45"  # Your decoded SK
+  projectId: "ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb"  # Enterprise ID
+  region: "af-south-1"   # Region
