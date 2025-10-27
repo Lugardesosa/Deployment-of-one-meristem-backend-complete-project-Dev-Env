@@ -1,1 +1,22 @@
-
+{{- if .Values.pvc.useExistingBucket }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "users-service.fullname" . }}-obs-pv
+  labels:
+    app: {{ include "users-service.name" . }}
+spec:
+  capacity:
+    storage: {{ .Values.pvc.size }}
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain  # Don't delete bucket when PV is deleted
+  storageClassName: {{ .Values.pvc.storageClassName }}
+  csi:
+    driver: obs.csi.everest.io
+    volumeHandle: {{ .Values.pvc.existingBucketName }}-{{ .Values.environment }}  # Parameterized bucket name
+    volumeAttributes:
+      everest.io/obs-volume-type: STANDARD
+      everest.io/region: {{ .Values.pvc.region | default "af-south-1" }}
+      storage.kubernetes.io/csiProvisionerIdentity: obs.csi.everest.io
+{{- end }}
