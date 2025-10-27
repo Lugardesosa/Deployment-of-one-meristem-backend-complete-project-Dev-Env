@@ -7,24 +7,24 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: shared-resources
-  namespace: argocd
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/shared-resources
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_REPO_PATH}/shared-resources
     helm:
       valueFiles:
-        - values.yaml
+        - ${VALUES_FILE}
       parameters:  # The secret for OBS auth for Users-service
         - name: obsSecret.data.accessKey
           value: "SFBVQUVaSzNETExQTFZGWFpJQzU="
         - name: obsSecret.data.secretKey
           value: "c05weTlSN0FjN0JIZU9VcDVhRGhyRERkY1lFYWh1M1BVQnNWM0s0NQ=="
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -43,20 +43,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-server
-  namespace: argocd
+  name: ${CONFIG_SERVER_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/config-server
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${CONFIG_SERVER_APP_NAME}
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -70,20 +70,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: consul
-  namespace: argocd
+  name: ${CONSUL_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/mobile-backend/consul
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_MOBILE_REPO_PATH}/${CONSUL_APP_NAME}
     helm:
       valueFiles:
         - values.yaml
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -96,20 +96,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: notification-service
-  namespace: argocd
+  name: ${NOTIFICATION_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/notification-service
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${NOTIFICATION_SERVICE_APP_NAME}
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -123,20 +123,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: wallet-service
-  namespace: argocd
+  name: ${WALLET_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/mobile-backend/wallet-service
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_MOBILE_REPO_PATH}/${WALLET_SERVICE_APP_NAME}
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -150,20 +150,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: report-service
-  namespace: argocd
+  name: ${REPORT_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env 
-    path: charts/mobile-backend/report-service
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH} 
+    path: ${HELM_MOBILE_REPO_PATH}/${REPORT_SERVICE_APP_NAME}
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -177,20 +177,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: users-service
-  namespace: argocd
+  name: ${USERS_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/users-service
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${USERS_SERVICE_APP_NAME}
     helm:
       valueFiles: 
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -204,20 +204,20 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: trustees-service
-  namespace: argocd
+  name: ${TRUSTEES_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/trustees-service
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${TRUSTEES_SERVICE_APP_NAME}
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
@@ -230,23 +230,24 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cloud-gateway
-  namespace: argocd
+  name: ${CLOUD_GATEWAY_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
 spec:
-  project: one-meristem-app
+  project: ${ARGOCD_PROJECT}
   source:
-    repoURL: https://github.com/mit-meristem/one_meristem_app.git
-    targetRevision: stag_env
-    path: charts/mobile-backend/cloud-gateway
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${CLOUD_GATEWAY_APP_NAME}
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - ${VALUES_FILE}
   destination:
-    server: https://kubernetes.default.svc
-    namespace: one-meristem-app
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+
