@@ -132,7 +132,7 @@ volumes:
       driver: secrets-store.csi.k8s.io
       readOnly: true
       volumeAttributes:
-        secretProviderClass: huawei-csms-credentials
+        secretProviderClass: wallet-service-secrets
         #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
         #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
   - name: secret-volume
