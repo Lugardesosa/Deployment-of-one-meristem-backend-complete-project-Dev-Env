@@ -148,9 +148,14 @@ volumes:
 
 pvc:
   enabled: true
+  useExistingBucket: true  # Enable existing bucket mode
+  existingBucketName: obs-microservice-storage-one-meristem-app  # Bucket prefix (without env)
   name: users-service-pvc
   size: "1Gi"
   storageClassName: csi-obs
+  region: af-south-1  # Add region
+  accessModes:
+    - ReadWriteMany
 
 resources:
   limits:
