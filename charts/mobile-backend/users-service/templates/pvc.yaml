@@ -62,6 +62,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ .Values.pvc.name | default (include "users-service.fullname" .) }}
   namespace: {{ .Values.global.namespace }}
+  annotations:
+    everest.io/obs-volume-type: standard 
 spec:
   accessModes:
     {{- if .Values.pvc.useExistingBucket }}
