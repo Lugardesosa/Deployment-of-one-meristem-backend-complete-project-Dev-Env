@@ -13,8 +13,8 @@ networkpolicy:
 replicaCount: 2
 
 image:
-  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/users-service
-  tag: latest
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/users-service
+  tag: 4ca8867-71
   pullPolicy: Always
 
 # Secret provider class
@@ -136,7 +136,7 @@ volumes:
       driver: secrets-store.csi.k8s.io
       readOnly: true
       volumeAttributes:
-        secretProviderClass: huawei-csms-credentials
+        secretProviderClass: users-service-secrets
         #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
         #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
   - name: secret-volume
