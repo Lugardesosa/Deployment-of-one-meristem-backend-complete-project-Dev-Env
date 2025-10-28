@@ -14,8 +14,8 @@ networkpolicy:
 
 
 image:
-  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/notification-service
-  tag: latest
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/trustees-service
+  tag: 4ca8867-71
   pullPolicy: Always
 
 imagePullSecrets:
@@ -153,5 +153,4 @@ service:
   name: trustees-service
   port: 8082
   targetPort: 20060
-
 
