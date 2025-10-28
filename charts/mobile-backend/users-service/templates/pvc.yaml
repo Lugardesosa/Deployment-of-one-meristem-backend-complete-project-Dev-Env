@@ -63,7 +63,7 @@ metadata:
   name: {{ .Values.pvc.name | default (include "users-service.fullname" .) }}
   namespace: {{ .Values.global.namespace }}
   annotations:
-    everest.io/obs-volume-type: standard 
+    everest.io/obs-volume-type: STANDARD 
 spec:
   accessModes:
     {{- if .Values.pvc.useExistingBucket }}
@@ -74,8 +74,10 @@ spec:
   resources:
     requests:
       storage: {{ .Values.pvc.size | default "1Gi" }}
-  storageClassName: {{ .Values.pvc.storageClassName | default "csi-obs" }}
-  {{- if .Values.pvc.useExistingBucket }}
-  volumeName: {{ include "users-service.fullname" . }}-obs-pv  # Reference the PV
+  storageClassName: ""  
+  volumeName: {{ include "users-service.fullname" . }}-obs-pv  
+  {{- else }}
+  storageClassName: {{ .Values.pvc.storageClassName | default "csi-obs" }}  # Dynamic provisioning if no OBS assigned
   {{- end }}
+  volumeMode: Filesystem
 {{- end }}
