@@ -1,3 +1,4 @@
+
 {{- if and .Values.pvc.enabled .Values.pvc.useExistingBucket }}
 apiVersion: v1
 kind: PersistentVolume
@@ -14,8 +15,8 @@ spec:
     driver: obs.csi.everest.io
     volumeHandle: obs-microservice-storage-one-meristem-app-{{ .Values.environment }}
     nodeStageSecretRef:
-    name: huawei-credentials-obs-ak
-    namespace: one-meristem-app
+      name: huawei-credentials-obs-ak
+      namespace: one-meristem-app
     volumeAttributes:
       everest.io/obs-volume-type: STANDARD
       storage.kubernetes.io/csiProvisionerIdentity: obs.csi.everest.io
