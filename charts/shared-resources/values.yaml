@@ -56,8 +56,8 @@ obsSecret:
   enabled: true
   name: huawei-credentials-obs-ak
   data:
-    accessKey: "SFBVQUVaSzNETExQTFZGWFpJQzU="
-    secretKey: "c05weTlSN0FjN0JIZU9VcDVhRGhyRERkY1lFYWh1M1BVQnNWM0s0NQ=="
+    accessKey: ""
+    secretKey: ""
 
 
 # Huawei Cloud Storage Authentication (for OBS, EVS, SFS CSI drivers)
