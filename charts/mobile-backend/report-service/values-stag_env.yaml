@@ -13,9 +13,9 @@ networkpolicy:
 replicaCount: 2
 
 image:
-  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/report-service
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/report-service
   pullPolicy: Always
-  tag: latest
+  tag: 4ca8867-71
 
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
