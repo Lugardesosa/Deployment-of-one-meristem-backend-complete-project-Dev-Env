@@ -31,11 +31,21 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
     managedNamespaceMetadata:  # For Cross-Namespace Access
       labels:
         argocd.argoproj.io/managed-by: shared-resources
   # Allow resources in other namespaces
-  ignoreDifferences: [] 
+  # Allow resources in other namespaces
+  ignoreDifferences: 
+    - group: ""
+      kind: Secret
+      name: huawei-credentials-obs-ak
+      namespace: one-meristem-app
+      jsonPointers:
+        - /data
+        - /metadata/annotations
+        - /metadata/labels
 
 ---
 
