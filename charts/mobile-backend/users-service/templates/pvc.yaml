@@ -74,6 +74,7 @@ spec:
   resources:
     requests:
       storage: {{ .Values.pvc.size | default "1Gi" }}
+  {{- if .Values.pvc.useExistingBucket }}
   storageClassName: ""  
   volumeName: {{ include "users-service.fullname" . }}-obs-pv  
   {{- else }}
