@@ -152,7 +152,7 @@ pvc:
   existingBucketName: obs-microservice-storage-one-meristem-app  # Bucket prefix (without env)
   name: users-service-pvc
   size: "1Gi"
-  storageClassName: csi-obs
+  storageClassName: "" 
   region: af-south-1  # Add region
   accessModes:
     - ReadWriteMany
