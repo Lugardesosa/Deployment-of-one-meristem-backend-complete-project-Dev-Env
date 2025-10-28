@@ -60,25 +60,17 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.pvc.name | default (include "users-service.fullname" .) }}
+  name: {{ .Values.pvc.name }}
   namespace: {{ .Values.global.namespace }}
   annotations:
-    everest.io/obs-volume-type: STANDARD 
+    everest.io/obs-volume-type: STANDARD
 spec:
   accessModes:
-    {{- if .Values.pvc.useExistingBucket }}
-    - ReadWriteMany  # OBS supports RWX
-    {{- else }}
-    - ReadWriteOnce  # Default for dynamic provisioning
-    {{- end }}
+    - ReadWriteMany
   resources:
     requests:
-      storage: {{ .Values.pvc.size | default "1Gi" }}
-  {{- if .Values.pvc.useExistingBucket }}
-  storageClassName: ""  
-  volumeName: {{ include "users-service.fullname" . }}-obs-pv  
-  {{- else }}
-  storageClassName: {{ .Values.pvc.storageClassName | default "csi-obs" }}  # Dynamic provisioning if no OBS assigned
-  {{- end }}
+      storage: {{ .Values.pvc.size }}
+  storageClassName: ""
+  volumeName: users-service-obs-pv-stag-env
   volumeMode: Filesystem
 {{- end }}
