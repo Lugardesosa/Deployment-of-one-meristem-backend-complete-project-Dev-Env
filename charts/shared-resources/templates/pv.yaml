@@ -25,33 +25,35 @@
 #   volumeMode: Filesystem
 
 
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: {{ .Values.pv.name }}
-spec:
-  capacity:
-    storage: {{ .Values.pv.size | default "500Mi" }}
-  csi:
-    driver: obs.csi.everest.io
-    volumeHandle: {{ .Values.pv.volumeHandle }}
-    fsType: s3fs
-    volumeAttributes:
-      everest.io/enterprise-project-id: {{ .Values.pv.enterpriseProjectID }}
-      everest.io/obs-volume-type: {{ .Values.pv.obsVolumeType | default "STANDARD" }}
-      everest.io/region: {{ .Values.pv.region }}
-      storage.kubernetes.io/csiProvisionerIdentity: everest-csi-provisioner
-    nodePublishSecretRef:
-      name: {{ .Values.pv.secretName }}
-      namespace: {{ .Values.namespace }}
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Delete
-  storageClassName: csi-obs
-  mountOptions:
-    - umask=027
-  volumeMode: Filesystem
+#---
+{{/*
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: {{ .Values.pv.name }}
+# spec:
+#   capacity:
+#     storage: {{ .Values.pv.size | default "500Mi" }}
+#   csi:
+#     driver: obs.csi.everest.io
+#     volumeHandle: {{ .Values.pv.volumeHandle }}
+#     fsType: s3fs
+#     volumeAttributes:
+#       everest.io/enterprise-project-id: {{ .Values.pv.enterpriseProjectID }}
+#       everest.io/obs-volume-type: {{ .Values.pv.obsVolumeType | default "STANDARD" }}
+#       everest.io/region: {{ .Values.pv.region }}
+#       storage.kubernetes.io/csiProvisionerIdentity: everest-csi-provisioner
+#     nodePublishSecretRef:
+#       name: {{ .Values.pv.secretName }}
+#       namespace: {{ .Values.namespace }}
+#   accessModes:
+#     - ReadWriteMany
+#   persistentVolumeReclaimPolicy: Delete
+#   storageClassName: csi-obs
+#   mountOptions:
+#     - umask=027
+#   volumeMode: Filesystem
+*/}}
 
 
 
