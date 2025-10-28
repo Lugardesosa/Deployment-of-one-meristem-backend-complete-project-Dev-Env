@@ -103,4 +103,3 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-
