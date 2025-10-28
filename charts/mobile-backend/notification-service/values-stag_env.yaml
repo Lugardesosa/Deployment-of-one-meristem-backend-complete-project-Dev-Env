@@ -10,8 +10,8 @@ global:
 replicaCount: 2
 
 image:
-  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/notification-service
-  tag: latest
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/notification-service
+  tag: 4ca8867-71
   pullPolicy: Always
 
 imagePullSecrets:
@@ -122,7 +122,7 @@ resources:
 
 
 volumeMounts:
-  - name: huawei-csms-credentials
+  - name: notification-service-secrets
     mountPath: /mnt/secrets-store/notification-service
     readOnly: true
   - name: notification-data
@@ -134,12 +134,12 @@ volumeMounts:
 volumes:
   - name: notification-data
     emptyDir: {}
-  - name: huawei-csms-credentials
+  - name: notification-service-secrets
     csi:
       driver: secrets-store.csi.k8s.io
       readOnly: true
       volumeAttributes:
-        secretProviderClass: huawei-csms-credentials
+        secretProviderClass: notification-service-secrets
         #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
         #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
   - name: secret-volume
@@ -173,4 +173,3 @@ service:
   name: notification-service
   port: 8082
   targetPort: 20030
-
