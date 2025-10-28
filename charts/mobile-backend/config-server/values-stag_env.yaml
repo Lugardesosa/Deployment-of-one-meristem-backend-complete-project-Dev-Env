@@ -12,8 +12,8 @@ global:
 replicaCount: 2
 
 image:
-  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/config-server
-  tag: latest
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/config-server
+  tag: 4ca8867-71
   pullPolicy: Always
   
 strategy:
@@ -45,7 +45,7 @@ env:
   - name: COMPANY_NAME
     value: "Meristem Securities Limited"
   - name: GITHUB_BRANCH
-    value: "dev_env"
+    value: "stag_env"
   - name: SERVER_PORT
     value: "20000"
   - name: ADMIN_USERNAME
