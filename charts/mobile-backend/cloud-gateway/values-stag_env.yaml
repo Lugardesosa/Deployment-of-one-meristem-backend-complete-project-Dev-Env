@@ -12,9 +12,9 @@ global:
 replicaCount: 2
 
 image:
-  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag_env/cloud-gateway
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/cloud-gateway
   pullPolicy: Always
-  tag: latest
+  tag: 4ca8867-71
 
 imagePullSecrets:
   - name: huawei-swr-auth #relying on CCE's automatic injection
@@ -23,7 +23,7 @@ imagePullSecrets:
 secretProviderClass:
   name: cloud-gateway-secrets
   provider: cce
-  k8sSecretName: cloud-gateway-secrets
+  k8sSecretName: huawei-csms-credentials
 
 resources:
   limits:
@@ -57,7 +57,7 @@ volumes:
       driver: secrets-store.csi.k8s.io
       readOnly: true
       volumeAttributes:
-        secretProviderClass: huawei-csms-credentials
+        secretProviderClass: cloud-gateway-secrets
         #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
         #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
   - name: secret-volume
@@ -146,7 +146,7 @@ ingress:
     secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
 
   rules:
-    - host: ${INGRESS_HOST}   # Access via ELB public IP or DNS
+    - host: onemeristemstag.meristemng.com   # Access via ELB public IP or DNS
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -165,5 +165,3 @@ service:
     kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
     kubernetes.io/elb.health-check-flag: "on"
     kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/health","interval":5,"timeout":10,"rise":2,"fall":2}'
-
-
