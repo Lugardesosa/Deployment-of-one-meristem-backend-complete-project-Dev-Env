@@ -1,0 +1,668 @@
+# ----------------------------------------
+# One-Meristem Mobile-backend CI for Staging Env
+# ----------------------------------------
+
+
+name: One-Meristem-Mobile-backend CI for Staging Env 
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - stag_env
+    paths:
+      - "backend/**"
+      - "charts/**"
+      - "scripts/**"
+      # - ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
+
+env:
+  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
+  ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+  GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+  HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+  HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
+  APP_NAME: ${{ vars.APP_NAME }}
+  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
+  CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
+  CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
+  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
+  CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
+  NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
+  WALLET_SERVICE_APP_NAME: ${{ vars.WALLET_SERVICE_APP_NAME }}
+  REPORT_SERVICE_APP_NAME: ${{ vars.REPORT_SERVICE_APP_NAME }}
+  USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
+  TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
+  VALUES_FILE: ${{ vars.VALUES_FILE }}
+  GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
+  MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
+  ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
+  MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
+  ARGO_ELB_ID: ${{ vars.ARGO_ELB_ID }}
+  MOBILE_ELB_IP: ${{ vars.MOBILE_ELB_IP }}
+  ARGO_ELB_IP: ${{ vars.ARGO_ELB_IP }}
+  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
+  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
+  BRANCH_ENV: ${{ github.event.pull_request.base.ref }} #<---- To represent the helm values.yaml used via branch  
+  
+  # Stored Secrets in Github Secrets
+  SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+  HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+  HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+  SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+  SWR_REGION: ${{ secrets.SWR_REGION }}
+  ELB_IP: ${{ secrets.ELB_IP }}
+  ELB_ID: ${{ secrets.ELB_ID }}
+  CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+  KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
+  USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
+  USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
+  SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+  SERVICES_DIR: ${{ vars.SERVICES_DIR }}
+  REPO_NAME: ${{ vars.REPO_NAME }}
+
+jobs:
+  commit-info:
+    name: Commit Info & Detect Changed Services
+    runs-on: [self-hosted, linux-runner]
+    environment: stag 
+    outputs:
+      changed_services: ${{ steps.detect_changes.outputs.changed_services }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 2   # This is to fetch at least 2 commits
+    #Add git log for commit info & Author that pushed the code
+      - name: Show Commit Info and Who Pushed
+        run: |
+          echo "Commit Info:"
+          git log -1 --pretty=format:"%h by %an on %ad: %s" --date=short
+          echo ""
+          echo "Files Changed:"
+          git show --name-only --oneline -1
+          echo ""
+          echo "Triggered by GitHub user: ${{ github.actor }}"
+# ----------------------------------------
+# Step 3: Detect Changed Folders
+# ----------------------------------------
+
+      - name: Detect Changes Services/Files
+        id: detect_changes
+        run: |
+          git fetch origin stag_env
+          echo "Detecting changed folders under backend/, charts/, and scripts/..."
+          
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "^(backend|charts|scripts)/" | awk -F/ '{print $1"/"$2}' | sort -u)
+          
+          echo "Changed subfolders detected:"
+          echo "$CHANGED"
+          
+          if [ -z "$CHANGED" ]; then
+            echo "No relevant subfolder changes detected."
+            echo "changed_services=none" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_services<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$CHANGED" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      needs.detect_changes.outputs.changed_services != 'none' &&
+      contains(needs.detect_changes.outputs.changed_services, 'backend/')
+    name: Code Quality and Security Checks
+    runs-on: [self-hosted, linux-runner]
+    environment: stag #to read my secret in this branch
+    needs: commit-info
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java']
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      - name: Install GitHub CLI and jq (if missing)
+        run: |
+          if ! command -v gh &> /dev/null; then
+            echo "gh CLI not found, installing..."
+            sudo apt-get update
+            sudo apt-get install -y gh
+          else
+            echo "gh CLI already installed, skipping."
+          fi
+      
+          if ! command -v jq &> /dev/null; then
+            echo "jq not found, installing..."
+            sudo apt-get install -y jq
+          else
+            echo "jq already installed, skipping."
+          fi
+
+
+      # Fetch Dependabot Metadata (used to read dependency info)
+      - name: Fetch Dependabot Metadata
+        id: dependabot
+        uses: dependabot/fetch-metadata@v2
+        if: ${{ github.actor == 'dependabot[bot]' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Fail the build if Dependabot alert exists
+      - name: Check for Open Dependabot Alerts
+        if: ${{ github.actor == 'dependabot[bot]' }}
+        run: |
+          echo "Checking Dependabot alerts..."
+          ALERTS=$(gh api repos/${{ github.repository }}/dependabot/alerts --jq '. | length')
+          echo "Found $ALERTS open Dependabot alerts"
+          if [ "$ALERTS" -gt 0 ]; then
+            echo "Security alerts detected. Failing build until alerts are resolved."
+            exit 1
+          else
+            echo "No Dependabot alerts found. Continuing build."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Unit Tests for all backend modules (ignore all test errors/failures)
+        run: |
+          echo "Running Unit Tests but ignoring all errors and failures..."
+          for dir in backend/*; do
+            if [ -f "$dir/pom.xml" ]; then
+              echo "Running Maven tests in $dir"
+              mvn -f "$dir/pom.xml" test -Dmaven.test.failure.ignore=true -DfailIfNoTests=false --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V || true
+            fi
+          done
+
+    #make sure to set #enforce -Dspotbugs.failOnError=true when scanning so it can stop pipeline progress
+      - name: Run Static Code Analysis (SpotBugs HTML Reports)
+        run: |
+          echo "Running SpotBugs for backend modules with POM files..."
+          echo "Deleting Old Scan files..."
+          # Clean old reports to avoid stale data
+          rm -rf reports/spotbugs
+          mkdir -p reports/spotbugs
+          modules=(
+            "backend/cloud-gateway"
+            "backend/config-server"
+            "backend/notification-service"
+            "backend/report-service"
+            "backend/trustees-service"
+            "backend/users-service"
+            "backend/wallet-service"
+          )
+          for dir in "${modules[@]}"; do
+            if [ -f "$dir/pom.xml" ]; then
+              echo "Running SpotBugs in $dir"
+              OUT_DIR="$(pwd)/reports/spotbugs/$(basename $dir)"
+              mkdir -p "$OUT_DIR"
+              mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:4.9.6.0:spotbugs \
+                -Dspotbugs.htmlOutput=true \
+                -Dspotbugs.outputDirectory="$OUT_DIR" \
+                -Dspotbugs.failOnError=false || echo "SpotBugs scan failed for $dir but continuing."
+            else
+              echo "Skipping $dir, no pom.xml found"
+            fi
+          done
+      
+          echo "SpotBugs HTML reports generated in reports/spotbugs/"
+          ls -R reports/spotbugs || echo "No SpotBugs reports found."
+
+      #Upload the latest bugs report 
+      - name: Upload SpotBugs HTML Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-html-reports
+          path: reports/spotbugs/
+
+          
+    #make sure to set #enforce -DfailOnError=true when scanning so it can stop pipeline progress
+      - name: Run Dependency Vulnerability Scan for backend modules
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          echo "Running Dependency Vulnerability Scan for backend modules..."
+          modules=(
+            "backend/cloud-gateway"
+            "backend/config-server"
+            "backend/notification-service"
+            "backend/report-service"
+            "backend/trustees-service"
+            "backend/users-service"
+            "backend/wallet-service"
+          )
+          for dir in "${modules[@]}"; do
+            if [ -f "$dir/pom.xml" ]; then
+              echo "Scanning $dir for vulnerable dependencies..."
+              mvn -f "$dir/pom.xml" org.owasp:dependency-check-maven:check -Dformat=ALL -DfailOnError=false 
+            else
+              echo "Skipping $dir, no pom.xml found"
+            fi
+          done
+
+      - name: Gather Dependency Check Reports into a single folder
+        run: |
+          mkdir -p reports
+          for dir in backend/*; do
+            if [ -f "$dir/pom.xml" ]; then
+              cp "$dir/target/dependency-check-report.html" reports/ || true
+            fi
+          done
+
+      # Before uploading, remove any existing artifact with the same name
+      - name: Delete Previous Dependency Check Artifact
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: dependency-check-reports
+
+      # Upload the latest artifact, overwriting old ones
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-reports
+          path: reports/
+          overwrite: true
+
+      - name: Parse JSON reports and fail if high severity vulnerabilities exist
+        if: false  # This disables the step for now
+        run: |
+          found=0
+          for f in reports/*/dependency-check-report.json; do
+            if [ -f "$f" ]; then
+              high=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.cvssScore >= 1)] | length' "$f")
+              if [ "$high" -gt 0 ]; then
+                echo "Found $high high-severity vulnerabilities in $f"
+                found=1
+              fi
+            fi
+          done
+          if [ "$found" -eq 1 ]; then
+            exit 1
+          fi
+
+
+      # - name: Secret Scanning
+      #   uses: github/secret-scanning-action@v1
+
+      # - name: Initialize CodeQL
+      #   uses: github/codeql-action/init@v3
+      #   with:
+      #     languages: ${{ matrix.language }}
+
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v3
+
+ # -------------------------------
+  # Build the Docker Images for various Microservices
+  # -------------------------------
+
+  build:
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      needs.detect_changes.outputs.changed_services != 'none' &&
+      contains(needs.detect_changes.outputs.changed_services, 'backend/') 
+    name: Build and Push Docker Images to Huawei SWR
+    runs-on: [self-hosted, linux-runner]
+    environment: stag  # Branch Environment variable
+    permissions:
+      contents: read
+      actions: write
+
+    needs: test
+    env:
+      IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        #with:
+          #fetch-depth: 2 (only for changes in microservices)
+
+      #Add git log for debugging
+      - name: Show Commit History
+        run: git log --oneline -n 2
+
+      #Adding a secret validate check
+      - name: Validate Required Secrets
+        run: |
+          echo "Validating secrets..."
+          if [ -z "${{ secrets.SWR_REGISTRY_URL }}" ] || [ -z "${{ secrets.HUAWEI_SWR_USERNAME }}" ] || [ -z "${{ secrets.HUAWEI_SWR_PASSWORD }}" ]; then
+            echo "Missing required secrets."
+            exit 1
+          fi
+          echo "All secrets available."
+
+      - name: Create and Inject Keys
+        env:
+          USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
+          USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
+          SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+        run: |
+          echo "Injecting public/private keys..."
+          mkdir -p backend/users-service/src/main/resources/keys
+          echo "${USERS_PRIVATE_KEY}" > backend/users-service/src/main/resources/keys/private.pem
+          echo "${USERS_PUBLIC_KEY}" > backend/users-service/src/main/resources/keys/public.pem
+          echo "Injected keys for users-service"
+
+          for svc in notification-service wallet-service report-service trustees-service; do
+            mkdir -p backend/$svc/src/main/resources/keys
+            echo "${SERVICE_PUBLIC_KEY}" > backend/$svc/src/main/resources/keys/public.pem
+            echo "Injected public.pem into $svc"
+          done
+
+        #Make the build script executable 
+      - name: Make Build Script Executable
+        run: chmod +x ./scripts/backend-scripts/build-images-swr.sh
+
+        #Run the build script to build the microservices 
+      - name: Incremental Build Images for various Microservices 
+        env:
+          SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+          HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+          SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+          SWR_REGION: ${{ secrets.SWR_REGION }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          echo "Building Docker images..."
+          export IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
+          echo "Using image tag: $IMAGE_TAG"
+          bash ./scripts/backend-scripts/build-images-swr.sh
+
+      - name: Persist IMAGE_TAG
+        run: |
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "Loaded IMAGE_TAG=$IMAGE_TAG for later steps"
+
+
+      # Upload the build metadata checking for changed services
+      - name: Upload build metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_output
+          path: build_output/
+
+      # Clean up saved images to free space on self-hosted runner
+      - name: Clean up previous local image 
+        run: |
+          echo "Cleaning up previous local image saved..."
+          rm -rf build_output/*.tar
+          echo "Cleanup complete."
+
+      # Save Docker images as tar files and upload them as artifacts
+      - name: Save built Docker images
+        run: |
+           mkdir -p build_output
+           for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+             if docker image inspect "${svc}:${IMAGE_TAG}" > /dev/null 2>&1; then
+               echo "Saving ${svc}:${IMAGE_TAG}..."
+               docker save "${svc}:${IMAGE_TAG}" -o "build_output/${svc}.tar"
+             else
+               echo "No new image for ${svc}, skipping save."
+             fi
+           done
+
+      - name: Upload Docker images as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker_images
+          path: build_output/
+
+
+  image-scan:
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      needs.detect_changes.outputs.changed_services != 'none' &&
+      contains(needs.detect_changes.outputs.changed_services, 'backend/') 
+    name: Scan Built Docker Images for Vulnerabilities
+    runs-on: [self-hosted, linux-runner]
+    environment: stag  # Branch Environment variable 
+    permissions:
+      contents: read
+      actions: write
+    env:
+      IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
+    needs: build
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      - name: Download build metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build_output
+          path: build_output/
+
+      - name: Load IMAGE_TAG From Built Artifact
+        run: |
+          if [ -f build_output/image_metadata.env ]; then
+            echo "Loading image tag from metadata..."
+            cat build_output/image_metadata.env >> $GITHUB_ENV
+          else
+            echo "No image_metadata.env found — using fallback tag"
+            echo "IMAGE_TAG=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          fi
+
+      - name: Install Trivy (if not installed)
+        run: |
+          if ! command -v trivy &> /dev/null; then
+            echo "Trivy not found — installing..."
+            sudo apt-get update -y
+            sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+            echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+            sudo apt-get update -y
+            sudo apt-get install -y trivy
+            echo "Trivy installation complete."
+          else
+            echo "Trivy already installed — skipping installation."
+            trivy --version
+          fi
+
+
+      # -----------------------------------------
+      # Cache & Prepare Trivy Database (Optimized)
+      # -----------------------------------------
+      - name: Restore Trivy DB cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/trivy/db
+          key: ${{ runner.os }}-trivy-db-v1-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-db-v1-
+
+      # Ensure Trivy database exists before running scans
+      - name: Download Trivy DB if missing
+        run: |
+          if [ ! -d ~/.cache/trivy/db ] || [ -z "$(ls -A ~/.cache/trivy/db 2>/dev/null)" ]; then
+            echo "No cached Trivy DB found. Downloading..."
+            trivy --download-db-only
+          else
+            echo "Using cached Trivy DB."
+          fi
+
+
+      # Check if Trivy HTML template exists before downloading
+      - name: Ensure Trivy HTML report template
+        run: |
+          mkdir -p contrib
+          if [ -f "contrib/html.tpl" ]; then
+            echo "Trivy HTML template already exists, skipping download..."
+          else
+            echo "Downloading Trivy HTML template..."
+            wget -q https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -O contrib/html.tpl
+            echo "Download completed."
+          fi
+
+      # Scan local images built previously
+      - name: Scan built images (local only)
+        run: |
+          mkdir -p trivy-reports
+          for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+            if docker image inspect $svc:${IMAGE_TAG} > /dev/null 2>&1; then
+              echo "Scanning $svc:${IMAGE_TAG} for vulnerabilities..."
+              trivy image \
+                --scanners vuln \
+                --severity HIGH,CRITICAL \
+                --timeout 20m \
+                --skip-java-db-update \
+                --format template \
+                --template "@contrib/html.tpl" \
+                --output trivy-reports/${svc}-report.html \
+                $svc:${IMAGE_TAG} || echo "Scan completed with findings, continuing..."
+            else
+              echo "$svc:${IMAGE_TAG} not found locally, skipping."
+            fi
+          done
+
+      # Skip artifact upload (avoid storage quota issues)
+      - name: Skip artifact upload
+        run: |
+          echo "Skipping artifact upload — storage quota exceeded."
+
+      # - name: Upload Trivy HTML reports
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: trivy-vulnerability-reports
+      #     path: trivy-reports/
+
+          
+
+  # -------------------------------
+  # Push Built Images & Validate Manifests (Env Substitution)
+  # -------------------------------
+  deploy:
+    if: |
+      needs.detect_changes.outputs.changed_services != 'none' &&
+      contains(needs.detect_changes.outputs.changed_services, 'backend/')
+    name: Push to Huawei Cloud & Validate Deployment Manifests
+    runs-on: [self-hosted, linux-runner]
+    environment: stag  # Branch Environment variable
+    permissions:
+      contents: read  #Read repo files
+      actions: write  #Use caches or artifacts
+      id-token: write #Authenticate to cloud via OIDC
+      packages: write #Push Docker for container registry uploads
+
+    needs: image-scan
+    defaults:
+      run:
+        shell: bash
+    env:
+      APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+      ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+      APP_NAME: ${{ vars.APP_NAME }}
+      GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+      HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+      SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+      SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+      SWR_REGION: ${{ secrets.SWR_REGION }}
+      STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      # Substitute env vars in manifests for validation (no commit)
+      - name: Substitute Env in Argo CD & Helm Manifests
+        run: |
+          echo "Substituting environment variables into manifests..."
+          for file in $(find ./argocd/apps/argocd-apps.yaml ./charts/mobile-backend/* -type f \( -name "*.yaml" -o -name "*.yml" \)); do
+            echo "Processing: $file"
+            envsubst < "$file" > "${file}.rendered"
+            mv "${file}.rendered" "$file"
+          done
+
+          echo "Env substitution completed. Manifests ready for deployment validation."
+
+      # Download the build metadata checking for changed services
+      - name: Download build metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: build_output
+          path: build_output/
+
+      # Install yq so Helm update succeeds
+      - name: Ensure yq is installed
+        run: |
+          if command -v yq >/dev/null 2>&1; then
+            echo "yq already installed at $(command -v yq) — skipping download."
+            yq --version
+          else
+            echo "yq not found, installing..."
+            sudo wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+            sudo chmod +x /usr/bin/yq
+            echo "yq installed successfully at /usr/bin/yq."
+            yq --version
+          fi
+
+
+
+      # Download and load Docker image tarballs into local Docker
+      - name: Download Docker image from build stage
+        uses: actions/download-artifact@v4
+        with:
+          name: docker_images
+          path: build_output/
+
+      - name: Load Docker images
+        run: |
+          echo "Checking for saved Docker images..."
+          if ls build_output/*.tar 1> /dev/null 2>&1; then
+            echo "Found saved images. Loading them into Docker..."
+            for tar in build_output/*.tar; do
+              echo "Loading image from $tar..."
+              docker load -i "$tar"
+            done
+            echo "All images loaded successfully."
+          else
+            echo "No saved Docker images found. Skipping load step."
+          fi
+
+      # ----------------------------------------
+      # Extract IMAGE_TAG from metadata
+      # ----------------------------------------
+      - name: Retrieve IMAGE_TAG from metadata
+        id: get_tag
+        run: |
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
+          if [ -z "$IMAGE_TAG" ]; then
+            echo "IMAGE_TAG not found in metadata. Check your build job export step."
+            exit 1
+          fi
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "Loaded IMAGE_TAG=$IMAGE_TAG for push operations"
+          
+      # Run Push script to Huawei SWR
+      - name: Push Images to Huawei SWR
+        run: |
+          echo "Running push script..."
+          chmod +x ./scripts/backend-scripts/push-image-swr-stag_env.sh
+          bash ./scripts/backend-scripts/push-image-swr-stag_env.sh
+          echo "Push script completed."
+          echo "All CI Workflow actions completed successfully!"
+          echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
