@@ -1,6 +1,0 @@
-spring:
-  datasource:
-    url: ${DB_SERVER}/${WALLET_DB_NAME}
-    password: ${WALLET_DB_PASSWORD}
-    username: ${WALLET_DB_USERNAME}
-    driver-class-name: org.postgresql.Driver
