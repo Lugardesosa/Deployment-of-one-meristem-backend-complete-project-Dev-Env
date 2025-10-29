@@ -152,6 +152,10 @@ pvc:
   name: users-service-pvc
   size: "1Gi"
 
+everest:
+  enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb
+
+
     
 
 resources:
