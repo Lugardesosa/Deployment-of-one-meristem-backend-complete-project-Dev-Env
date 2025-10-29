@@ -56,21 +56,48 @@
 */}}
 
 
+# {{- if .Values.pvc.enabled }}
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: {{ .Values.pvc.name }}
+#   namespace: {{ .Values.global.namespace }}
+#   annotations:
+#     everest.io/obs-volume-type: STANDARD
+# spec:
+#   accessModes:
+#     - ReadWriteMany
+#   resources:
+#     requests:
+#       storage: {{ .Values.pvc.size }}
+#   storageClassName: ""
+#   volumeName: users-service-obs-pv-stag-env
+#   volumeMode: Filesystem
+# {{- end }}
+
+
+
 {{- if .Values.pvc.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ .Values.pvc.name }}
-  namespace: {{ .Values.global.namespace }}
+  namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
   annotations:
+    csi.storage.k8s.io/fstype: s3fs
+    csi.storage.k8s.io/node-publish-secret-name: obs-access-secret
+    csi.storage.k8s.io/node-publish-secret-namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
+    everest.io/enterprise-project-id: {{ .Values.everest.enterpriseProjectID }}
     everest.io/obs-volume-type: STANDARD
+    volume.beta.kubernetes.io/storage-provisioner: everest-csi-provisioner
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: {{ .Values.pvc.size }}
-  storageClassName: ""
-  volumeName: users-service-obs-pv-stag-env
+      storage: {{ .Values.pvc.size | default "1Gi" }}
+  storageClassName: csi-obs
   volumeMode: Filesystem
+  volumeName: users-service-obs-pv-stag-env
 {{- end }}
+
