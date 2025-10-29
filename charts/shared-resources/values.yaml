@@ -1,12 +1,12 @@
 # #Persistent Volume (PV)
-pv:
-  name: pv-obs-users-service
-  size: 500Mi
-  volumeHandle: obs-microservice-storage-one-meristem-app-stag-env # <-- Replace with actual OBS bucket name
-  enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb # <-- Replace with actual Enterprise Project ID
-  region: af-south-1
-  obsVolumeType: STANDARD
-  secretName: huawei-credentials-obs-ak
+# pv:
+#   name: pv-obs-users-service
+#   size: 500Mi
+#   volumeHandle: obs-microservice-storage-one-meristem-app-stag-env # <-- Replace with actual OBS bucket name
+#   enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb # <-- Replace with actual Enterprise Project ID
+#   region: af-south-1
+#   obsVolumeType: STANDARD
+#   secretName: huawei-credentials-obs-ak
 
 #Roles
 namespace: one-meristem-app
@@ -54,10 +54,10 @@ imagePullSecret:
 
 obsSecret:
   enabled: true
-  name: huawei-credentials-obs-ak
+  name: obs-access-secret
   data:
-    accessKey: ""
-    secretKey: ""
+    accessKey: "MDAwMDAwMDEwMDAwMDAwMTExQjg4QUExNUU2NTMxMjMwNzhDOTdDMThEQzlFQTYwQ0ExRUM2MUY4RUM0M0EzMEEyOUQyRDdDQ0QxNUE5QjE4MTFBNTdDRjc5RDk5MzZGODhENzUxQTIzQ0QzMkIyOQ=="
+    secretKey: "MDAwMDAwMDEwMDAwMDAwMTkyMDJEN0NENUM3QTkwRTBBRDM5MUYzQ0E1QjIzQ0M1N0ZBODZGNjZERjMyQ0VGNUFFQkJERkI5QTcyQjAyRDlDRDk4ODkzQzhEN0UzN0M3NEI1OTYyRDI2MDEyMkZCOUNENTAwMEQ4ODdDRjE5Q0ZBQ0JGMTY0MkJCMEQ0MDE3"
 
 
 # Huawei Cloud Storage Authentication (for OBS, EVS, SFS CSI drivers)
