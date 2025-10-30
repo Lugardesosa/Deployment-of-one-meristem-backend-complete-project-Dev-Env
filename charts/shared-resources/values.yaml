@@ -62,7 +62,7 @@ obsSecret:
 
 # Huawei Cloud Storage Authentication (for OBS, EVS, SFS CSI drivers)
 huaweiCloudStorage:
-  enabled: true
+  enabled: false
   accessKey: "HPUAEZK3DLLPLVFXZIC5"  # Your decoded AK
   secretKey: "nPy9R7Ac7BhMOUp5aDhrDDdcYEahu3PUBsV3K45"  # Your decoded SK
   projectId: "ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb"  # Enterprise ID
