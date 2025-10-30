@@ -111,7 +111,6 @@ logging:
   logback:
     rollingpolicy:
       file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
-      max-file-size: 1GB
       max-history: 30
   pattern:
     console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx'
