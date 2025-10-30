@@ -40,7 +40,7 @@ spec:
   ignoreDifferences: 
     - group: ""
       kind: Secret
-      name: huawei-credentials-obs-ak
+      name: obs-access-secret
       namespace: one-meristem-app
       jsonPointers:
         - /data
