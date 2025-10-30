@@ -11,7 +11,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env 
     path: charts/shared-resources
     helm:
@@ -58,7 +58,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env
     path: charts/mobile-backend/config-server
     helm:
@@ -85,7 +85,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env 
     path: charts/mobile-backend/consul
     helm:
@@ -111,7 +111,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env
     path: charts/mobile-backend/notification-service
     helm:
@@ -138,7 +138,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env 
     path: charts/mobile-backend/wallet-service
     helm:
@@ -165,7 +165,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env 
     path: charts/mobile-backend/report-service
     helm:
@@ -192,7 +192,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env
     path: charts/mobile-backend/users-service
     helm:
@@ -219,7 +219,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env
     path: charts/mobile-backend/trustees-service
     helm:
@@ -245,7 +245,7 @@ metadata:
 spec:
   project: one-meristem-app-stag
   source:
-    repoURL: 
+    repoURL: "https://github.com/mit-meristem/one_meristem_app.git"
     targetRevision: stag_env
     path: charts/mobile-backend/cloud-gateway
     helm:
