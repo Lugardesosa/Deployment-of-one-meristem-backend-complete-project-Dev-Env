@@ -1,37 +1,39 @@
 spring:
   cloud:
     gateway:
-      filter:
-        request-rate-limiter:
-          deny-empty-key: false
+      server:
+        webflux:
+          filter:
+            request-rate-limiter:
+              deny-empty-key: false
 
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
-            redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
-            redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
-            redis-rate-limiter.key-resolver: '#{@keyResolver}'
-      routes:
-        - id: ${one-app.users-service.application-name}
-          uri: ${USER_SERVICE_URI}
-          predicates:
-            - Path=${one-app.users-service.context-path}/**
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+          routes:
+            - id: ${one-app.users-service.application-name}
+              uri: ${USER_SERVICE_URI}
+              predicates:
+                - Path=${one-app.users-service.context-path}/**
 
-        - id: ${one-app.wallet-service.application-name}
-          uri: ${WALLET_SERVICE_URI}
-          predicates:
-            - Path=${one-app.wallet-service.context-path}/**
+            - id: ${one-app.wallet-service.application-name}
+              uri: ${WALLET_SERVICE_URI}
+              predicates:
+                - Path=${one-app.wallet-service.context-path}/**
 
-        - id: ${one-app.report-service.application-name}
-          uri: ${REPORT_SERVICE_URI}
-          predicates:
-            - Path=${one-app.report-service.context-path}/**
+            - id: ${one-app.report-service.application-name}
+              uri: ${REPORT_SERVICE_URI}
+              predicates:
+                - Path=${one-app.report-service.context-path}/**
 
-        - id: ${one-app.trustees-service.application-name}
-          uri: ${TRUSTEES_SERVICE_URI}
-          predicates:
-            - Path=${one-app.trustees-service.context-path}/**
+            - id: ${one-app.trustees-service.application-name}
+              uri: ${TRUSTEES_SERVICE_URI}
+              predicates:
+                - Path=${one-app.trustees-service.context-path}/**
 
 whitelisted:
   ips: ${WHITELISTED_IPS}

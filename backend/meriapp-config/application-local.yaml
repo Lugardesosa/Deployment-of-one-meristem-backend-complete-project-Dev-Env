@@ -24,7 +24,7 @@ management:
   endpoint:
     health:
       show-details: always
-      enabled: true
+      access: read_only
 
   health:
     mail:
