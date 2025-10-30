@@ -58,6 +58,7 @@ env:
   SUPPORT_PHONE: "0700-MERISTEM"
   SUPPORT_EMAIL: "support@onemeristem.com"
   MAIL_SENDER_NAME: "One Meristem" #Mail Sender
+  MAILER_PORT: "2525"
 
 secretEnv:
   ADMIN_PASSWORD:
