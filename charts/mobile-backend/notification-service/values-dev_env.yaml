@@ -1,0 +1,179 @@
+environment: dev-env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false     # Prevent chart from trying to create it
+
+#Deployment configuration
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-dev-env/notification-service
+  tag: latest
+  pullPolicy: Always
+
+
+imagePullSecrets:
+  - name: huawei-swr-auth #relying on CCE's automatic injection
+
+# Secret provider class
+secretProviderClass:
+  name: notification-service-secrets
+  provider: cce
+  k8sSecretName: notification-service-secrets
+
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+env:
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  GITHUB_BRANCH: "dev_env"
+  APP_PROFILE: "dev"
+  #SERVER_PORT: "20030"
+  ONE_APP_SERVER_URL: "https://" #placeholder for the EIP IP
+  ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+  ADMIN_USERNAME: "admin"
+  CONFIG_SERVER_URI: "http://config-server:20000/config"
+  CREDIT_SWITCH_LOGIN_ID: "315497"
+  CREDIT_SWITCH_SMS_BASEURL: "http://176.58.99.160:9014/api/v1/sms/send"
+  CREDIT_SWITCH_SMS_SENDER_ID: "Meristem"
+  CONSUL_HOST: "consul"
+  NOTIFICATION_SEERVICE_HOSTNAME: notification-service
+  NOTIFICATION_SERVICE_URI: "http://notification-service:20030"
+  USERS_SERVICE_URI: "http://users-service:20020"
+  TRUSTEES_CLIENT_ID: trustees-service
+  MAIL_SENDER: "hello@demomailtrap.co"
+  MAILER_HOST: "live.smtp.mailtrap.io"
+  HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-dev-env"
+  MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  SUPPORT_PHONE: "0700-MERISTEM"
+  SUPPORT_EMAIL: "support@onemeristem.com"
+  MAIL_SENDER_NAME: "One Meristem"
+ 
+
+secretEnv:
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: key3
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: key4
+  DB_SERVER:
+    secretName: huawei-csms-credentials
+    secretKey: DB_SERVER
+  NOTIFICATION_DB_NAME:
+    secretName: huawei-csms-credentials
+    secretKey: NOTIFICATION_DB_NAME
+  NOTIFICATION_DB_USERNAME:
+    secretName: huawei-csms-credentials
+    secretKey: NOTIFICATION_DB_USERNAME
+  NOTIFICATION_DB_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: NOTIFICATION_DB_PASSWORD
+  KAFKA_HOST_URL:
+    secretName: huawei-csms-credentials
+    secretKey: KAFKA_HOST_URL
+  REDIS_HOST:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_PASSWORD
+  # MAILER_HOST:
+  #   secretName: credentials
+  #   secretKey: key5
+  MAILER_USERNAME:
+    secretName: credentials
+    secretKey: key6
+  MAILER_PASSWORD:
+    secretName: credentials
+    secretKey: key7
+  CREDIT_SWITCH_PUBLIC_KEY:
+    secretName: credentials
+    secretKey: key8
+  CREDIT_SWITCH_PRIVATE_KEY:
+    secretName: credentials
+    secretKey: key9
+  CREDIT_SWITCH_SMS_PASSWORD:
+    secretName: credentials
+    secretKey: key10
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: key13
+  TRUSTEES_CLIENT_SECRET: 
+    secretName: credentials
+    secretKey: key16
+
+resources:
+  limits:
+    cpu: "0.7"
+    memory: 712Mi
+  requests:
+    cpu: "0.5"
+    memory: 512Mi
+
+
+volumeMounts:
+  - name: huawei-csms-credentials
+    mountPath: /mnt/secrets-store/notification-service
+    readOnly: true
+  - name: notification-data
+    mountPath: /mnt/notification
+  - name: secret-volume
+    mountPath: /etc/secrets-store/notification-service
+    readOnly: true
+
+volumes:
+  - name: notification-data
+    emptyDir: {}
+  - name: huawei-csms-credentials
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+#PVC configuration
+# pvc:
+#   name: notification-service-pvc-evs
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 20Gi
+#   storageClassName: csi-disk-topology
+#   volumeMode: Filesystem
+ 
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+
+# service configuration
+service:
+  type: ClusterIP
+  name: notification-service
+  port: 8082
+  targetPort: 20030
+
+
+

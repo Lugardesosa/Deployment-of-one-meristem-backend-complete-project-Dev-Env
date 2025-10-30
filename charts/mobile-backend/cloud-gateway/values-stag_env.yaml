@@ -1,0 +1,167 @@
+##--------------------- CLOUD-GATEWAY VALUES ---------------------
+## This file contains the configuration values for the cloud-gateway service deployment.
+
+environment: stag-env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false     # Prevent chart from trying to create it
+  
+#Deployment configuration for cloud-gateway service
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/cloud-gateway
+  pullPolicy: Always
+  tag: 4ca8867-71
+
+imagePullSecrets:
+  - name: huawei-swr-auth #relying on CCE's automatic injection
+
+#Secret provider class
+secretProviderClass:
+  name: cloud-gateway-secrets
+  provider: cce
+  k8sSecretName: huawei-csms-credentials
+
+resources:
+  limits:
+    cpu: "0.5"
+    memory: 1Gi
+  requests:
+    cpu: "0.3"
+    memory: 512Mi
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+volumeMounts:
+  - name: huawei-csms-credentials
+    mountPath: /mnt/secrets-store/cloud-gateway
+    readOnly: true
+  - name: gateway-data
+    mountPath: /mnt/gateway
+  - name: secret-volume
+    mountPath: /etc/secrets-store/cloud-gateway
+    readOnly: true
+
+volumes:
+  - name: gateway-data
+    emptyDir: {}
+  - name: huawei-csms-credentials
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: cloud-gateway-secrets
+        #csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+        #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+env:
+  GITHUB_BRANCH: "stag_env"
+  APP_PROFILE: "dev"
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  CONFIG_SERVER_URI: "http://config-server:20000/config"
+  USER_SERVICE_URI: "http://users-service:20020"
+  NOTIFICATION_SERVICE_URI: "http://notification-service:20030"
+  WALLET_SERVICE_URI: "http://wallet-service:20040"
+  REPORT_SERVICE_URI: "http://report-service:20050"
+  ADMIN_USERNAME: "admin"
+  TRUSTEES_SERVICE_URI: "http://trustees_service:20060"
+  GATEWAY_REPLENISH_RATE: 10
+  GATEWAY_BURST_CAPACITY: 20
+  GATEWAY_REQUESTED_TOKENS: 2
+  WHITELISTED_IPS: 52.18.220.93,18.202.96.242
+
+secretEnv:
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: key3
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: key4
+  REDIS_HOST:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: huawei-csms-credentials
+    secretKey: REDIS_PASSWORD
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: key13
+
+#PVC configuration
+# pvc:
+#   name: cloud-gateway-pvc-evs
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 20Gi
+#   storageClassName: csi-disk-topology
+#   volumeMode: Filesystem
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+
+# Ingress configuration
+ingress:
+  enabled: true
+  name: cloud-gateway-ingress
+  namespace: one-meristem-app
+  className: cce
+
+  annotations:
+    kubernetes.io/elb.class: performance  # Specifies the ELB performance mode (best for production use)
+    kubernetes.io/elb.id: f3ed8005-ee73-462f-927c-79d906db0d1b #Elb id
+    kubernetes.io/elb.listener-master-ingress: one-meristem-app/cloud-gateway-ingress #This annotation links this Ingress as the master listener for the ELB
+    kubernetes.io/elb.port: "443"
+    kubernetes.io/elb.slowstart: "30" # Newly added pods receive limited traffic for 30s to warm up before full load
+    kubernetes.io/elb.tls-certificate-ids: cf67274e67144a40a4a66afd0cac1a98 #Cerificates IDs
+    kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
+    kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
+    kubernetes.io/elb.gzip-enabled: "true" # Enable GZIP compression to reduce response size and improve speed
+    kubernetes.io/elb.x-real-ip: "true" # Forward the client’s real IP address to backend pods (for logs and tracing)
+    kubernetes.io/elb.member_timeout: "90" # Maximum time (seconds) the ELB waits before removing an unresponsive backend pod
+
+  tls:
+    enabled: true
+    secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
+
+  rules:
+    - host: onemeristemstag.meristemng.com   # Access via ELB public IP or DNS
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          service:
+            name: cloud-gateway
+            port: 8082
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8082
+  targetPort: 20010
+  annotations:
+    kubernetes.io/elb.class: performance
+    kubernetes.io/elb.protocol-port: "https:443"
+    kubernetes.io/elb.lb-algorithm: ROUND_ROBIN
+    kubernetes.io/elb.health-check-flag: "on"
+    kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/health","interval":5,"timeout":10,"rise":2,"fall":2}'

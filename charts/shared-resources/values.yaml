@@ -1,0 +1,69 @@
+# #Persistent Volume (PV)
+# pv:
+#   name: pv-obs-users-service
+#   size: 500Mi
+#   volumeHandle: obs-microservice-storage-one-meristem-app-stag-env # <-- Replace with actual OBS bucket name
+#   enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb # <-- Replace with actual Enterprise Project ID
+#   region: af-south-1
+#   obsVolumeType: STANDARD
+#   secretName: huawei-credentials-obs-ak
+
+#Roles
+namespace: one-meristem-app
+role:
+  name: sa-secret-role
+
+#Role Binding
+roleBinding:
+  name: sa-secret-rolebinding
+
+#Secrets
+k8sSecret:
+  name: credentials
+
+#SecretProviderClass
+environment: stag_env
+secretProviderClass:
+  name: huawei-csms-credentials
+  provider: cce
+  k8sSecretName: huawei-csms-credentials
+
+serviceAccount:
+  name: app-spc-sa
+  dewResources:
+    - "db-admin-secret-one-meristem-app-stag-env"
+    - "redis-middleware-credentials-one-meristem-app-stag-env"
+    - "redis-mobile-backend-credentials-one-meristem-app-stag-env" 
+    - "kafka-credentials-one-meristem-app-stag-env"
+    - "db-notification_service-secret-one-meristem-app-stag-env"
+    - "db-users_service-secret-one-meristem-app-stag-env"
+    - "db-wallet_service-secret-one-meristem-app-stag-env"
+    - "db-report_service-secret-one-meristem-app-stag-env"
+    - "db-trustees_service-secret-one-meristem-app-stag-env"
+
+# image pull secret
+imagePullSecret:
+  dockerconfigjson: eyJhdXRocyI6eyJzd3IuYWYtc291dGgtMS5teWh1YXdlaWNsb3VkLmNvbSI6eyJ1c2VybmFtZSI6ImFmLXNvdXRoLTFASFBVQUVaSzNETExQTFZGWFpJQzUiLCJwYXNzd29yZCI6ImJiZTFhYzgxZjBkNjRjZDczYWM0MmFhOWEzYmZlODBiY2MzNGE4MmM1M2VkMmMwNWQ4MGU5NTQ5NDM5NzlkZWIiLCJlbWFpbCI6InRhbGsybHVnYXJkQGdtYWlsLmNvbSIsImF1dGgiOiJZV1l0YzI5MWRHZ3RNVUJJVUZWQlJWcExNMFJNVEZCTVZrWllXa2xETlRwaVltVXhZV000TVdZd1pEWTBZMlEzTTJGak5ESmhZVGxoTTJKbVpUZ3dZbU5qTXpSaE9ESmpOVE5sWkRKak1EVmtPREJsT1RVME9UUXpPVGM1WkdWaSJ9fX0K 
+
+# obsSecret:
+#   enabled: true
+#   name: huawei-credentials-obs-ak
+#   data:
+#     accessKey: ""
+#     secretKey: ""
+
+obsSecret:
+  enabled: true
+  name: obs-access-secret
+  data:
+    accessKey: "MDAwMDAwMDEwMDAwMDAwMTExQjg4QUExNUU2NTMxMjMwNzhDOTdDMThEQzlFQTYwQ0ExRUM2MUY4RUM0M0EzMEEyOUQyRDdDQ0QxNUE5QjE4MTFBNTdDRjc5RDk5MzZGODhENzUxQTIzQ0QzMkIyOQ=="
+    secretKey: "MDAwMDAwMDEwMDAwMDAwMTkyMDJEN0NENUM3QTkwRTBBRDM5MUYzQ0E1QjIzQ0M1N0ZBODZGNjZERjMyQ0VGNUFFQkJERkI5QTcyQjAyRDlDRDk4ODkzQzhEN0UzN0M3NEI1OTYyRDI2MDEyMkZCOUNENTAwMEQ4ODdDRjE5Q0ZBQ0JGMTY0MkJCMEQ0MDE3"
+
+
+# Huawei Cloud Storage Authentication (for OBS, EVS, SFS CSI drivers)
+huaweiCloudStorage:
+  enabled: true
+  accessKey: "HPUAEZK3DLLPLVFXZIC5"  # Your decoded AK
+  secretKey: "nPy9R7Ac7BhMOUp5aDhrDDdcYEahu3PUBsV3K45"  # Your decoded SK
+  projectId: "ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb"  # Enterprise ID
+  region: "af-south-1"   # Region

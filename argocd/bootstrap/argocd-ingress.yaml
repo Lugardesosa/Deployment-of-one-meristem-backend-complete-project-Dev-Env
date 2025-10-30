@@ -1,0 +1,24 @@
+
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: argocd-ui-ingress
+#   namespace: argocd
+#   annotations:
+#     kubernetes.io/elb.id: ""
+#     kubernetes.io/elb.class: "performance"
+#     kubernetes.io/elb.port: "443"
+#     kubernetes.io/elb.cert-id: ""
+#     kubernetes.io/ingress.class: "cce"
+# spec:
+#   rules:
+#     - host: onemeristemstag.meristemng.com
+#       http:
+#         paths:
+#           - path: /argocd
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: argocd-server
+#                 port:
+#                   number: 443

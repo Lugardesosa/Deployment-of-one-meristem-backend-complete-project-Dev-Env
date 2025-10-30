@@ -1,0 +1,246 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: wallet-service
+#   namespace: one-meristem-app
+#   labels:
+#     app: wallet-service
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: wallet-service
+#   template:
+#     metadata:
+#       labels:
+#         app: wallet-service
+#     spec:
+#       serviceAccountName: one-meristem-app
+#       containers:
+#       - name: wallet-service
+#         image: swr.cn-south-1.myhuaweicloud.com/one-meristem/cloud-gateway # Replace with your actual container image
+#         imagePullPolicy: IfNotPresent
+#         ports:
+#         - containerPort: 20040
+#         env:
+#         - name: COMPANY_NAME
+#           value: "Meristem Securities Limited"
+#         - name: DATA_PRIVACY_POLICY_URL
+#           value: "https://www.onemerristem.merristem.com"
+#         - name: GREEN_LOGO_URL
+#           value: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+#         - name: WHITE_LOGO_URL
+#           value: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+#         - name: FINANCE_LOGO_URL
+#           value: https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+#         - name: SPRING_PROFILES_ACTIVE
+#           value: "default"
+#         - name: GITHUB_BRANCH 
+#           value: "wallet"
+#         - name: APP_PROFILE
+#           value: "local"
+#         - name: SERVER_PORT
+#           value: "20030"
+#         - name: ONE_APP_SERVER_URL
+#           value: "http://110.238.74.43:8080" #This is the URL for the Dev_Env server
+#         - name: ONE_APP_EMAIL
+#           value: "hello@onemeristem.meristemng.com"
+#         -name: ADMIN_USERNAME
+#           value: "admin"  # Replace with your actual admin username
+#         - name: ADMIN_PASSWORD
+#           valueFrom: 
+#             secretKeyRef:
+#               name: credentials
+#               key: key3  # The key in the secret that contains the admin password
+#         - name: ENCRYPTION_KEY
+#           valueFrom: 
+#             secretKeyRef:
+#               name: credentials
+#               key: key4  # The key in the secret that contains the encryption key
+#         - name: DB_SERVER
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: DB_SERVER
+#         - name: WALLET_DB_NAME
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: WALLET_DB_NAME
+#         - name: WALLET_DB_USERNAME
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: WALLET_DB_USERNAME
+#         - name: WALLET_DB_PASSWORD
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: WALLET_DB_PASSWORD
+#         - name: CONFIG_SERVER_URI
+#           value: "http://config-server:20000/config"
+#         - name: KAFKA_HOST_URL
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: KAFKA_HOST_URL
+#         - name: REDIS_HOST
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: REDIS_HOST
+#         - name: REDIS_PASSWORD
+#           valueFrom: 
+#             secretKeyRef:
+#               name: huawei-csms-credentials
+#               key: REDIS_PASSWORD
+#         - name: MAILER_HOST
+#           valueFrom:
+#             secretKeyRef:
+#               name: credentials
+#               key: key5
+#         - name: MAILER_USERNAME
+#           valueFrom:
+#             secretKeyRef:
+#               name: credentials
+#               key: key6
+#         - name: MAILER_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: credentials
+#               key: key7
+#         - name: PROVIDUS_BASE_URL
+#           value: "https://payment.xpress-wallet.com/api/v1/"
+#         - name: PROVIDUS_API_PUBLIC_KEY
+#           valueFrom:
+#             secretKeyRef:
+#               name: credentials
+#               key: key14
+#         - name: PROVIDUS_API_SECRET_KEY
+#           valueFrom:
+#             secretKeyRef:
+#               name: credentials
+#               key: key15
+#         - name: WEMA_API_URL
+#           value: "https://apps3.wemabank.com/VirtualAccountServiceTest/api/v1/Trans/TransQuery/"
+#         - name: WEMA_ACCOUNT_PREFIX
+#           value: 733
+#         - name: H2_PASSWORD
+#           valueFrom: 
+#             secretKeyRef:
+#               name: credentials
+#               key: key13
+#         volumeMounts:
+#         - name: huawei-csms-credentials
+#           mountPath: /mnt/secrets-store
+#         - name: pv-evs
+#           mountPath: /data
+#           readOnly: true
+#         - name: secret-volume
+#           mountPath: /mnt/secrets-store
+#           readOnly: true
+#         resources:
+#           limits:
+#             cpu: "1"
+#             memory: 1Gi
+#           requests:
+#             cpu: "0.5"
+#             memory: 512Mi
+#       imagePullSecrets:
+#       - name: default-secret  # Replace with your image pull secret if using private registry
+#       volumes:
+#       - name: pv-evs
+#         persistentVolumeClaim:
+#           claimName: wallet-service-pvc-evs
+#       - name: huawei-csms-credentials
+#         csi:
+#           driver: secrets-store.csi.k8s.io
+#           readOnly: true
+#           volumeAttributes:
+#             secretProviderClass: huawei-csms-credentials # Name of the SecretProviderClass created in the previous step
+#             csi.storage.k8s.io/provisioner-secret-name: huawei-csms-credentials
+#             csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+#             #csi.storage.k8s.io/node-publish-secret-name: huawei-csms-credentials
+#             #csi.storage.k8s.io/node-publish-secret-namespace: one-meristem-app
+#       - name: secret-volume
+#         secret:
+#           secretName: credentials
+            
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wallet-service.fullname" . }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    app: {{ include "wallet-service.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.strategy.rollingUpdate.maxSurge }}
+  selector:
+    matchLabels:
+      app: {{ include "wallet-service.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "wallet-service.name" . }}
+    spec:
+      serviceAccountName: {{ .Values.global.serviceAccountName | default "app-spc-sa" }}
+      containers:
+        - name: {{ include "wallet-service.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          #HEALTH CHECKS START HERE
+          livenessProbe:
+            httpGet:
+              path: /api/wallets/actuator/health
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/wallets/actuator/health
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- range $key, $value := .Values.secretEnv }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $value.secretName }}
+                  key: {{ $value.secretKey }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.volumeMounts }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- if .Values.resources }}
+            {{- toYaml .Values.resources | nindent 12 }}
+            {{- else }}
+            {}
+            {{- end }}
+      imagePullSecrets:
+        {{- if .Values.imagePullSecrets }}
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+        {{- end }}
+      volumes:
+        {{- if .Values.volumes }}
+        {{- toYaml .Values.volumes | nindent 8 }}
+        {{- end }}

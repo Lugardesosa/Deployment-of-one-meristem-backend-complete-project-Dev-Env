@@ -1,0 +1,101 @@
+# ingress:
+#   enabled: true
+#   name: cloud-gateway
+#   namespace: one-meristem-app
+#   className: cce
+
+#   annotations:
+#     kubernetes.io/elb.class: performance
+#     kubernetes.io/elb.id: 26583eb2-36ad-4c46-8a1e-061935c3bf3a
+#     kubernetes.io/elb.listener-master-ingress: one-meristem-app/cloud-gateway
+#     kubernetes.io/elb.port: "443"
+#     kubernetes.io/elb.slowstart: "30"
+#     kubernetes.io/elb.tls-certificate-ids: 35d50c6b2a3348a7952aad9b8c24fac2
+#     kubernetes.io/elb.tls-ciphers-policy: tls-1-2
+
+#   tls:
+#     enabled: true
+#     secretName: ""  # ELB certificate managed by Huawei Cloud (not a Kubernetes secret)
+
+#   rules:
+#     - host: ""  # No domain, use ELB IP or DNS name for access
+#       paths:
+#         - path: /
+#           pathType: ImplementationSpecific
+#           service:
+#             name: cloud-gateway
+#             port: 8082
+
+
+
+
+# {{- if .Values.ingress.enabled }}
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: {{ .Values.ingress.name }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   annotations:
+#     kubernetes.io/elb.id: {{ .Values.ingress.elbId }} # Replace it with the ID of your existing load balancer.
+#     kubernetes.io/elb.ip: {{ .Values.ingress.elbIp }}  # Replace it with the IP of your existing load balancer.
+#     kubernetes.io/elb.class: performance # Load balancer type
+#     kubernetes.io/elb.port: "443"
+#     kubernetes.io/ingress.class: "cce"
+#     kubernetes.io/elb.tls-certificate-ids: {{ .Values.ingress.certificateIds }} #ELB certificate IDs, which are separated by comma (,) To obtain the certificate, log in to the CCE console, choose Service List > Networking > Elastic Load Balance, and click Certificates in the navigation pane. In the load balancer list, copy the ID under the target certificate name.
+#     kubernetes.io/elb.tls-ciphers-policy: "tls-1-2-fs" #"tls-1-2-fs"
+#     kubernetes.io/elb.http2-enable: "true"
+#     kubernetes.io/elb.pool-protocol: "https"
+#     kubernetes.io/elb.gzip-enabled: "true" #data compression, which reduces the size of files to be transferred, improves file transfer efficiency, and reduces the bandwidth needed for the transmission.
+#     #kubernetes.io/elb.listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+#     #kubernetes.io/elb.ssl-redirect: "true"
+# spec:
+#   tls:
+#     - hosts:
+#         - {{ .Values.ingress.host }}
+#   ingressClassName: cce # Specify the ingress class name. The default value is cce.
+#   rules:
+#     - host: {{ .Values.ingress.host }}
+#       http:
+#         paths:
+#           - path: "/"
+#             pathType: Prefix # or ImplementationSpecific
+#             backend:
+#               service:
+#                 name: {{ include "cloud-gateway.fullname" . }}
+#                 port:
+#                   number: {{ .Values.ingress.servicePort }}
+# {{- end }}
+
+
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.name }}
+  namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className | default "cce" | quote }}
+  tls:
+  {{- if .Values.ingress.tls.enabled }}
+    - secretName: {{ .Values.ingress.tls.secretName | default "" | quote }}
+  {{- end }}
+  rules:
+  {{- range .Values.ingress.rules }}
+    - host: {{ .host | default "" | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ .path | default "/" }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
+            backend:
+              service:
+                name: {{ include "cloud-gateway.fullname" $ }}  # Use the same fullname
+                port:
+                  number: {{ .service.port }}
+        {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,112 @@
+# -------------------- CONSUL SERVICE VALUES --------------------
+# This file contains the consul values for the consul service deployment.
+
+environment: dev-env
+
+global:
+  namespace: one-meristem-app
+  
+#Deployment configuration for consul service
+
+replicaCount: 1 #replica  count
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+image:
+  repository: consul
+  tag: "1.15.4" 
+  pullPolicy: IfNotPresent
+  args:
+  - "agent"
+  - "-server"
+  - "-bootstrap-expect"
+  - "1"
+  - "-ui"
+  - "-client"
+  - "0.0.0.0"
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "128Mi"
+  requests:
+    cpu: "250m"
+    memory: "64Mi"
+
+containerPorts:
+  - name: consul-ui
+    port: 8500
+  - name: 8301-port
+    port: 8301
+  - name: 8302-port
+    port: 8302
+  - name: 8600-port
+    port: 8600
+  - name: 8300-port
+    port: 8300
+
+
+restartPolicy: Always
+
+# HorizontalPodAutoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+# Ingress configuration
+ingress:
+  enabled: true
+  name: consul-ui-ingress
+  namespace: one-meristem-app
+  className: cce
+  annotations:
+    kubernetes.io/elb.class: performance # Use a high-performance load balancer
+    kubernetes.io/elb.id: db5b9628-6305-4efc-a068-4f5064fead4f # Existing ELB ID
+    kubernetes.io/elb.port: '8500'
+    # kubernetes.io/elb.listener-master-ingress: argocd/argocd-ui-ingress # Link Ingress to ELB listener
+    # kubernetes.io/elb.port: "443"  # ELB listener port for HTTPS
+    kubernetes.io/elb.keepalive_timeout: "2500" # How long (ms) to keep the TCP connection alive between client and ELB
+    kubernetes.io/elb.client_timeout: "250" # Timeout (seconds) for client idle connections before ELB closes it
+    kubernetes.io/elb.listener-master-ingress: one-meristem-app/consul-ui-ingress
+    # kubernetes.io/elb.tls-certificate-ids: 47455b43f4c14444aebb36948bc4b4c1 # TLS certificate ID on Huawei ELB
+
+    # kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
+    # kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
+    kubernetes.io/elb.gzip-enabled: "true" # Enable GZIP compression to reduce response size and improve speed
+    kubernetes.io/elb.x-real-ip: "true" # Forward the client’s real IP address to backend pods (for logs and tracing)
+    kubernetes.io/elb.member_timeout: "90" # Maximum time (seconds) the ELB waits before removing an unresponsive backend pod
+    # --- Recommended health check for Argo CD ---
+    kubernetes.io/elb.health-check-flag: "on" # Enable ELB health checks for backend pods
+    # kubernetes.io/elb.health-check-option: '{"protocol":"HTTPS","port":"443","uri":"/","interval":5,"timeout":10,"rise":2,"fall":2}' # Health check config for HTTPS path /
+# spec:
+#   ingressClassName: cce
+  tls:
+    enabled: false
+    secretName: ""  # Leave blank since Huawei ELB manages TLS via annotation
+  rules:
+    - host: onemeristemargocd.meristemng.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          service:
+            name: consul
+            port:
+              number: 8500
+  
+
+#Service configuration
+service:
+  type: ClusterIP  # Internal access only #(NodePort)
+  portName: consul-ui
+  port: 8500
+  targetPort: 8500
+  #nodePort: 31000 # Only if type is NodePort
+
+  
