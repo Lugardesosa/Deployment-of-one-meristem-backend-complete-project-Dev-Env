@@ -17,7 +17,7 @@ image:
   tag: 4ca8867-71
 
 imagePullSecrets:
-  - name: huawei-swr-auth #relying on CCE's automatic injection
+  - name: huawei-swr-auth #relying on CCE's automatic injection.
 
 #Secret provider class
 secretProviderClass:

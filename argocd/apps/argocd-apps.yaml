@@ -17,7 +17,7 @@ spec:
     helm:
       valueFiles:
         - ${VALUES_FILE}
-      parameters:  # The secret for OBS auth for Users-service
+      parameters:  # The secret for OBS auth for Users-service.
         - name: obsSecret.data.accessKey
           value: "SFBVQUVaSzNETExQTFZGWFpJQzU="
         - name: obsSecret.data.secretKey
