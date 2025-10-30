@@ -8,6 +8,7 @@ import lombok.*;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Objects;
 
 @ToString
@@ -28,19 +29,23 @@ public class Images extends BaseModel<String> {
     @NotNull(message = "cannot be null")
     private Integer imageType;
 
+    // Can be null if image is an avatar
+    private Long userId;
+
     @Builder
-    public Images(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String imageKey, String contentType, Integer imageType) {
+    public Images(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String imageKey, String contentType, Integer imageType, Long userId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.imageKey = imageKey;
         this.contentType = contentType;
         this.imageType = imageType;
+        this.userId = userId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Images avatars = (Images) o;
-        return Objects.equals(getImageKey(), avatars.getImageKey());
+        return Objects.equals(getImageKey(), avatars.getImageKey()) && Objects.equals(getUserId(), avatars.getUserId());
     }
 
     @Override

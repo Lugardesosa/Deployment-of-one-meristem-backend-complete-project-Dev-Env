@@ -301,15 +301,22 @@ public class UsersService {
         if (request.imageType() == ImageType.AVATAR) {
             Images avatars = imagesRepository.findByImageKeyAndImageType(request.imageKey(), ImageType.AVATAR.getValue()).orElseThrow(() -> new BadRequestException("Avatar not found."));
             imageKey = avatars.getImageKey();
+            userProfileRepository.updateUsersImage(imageKey, userId);
         } else {
             if (request.contentType() == null) {
                 throw new BadRequestException("Content type not found.");
             }
             imageKey = request.imageKey();
-            imagesRepository.save(Images.builder().imageKey(imageKey).contentType(request.contentType()).imageType(ImageType.PROFILE_PICTURE.getValue()).build());
+            imagesRepository.findByImageTypeAndUserId(ImageType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
+                    .ifPresentOrElse(i -> {
+                            },
+                            () -> {
+                                imagesRepository.save(Images.builder().userId(userId).imageKey(imageKey).contentType(request.contentType()).imageType(ImageType.PROFILE_PICTURE.getValue()).build());
+                                userProfileRepository.updateUsersImage(imageKey, userId);
+                            }
+                    );
         }
 
-        userProfileRepository.updateUsersImage(imageKey, userId);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         return UpdateImageResponse.builder().status(true).message("User image updated").build();
     }

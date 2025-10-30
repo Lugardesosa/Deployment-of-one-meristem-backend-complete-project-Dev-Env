@@ -8,14 +8,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.meristem.oneapp.usersservice.config.configProperties.HuaweiConfigProperties;
+import org.meristem.oneapp.usersservice.domains.enums.ImageType;
 import org.meristem.oneapp.usersservice.domains.enums.SignedUrlType;
 import org.meristem.oneapp.usersservice.domains.requests.SignedUrlRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SignedUrlResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.models.Images;
+import org.meristem.oneapp.usersservice.repositories.ImagesRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +36,7 @@ import java.util.Map;
 public class HuaweiService {
 
     private final HuaweiConfigProperties huaweiConfigProperties;
+    private final ImagesRepository imagesRepository;
 
     /**
      * Generates a temporary signed URL for uploading or downloading a file in Huawei OBS.
@@ -57,9 +62,15 @@ public class HuaweiService {
 
             String objectKey = signedUrlRequest.method() == HttpMethodEnum.GET ? signedUrlRequest.fileName() : userEmail.concat("-").concat(String.valueOf(System.currentTimeMillis())).concat("-").concat(signedUrlRequest.fileName().replaceAll("\\.\\w+$|\\.\\w+\\s+", ""));
 
-            String bucketName = signedUrlRequest.type() == SignedUrlType.IMAGE ? huaweiConfigProperties.imagesBucketName() : huaweiConfigProperties.documentBucketName();
+            String bucketName = List.of(SignedUrlType.IMAGE, SignedUrlType.PROFILE_PICTURE).contains(signedUrlRequest.type()) ? huaweiConfigProperties.imagesBucketName() : huaweiConfigProperties.documentBucketName();
             request.setBucketName(bucketName);
             request.setObjectKey(objectKey);
+
+            if (SignedUrlType.PROFILE_PICTURE.equals(signedUrlRequest.type())) {
+                imagesRepository.findByImageTypeAndUserId(ImageType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
+                        .ifPresent(i -> request.setObjectKey(i.getImageKey()));
+                objectKey = request.getObjectKey();
+            }
 
             if (HttpMethodEnum.PUT == signedUrlRequest.method()) {
                 if (signedUrlRequest.contentType() == null) {

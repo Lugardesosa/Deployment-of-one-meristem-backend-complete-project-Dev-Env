@@ -289,7 +289,9 @@ CREATE TABLE images
     image_key          VARCHAR(500)                            NOT NULL,
     content_type       VARCHAR(50)                             NOT NULL,
     image_type         INT                                     NOT NULL,
-    CONSTRAINT pk_images PRIMARY KEY (id)
+    user_id            BIGINT,
+    CONSTRAINT pk_images PRIMARY KEY (id),
+    CONSTRAINT fk_users_on_id FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE oauth2_registered_client
