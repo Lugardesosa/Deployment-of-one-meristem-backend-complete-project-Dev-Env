@@ -6,7 +6,7 @@ environment: dev-env
 global:
   namespace: one-meristem-app #global
   serviceAccountName: app-spc-sa
-  create: false     # Prevent chart from trying to create it
+  create: false     # Prevent chart from trying to create it.
 
 #Deployment configuration for config-server service
 replicaCount: 2 #replicas
