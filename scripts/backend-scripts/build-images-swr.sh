@@ -11,7 +11,7 @@ echo "Using image tag: $IMAGE_TAG"
 export IMAGE_TAG
 
 # ----------------------------------------
-# Install Docker if missing 
+# Install Docker if missing.
 # ----------------------------------------
 echo "Checking Docker and dependency setup..."
 if ! command -v docker &> /dev/null; then
