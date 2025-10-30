@@ -12,7 +12,8 @@ public enum OnboardingRequirements {
     BVN(1,  "BVN"),
     PROOF_OF_ADDRESS(2, "PROOF_OF_ADDRESS"),
     NIN(3, "NIN"),
-    GOVERNMENT_ISSUED_ID(4, "GOVERNMENT_ISSUED_ID");
+    GOVERNMENT_ISSUED_ID(4, "GOVERNMENT_ISSUED_ID"),
+    EMAIL_VERIFICATION(5, "EMAIL_VERIFICATION");
 
     private final int value;
     private final String name;
@@ -23,6 +24,7 @@ public enum OnboardingRequirements {
             case "PROOF_OF_ADDRESS" -> PROOF_OF_ADDRESS;
             case "NIN" -> NIN;
             case "INTERNATIONAL_PASSPORT", "DRIVERS_LICENSE", "VOTER_ID" -> GOVERNMENT_ISSUED_ID;
+            case "EMAIL_VERIFICATION" -> EMAIL_VERIFICATION;
             default -> throw new BadRequestException("Invalid requirement: " + name);
         };
     }

@@ -22,6 +22,13 @@ import java.util.Map;
 
 import static java.util.Objects.nonNull;
 
+/**
+ * Service responsible for sending email notifications.
+ * <p>
+ * Implements a notification contract to accept message requests, map them to domain messages,
+ * and dispatch them using the configured mail sender. For HTML messages, it renders content
+ * using a template engine and enriches the template context with common variables.
+ */
 @Slf4j
 @Service("EMAIL")
 @RequiredArgsConstructor
@@ -29,13 +36,15 @@ public class EmailService implements NotificationService<MessageDto> {
 
     @Value("${one-app.notification-service.mail-sender}")
     public String FROM;
+    @Value("${one-app.notification-service.mail-sender-name}")
+    public String SENDER_NAME;
     @Value("${one-app.support.email}")
     public String SUPPORT_EMAIL;
     @Value("${one-app.support.phone}")
     public String SUPPORT_PHONE;
     @Value("${one-app.logo.green-url}")
     private String MERISTEM_GREEN_LOGO;
-    @Value("${spring.profiles.active")
+    @Value("${spring.profiles.active}")
     private String activeProfile;
 
     private final JavaMailSender mailSender;
@@ -43,6 +52,16 @@ public class EmailService implements NotificationService<MessageDto> {
     private final ObjectMapper mapper;
     private final TemplateEngine templateEngine;
 
+    /**
+     * Processes and sends a notification email based on the given request.
+     * <p>
+     * If the active application profile is "local", this method performs no action.
+     * Otherwise, it maps the incoming payload to an internal message and delegates
+     * the actual dispatch to {@link #sendMail(Message, boolean)}.
+     *
+     * @param request the incoming message payload, including recipient, subject, body,
+     *                and whether the content should be treated as HTML
+     */
 
     @Override
     public void send(MessageDto request) {
@@ -63,7 +82,7 @@ public class EmailService implements NotificationService<MessageDto> {
                 setContext(context);
                 body = templateEngine.process(messageDetails.getEmailTemplate().getFileName(), context);
             }
-            helper.setFrom(FROM);
+            helper.setFrom(FROM, SENDER_NAME);
             helper.setTo(messageDetails.getRecipient());
             helper.setSubject(messageDetails.getSubject());
             helper.setText(body, isHtml);

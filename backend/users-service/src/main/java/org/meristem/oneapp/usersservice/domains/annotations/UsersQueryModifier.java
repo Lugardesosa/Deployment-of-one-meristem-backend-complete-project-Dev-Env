@@ -39,7 +39,7 @@ import java.lang.annotation.*;
  * @see org.springframework.data.jdbc.repository.query.Modifying
  * @see org.springframework.transaction.annotation.Transactional
  */
-@CacheEvict(cacheNames = "users", key = "#a0")
+//@CacheEvict(cacheNames = "users", key = "#a0")
 @Modifying
 @Transactional
 @Target({ElementType.METHOD})

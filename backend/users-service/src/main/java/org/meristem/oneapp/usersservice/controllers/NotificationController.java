@@ -14,7 +14,7 @@ import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
-import org.meristem.oneapp.usersservice.services.NotificationService;
+import org.meristem.oneapp.usersservice.services.OtpService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final NotificationService notificationService;
+    private final OtpService otpService;
 
 
     @Operation(summary = "Sends an otp.")
@@ -43,7 +43,7 @@ public class NotificationController {
     @PreAuthorize("hasAuthority('SCOPE_send_otp') OR hasRole('ROLE_users.otp.send')")
     @PostMapping(value = "/otp")
     public ResponseEntity<AppResponse<SendOtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest sendOtpRequest) {
-        return ApiUtil.buildResponse(notificationService.sendOtp(sendOtpRequest), HttpStatus.OK.toString(), "Otp sent to ".concat(sendOtpRequest.recipient()));
+        return ApiUtil.buildResponse(otpService.sendOtp(sendOtpRequest), HttpStatus.OK.toString(), "Otp sent to ".concat(sendOtpRequest.recipient()));
     }
 
     @Operation(summary = "Verifies an otp.")
@@ -56,6 +56,6 @@ public class NotificationController {
     @PreAuthorize("hasAuthority('SCOPE_verify_otp') OR hasRole('ROLE_users.otp.verify')")
     @PostMapping(value = "/otp/verify")
     public ResponseEntity<AppResponse<VerifyOtpResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest verifyOtpRequest) {
-        return ApiUtil.buildResponse(notificationService.verifyOtp(verifyOtpRequest), HttpStatus.OK.toString(), "Otp request verification processed.");
+        return ApiUtil.buildResponse(otpService.verifyOtp(verifyOtpRequest), HttpStatus.OK.toString(), "Otp request verification processed.");
     }
 }

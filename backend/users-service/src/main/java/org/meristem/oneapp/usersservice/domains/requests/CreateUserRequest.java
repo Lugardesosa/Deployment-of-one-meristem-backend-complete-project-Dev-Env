@@ -5,16 +5,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import org.meristem.oneapp.usersservice.validations.constraints.Email;
 import org.meristem.oneapp.usersservice.validations.constraints.Name;
-import org.meristem.oneapp.usersservice.validations.constraints.Password;
 import org.meristem.oneapp.usersservice.validations.constraints.PhoneNumberNG;
 
 import static java.util.Objects.isNull;
 
-
+@Builder
 public record CreateUserRequest(@Schema(example = "johndoe@gmail.com", description = "Pass the users email") @Email @NotBlank(message = "cannot be null") @Size(min = 5, max = 200, message = "cannot be longer than 200 and less than 5") String email,
-                                @Schema(example = "Password@1", description = "Pass a valid password, 8 or more characters with upper case and any of the following special characters '@', '#', '$', '%', '^', '&', '+', '=', '(', ')', '\\''", minLength = 8, maxLength = 20) @Password @NotBlank(message = "cannot be null") @Size(min = 8, max = 20, message = "cannot be more than 20 and less than 8") String password,
                                 @Schema(example = "John", description = "Users first name") @Name(message = "alphabets allowed") @NotBlank(message = "cannot be blank") @Size(min = 1, max = 150, message = "cannot be less than 1 and more than 150") String firstName,
                                 @Schema(example = "Doe", description = "Users last name") @Name(message = "alphabets allowed") @NotBlank(message = "cannot be blank") @Size(min = 1, max = 150, message = "cannot be less than 1 and more than 150") String lastName,
                                 @Schema(example = "Obus", description = "Users middle name") @Name(message = "alphabets allowed") @Size(max = 150, message = "cannot be more than 150") String middleName,

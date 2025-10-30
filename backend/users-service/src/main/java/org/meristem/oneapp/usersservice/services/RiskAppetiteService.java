@@ -28,6 +28,15 @@ public class RiskAppetiteService {
 
     private final CustomRepository customRepository;
 
+    /**
+     * Derives and persists the logged-in user's risk appetite based on the provided questionnaire inputs.
+     * The mapping uses combinations of age bracket, investment duration, time horizon, and investment objective
+     * to assign a predefined risk profile, stores it, and returns a summary response.
+     *
+     * @param request the user's questionnaire responses used to determine risk appetite
+     * @return a response containing the derived risk appetite, risk profile, and description lines
+     * @throws BadRequestException if the provided inputs do not correspond to a supported risk profile
+     */
     public RiskAppetiteResponse createOrUpdateRiskAppetite(RiskAppetiteRequest request) {
 
         Long loggedInUserId = AppUtil.getLoggedInUserId();

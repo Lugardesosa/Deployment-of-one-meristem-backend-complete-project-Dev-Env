@@ -12,6 +12,7 @@ import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
 import org.meristem.oneapp.usersservice.repositories.UserProfileRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import static java.util.Objects.requireNonNull;
@@ -50,15 +51,15 @@ public class AdminService {
         return NextOfKinResponse.builder().build();
     }
 
+    @CacheEvict(value = AppConstants.USERS_CACHE_NAME, key = "#request.userId")
     public DobResponse updateDob(DobRequest request) {
         int updated = userProfileRepository.updateDob(request.userId(), request.dob());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(usersRepository.findEmailById(request.userId()));
         return DobResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
     }
 
+    @CacheEvict(value = AppConstants.USERS_CACHE_NAME, key = "#request.userId")
     public GenderResponse updateGender(GenderRequest request) {
         int updated = userProfileRepository.updateGender(request.userId(), request.gender().name());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(usersRepository.findEmailById(request.userId()));
         return GenderResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
     }
 }

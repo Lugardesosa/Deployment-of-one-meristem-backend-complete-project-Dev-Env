@@ -172,6 +172,8 @@ CREATE TABLE user_profile
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
     biometric_enabled BOOLEAN DEFAULT FALSE                      NOT NULL,
+    password_set         BOOLEAN DEFAULT FALSE                   NOT NULL,
+    email_verified       BOOLEAN DEFAULT FALSE                   NOT NULL,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
 
@@ -188,7 +190,7 @@ CREATE TABLE users
     first_name           VARCHAR(150)                            NOT NULL,
     last_name            VARCHAR(150)                            NOT NULL,
     middle_name          VARCHAR(150),
-    password             VARCHAR(200)                            NOT NULL,
+    password             VARCHAR(200),
     phone_number         VARCHAR(50)                             NOT NULL,
     password_attempt     INT DEFAULT 0                           NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY (id)
@@ -287,7 +289,9 @@ CREATE TABLE images
     image_key          VARCHAR(500)                            NOT NULL,
     content_type       VARCHAR(50)                             NOT NULL,
     image_type         INT                                     NOT NULL,
-    CONSTRAINT pk_images PRIMARY KEY (id)
+    user_id            BIGINT,
+    CONSTRAINT pk_images PRIMARY KEY (id),
+    CONSTRAINT fk_users_on_id FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE oauth2_registered_client
@@ -725,6 +729,7 @@ $$
         UsersDeactivateAccountID  integer;
         UsersGetAvatarID          integer;
         UsersPhoneNumberUpdateID  integer;
+        UsersEmailUpdateID  integer;
         SuperAdminAdminCreateID   integer;
         UsersBeneficiaryAddID     integer;
         UsersBeneficiaryRemoveID  integer;
@@ -904,6 +909,10 @@ $$
         RETURNING id INTO UsersPhoneNumberUpdateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.email.update')
+        RETURNING id INTO UsersEmailUpdateID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password')
         RETURNING id INTO AdminChangePasswordID;
 
@@ -996,6 +1005,7 @@ $$
                (RolesUserID, UsersDeactivateAccountID),
                (RolesUserID, UsersGetAvatarID),
                (RolesUserID, UsersPhoneNumberUpdateID),
+               (RolesUserID, UsersEmailUpdateID),
                (RolesSuperAdminID, SuperAdminAdminCreateID);
     END
 $$;
@@ -1069,14 +1079,16 @@ DO $$
     DECLARE
         TrusteesId integer;
         WealthId integer;
-    
+
 BEGIN
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
         VALUES
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MER-STOCKS'),
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Loans', 'MER-LOANS'),
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS');
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MER-STOCKS');
+
+        INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
+        VALUES
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MER-WEALTH') RETURNING id INTO WealthId;
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
         VALUES
@@ -1084,9 +1096,13 @@ BEGIN
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version, name, code)
         VALUES
-            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MER-WEALTH') RETURNING id INTO WealthId;
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Loans', 'MER-LOANS'),
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS'),
+            (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'AI Agent', 'MER-AI-AGENT');
 
-        
+
+
+
         INSERT INTO investment_options (created_date, created_by, last_modified_date, last_modified_by, version, investment_id, name)
         VALUES
             (NOW(), 'SYSTEM', CURRENT_TIMESTAMP, 'SYSTEM', 0, WealthId, 'Money Market Fund'),
