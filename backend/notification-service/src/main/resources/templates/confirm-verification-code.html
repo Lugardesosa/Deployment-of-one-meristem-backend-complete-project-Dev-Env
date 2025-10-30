@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirm Verification Code</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", Arial, sans-serif;
+        background-color: #ffffff;
+        padding: 40px 20px;
+        line-height: 1.6;
+      }
+
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+      }
+
+      .header {
+        text-align: center;
+        padding: 40px 40px 30px;
+      }
+
+      .logo {
+        height: 40px;
+        width: auto;
+      }
+
+      .content {
+        padding: 0 40px;
+        background-color: #ffffff;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 30px;
+        text-align: left;
+      }
+
+      .greeting {
+        font-size: 16px;
+        color: #4b5563;
+        margin-bottom: 20px;
+        font-weight: 400;
+      }
+
+      .instruction-text {
+        font-size: 16px;
+        color: #4b5563;
+        margin-bottom: 30px;
+        font-weight: 400;
+      }
+
+      .otp-container {
+        display: flex;
+        gap: 12px;
+        margin: 30px 0;
+        justify-content: center;
+      }
+
+      .otp-box {
+        width: 72px;
+        height: 72px;
+        background-color: #e6f0ec;
+        border: 2px solid #00643c;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: 700;
+        color: #292f36;
+        font-family: "Poppins", Arial, sans-serif;
+      }
+
+      .validity-text {
+        font-size: 14px;
+        color: #4b5563;
+        margin: 30px 0;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+
+      .closing-text {
+        font-size: 16px;
+        color: #4b5563;
+        margin: 20px 0;
+        font-weight: 400;
+      }
+
+      .signature {
+        font-size: 16px;
+        color: #4b5563;
+        margin: 20px 0 40px;
+        font-weight: 400;
+      }
+
+      .footer {
+        padding: 40px 40px 20px;
+        background-color: #ffffff;
+        text-align: left;
+      }
+
+      .footer-text {
+        font-size: 14px;
+        color: #4b5563;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+
+      .footer-text a {
+        color: #00643c;
+        text-decoration: underline;
+      }
+
+      .footer-text a:hover {
+        text-decoration: none;
+      }
+
+      .footer-address {
+        font-size: 12px;
+        color: #999999;
+        margin-top: 20px;
+        line-height: 1.4;
+      }
+
+      .footer-copyright {
+        font-size: 12px;
+        color: #999999;
+        margin-top: 10px;
+      }
+
+      /* Responsive Design */
+      @media only screen and (max-width: 600px) {
+        body {
+          padding: 20px 10px;
+        }
+
+        .content,
+        .footer {
+          padding: 0 20px 20px;
+        }
+
+        .header {
+          padding: 20px 20px 10px;
+        }
+
+        .title {
+          font-size: 20px;
+        }
+
+        .otp-container {
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .otp-box {
+          width: 60px;
+          height: 60px;
+          font-size: 32px;
+        }
+      }
+
+      /* Email client compatibility */
+      table {
+        border-collapse: collapse;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+        -ms-interpolation-mode: bicubic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <img
+          th:src="${MERISTEM_GREEN_LOGO}"
+          alt="Meristem Logo"
+          class="logo"
+        />
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <h1 class="title">Confirm Verification Code</h1>
+
+        <p class="greeting">Hello <span th:text="${firstName}"></span>,</p>
+
+        <p class="instruction-text">Your secure verification code is:</p>
+
+        <!-- OTP Code Display -->
+        <div class="otp-container">
+          <div class="otp-box" th:text="${#strings.substring(code,0,1)}"></div>
+          <div class="otp-box" th:text="${#strings.substring(code,1,2)}"></div>
+          <div class="otp-box" th:text="${#strings.substring(code,2,3)}"></div>
+          <div class="otp-box" th:text="${#strings.substring(code,3,4)}"></div>
+        </div>
+
+        <p class="validity-text">
+          This code is valid for the next 5 minutes. If it does not work, please
+          request a new code and try again.
+        </p>
+
+        <p class="closing-text">Thanks,</p>
+
+        <div class="signature">Meristem Securities Limited</div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p class="footer-text">
+          If you have questions, contact us at
+          <a th:href="'mailto:' + ${SUPPORT_EMAIL}"><span th:text="${SUPPORT_EMAIL}"></span></a>.
+          <a href="#">Unsubscribe</a> or
+          <a href="#">manage your email preferences</a>.
+        </p>
+
+        <p class="footer-address">
+          20A Gerrard Road, Ikoyi Lagos State Nigeria
+        </p>
+
+        <p class="footer-copyright">© <span th:text="${#dates.year(#dates.createNow())}"></span> Meristem Securities Limited</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+spring:
+  flyway:
+    locations: classpath:db/migration/postgres
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health'
+  endpoint:
+    health:
+      show-details: always
+      access: read_only
+  health:
+    mail:
+      enabled: false
