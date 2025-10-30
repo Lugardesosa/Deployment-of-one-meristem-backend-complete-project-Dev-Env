@@ -165,12 +165,30 @@ spec:
             {{- if .Values.env }}
             {{- toYaml .Values.env | nindent 12 }}
             {{- end }}
-            {{- range .Values.secretEnv }}
+            {{- if .Values.secretEnv }}
+              {{- if kindIs "slice" .Values.secretEnv }}
+                # Handle secretEnv as list
+                {{- range .Values.secretEnv }}
+                  {{- if and .name .secretName .secretKey }}
             - name: {{ .name }}
               valueFrom:
                 secretKeyRef:
                   name: {{ .secretName }}
                   key: {{ .secretKey }}
+                  {{- end }}
+                {{- end }}
+              {{- else }}
+                # Handle secretEnv as map
+                {{- range $name, $secret := .Values.secretEnv }}
+                  {{- if and $secret.secretName $secret.secretKey }}
+            - name: {{ $name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret.secretName }}
+                  key: {{ $secret.secretKey }}
+                  {{- end }}
+                {{- end }}
+              {{- end }}
             {{- end }}
 
           volumeMounts:
