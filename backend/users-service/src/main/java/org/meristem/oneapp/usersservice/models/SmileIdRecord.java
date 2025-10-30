@@ -37,15 +37,6 @@ public class SmileIdRecord extends BaseModel<String> {
     private String userId;
 
     /**
-     * The timestamp of the Smile ID job.
-     * Must not be blank and cannot exceed 40 characters.
-     */
-    @Size(max = 40, message = "Not more than 40")
-    @NotBlank(message = "timestamp cannot be blank")
-    @Column("timestamp")
-    private String timestamp;
-
-    /**
      * The message of the job.
      * Must not be blank and cannot exceed 300 characters.
      */
@@ -81,18 +72,16 @@ public class SmileIdRecord extends BaseModel<String> {
      * @param version the version of the record
      * @param jobId the job ID of the Smile ID record
      * @param userId the user ID associated with the Smile ID record
-     * @param timestamp the timestamp of the Smile ID record
      * @param jobType the product type of the Smile ID record
      * @param requirementId the requirement id associated with this job
      */
 
     @Builder
     public SmileIdRecord(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String jobId, String userId,
-                         String timestamp, Integer jobType, Long requirementId) {
+                         Integer jobType, Long requirementId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.jobId = jobId;
         this.userId = userId;
-        this.timestamp = timestamp;
         this.jobType = jobType;
         this.requirementId = requirementId;
     }

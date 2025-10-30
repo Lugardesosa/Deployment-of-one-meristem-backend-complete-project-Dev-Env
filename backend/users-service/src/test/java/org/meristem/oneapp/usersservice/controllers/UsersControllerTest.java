@@ -64,10 +64,10 @@ class UsersControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/base")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(
-                        new CreateUserRequest("", "", "", "", "","", ""))))
+                        CreateUserRequest.builder().firstName("").lastName("").middleName("").phoneNumber("").build())))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.errors", hasItem("password: cannot be null")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errors", hasItem("email: cannot be null")));
     }
 
     @Test

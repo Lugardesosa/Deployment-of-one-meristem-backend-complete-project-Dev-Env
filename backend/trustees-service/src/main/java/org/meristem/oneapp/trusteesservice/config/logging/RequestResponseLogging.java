@@ -12,8 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -37,7 +39,8 @@ public class RequestResponseLogging extends OncePerRequestFilter {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    private final List<String> headersToFilterFor = List.of("x-forwarded-for", "host", "user-agent", "content-type");
+    @Value("${headers-to-filter-for}")
+    private List<String> headersToFilterFor;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -50,11 +53,10 @@ public class RequestResponseLogging extends OncePerRequestFilter {
         filterChain.doFilter(requestWrapper, responseWrapper);
         long endTime = System.nanoTime() / 1_000_000L;
 
-        List<String> contentTypeToSkipForBody = List.of(MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE, "application/x-www-form-urlencoded;charset=UTF-8");
-        byte[] requestBody = nonNull(requestWrapper.getHeader("content-type")) && contentTypeToSkipForBody.contains(requestWrapper.getHeader("content-type")) ? new byte[0] : requestWrapper.getContentAsByteArray();
+        byte[] requestBody = nonNull(requestWrapper.getHeader(HttpHeaders.CONTENT_TYPE)) && MediaType.APPLICATION_JSON_VALUE.equalsIgnoreCase(requestWrapper.getHeader(HttpHeaders.CONTENT_TYPE)) ? requestWrapper.getContentAsByteArray() : new byte[0];
         byte[] responseBody = responseWrapper.getContentAsByteArray();
 
-        Map<String, String> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>();
         for (String headerName : headersToFilterFor) {
             headers.put(headerName, requestWrapper.getHeader(headerName));
         }

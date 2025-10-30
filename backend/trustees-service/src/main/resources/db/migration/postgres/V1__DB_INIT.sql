@@ -430,9 +430,9 @@ $$
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CSCS Number', 'Enter CSCS Number', 'STRING', 3, 1, 200,
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CSCS Number', 'Enter CSCS Number', 'STRING', 3, 1, 50,
                 null, 'v1'),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CHN', 'Enter CHN', 'STRING', 4, 1, 200, null, 'v1');
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 2, 2, 'CHN', 'Enter CHN', 'STRING', 4, 1, 50, null, 'v1');
 
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
@@ -1590,7 +1590,7 @@ $$
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version, subtext)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 6, 6, 'Registered Name', 'Enter Registered property name',
                 'STRING', 2, 1,
-                255, null, 'v1', null),
+                100, null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 6, 6, 'Property Description',
                 'Briefly describe Intellectual Property',
                 'STRING', 3, 1, 255, null, 'v1', null),
@@ -1777,7 +1777,7 @@ $$
                 'STRING', 2, 1,
                 255, null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 8, 11, 'Identifying Number', 'e.g. Car Plate Number', 'STRING', 3,
-                1, 255,
+                1, 100,
                 null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 8, 11, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 4, 1,
                 null,
@@ -1803,7 +1803,7 @@ $$
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version, subtext)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'PFA (PENSION FUND ADMINISTRATOR)',
-                'Select PFA (PENSION FUND ADMINISTRATOR)', 'SELECTION', 1, 1, null, null, 'v1', null)
+                'Select PFA (PENSION FUND ADMINISTRATOR)', 'SELECTION', 1, 1, 100, null, 'v1', null)
         RETURNING id INTO PFAID;
 
         INSERT INTO forms (created_date, created_by, last_modified_date, last_modified_by, version, form_position,
@@ -1811,7 +1811,7 @@ $$
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version, subtext)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'RSA (RETIRED SAVINGS ACCOUNT)', 'Enter RSA Number',
                 'STRING', 2, 1,
-                255, null, 'v1', null),
+                100, null, 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 9, 12, 'Estimated Amount', 'Enter Estimated Amount', 'MONEY', 3, 1,
                 null,
                 null, 'v1', null),
@@ -1860,7 +1860,7 @@ $$
                            internal_order, label,
                            placeholder, type, field_order, mandatory, text_size, default_value, form_version, subtext)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 10, 13, 'Policy Number', 'Enter Policy Number', 'STRING', 2, 1,
-                255, null,
+                100, null,
                 'v1', null),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 10, 13, 'Expiry Date', 'Select Insurance Expiry Date', 'DATE', 3,
                 1, null,
@@ -2353,7 +2353,7 @@ CREATE TABLE intellectual_property
     other_details       TEXT,
 
     property_type        VARCHAR(100)                            NOT NULL,
-    registered_name      VARCHAR(300)                            NOT NULL,
+    registered_name      VARCHAR(100)                            NOT NULL,
     property_description VARCHAR(300)                            NOT NULL,
     CONSTRAINT pk_intellectual_property PRIMARY KEY (id)
 );
@@ -2375,7 +2375,7 @@ CREATE TABLE life_insurance
     other_details       TEXT,
 
     insurance_company  VARCHAR(100)                            NOT NULL,
-    policy_number      VARCHAR(300)                            NOT NULL,
+    policy_number      VARCHAR(100)                            NOT NULL,
     EXPIRY_DATE        DATE                                    NOT NULL,
     CONSTRAINT pk_life_insurance PRIMARY KEY (id)
 );
@@ -2418,8 +2418,8 @@ CREATE TABLE pension
     currency_id        BIGINT                                  NOT NULL,
     other_details       TEXT,
 
-    pfa                VARCHAR(150)                            NOT NULL,
-    rsa                VARCHAR(150)                            NOT NULL,
+    pfa                VARCHAR(100)                            NOT NULL,
+    rsa                VARCHAR(100)                            NOT NULL,
     CONSTRAINT pk_pension PRIMARY KEY (id)
 );
 
@@ -2441,7 +2441,7 @@ CREATE TABLE personal_assets
 
     asset_type         VARCHAR(150)                            NOT NULL,
     asset_description  VARCHAR(300)                            NOT NULL,
-    identifying_no     VARCHAR(150)                            NOT NULL,
+    identifying_no     VARCHAR(100)                            NOT NULL,
     CONSTRAINT pk_personal_assets PRIMARY KEY (id)
 );
 

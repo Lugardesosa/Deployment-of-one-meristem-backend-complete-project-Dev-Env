@@ -47,7 +47,15 @@ public class OnboardingService {
         return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.DEFAULT.getId());
     }
 
-
+    /**
+     * Handles OkHi webhook callbacks and updates the user's address and onboarding status based on the event type.
+     *
+     * Supported events include address collection, verification started, verification completed, and verification cancelled.
+     *
+     * @param request the webhook payload received from OkHi
+     * @return a response indicating the processing outcome
+     * @throws BadRequestException if the event type is unknown or the referenced user cannot be found
+     */
     @Transactional
     public OkHiWebhookResponse handleOkhiWebhook(OkHiWebhookRequest request) {
         switch (request.eventType()) {
@@ -127,6 +135,11 @@ public class OnboardingService {
         return OkHiWebhookResponse.builder().message("Success").success(true).build();
     }
 
+    /**
+     * Retrieves a paginated list of supported countries, sorted by name in ascending order.
+     *
+     * @return a page of country responses
+     */
     public Page<CountriesResponse> getCountries() {
 
         PageRequest pageRequest = getCountryAndStatePageRequest();
@@ -137,6 +150,12 @@ public class OnboardingService {
         return new PageImpl<>(countriesResponses, pageRequest, countries.getTotalElements());
     }
 
+    /**
+     * Retrieves a paginated list of supported states for the default country, sorted by name in ascending order.
+     *
+     * @return a page of state/province responses
+     * @throws BadRequestException if the default country cannot be found
+     */
     public Page<StatesResponse> getStates() {
 
         PageRequest pageRequest = getCountryAndStatePageRequest();
@@ -147,6 +166,11 @@ public class OnboardingService {
         return new PageImpl<>(statesResponses, pageRequest, countryStates.getTotalElements());
     }
 
+    /**
+     * Builds a PageRequest for country and state lookups with a fixed page size and name-based ascending sort.
+     *
+     * @return a configured PageRequest for country/state queries
+     */
     private PageRequest getCountryAndStatePageRequest() {
 
         org.meristem.oneapp.usersservice.domains.requests.PageRequest request = org.meristem.oneapp.usersservice.domains.requests.PageRequest.builder().build();
@@ -156,6 +180,11 @@ public class OnboardingService {
         return PageRequest.of(request.getPage(), pageSize, Sort.by(request.getSortOrder(), String.join(",", request.getSortBy())));
     }
 
+    /**
+     * Retrieves all available investment instruments.
+     *
+     * @return a list of instrument responses
+     */
     public List<InstrumentResponse> getInstruments() {
 
         return customRepository.findAll(InvestmentInstruments.class, (rs, rn) -> InstrumentResponse.builder().id(rs.getLong("id"))

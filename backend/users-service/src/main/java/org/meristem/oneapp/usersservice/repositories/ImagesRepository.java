@@ -15,4 +15,6 @@ public interface ImagesRepository extends BaseRepository<Images, Long> {
     List<Images> findAllByImageType(Integer imageType);
 
     Optional<Images> findByImageKeyAndImageType(String imageKey, Integer imageType);
+
+    Optional<Images> findByImageTypeAndUserId(Integer imageType, Long userId);
 }

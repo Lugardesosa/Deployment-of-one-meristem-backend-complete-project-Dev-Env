@@ -16,8 +16,23 @@ import static java.util.Objects.nonNull;
 
 public interface NotificationService<T> {
 
+    /**
+     * Sends a notification request.
+     *
+     * @param request the notification payload; its concrete type depends on the implementation of this service
+     */
     void send(T request);
 
+    /**
+     * Translates a generic MessageDto into the internal Message representation.
+     * The conversion uses the provided ObjectMapper and mapping component to handle supported DTO types,
+     * enriching the Message with the appropriate email template and context when applicable.
+     *
+     * @param request        the generic wrapper that carries the DTO type information and its payload
+     * @param mapper         the ObjectMapper used to convert the payload into a concrete DTO
+     * @param messageMapper  the mapper that converts concrete DTOs into a Message
+     * @return a populated Message if the DTO type is supported; otherwise null
+     */
     default Message unbox(MessageDto request, ObjectMapper mapper, MessageDtoToMessageMapper messageMapper) {
 
         if (request.classSimpleName().equals(OtpDto.class.getSimpleName())) {
@@ -49,7 +64,13 @@ public interface NotificationService<T> {
         return null;
     }
 
-
+    /**
+     * Builds the template context map for a login notification email.
+     * Keys included: firstName, deviceName, date, time, toEmail, and location (derived from city and country).
+     *
+     * @param loginDto login details used to populate the template variables
+     * @return non-null map of template variables for the login email
+     */
     private Map<String, Object> buildLoginMail(LoginDto loginDto) {
 
         String location = StringUtils.hasText(loginDto.getLocation().cityName()) ? loginDto.getLocation().cityName() : "";

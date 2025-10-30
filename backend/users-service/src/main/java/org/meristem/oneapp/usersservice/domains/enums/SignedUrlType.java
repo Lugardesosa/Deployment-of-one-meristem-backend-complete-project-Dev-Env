@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum SignedUrlType {
 
     IMAGE(0),
-    DOCUMENT(1);
+    DOCUMENT(1),
+    PROFILE_PICTURE(2);
 
     private final int value;
 }

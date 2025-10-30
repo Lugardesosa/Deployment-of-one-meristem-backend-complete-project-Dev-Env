@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cloud.client.ServiceInstance;
@@ -14,10 +15,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 
 import javax.crypto.Mac;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.*;
 
 import static java.util.Objects.nonNull;
 import static org.meristem.oneapp.usersservice.constants.AppConstants.specialChars;
@@ -137,5 +138,31 @@ public final class AppUtil {
 
     public static String getUserAgent(HttpServletRequest request) {
         return request.getHeader("user-agent");
+    }
+
+    public static UsersResponse buildUsersResponse(ResultSet rs) throws SQLException {
+
+        return UsersResponse.builder()
+                .id(rs.getLong("id"))
+                .firstName(rs.getString("first_name"))
+                .lastName(rs.getString("last_name"))
+                .email(rs.getString("email"))
+                .phoneNumber(rs.getString("phone_number"))
+                .userInstrumentResponses(new ArrayList<>())
+                .userOptionResponses(new HashMap<>())
+                .onboardingCompleted(rs.getBoolean("onboarding_completed"))
+                .referralCode(rs.getString("referral_code"))
+                .middleName(rs.getString("middle_name"))
+                .status(rs.getInt("status"))
+                .image(rs.getString("image_key"))
+                .gender(rs.getString("gender"))
+                .dateOfBirth(rs.getObject("date_of_birth", LocalDate.class))
+                .pin(rs.getString("pin"))
+                .password(rs.getString("password"))
+                .biometricEnabled(rs.getBoolean("biometric_enabled"))
+                .passwordSet(rs.getBoolean("password_set"))
+                .emailVerified(rs.getBoolean("email_verified"))
+                .passwordAttempt(rs.getInt("password_attempt"))
+                .build();
     }
 }

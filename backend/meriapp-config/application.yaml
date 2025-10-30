@@ -106,12 +106,11 @@ one-app:
 
 logging:
   file:
-    max-size: 2MB
     name: ./logs/${spring.application.name}.log
   logback:
     rollingpolicy:
       file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
-      max-file-size: 1GB
+      max-file-size: 20MB
       max-history: 30
   pattern:
     console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx'
@@ -137,5 +136,7 @@ huawei:
 call:
   smile-id: true
 
-what-to-sanitize: "password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY"
+# TODO: KEEP UPDATED
+# THESE VALUES REPLACED WITH [REDACTED] IN LOGS
+what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber"
 headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"

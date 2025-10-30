@@ -60,6 +60,14 @@ public class UserProfile extends BaseModel<String> {
     @NotNull(message = "biometricEnabled cannot be null")
     private Boolean biometricEnabled = Boolean.FALSE;
 
+    @Column("password_set")
+    @NotNull(message = "passwordSet cannot be null")
+    private Boolean passwordSet = Boolean.FALSE;
+
+    @Column("email_verified")
+    @NotNull(message = "emailVerified cannot be null")
+    private Boolean emailVerified = Boolean.FALSE;
+
     /**
      * Constructs a new UserOnboarding instance.
      *
@@ -84,6 +92,8 @@ public class UserProfile extends BaseModel<String> {
         this.referralCode = referralCode;
         this.onboardingCompleted = Boolean.FALSE;
         this.biometricEnabled = Boolean.FALSE;
+        this.passwordSet = Boolean.FALSE;
+        this.emailVerified = Boolean.FALSE;
     }
 
     /**
