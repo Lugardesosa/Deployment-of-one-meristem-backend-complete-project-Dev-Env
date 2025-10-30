@@ -2,7 +2,7 @@
 set -e
 
 # ----------------------------------------
-# Setup IMAGE TAG
+# Setup IMAGE TAG.
 # ----------------------------------------
 if [ -z "$IMAGE_TAG" ]; then
   IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
