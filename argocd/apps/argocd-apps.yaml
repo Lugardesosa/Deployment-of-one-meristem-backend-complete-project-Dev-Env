@@ -16,7 +16,7 @@ spec:
     path: charts/shared-resources
     helm:
       valueFiles:
-        - values-stag_env.yaml
+        - values.yaml
       parameters:  # The secret for OBS auth for Users-service.
         - name: obsSecret.data.accessKey
           value: "SFBVQUVaSzNETExQTFZGWFpJQzU="
