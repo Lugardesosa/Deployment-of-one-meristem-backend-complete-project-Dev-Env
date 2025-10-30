@@ -1,4 +1,0 @@
-#to ignore the github workflows for test_env
-.github/workflows/*
-.env
-.docker-compose.yml
