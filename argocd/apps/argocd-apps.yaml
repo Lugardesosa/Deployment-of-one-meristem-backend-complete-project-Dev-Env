@@ -2,7 +2,7 @@
 # This file contains the Argo CD applications configuration for deploying the one-meristem-app microservices.
 
 
-# Shared Resources Application
+# Shared Resources Application.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
