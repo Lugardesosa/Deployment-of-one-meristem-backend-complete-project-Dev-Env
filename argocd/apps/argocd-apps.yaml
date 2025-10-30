@@ -32,7 +32,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
-    managedNamespaceMetadata:  # For Cross-Namespace Access
+    managedNamespaceMetadata:  # For Cross-Namespace Access.
       labels:
         argocd.argoproj.io/managed-by: shared-resources
   # Allow resources in other namespaces
