@@ -93,7 +93,7 @@ ingress:
   rules:
     - host: onemeristemargocd.meristemng.com
       paths:
-        - path: /consul
+        - path: /
           pathType: ImplementationSpecific
           service:
             name: consul
