@@ -9,8 +9,8 @@ metadata:
   name: {{ .Values.ingress.name }}
   namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
   annotations:
-    {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
+    {{- range ,  := .Values.ingress.annotations }}
+    {{  }}: {{  | quote }}
     {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className | default "cce" }}
@@ -19,13 +19,13 @@ spec:
     - secretName: {{ .Values.ingress.tls.secretName | default "" | quote }}
   {{- end }}
   rules:
-    {{- range $rule := .Values.ingress.rules }}
-    - host: {{ $rule.host | default "" | quote }}
+    {{- range  := .Values.ingress.rules }}
+    - host: {{ .host | default "" | quote }}
       http:
         paths:
-          {{- range $path := $rule.paths }}
-          - path: {{ $path.path | default "/" }}
-            pathType: {{ $path.pathType | default "ImplementationSpecific" }}
+          {{- range  := .paths }}
+          - path: {{ .path | default "/" }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
             backend:
               service:
                 name: {{ include "consul.fullname" $ }}
