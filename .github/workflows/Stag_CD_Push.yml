@@ -14,7 +14,9 @@ on:
       #- "charts/**"            # helm charts
       - "backend/**"          # backend services
       - "charts/**"
-      - ".github/workflows/Stag_CD_Push.yml"
+      #- ".github/workflows/Stag_CD_Push.yml"
+      - "argocd/**"
+      - "scripts/**"
   workflow_dispatch:
 
 
@@ -47,7 +49,7 @@ env:
   ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
   ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
   STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
-  BRANCH_ENV: ${{ github.event.pull_request.base.ref }} #<---- To represent the helm values.yaml used via branch
+  BRANCH_ENV: ${{ github.ref_name }} #<---- To represent the helm values.yaml used via branch on push
  
   
   # Stored Secrets in Github Secrets
@@ -109,21 +111,37 @@ jobs:
       #----------------------------------------
       #Step 3: Detect Changed Subfolders
       # ----------------------------------------
-      - name: Detect Changed Services
+      - name: Detect Changed Services and Files
         id: detect_changes
         run: |
-          echo "Detecting changed subfolders in backend/, charts/, and scripts/..."
-          CHANGED_DIRS=$(git diff --name-only HEAD^ HEAD | grep -E "^(backend|charts|scripts)/" | awk -F'/' '{print $1"/"$2}' | sort -u)
+          echo "Detecting changes in backend/, charts/, argocd/, and scripts/..."
           
-          echo "Changed directories:"
-          echo "$CHANGED_DIRS"
-
-          if [ -z "$CHANGED_DIRS" ]; then
-            echo "No relevant subfolder changes detected."
-            echo "changed_dirs=none" >> "$GITHUB_OUTPUT"
+          # Check for backend changes (for image updates)
+          BACKEND_CHANGES=$(git diff --name-only HEAD^ HEAD | grep -E "^backend/" | awk -F'/' '{print $1"/"$2}' | sort -u || echo "")
+          
+          # Check for any infra changes (should always commit these)
+          INFRA_CHANGES=$(git diff --name-only HEAD^ HEAD | grep -E "^(charts|argocd|scripts)/" || echo "")
+          
+          echo "Backend changes (for images):"
+          echo "$BACKEND_CHANGES"
+          echo ""
+          echo "Infrastructure changes (charts/argocd/scripts):"
+          echo "$INFRA_CHANGES"
+          
+          # Set outputs
+          if [ -z "$BACKEND_CHANGES" ]; then
+            echo "backend_changed=false" >> "$GITHUB_OUTPUT"
+            echo "changed_services=none" >> "$GITHUB_OUTPUT"
           else
-            CHANGED_DIRS=$(echo "$CHANGED_DIRS" | tr '\n' ',' | sed 's/,$//')
-            echo "changed_dirs=$CHANGED_DIRS" >> "$GITHUB_OUTPUT"
+            BACKEND_CHANGES=$(echo "$BACKEND_CHANGES" | tr '\n' ',' | sed 's/,$//')
+            echo "backend_changed=true" >> "$GITHUB_OUTPUT"
+            echo "changed_services=$BACKEND_CHANGES" >> "$GITHUB_OUTPUT"
+          fi
+          
+          if [ -z "$INFRA_CHANGES" ]; then
+            echo "infra_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "infra_changed=true" >> "$GITHUB_OUTPUT"
           fi
 
             # ----------------------------------------
@@ -162,22 +180,25 @@ jobs:
       # ----------------------------------------
       - name: Load Image Info
         id: image_info
+        if: steps.detect_changes.outputs.backend_changed == 'true'
         run: |
-          echo "Fetching image tag info exported from CI pipeline..."
+          echo "Fetching image tag info from previous CI build..."
           if [ -f "image_output/image_map.csv" ]; then
             echo "Found image_output/image_map.csv from CI build."
             cat image_output/image_map.csv
+            echo "image_map_exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "No image_output/image_map.csv found — using timestamp fallback."
             mkdir -p image_output
             echo "default,${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/unknown:$(date +'%Y%m%d-%H%M%S')" > image_output/image_map.csv
+            echo "image_map_exists=true" >> "$GITHUB_OUTPUT"
           fi
 
       # ----------------------------------------
       # Step 6: Substitute image repository & tags in Helm charts
       # ----------------------------------------
       - name: Substitute Variables and Image Tags
-        if: steps.detect_changes.outputs.changed_dirs != 'none'
+        if: steps.detect_changes.outputs.backend_changed == 'true' && steps.image_info.outputs.image_map_exists == 'true'
         run: |
           echo "Substituting image values in Helm charts..."
           declare -A IMG_MAP
@@ -192,7 +213,7 @@ jobs:
             cat image_output/image_map.csv
           fi
 
-          for ENTRY in $(echo "${{ steps.detect_changes.outputs.changed_dirs }}" | tr ',' ' '); do
+          for ENTRY in $(echo "${{ steps.detect_changes.outputs.changed_services }}" | tr ',' ' '); do
             SERVICE_NAME=$(basename "$ENTRY")
             VALUES_FILE="./charts/${SERVICE_NAME}/values-${BRANCH_ENV}.yaml"
 
@@ -229,22 +250,40 @@ jobs:
       # Step 4: Commit and Push Updated Manifests
       # ----------------------------------------
       - name: Commit and Push Updated Manifests
-        if: steps.detect_changes.outputs.changed_dirs != 'none'
         run: |
-          echo "Committing updated manifests for Argo CD..."
+          echo "Checking for changes to commit..."
           git config user.name "github-actions"
           git config user.email "actions@github.com"
       
-          # Stage all changes (new, modified, deleted) 
-          git add -A ./argocd ./charts ./scripts ./backend || true
-
+          # Stage changes in relevant directories
+          echo "Staging changes in charts/, argocd/, and scripts/..."
+          git add charts/ argocd/ scripts/ 2>/dev/null || true
+      
           git status
       
+          # Check if there are staged changes
           if git diff --cached --quiet; then
-            echo "No changes to commit — skipping commit step."
+            echo "No changes to commit — manifests are already up to date."
           else
-            git commit -m "ci: update Helm image tags and substituted manifests"
-            git push origin $GIT_BRANCH || echo "Push skipped (no changes)."
+            echo "Changes detected, committing..."
+            
+            # Create commit message based on what changed
+            COMMIT_MSG="ci: update manifests"
+            
+            if [ "${{ steps.detect_changes.outputs.backend_changed }}" == "true" ]; then
+              COMMIT_MSG="$COMMIT_MSG - backend images updated"
+            fi
+            
+            if [ "${{ steps.detect_changes.outputs.infra_changed }}" == "true" ]; then
+              COMMIT_MSG="$COMMIT_MSG - infrastructure configs updated"
+            fi
+            
+            git commit -m "$COMMIT_MSG"
+            
+            echo "Pushing changes to $GIT_BRANCH..."
+            git push origin $GIT_BRANCH
+            
+            echo "Changes pushed successfully!"
           fi
 
 
@@ -253,5 +292,21 @@ jobs:
       # ----------------------------------------
       - name: Post Deployment
         run: |
-          echo "Changes have been pushed to '$GIT_BRANCH'. Argo CD will handle the deployment automatically."
+          echo "=================================================="
+          echo "CD Pipeline Complete!"
+          echo "=================================================="
+          echo ""
+          echo "Branch: $GIT_BRANCH"
+          echo "Backend Changed: ${{ steps.detect_changes.outputs.backend_changed }}"
+          echo "Infrastructure Changed: ${{ steps.detect_changes.outputs.infra_changed }}"
+          echo ""
+          if git diff HEAD --quiet 2>/dev/null; then
+            echo "Status: No changes were committed (already up to date)"
+          else
+            echo "Status: Changes committed and pushed"
+            echo "ArgoCD will automatically sync the changes."
+          fi
+          echo ""
+          echo "=================================================="
           echo "Thank you for using the One-Meristem Mobile Backend CD pipeline! See you next time! I love you!"
+          echo "=================================================="
