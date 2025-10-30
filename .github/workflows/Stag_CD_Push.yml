@@ -39,7 +39,7 @@ env:
   USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
   TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
   VALUES_FILE: ${{ vars.VALUES_FILE }}
-  GIT_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
+  GIT_REPO_URL: ${{ vars.GIT_REPO_URL }}
   MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
   ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
   MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
