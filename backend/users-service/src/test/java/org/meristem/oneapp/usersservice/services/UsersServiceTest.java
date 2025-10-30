@@ -9,6 +9,7 @@ import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -85,5 +86,14 @@ class UsersServiceTest {
         assertEquals(response.firstName(), request.firstName());
         assertEquals(response.status(), UserStatus.EMAIL_NOT_VERIFIED.getValue());
         verify(usersRepository).save(any(Users.class));
+    }
+
+    @Test
+    void emailOrPhoneNumberAlreadyExist() {
+        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress())
+                .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
+                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
+        given(usersRepository.existsByEmailOrPhoneNumber(any(String.class), any(String.class))).willReturn(true);
+        assertThrowsExactly(BadRequestException.class, () -> usersService.createUser(request));
     }
 }
