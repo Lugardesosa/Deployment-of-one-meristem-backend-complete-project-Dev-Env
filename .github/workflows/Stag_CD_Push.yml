@@ -8,7 +8,7 @@ name: One-Meristem-Mobile-backend CD for Staging Env
 on:
   push:
     branches:
-      - stag_env
+      - stag_eju
     paths:
       #- ".github/workflows/stag_env/Stag_CD_PR.yml"  # CI/CD Pipeline config file
       #- "charts/**"            # helm charts
