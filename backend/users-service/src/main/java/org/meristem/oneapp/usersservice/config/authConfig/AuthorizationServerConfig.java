@@ -51,7 +51,7 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -104,13 +104,6 @@ public class AuthorizationServerConfig {
                                                 tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository, cacheManager)
                                         ).accessTokenResponseHandler(new LoginSuccessAuthenticationHandler(kafkaSenderService, loginService, publisher))
                                 );
-
-//                        customizer.clientAuthentication(ca -> {
-//                            ca.authenticationSuccessHandler(new LoginSuccessAuthenticationHandler(kafkaSenderService))
-//                                    .authenticationConverter(new CustomPasswordAuthenticationConverter())
-//                                    .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(jdbcOperations, jdbcTemplate),
-//                                            tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository));
-//                        });
                         }
                 );
         return http.build();
@@ -124,8 +117,8 @@ public class AuthorizationServerConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/oauth/token", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "/base/password-reset", "/onboard/smile-id/webhook", "/onboard/okhi/webhook").permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/admin/**")).hasRole("ADMIN")
-                        .requestMatchers(new AntPathRequestMatcher("/super-admin/**")).hasRole("SUPER_ADMIN")
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/admin/**")).hasRole("ADMIN")
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/super-admin/**")).hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> {
                     oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtConverter));
@@ -150,8 +143,7 @@ public class AuthorizationServerConfig {
 
     @Bean
     DaoAuthenticationProvider daoAuthenticationProvider(CustomUserDetailsService userDetailsService) {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         return daoAuthenticationProvider;
     }
