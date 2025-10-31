@@ -1,0 +1,8 @@
+spring:
+
+  datasource:
+    url: jdbc:postgresql://${USERS_DB_ENDPOINT}:${USERS_DB_PORT:5432}/${USERS_DB_NAME}
+    password: ${TRUSTEES_DB_PASSWORD}
+    username: ${TRUSTEES_DB_USERNAME}
+    driver-class-name: org.postgresql.Driver
+

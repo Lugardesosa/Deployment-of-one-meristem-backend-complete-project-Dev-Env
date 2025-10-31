@@ -8,3 +8,8 @@ one-app:
 
 call:
   smile-id: false
+
+
+logging:
+  level:
+    com.obs.services: WARN

@@ -53,3 +53,9 @@ one-app:
   trustees-service:
     secret: ${TRUSTEES_SECRET}
     name: TrusteesService
+
+
+logging:
+  level:
+    com.obs.services: ERROR
+    nl.basjes.parse: ERROR
