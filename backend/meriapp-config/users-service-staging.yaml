@@ -1,0 +1,17 @@
+spring:
+
+  datasource:
+    url: jdbc:postgresql://${USERS_DB_ENDPOINT}:${USERS_DB_PORT:5432}/${USERS_DB_NAME}
+    password: ${USERS_DB_PASSWORD}
+    username: ${USERS_DB_USERNAME}
+    driver-class-name: org.postgresql.Driver
+
+
+one-app:
+  users-service:
+    smile-id:
+      server-ips: ${SMILE_ID_DEV_WHITELIST_IPS}
+      api-key: ${SMILE_ID_DEV_API_KEY}
+      url: ${SMILE_ID_TEST_LAMBDA_URL}
+      callback-url: ${SMILE_ID_DEV_CALLBACK_URL}
+

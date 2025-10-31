@@ -25,6 +25,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @CacheEvict(cacheNames = "users", key = "#result.email")
     <S extends Users> S save(@NonNull S entity);
 
+    @Transactional
     @Modifying
     @Query("INSERT INTO users_roles(users_id, roles_id) VALUES (:users_id, :rolesId)")
     void saveRole(Long users_id, Long rolesId);
