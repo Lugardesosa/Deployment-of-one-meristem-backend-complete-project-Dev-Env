@@ -1,4 +1,4 @@
-package org.meristem.oneapp.usersservice.config;
+package org.meristem.oneapp.notificationservice.config;
 
 
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +20,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
-        registry.setUserDestinationPrefix("/user");
+        registry.setUserDestinationPrefix("/notification");
     }
 }

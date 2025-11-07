@@ -1,4 +1,4 @@
-package org.meristem.oneapp.usersservice.domains.enums;
+package org.meristem.oneapp.usersservice.dtos.sql;
 
 public enum NullCheck {
     IS_NULL,

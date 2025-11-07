@@ -2,7 +2,23 @@ spring:
   kafka:
     consumer:
       group-id: ${spring.cloud.config.profile}-notification-service
-      
+
+  cloud:
+    consul:
+      discovery:
+        metadata:
+          contextPath: ${one-app.trustees-service.context-path}
+        health-check-path: ${one-app.trustees-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${TRUSTEES_SERVICE_HOSTNAME}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+
   mail:
     host: ${MAILER_HOST}
     username: ${MAILER_USERNAME}

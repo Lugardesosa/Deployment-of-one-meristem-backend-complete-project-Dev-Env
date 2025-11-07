@@ -1,0 +1,8 @@
+spring:
+
+  datasource:
+    url: ${DB_SERVER}/${NOTIFICATION_DB_NAME}
+    password: ${NOTIFICATION_DB_PASSWORD}
+    username: ${NOTIFICATION_DB_USERNAME}
+    driver-class-name: org.postgresql.Driver
+
