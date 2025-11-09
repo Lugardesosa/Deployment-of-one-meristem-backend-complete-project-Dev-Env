@@ -3,7 +3,7 @@ package org.meristem.oneapp.usersservice.repositories;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.NonNull;
-import org.meristem.oneapp.usersservice.domains.enums.NullCheck;
+import org.meristem.oneapp.usersservice.dtos.sql.NullCheck;
 import org.meristem.oneapp.usersservice.dtos.sql.Comparison;
 import org.meristem.oneapp.usersservice.dtos.sql.LikePattern;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
