@@ -49,3 +49,12 @@ credit-switch:
   sender-id: ${CREDIT_SWITCH_SMS_SENDER_ID}
   base-url: ${CREDIT_SWITCH_SMS_BASEURL}
   password: ${CREDIT_SWITCH_SMS_PASSWORD}
+
+
+expo:
+  push:
+    notifications:
+      token: ${EXPO_PUSH_TOKEN}
+  query:
+    receipts:
+      cron: 0 */20 * * * *
