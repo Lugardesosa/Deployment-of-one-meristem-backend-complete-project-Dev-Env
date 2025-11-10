@@ -59,7 +59,7 @@ jobs:
           fi
 
 # =====================================================
-# Deploy Stage: SSH to ECS and Deploy with Rollback
+# Deploy Stage: SSH to ECS and Deploy with Rollback.
 # =====================================================
   deploy:
     name: Deploy to Huawei Cloud ECS
