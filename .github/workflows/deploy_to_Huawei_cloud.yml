@@ -8,7 +8,7 @@ name: Deployment of One_Meristem_App to Huawei Cloud
 on:
   push:
     branches:
-      - dev_ede
+      - dev_env
     paths:
       - 'backend/**'               # app src  
       #- 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file
