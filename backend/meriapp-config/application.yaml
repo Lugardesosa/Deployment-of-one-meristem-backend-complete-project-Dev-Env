@@ -108,7 +108,7 @@ one-app:
     users-service.first: ${one-app.users-service.application-name}
     users-service.second: ${USER_SERVICE_URI}/${one-app.users-service.context-path}
     notification-service.first: ${one-app.notification-service.application-name}
-    notification-service.second: ${USER_SERVICE_URI}/${one-app.notification-service.context-path}
+    notification-service.second: ${NOTIFICATION_SERVICE_URI}/${one-app.notification-service.context-path}
 
 
 logging:
