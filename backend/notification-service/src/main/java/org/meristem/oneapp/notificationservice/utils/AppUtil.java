@@ -1,11 +1,18 @@
 package org.meristem.oneapp.notificationservice.utils;
 
 import lombok.experimental.UtilityClass;
+import org.meristem.oneapp.notificationservice.exception.exceptions.BadRequestException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @UtilityClass
@@ -30,5 +37,43 @@ public final class AppUtil {
             password[i] = alphaNumeral[rand.nextInt(alphaNumeral.length)];
         }
         return new String(password);
+    }
+
+    public static String getLoggedInSubject() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return jwt.getClaimAsString("sub");
+        }
+        return "SYSTEM.AUTO";
+    }
+
+    public static Long getLoggedInUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return jwt.getClaim("id");
+        }
+        throw new BadRequestException("User is not logged in");
+    }
+
+    public static String getLoggedInUserEmail() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return jwt.getClaim("email").toString();
+        }
+        return "SYSTEM.AUTO";
+    }
+
+
+    public static String extractExpoTokenWithRegex(String input) {
+        Pattern pattern = Pattern.compile("ExponentPushToken\\[[^]]+]");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            return matcher.group(0);
+        }
+        return null;
     }
 }

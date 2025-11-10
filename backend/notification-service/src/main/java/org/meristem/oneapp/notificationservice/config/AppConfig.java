@@ -6,7 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.*;
+import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +30,7 @@ import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
 
 @Slf4j
 @Configuration
@@ -81,9 +85,36 @@ public class AppConfig {
         );
 
         handler.addNotRetryableExceptions(IllegalArgumentException.class);
-        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
-            log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex);
-        });
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex));
         return handler;
+    }
+
+    @Bean
+    public OpenAPI apiDoclet(@Value("${one-app.server-url:http://localhost:20010/}") String serverUrl,
+                             @Value("${one-app.server-version}") String serverVersion, @Value("${one-app.server-app-name}")
+                             String serverAppName, @Value("${one-app.email}") String email, @Value("${server.servlet.context-path}")
+                             String contextPath, @Value("${one-app.users-service.context-path}") String usersServiceContextPath
+    ) {
+        Server server = new Server();
+        server.setUrl(serverUrl.concat(contextPath));
+        server.description("Wallet API Documentation");
+
+        Contact contact = new Contact().url(serverUrl).email(email).name(serverAppName);
+        Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with notification service.");
+
+        final String securitySchemeName = "OAuth2 Security";
+        return new OpenAPI().info(info).servers(List.of(server))
+                .components(new Components().addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                                .name(securitySchemeName)
+                                .type(SecurityScheme.Type.OAUTH2)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("This API uses OAuth 2 with the implicit grant flow.")
+                                .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
+                                                .concat("/oauth2/token")).scopes(new Scopes().addString("openid", "openid")))
+                                        .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
+                                                .concat("/oauth2/token"))))
+                        )
+                ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
     }
 }
