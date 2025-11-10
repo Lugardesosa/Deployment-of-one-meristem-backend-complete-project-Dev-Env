@@ -7,7 +7,7 @@ name: CI - PR Check
 on:
   pull_request:
     branches:
-      - dev_sre
+      - dev_env
 
 env:
   REPO_NAME: mit-meristem/one_meristem_app  
