@@ -35,5 +35,10 @@ spring:
               predicates:
                 - Path=${one-app.trustees-service.context-path}/**
 
+            - id: ${one-app.notification-service.application-name}
+              uri: ${NOTIFICATION_SERVICE_URI}
+              predicates:
+                - Path=${one-app.notification-service.context-path}/**
+
 whitelisted:
   ips: ${WHITELISTED_IPS}

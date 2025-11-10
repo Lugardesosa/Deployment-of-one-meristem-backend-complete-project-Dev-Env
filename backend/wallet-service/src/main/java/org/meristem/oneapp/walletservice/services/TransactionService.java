@@ -3,12 +3,10 @@ package org.meristem.oneapp.walletservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.PushNotificationDto;
 import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
 import org.meristem.oneapp.walletservice.constants.KafkaTopics;
-import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
-import org.meristem.oneapp.walletservice.domains.enums.TransactionMethod;
-import org.meristem.oneapp.walletservice.domains.enums.TransactionStatus;
-import org.meristem.oneapp.walletservice.domains.enums.TransactionType;
+import org.meristem.oneapp.walletservice.domains.enums.*;
 import org.meristem.oneapp.walletservice.domains.requests.ProvidusAccountFundedEventRequest;
 import org.meristem.oneapp.walletservice.domains.responses.ProvidusTransactionResponse;
 import org.meristem.oneapp.walletservice.mappers.TransactionsMapper;
@@ -21,6 +19,7 @@ import org.meristem.oneapp.walletservice.repositories.TransactionsRepository;
 import org.meristem.oneapp.walletservice.repositories.VirtualAccountRepository;
 import org.meristem.oneapp.walletservice.repositories.WalletRepository;
 import org.meristem.oneapp.walletservice.utils.AppUtil;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +82,8 @@ public class TransactionService {
                 TransactionEventDto payload = transactionsMapper.transactionsToTransactionEventDto(transactions);
                 payload = payload.withers(payload, virtualAccounts.getAccountNumber(), virtualAccounts.getAccountName(), TransactionType.DEPOSIT.getName(), TransactionMethod.BANK_TRANSFER.getName(), metadata);
                 kafkaSenderService.send(KafkaTopics.KAFKA_TRANSACTIONS_TOPIC, transactions.getReference(), payload);
+                kafkaSenderService.send(PushNotificationDto.builder().body(PushNotifications.TRANSACTION_NOTIFICATION.getBody()).title(PushNotifications.TRANSACTION_NOTIFICATION.getTitle()).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
+                kafkaSenderService.send(PushNotificationDto.builder().body(PushNotifications.TRANSACTION_NOTIFICATION.getBody()).title(PushNotifications.TRANSACTION_NOTIFICATION.getTitle()).build(), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
             });
         });
 

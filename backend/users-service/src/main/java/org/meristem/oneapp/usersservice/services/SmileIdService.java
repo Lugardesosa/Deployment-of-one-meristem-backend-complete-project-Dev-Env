@@ -4,8 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.meristem.oneapp.kafka.dtos.WebSocketDto;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
@@ -19,6 +21,7 @@ import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,11 +73,11 @@ public class SmileIdService {
     private final UserProfileRepository userProfileRepository;
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
-    private final SimpMessagingTemplate messagingTemplate;
     private final UsersService usersService;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final CustomRepository customRepository;
     private final HttpServletRequest httpServletRequest;
+    private final KafkaSenderService kafkaSenderService;
 
 
     private final SmileIdProperties smileIdProperties;
@@ -114,6 +117,7 @@ public class SmileIdService {
     public SmileIdWebhookResponse handleWebhook(SmileIdWebhookNotification request) {
         SmileIdWebhookResponse response = new SmileIdWebhookResponse("Failed", false);
 
+        String smileIdWebhookUrl = "/topic/smile-id/";
         try {
             SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.partnerParams().jobId());
             if (!confirmSignature(request.signature(), request.timestamp()) || !smileIps.contains(AppUtil.extractIp(httpServletRequest))) {
@@ -124,15 +128,18 @@ public class SmileIdService {
             } else if (actionStatus.contains(request.resultCode()) || dataStatus.contains(request.resultCode())) {
                 handleSuccessfulNotification(request, record);
                 response = new SmileIdWebhookResponse("Success", true);
-                messagingTemplate.convertAndSend("/topic/smile-id/" + request.partnerParams().jobId(), response);
+                WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
+                kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC));
                 return response;
             }
         } catch (RuntimeException e) {
-            messagingTemplate.convertAndSend("/topic/smile-id/" + request.partnerParams().jobId(), response);
+            WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
+            kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC));
             log.error(e.getMessage(), e);
             throw new BadRequestException("Bad request: invalid request");
         }
-        messagingTemplate.convertAndSend("/topic/smile-id/" + request.partnerParams().jobId(), response);
+        WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
+        kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC));
 
         return response;
     }

@@ -1,5 +1,6 @@
 package org.meristem.oneapp.notificationservice.exception;
 
+import org.jspecify.annotations.Nullable;
 import org.meristem.oneapp.notificationservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.notificationservice.exception.exceptions.ResourceNotFoundException;
 import org.springframework.beans.TypeMismatchException;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.ErrorResponse;

@@ -1,0 +1,40 @@
+package org.meristem.oneapp.notificationservice.models;
+
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.relational.core.mapping.Table;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+@NoArgsConstructor
+@Getter
+@Setter
+@Table("user_expo_tokens")
+public class UserExpoTokens extends BaseModel<String> {
+
+    private Long userId;
+
+    private String expoToken;
+
+    @Builder
+    public UserExpoTokens(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String expoToken) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        this.userId = userId;
+        this.expoToken = expoToken;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        UserExpoTokens that = (UserExpoTokens) o;
+        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getExpoToken(), that.getExpoToken());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUserId(), getExpoToken());
+    }
+}

@@ -31,7 +31,7 @@ public class ResourceServerConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**", "/ws/**", "/wema/webhook/transaction",
-                                "providus/webhook/transaction", "wema/name-query")
+                                "/providus/webhook/transaction", "/wema/name-query")
                         .permitAll().anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> {
                     oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter));
