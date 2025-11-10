@@ -99,6 +99,10 @@ jobs:
           
           REPO_NAME="${REPO_NAME:-mit-meristem/one_meristem_app}"
           CHANGED_SERVICES="${CHANGED_SERVICES}"
+          GH_PAT="${GH_PAT}"
+
+          export GH_PAT="${GH_PAT}"
+          export REPO_NAME="${REPO_NAME:-mit-meristem/one_meristem_app}"
           
           echo "================================================"
           echo "Repository: $REPO_NAME"
@@ -133,7 +137,7 @@ jobs:
 
           # Update the remote URL to new organization
           echo "Updating remote URL to: ${REPO_NAME}"
-          git remote set-url origin https://${GH_PAT}@github.com/${REPO_NAME}.git
+          git remote set-url origin https://$GH_PAT@github.com/$REPO_NAME.git
 
           # Verify remote URL changed
           echo "Remote URL:"
