@@ -11,7 +11,7 @@ on:
       - dev_env
     paths:
       - 'backend/**'               # app src  
-      #- 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file
+      - 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file
 
 # Global environment variables
 env:
@@ -90,16 +90,14 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
           CHANGED_SERVICES: ${{ needs.build.outputs.changed_services }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} bash -s <<'ENDSSH'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} bash -s <<ENDSSH
           set -e
 
-          
           # ============================================================
           # SECTION 1: Get Variables and Clone/Update Repository
           # ============================================================
           
           REPO_NAME="${REPO_NAME:-mit-meristem/one_meristem_app}"
-          GH_PAT="${GH_PAT}"
           CHANGED_SERVICES="${CHANGED_SERVICES}"
           
           echo "================================================"
@@ -117,7 +115,7 @@ jobs:
           echo "Checking if Repo Exists Locally on Server..."
           if [ ! -d "one_meristem_app/.git" ]; then
             echo "Repo not found locally, cloning for the first time..."
-            git clone https://${GH_PAT}@github.com/${REPO_NAME}.git one_meristem_app
+            git clone https://$GH_PAT@github.com/$REPO_NAME.git one_meristem_app 
           fi
 
           echo "Changing Directory into the one_meristem_app..."
@@ -142,6 +140,10 @@ jobs:
           git remote -v
           echo "================================================"
 
+          # ============================================================
+          # Fetch and safely merge latest changes from dev_env
+          # ============================================================
+          
           # Fetch the latest changes from origin
           echo "Fetching latest changes from origin/dev_env..."
           git fetch origin dev_env
@@ -151,22 +153,29 @@ jobs:
           if [ "$CURRENT_BRANCH" != "dev_env" ]; then
             echo "Not on dev_env branch. Switching to dev_env..."
             git checkout dev_env || git checkout -b dev_env origin/dev_env
-            git reset --hard origin/dev_env
           fi
 
           # Show what changes will be pulled
-          echo "Commits to be pulled:"
+          echo "Commits to be merged from remote:"
           git log HEAD..origin/dev_env --oneline --decorate || echo "Already up to date"
           echo "================================================"
           
-          # Pull the latest changes
-          echo "Pulling latest changes from origin/dev_env..."
-          git pull origin dev_env --no-rebase || {
-            echo "Pull encountered issues. Attempting to resolve..."
-            git merge --abort 2>/dev/null || true
-            echo "Retrying pull with --no-edit flag..."
-            git pull origin dev_env --no-rebase --no-edit
-          }
+          # Merge the latest changes while preserving local modifications
+          echo "Merging new commits from origin/dev_env..."
+          if ! git merge --no-edit origin/dev_env; then
+            echo " Merge conflict detected. Aborting merge to keep local changes intact."
+            git merge --abort || true
+            echo "Merge aborted. Please review differences manually if needed."
+          else
+            echo " Merge completed successfully. Local changes preserved."
+          fi
+
+          # Show final commit state
+          echo "================================================"
+          echo "Current branch and latest commit after merge:"
+          git branch --show-current
+          git log -1 --oneline
+          echo "================================================"
           
           echo "================================================"
           echo "Repository updated successfully!"
