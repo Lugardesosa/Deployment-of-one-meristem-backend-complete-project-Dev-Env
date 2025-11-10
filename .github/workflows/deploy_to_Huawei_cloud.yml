@@ -11,7 +11,7 @@ on:
       - dev_env
     paths:
       - 'backend/**'               # app src  
-      - 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file
+      - 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file.
 
 # Global environment variables
 env:
