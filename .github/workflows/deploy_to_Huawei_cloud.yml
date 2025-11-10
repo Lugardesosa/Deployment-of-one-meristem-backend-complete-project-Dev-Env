@@ -47,7 +47,9 @@ jobs:
         id: check_change
         run: |
           git pull origin dev_env
-          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|observability|meriapp-config|platform)/" | cut -d'/' -f2 | sort -u | xargs)
+          CHANGED=$(git diff --name-only HEAD^ HEAD \
+            | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|observability|meriapp-config|platform)/" \
+            | cut -d'/' -f2 | sort -u | xargs || true)
           echo "Changed services: $CHANGED"
 
           if [ -z "$CHANGED" ]; then
@@ -74,10 +76,7 @@ jobs:
       - name: Log Changed Services
         run: |
           echo "Services to build: ${{ needs.build.outputs.changed_services }}"
-
-      - name: Log Changed Services
-        run: |
-          echo "Services to build: ${{ needs.build.outputs.changed_services }}"
+          
       # Start SSH agent with ECS private key
       - name: Start SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -86,103 +85,188 @@ jobs:
 
       # SSH into ECS and deploy with rollback logic
       - name: SSH and Deploy with Rollback Support
+        env:
+          REPO_NAME: ${{ env.REPO_NAME }}  
+          GH_PAT: ${{ secrets.GH_PAT }}
+          CHANGED_SERVICES: ${{ needs.build.outputs.changed_services }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} <<EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} bash -s <<'ENDSSH'
           set -e
 
+          
+          # ============================================================
+          # SECTION 1: Get Variables and Clone/Update Repository
+          # ============================================================
+          
+          REPO_NAME="${REPO_NAME:-mit-meristem/one_meristem_app}"
+          GH_PAT="${GH_PAT}"
+          CHANGED_SERVICES="${CHANGED_SERVICES}"
+          
+          echo "================================================"
+          echo "Repository: $REPO_NAME"
+          echo "Changed Services: $CHANGED_SERVICES"
+          echo "================================================"
+          
           # -----------------------------
-          # Clone the latest application code
+          # Clone the latest application code & Update Packages
           # -----------------------------
 
           # Update packages
           sudo apt update
           
-          echo "Using existing repo folder..."
+          echo "Checking if Repo Exists Locally on Server..."
           if [ ! -d "one_meristem_app/.git" ]; then
-            echo "Repo not found locally, cloning once..."
-            git clone https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git one_meristem_app
+            echo "Repo not found locally, cloning for the first time..."
+            git clone https://${GH_PAT}@github.com/${REPO_NAME}.git one_meristem_app
           fi
-          
+
+          echo "Changing Directory into the one_meristem_app..."
           cd one_meristem_app
-          
-          echo "Fetching latest 'dev_env' branch..."
+          echo "Current directory: $(pwd)"
+          echo ""
+
+          # Show current state
+          echo "Current branch:"
+          git branch --show-current
+          echo ""
+          echo "Current commit:"
+          git log --oneline -n 1
+          echo "================================================"
+
+          # Update the remote URL to new organization
+          echo "Updating remote URL to: ${REPO_NAME}"
+          git remote set-url origin https://${GH_PAT}@github.com/${REPO_NAME}.git
+
+          # Verify remote URL changed
+          echo "Remote URL:"
+          git remote -v
+          echo "================================================"
+
+          # Fetch the latest changes from origin
+          echo "Fetching latest changes from origin/dev_env..."
           git fetch origin dev_env
+
+          # Check if we're on dev_env branch
+          CURRENT_BRANCH=$(git branch --show-current)
+          if [ "$CURRENT_BRANCH" != "dev_env" ]; then
+            echo "Not on dev_env branch. Switching to dev_env..."
+            git checkout dev_env || git checkout -b dev_env origin/dev_env
+            git reset --hard origin/dev_env
+          fi
+
+          # Show what changes will be pulled
+          echo "Commits to be pulled:"
+          git log HEAD..origin/dev_env --oneline --decorate || echo "Already up to date"
+          echo "================================================"
           
-          echo "Switching to 'dev_env' branch..."
-          git checkout dev_env || git checkout -b dev_env origin/dev_env
+          # Pull the latest changes
+          echo "Pulling latest changes from origin/dev_env..."
+          git pull origin dev_env --no-rebase || {
+            echo "Pull encountered issues. Attempting to resolve..."
+            git merge --abort 2>/dev/null || true
+            echo "Retrying pull with --no-edit flag..."
+            git pull origin dev_env --no-rebase --no-edit
+          }
           
-          echo "Resetting local branch to match remote..."
-          git reset --hard origin/dev_env
-          
-          echo "Now on latest 'dev_env' branch."
+          echo "================================================"
+          echo "Repository updated successfully!"
+          echo ""
+          echo "Latest commit:"
+          git log --oneline -n 1
+          echo ""
+          echo "Files in directory:"
           ls -l
+          echo "================================================"
 
           
-          # -----------------------------
-          # Enter the backend folder
-          # -----------------------------
-          echo "Granting Database host file permissions to persisit data on host..."
-          chown -R 70:70 ./data/postgres/
-          chown -R 70:70 ./data/redis/
-          chown -R 70:70 ./data/kafka/
-          
+          # ============================================================
+          # SECTION 2: Grant Database Permissions
+          # ============================================================
+          echo "Granting Database host file permissions to persist data on host..."
+          mkdir -p ./data/postgres ./data/redis ./data/kafka
+          chown -R 70:70 ./data/postgres/ || true
+          chown -R 70:70 ./data/redis/ || true
+          chown -R 70:70 ./data/kafka/ || true
+
+          # ============================================================
+          # SECTION 3: Enter Backend Directory
+          # ============================================================
           echo "Changing into backend directory..."
           cd backend || { echo "Backend folder not found. Check repo structure."; exit 1; }
 
-          # -----------------------------
-          # Backup current Docker state
-          # -----------------------------
+          # ============================================================
+          # SECTION 4: Backup Current Docker State
+          # ============================================================
           echo "Backing up Docker state..."
           TIMESTAMP=$(date +%s)
           
-          # Clean any old backups in project root
+          
+          # Clean any old backups on project root
           rm -f ../docker-compose.backup.*.yml || true
           
-          # Save validated config as last-known-good in project root
+           # Save validated config as last-known-good in project root
           sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.backup.yml || {
             echo "Failed to create rollback config. Aborting deployment."
             exit 1
           }
 
 
-          # -----------------------------
-          # Build each changed microservice
-          # -----------------------------
-          echo "Building changed microservices..."
+          # ============================================================
+          # SECTION 5: Build Changed Microservices
+          # ============================================================
 
+          if ! command -v pack &> /dev/null; then
+            echo "pack CLI not found. Installing..."
+            curl -sSL "https://github.com/buildpacks/pack/releases/latest/download/pack-v0.31.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+          fi
+
+          echo "Building changed microservices..."
+    
+          # Function to build a service
           build_service() {
-            cd "\$1" || { echo "Missing directory: \$1"; exit 1; }
-            echo "Building \$1..."
-            sudo pack build "\$1" --builder paketobuildpacks/builder-jammy-base --path .
+            local service_name="$1"
+            if [ ! -d "$service_name" ]; then
+              echo "  Directory $service_name not found! Skipping..."
+              return 1
+            fi
+            
+            cd "$service_name" || { echo "Failed to enter $service_name"; return 1; }
+            echo "Building $service_name..."
+            sudo pack build "$service_name" --builder paketobuildpacks/builder-jammy-base --path .
             cd ..
           }
-
-          for svc in ${{ needs.build.outputs.changed_services }}; do
-            case \$svc in
-              cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trustees-service)
-                if [ -d "\$svc" ]; then
-                  build_service "\$svc"
-                else
-                  echo "Directory \$svc not found!"
-                fi
-                ;;
-              *)
-                echo "Skipping untracked service: \$svc"
-                ;;
-            esac
-          done
+          
+          # Build each changed service
+          if [ "$CHANGED_SERVICES" != "none" ] && [ -n "$CHANGED_SERVICES" ]; then
+            for svc in $CHANGED_SERVICES; do
+              case "$svc" in
+                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trustees-service)
+                  echo "Processing service: $svc"
+                  build_service "$svc"
+                  ;;
+                meriapp-config)
+                  echo "Config files changed - will restart all services"
+                  ;;
+                *)
+                  echo "Skipping untracked service: $svc"
+                  ;;
+              esac
+            done
+          else
+            echo "No services changed. Skipping build step."
+          fi
 
           
-          # -----------------------------
-          # Go back to project root
-          # -----------------------------
+          # ============================================================
+          # SECTION 6: Return to Project Root
+          # ============================================================
           echo "Returning to project root..."
           cd ..
 
           
-          # -----------------------------
-          # Attempt to redeploy services
-          # -----------------------------
+          # ============================================================
+          # SECTION 7: Deploy Services with Rollback
+          # ============================================================
           echo "Restarting application services only..."
 
           set +e
@@ -201,19 +285,35 @@ jobs:
           DEPLOY_STATUS=$?
           set -e
 
+          # ============================================================
+          # SECTION 8: Check Deployment Status and Rollback if Needed
+          # ============================================================
+
           if [[ "$DEPLOY_STATUS" -ne 0 ]]; then
             echo "Deployment failed. Rolling back..."
             set +e
             sudo docker-compose -f docker-compose.yml stop \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway
             sudo docker-compose -f docker-compose.backup.yml up -d \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis || {
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway || {
                 echo "Rollback failed. Manual intervention required."
                 exit 1
             }
             echo "Rollback successful."
             exit 1
           else
-            echo "Deployment completed successfully!"
+            echo "Verifying health of core services..."
+            sudo docker ps --filter "health=unhealthy" --format '{{.Names}}' | grep . && {
+              echo " Some containers are unhealthy. Investigate logs."
+              sudo docker ps --filter "health=unhealthy"
+            } || echo " All containers healthy."
+
+            echo "================================================"
+            echo " Deployment completed successfully!"
+            echo "================================================"
+
+            # Show running containers
+            echo "Running containers:"
+            sudo docker-compose -f docker-compose.yml ps
           fi
-          EOF
+          ENDSSH
