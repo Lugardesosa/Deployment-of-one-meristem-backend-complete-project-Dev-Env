@@ -277,6 +277,7 @@ services:
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - MAIL_SENDER_NAME=One Meristem
       - MAILER_PORT=2525
+      - EXPO_URL=https://exp.host/--/api/v2
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
