@@ -6,3 +6,4 @@ spring:
     username: ${NOTIFICATION_DB_USERNAME}
     driver-class-name: org.postgresql.Driver
 
+
