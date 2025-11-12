@@ -8,7 +8,6 @@ import org.meristem.oneapp.kafka.dtos.PushNotificationDto;
 import org.meristem.oneapp.notificationservice.constants.KafkaTopics;
 import org.meristem.oneapp.notificationservice.integrations.ExpoPushNotificationClient;
 import org.meristem.oneapp.notificationservice.integrations.requests.ExpoPushNotificationRequest;
-import org.meristem.oneapp.notificationservice.integrations.responses.EmptyExpoResponse;
 import org.meristem.oneapp.notificationservice.integrations.responses.ExpoPushNotificationResponse;
 import org.meristem.oneapp.notificationservice.models.ExpoNotificationTicket;
 import org.meristem.oneapp.notificationservice.repositories.CustomRepository;
@@ -68,8 +67,7 @@ public class PushNotificationService {
         userExpoTokensRepository.deleteUserExpoTokensByExpoTokenIn(tokenToDelete);
     }
 
-    public EmptyExpoResponse recoverPushNotificationCircuit(Throwable throwable, PushNotificationDto notifications) {
+    public void recoverPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {
         kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
-        return new EmptyExpoResponse();
     }
 }
