@@ -1,8 +1,10 @@
 package org.meristem.oneapp.notificationservice.services;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.PushNotificationDto;
 import org.meristem.oneapp.notificationservice.domains.requests.UserDeviceRegistrationRequest;
 import org.meristem.oneapp.notificationservice.domains.responses.UserDeviceRegistrationResponse;
 import org.meristem.oneapp.notificationservice.models.UserExpoTokens;
@@ -20,5 +22,15 @@ public class UserDeviceRegistrationService {
         customRepository.save(UserExpoTokens.builder().expoToken(request.expoToken())
                 .userId(AppUtil.getLoggedInUserId()).build());
         return new UserDeviceRegistrationResponse("Created", true);
+    }
+
+    private final PushNotificationService pushNotificationService;
+    public String testPush() {
+        PushNotificationDto pushNotificationDto = PushNotificationDto.builder()
+                .userId(AppUtil.getLoggedInUserId())
+                .body("Testing push notification")
+                .title("Testing 123").build();
+        pushNotificationService.sendPushNotification(pushNotificationDto);
+        return "Success";
     }
 }
