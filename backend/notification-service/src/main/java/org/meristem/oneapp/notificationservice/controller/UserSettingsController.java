@@ -33,4 +33,10 @@ public class UserSettingsController {
     public ResponseEntity<AppResponse<UserDeviceRegistrationResponse>> updateOptionAccessed(@Valid @RequestBody UserDeviceRegistrationRequest request) {
         return ApiUtil.buildResponse(registerUserDevice.registerUserDevice(request), HttpStatus.OK.toString(), "Successful");
     }
+
+    @PreAuthorize("hasRole('ROLE_users.device.register')")
+    @PostMapping(value = "/push-token", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<String>> testPush(@Valid @RequestBody UserDeviceRegistrationRequest request) {
+        return ApiUtil.buildResponse(registerUserDevice.testPush(), HttpStatus.OK.toString(), "Successful");
+    }
 }
