@@ -227,7 +227,7 @@ public class AuthorizationServerConfig {
                     .authorizationGrantType(new AuthorizationGrantType(AppConstants.RE_PASSWORD))
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                    .scopes(e -> e.addAll(List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user", "users.get", "password_reset")))
+                    .scopes(e -> e.addAll(List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user", "users.get", "password_reset", "device.register")))
                     .scope(OidcScopes.PROFILE)
                     .scope(OidcScopes.EMAIL)
                     .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(15))

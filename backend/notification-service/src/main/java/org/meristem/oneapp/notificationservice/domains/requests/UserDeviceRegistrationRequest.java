@@ -4,5 +4,5 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record UserDeviceRegistrationRequest(@NotBlank(message = "Cannot be blank") String expoToken) {
+public record UserDeviceRegistrationRequest(@NotBlank(message = "Cannot be blank") String expoToken, @NotBlank(message = "Cannot be blank") String deviceId) {
 }
