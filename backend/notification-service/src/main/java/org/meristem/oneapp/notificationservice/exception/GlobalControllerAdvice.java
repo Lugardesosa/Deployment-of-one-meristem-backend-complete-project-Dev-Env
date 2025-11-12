@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.ErrorResponse;
@@ -112,6 +114,10 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return handleExceptionInternal(ex, HttpStatus.BAD_REQUEST, request, errors);
     }
 
+    @ExceptionHandler({AuthorizationDeniedException.class, OAuth2AuthorizationException.class})
+    protected ResponseEntity<ErrorDetails> handleAuthorizationDeniedException(AuthorizationDeniedException ex, WebRequest request) {
+        return handleExceptionInternal(ex, HttpStatus.UNAUTHORIZED, request, List.of("Your are not authorized to make this call"));
+    }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     protected ResponseEntity<ErrorDetails> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex, WebRequest request) {
@@ -128,6 +134,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
+        ex.printStackTrace();
         return handleExceptionInternal(ex, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
     }
 

@@ -59,3 +59,24 @@ expo:
   query:
     receipts:
       cron: 0 */20 * * * *
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      expo:
+        sliding-window-type: COUNT_BASED
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10
+        register-health-indicator: true
+  retry:
+    instances:
+      expo:
+        max-attempts: 4
+        wait-duration: 1000
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
