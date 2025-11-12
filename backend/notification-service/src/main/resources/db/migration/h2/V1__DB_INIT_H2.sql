@@ -8,11 +8,15 @@ CREATE TABLE user_expo_tokens
     version            INTEGER,
     status             INTEGER                                          DEFAULT 1 NOT NULL,
 
-    user_id            VARCHAR(300)                            NOT NULL,
+    user_id            BIGINT,
+    device_id          VARCHAR(300)                            NOT NULL,
     expo_token         VARCHAR(300)                            NOT NULL,
     CONSTRAINT pk_user_expo_tokens PRIMARY KEY (id),
-    CONSTRAINT uk_user_expo_tokens_user_id_token UNIQUE (user_id, expo_token)
+    CONSTRAINT uk_user_expo_tokens_device_id_token UNIQUE (device_id, expo_token)
 );
+
+CREATE INDEX idx_user_expo_tokens_user_id ON user_expo_tokens (user_id);
+CREATE INDEX idx_user_expo_tokens_token ON user_expo_tokens (expo_token);
 
 
 CREATE TABLE expo_notification_ticket
@@ -25,9 +29,9 @@ CREATE TABLE expo_notification_ticket
     version            INTEGER,
     status             INTEGER                                          DEFAULT 1 NOT NULL,
 
-    ticket_id            VARCHAR(300)                            NOT NULL,
+    ticket_id          VARCHAR(300)                            NOT NULL,
     CONSTRAINT pk_expo_notification_ticket PRIMARY KEY (id),
-    CONSTRAINT uk_pk_expo_notification_ticket_ticket_id  UNIQUE (ticket_id)
+    CONSTRAINT uk_pk_expo_notification_ticket_ticket_id UNIQUE (ticket_id)
 );
 
 CREATE INDEX idx_expo_notification_ticket_ticket_id ON expo_notification_ticket (ticket_id);

@@ -40,14 +40,19 @@ public class PushNotificationService {
 
         if (notifications.toAll()) {
             to = userExpoTokensRepository.findAllExpoTokens();
+        } if (notifications.userId() != null){
+            to = userExpoTokensRepository.findAllExpoTokensByUserId(notifications.userId());
         } else {
-            to = userExpoTokensRepository.findAllExpoTokensByUserId(AppUtil.getLoggedInUserId());
+            return;
+        }
+        if (to.isEmpty()) {
+            return;
         }
         ExpoPushNotificationRequest request = ExpoPushNotificationRequest.builder()
                 .to(to)
                 .title(notifications.title())
                 .body(notifications.body())
-                .data(notifications.data())
+                .data(notifications.data() == null ? Map.of() : notifications.data())
                 .build();
         List<ExpoPushNotificationResponse.ExpoPushResponse> response = expoPushNotificationClient.sendPushNotification(request).data();
 
