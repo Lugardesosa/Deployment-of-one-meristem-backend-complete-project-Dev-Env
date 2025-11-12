@@ -175,11 +175,19 @@ jobs:
           fi
           echo "================================================"
 
-          # --- FORCE SYNC ---
-          echo "Resetting local branch to match origin/dev_env..."
-          git reset --hard origin/dev_env
-          git clean -fd
-          echo "Local repository is now perfectly synced with remote dev_env."
+          # --- SAFE UPDATE LOGIC (Preserve Local Files) ---
+          echo "Stashing any local changes to prevent overwrite..."
+          git stash push -m "auto-stash-before-pull" || echo "Nothing to stash."
+          
+          echo "Pulling latest commits from origin/dev_env..."
+          if ! git pull --rebase origin dev_env; then
+            echo "Pull failed due to conflicts. Aborting and restoring stash..."
+            git rebase --abort || true
+            git stash pop || echo "No stash to pop."
+          else
+            echo "Pull successful. Applying local stashed changes if any..."
+            git stash pop || echo "No local changes to reapply."
+          fi
           echo "================================================"
 
           # Show final commit state
