@@ -158,27 +158,36 @@ jobs:
             echo "Not on dev_env branch. Switching to dev_env..."
             git checkout dev_env || git checkout -b dev_env origin/dev_env
           fi
-
-          # Show what changes will be pulled
-          echo "Commits to be merged from remote:"
-          git log HEAD..origin/dev_env --oneline --decorate || echo "Already up to date"
+          echo "On dev_env branch."
           echo "================================================"
+
+          # --- DEBUG: SHOW COMMITS DIFFERENCE ---
+          echo "Checking for differences with remote..."
+          LOCAL_COMMIT=$(git rev-parse HEAD)
+          REMOTE_COMMIT=$(git rev-parse origin/dev_env)
           
-          # Merge the latest changes while preserving local modifications
-          echo "Merging new commits from origin/dev_env..."
-          if ! git merge --no-edit origin/dev_env; then
-            echo " Merge conflict detected. Aborting merge to keep local changes intact."
-            git merge --abort || true
-            echo "Merge aborted. Please review differences manually if needed."
+          echo "Local commit:  $LOCAL_COMMIT"
+          echo "Remote commit: $REMOTE_COMMIT"
+          if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
+            echo "Differences detected between local and remote branch."
           else
-            echo " Merge completed successfully. Local changes preserved."
+            echo "Local branch already matches remote."
           fi
+          echo "================================================"
+
+          # --- FORCE SYNC ---
+          echo "Resetting local branch to match origin/dev_env..."
+          git reset --hard origin/dev_env
+          git clean -fd
+          echo "Local repository is now perfectly synced with remote dev_env."
+          echo "================================================"
 
           # Show final commit state
           echo "================================================"
-          echo "Current branch and latest commit after merge:"
-          git branch --show-current
-          git log -1 --oneline
+          echo "Final repository state check..."
+          echo "Branch: $(git branch --show-current)"
+          echo "Latest commit:"
+          git log --oneline -n 3
           echo "================================================"
           
           echo "================================================"
