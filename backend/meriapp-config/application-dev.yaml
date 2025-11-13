@@ -6,11 +6,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: 'health'
+        include: 'health,prometheus'
   endpoint:
     health:
       show-details: always
       access: read_only
+    prometheus:
+      access: none
   health:
     mail:
       enabled: false
