@@ -22,7 +22,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @NonNull
     @Override
-    @CacheEvict(cacheNames = "users", key = "#result.email")
+    @CacheEvict(cacheNames = "users", key = "#result.id")
     <S extends Users> S save(@NonNull S entity);
 
     @Transactional
