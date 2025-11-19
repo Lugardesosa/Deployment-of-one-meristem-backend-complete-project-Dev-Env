@@ -44,10 +44,4 @@ public class UserSettingsController {
     public ResponseEntity<AppResponse<UserDeviceRegistrationResponse>> updateUserDevice(@Valid @RequestBody UserDeviceUpdateRequest request) {
         return ApiUtil.buildResponse(registerUserDevice.updateUserDevice(request), HttpStatus.OK.toString(), "Successful");
     }
-
-    @PreAuthorize("hasRole('ROLE_users.device.register')")
-    @GetMapping(value = "/push-token", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<String>> testPush() {
-        return ApiUtil.buildResponse(registerUserDevice.testPush(), HttpStatus.OK.toString(), "Successful");
-    }
 }

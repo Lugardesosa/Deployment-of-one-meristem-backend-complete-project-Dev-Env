@@ -19,4 +19,6 @@ public interface UserExpoTokensRepository extends BaseRepository<UserExpoTokens,
     void deleteUserExpoTokensByExpoTokenIn(Collection<String> expoTokens);
 
     Optional<UserExpoTokens> findOneByDeviceId(String deviceId);
+
+    boolean existsByExpoToken(String expoToken);
 }
