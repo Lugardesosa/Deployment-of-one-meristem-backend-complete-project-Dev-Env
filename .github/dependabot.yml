@@ -1,9 +1,47 @@
-#To custmize our dependatbot configuartions check and ensure checks are carried out on the branches and directories you want
-
-#N.B: This should be created in the default branch (prod_env)
+# Dependabot configurations for security recommendations
+# on the branches and directories listed below
+# prod_env
+# stag_env
+# test_env.
+#
+# N.B: This file must exist in the DEFAULT branch (prod_env)
 
 version: 2
 updates:
+
+  # ─────────────────────────────
+  # TEST ENVIRONMENT SCANS
+  # ─────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "test_env"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    reviewers:
+      - "lugardesosa100"
+      - "realninety5"
+    labels:
+      - "dependabot"
+      - "security"
+      - "test-env"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "test_env"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "11:30"
+    reviewers:
+      - "lugardesosa100"
+    labels:
+      - "ci"
+      - "automation"
+      - "test-env"
+
+
   # ─────────────────────────────
   # STAGING BRANCH SCANS
   # ─────────────────────────────
@@ -60,6 +98,7 @@ updates:
       - "security"
       - "automated"
 
+
   # ─────────────────────────────
   # PRODUCTION BRANCH SCANS
   # ─────────────────────────────
@@ -108,8 +147,9 @@ updates:
       - "security"
       - "production"
 
+
   # ─────────────────────────────
-  # GITHUB ACTIONS WORKFLOW UPDATES
+  # GITHUB ACTIONS UPDATES
   # ─────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -129,7 +169,7 @@ updates:
     target-branch: "stag_env"
     schedule:
       interval: "weekly"
-      day: "Friday"
+      day: "friday"
       time: "14:00"
     reviewers:
       - "lugardesosa100"
@@ -155,7 +195,7 @@ updates:
     target-branch: "prod_env"
     schedule:
       interval: "weekly"
-      day: "Friday"
+      day: "friday"
       time: "14:00"
     reviewers:
       - "lugardesosa100"
