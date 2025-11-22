@@ -7,20 +7,3 @@ server:
     key-store-type: JKS
     key-alias: ${SSL_KEY_ALIAS}
     enabled: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: 'health,prometheus,info,gateway'
-  endpoint:
-    health:
-      show-details: always
-      access: read_only
-    prometheus:
-      access: none
-    gateway:
-      access: read_only
-  health:
-    mail:
-      enabled: false

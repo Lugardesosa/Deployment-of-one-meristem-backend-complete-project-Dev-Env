@@ -23,20 +23,3 @@ spring:
         web-allow-others: true
   flyway:
     locations: classpath:db/migration/h2
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: 'health,prometheus,info,gateway'
-  endpoint:
-    health:
-      show-details: always
-      access: read_only
-    prometheus:
-      access: none
-    gateway:
-      access: read_only
-  health:
-    mail:
-      enabled: false
