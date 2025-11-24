@@ -8,5 +8,5 @@ import java.util.List;
 public interface ExpoNotificationTicketRepository extends BaseRepository<ExpoNotificationTicket, Long> {
     List<ExpoNotificationTicket> findByCreatedDateBefore(LocalDateTime createdDateBefore);
 
-    List<String> findTicketIdByCreatedDateBefore(LocalDateTime createdDateBefore);
+    List<ExpoNotificationTicket> findTicketIdByCreatedDateBefore(LocalDateTime createdDateBefore);
 }

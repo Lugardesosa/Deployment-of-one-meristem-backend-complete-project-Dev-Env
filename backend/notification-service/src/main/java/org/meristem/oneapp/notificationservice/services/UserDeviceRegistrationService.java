@@ -4,7 +4,6 @@ package org.meristem.oneapp.notificationservice.services;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.kafka.dtos.PushNotificationDto;
 import org.meristem.oneapp.notificationservice.domains.requests.UserDeviceRegistrationRequest;
 import org.meristem.oneapp.notificationservice.domains.requests.UserDeviceUpdateRequest;
 import org.meristem.oneapp.notificationservice.domains.responses.UserDeviceRegistrationResponse;
@@ -44,14 +43,5 @@ public class UserDeviceRegistrationService {
         userExpoTokens.setUserId(AppUtil.getLoggedInUserId());
         userExpoTokensRepository.save(userExpoTokens);
         return new UserDeviceRegistrationResponse("Updated", true);
-    }
-
-    public String testPush(String body, String title) {
-        PushNotificationDto pushNotificationDto = PushNotificationDto.builder()
-                .userId(AppUtil.getLoggedInUserId())
-                .body(body)
-                .title(title).build();
-        pushNotificationService.sendPushNotification(pushNotificationDto);
-        return "Success";
     }
 }

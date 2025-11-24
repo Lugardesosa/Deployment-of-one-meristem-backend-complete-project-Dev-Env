@@ -3,7 +3,9 @@ package org.meristem.oneapp.notificationservice.repositories;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.NonNull;
-import org.meristem.oneapp.notificationservice.dtos.sql.*;
+import org.meristem.oneapp.notificationservice.dtos.sql.Comparison;
+import org.meristem.oneapp.notificationservice.dtos.sql.LikePattern;
+import org.meristem.oneapp.notificationservice.dtos.sql.NullCheck;
 import org.meristem.oneapp.notificationservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.notificationservice.utils.AppUtil;
 import org.springframework.data.domain.Page;
@@ -26,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.meristem.oneapp.notificationservice.dtos.sql.Operator.*;
 import static org.springframework.data.relational.core.query.Criteria.where;
 
 @RequiredArgsConstructor
