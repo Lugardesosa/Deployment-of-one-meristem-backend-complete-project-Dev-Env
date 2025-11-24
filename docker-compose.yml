@@ -278,7 +278,7 @@ services:
       - MAIL_SENDER_NAME=One Meristem
       - MAILER_PORT=2525
       - EXPO_URL=https://exp.host/--/api/v2
-      - EXPO_PUSH_TOKEN=TOKEN
+      - EXPO_PUSH_TOKEN=Mv4GbMdYQBYIDTagCVNw7N0bcADZAre5o8bsB1fp
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
