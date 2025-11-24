@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(ApiConstants.CONTEXT_PATH + "users")
@@ -47,7 +49,7 @@ public class UserSettingsController {
 
     @PreAuthorize("hasRole('ROLE_users.device.register')")
     @GetMapping(value = "/push-token", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<String>> testPush() {
-        return ApiUtil.buildResponse(registerUserDevice.testPush(), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<String>> testPush(@RequestBody Map<String, String> request) {
+        return ApiUtil.buildResponse(registerUserDevice.testPush(request.get("body"), request.get("title")), HttpStatus.OK.toString(), "Successful");
     }
 }
