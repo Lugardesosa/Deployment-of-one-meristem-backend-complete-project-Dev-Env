@@ -12,7 +12,7 @@ CREATE TABLE user_expo_tokens
     device_id          VARCHAR(300)                            NOT NULL,
     expo_token         VARCHAR(300)                            NOT NULL,
     CONSTRAINT pk_user_expo_tokens PRIMARY KEY (id),
-    CONSTRAINT uk_user_expo_tokens_device_id_token UNIQUE (device_id, expo_token)
+    CONSTRAINT uk_user_expo_tokens_token UNIQUE (expo_token)
 );
 
 CREATE INDEX idx_user_expo_tokens_user_id ON user_expo_tokens (user_id);

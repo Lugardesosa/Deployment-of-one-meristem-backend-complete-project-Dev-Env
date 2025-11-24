@@ -134,7 +134,6 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
-        ex.printStackTrace();
         return handleExceptionInternal(ex, HttpStatus.INTERNAL_SERVER_ERROR, request, List.of());
     }
 
