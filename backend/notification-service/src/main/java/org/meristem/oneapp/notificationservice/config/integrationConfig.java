@@ -2,6 +2,7 @@ package org.meristem.oneapp.notificationservice.config;
 
 
 import lombok.RequiredArgsConstructor;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.meristem.oneapp.notificationservice.config.configProperties.CreditSwitchProperties;
 import org.meristem.oneapp.notificationservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
@@ -30,9 +31,11 @@ public class integrationConfig {
 
 
     @Bean
-    ExpoPushNotificationClient expoPushNotificationClient(RestClient.Builder restClientBuilder, @Value("${expo-url}") String expoUrl) {
+    ExpoPushNotificationClient expoPushNotificationClient(RestClient.Builder restClientBuilder, @Value("${expo-url}") String expoUrl, @Value("${expo.push.notifications.token}") String accessToken) {
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
                         .baseUrl(expoUrl)
+                        .defaultHeaders(c -> c.add(oneAppProperties.defaultHeaderName(), "ExpoPushNotificationClient"))
+                        .defaultHeaders(c -> c.add(HttpHeaders.AUTHORIZATION, "Bearer ".concat(accessToken)))
                         .build())).build()
                 .createClient(ExpoPushNotificationClient.class);
     }

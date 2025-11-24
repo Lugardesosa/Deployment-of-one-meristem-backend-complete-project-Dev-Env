@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UserDeviceRegistrationService {
 
+    private final PushNotificationService pushNotificationService;
     private final CustomRepository customRepository;
     private final UserExpoTokensRepository userExpoTokensRepository;;
     public UserDeviceRegistrationResponse registerUserDevice(UserDeviceRegistrationRequest request) {
@@ -43,5 +44,14 @@ public class UserDeviceRegistrationService {
         userExpoTokens.setUserId(AppUtil.getLoggedInUserId());
         userExpoTokensRepository.save(userExpoTokens);
         return new UserDeviceRegistrationResponse("Updated", true);
+    }
+
+    public String testPush(String body, String title) {
+        PushNotificationDto pushNotificationDto = PushNotificationDto.builder()
+                .userId(AppUtil.getLoggedInUserId())
+                .body(body)
+                .title(title).build();
+        pushNotificationService.sendPushNotification(pushNotificationDto);
+        return "Success";
     }
 }
