@@ -18,7 +18,9 @@ spring:
               args:
                 name: downstreamCircuitBreaker
                 fallbackUri: forward:/fallback
-            - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
+                statusCodes:
+                  - 500
+                  - "NOT_FOUND"
 
           routes:
             - id: ${one-app.users-service.application-name}
