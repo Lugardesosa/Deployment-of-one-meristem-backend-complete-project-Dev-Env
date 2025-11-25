@@ -16,7 +16,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
 @RequiredArgsConstructor
-public class integrationConfig {
+public class IntegrationConfig {
 
     private final OneAppProperties oneAppProperties;
     private final CreditSwitchProperties creditSwitchProperties;

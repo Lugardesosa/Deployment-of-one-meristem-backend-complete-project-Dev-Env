@@ -16,6 +16,7 @@ import org.meristem.oneapp.notificationservice.utils.AppUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +37,13 @@ public class PushNotificationService {
     @CircuitBreaker(name = "expo", fallbackMethod = "recoverPushNotificationCircuit")
     public void sendPushNotification(PushNotificationDto notifications) {
 
-        List<String> to;
+        List<String> to = new ArrayList<>();
 
         if (notifications.toAll()) {
-            to = userExpoTokensRepository.findAllExpoTokens();
-        } if (notifications.userId() != null){
-            to = userExpoTokensRepository.findAllExpoTokensByUserId(notifications.userId());
+            to.addAll(userExpoTokensRepository.findAllExpoTokens());
+        }
+        if (notifications.userId() != null) {
+            to.addAll(userExpoTokensRepository.findAllExpoTokensByUserId(notifications.userId()));
         } else {
             return;
         }
@@ -64,7 +66,8 @@ public class PushNotificationService {
                 tickets.add(ExpoNotificationTicket.builder().ticketId(r.id()).build());
             } else {
                 if ("DeviceNotRegistered".equalsIgnoreCase(r.details().error())) {
-                    tokenToDelete.add(AppUtil.extractExpoTokenWithRegex(r.message()));
+                    String token = r.details().expoPushToken();
+                    tokenToDelete.add(StringUtils.hasText(token) ? token : AppUtil.extractExpoTokenWithRegex(r.message()));
                 }
             }
         }
