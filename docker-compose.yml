@@ -536,6 +536,9 @@ services:
       - GATEWAY_BURST_CAPACITY=20
       - GATEWAY_REQUESTED_TOKENS=2
       - WHITELISTED_IPS=52.18.220.93,18.202.96.242
+      - GATEWAY_SERVICE_HOSTNAME=cloud-gateway
+      - GATEWAY_SERVICE_PORT=20010
+      - CONSUL_HOST=consul
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=cloud-gateway
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
