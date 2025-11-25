@@ -6,7 +6,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
-import org.meristem.oneapp.kafka.dtos.*;
+import org.meristem.oneapp.kafka.dtos.AdminAccountDto;
+import org.meristem.oneapp.kafka.dtos.LoginDto;
+import org.meristem.oneapp.kafka.dtos.OtpDto;
+import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
 import org.meristem.oneapp.notificationservice.dtos.messaging.Message;
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
