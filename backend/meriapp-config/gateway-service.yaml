@@ -17,7 +17,7 @@ spring:
             - name: CircuitBreaker
               args:
                 name: downstreamCircuitBreaker
-                fallbackUri: forward:/inCaseOfFailureUseThis
+                fallbackUri: forward:/fallback
             - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
 
           routes:
