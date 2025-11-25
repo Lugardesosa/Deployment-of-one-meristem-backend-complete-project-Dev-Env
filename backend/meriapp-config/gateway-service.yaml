@@ -14,6 +14,12 @@ spring:
                 redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
                 redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
                 redis-rate-limiter.key-resolver: '#{@keyResolver}'
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/inCaseOfFailureUseThis
+            - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
+
           routes:
             - id: ${one-app.users-service.application-name}
               uri: ${USER_SERVICE_URI}
