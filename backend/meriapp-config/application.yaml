@@ -97,6 +97,11 @@ one-app:
     context-path: /api/notification
     application-name: notification-service
 
+  # GATEWAY SERVICE
+  gateway-service:
+    context-path:
+    application-name: gateway-service
+
     # APP NAMES
   services:
     wallet-service.first: ${one-app.wallet-service.application-name}
