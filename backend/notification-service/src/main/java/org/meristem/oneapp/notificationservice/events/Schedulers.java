@@ -35,8 +35,8 @@ public class Schedulers {
         for (Map.Entry<String, ExpoPushReceiptResponse.ExpoPushResponse> r : responses.data().entrySet()) {
 
             if ("error".equalsIgnoreCase(r.getValue().status()) && "DeviceNotRegistered".equalsIgnoreCase(r.getValue().details().error())) {
-                String tokenR = r.getValue().details().expoPushToken();
-                tokenToDelete.add(!StringUtils.containsWhitespace(tokenR) ? tokenR : AppUtil.extractExpoTokenWithRegex(r.getValue().message()));
+                String token = r.getValue().details().expoPushToken();
+                tokenToDelete.add(StringUtils.hasText(token) ? token : AppUtil.extractExpoTokenWithRegex(r.getValue().message()));
             }
         }
         userExpoTokensRepository.deleteUserExpoTokensByExpoTokenIn(tokenToDelete);

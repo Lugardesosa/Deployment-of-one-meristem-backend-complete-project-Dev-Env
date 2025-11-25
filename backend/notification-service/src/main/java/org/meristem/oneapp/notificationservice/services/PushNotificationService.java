@@ -66,8 +66,8 @@ public class PushNotificationService {
                 tickets.add(ExpoNotificationTicket.builder().ticketId(r.id()).build());
             } else {
                 if ("DeviceNotRegistered".equalsIgnoreCase(r.details().error())) {
-                    String tokenR = r.details().expoPushToken();
-                    tokenToDelete.add(!StringUtils.containsWhitespace(tokenR) ? tokenR : AppUtil.extractExpoTokenWithRegex(r.message()));
+                    String token = r.details().expoPushToken();
+                    tokenToDelete.add(StringUtils.hasText(token) ? token : AppUtil.extractExpoTokenWithRegex(r.message()));
                 }
             }
         }
