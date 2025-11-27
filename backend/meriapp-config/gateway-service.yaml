@@ -28,7 +28,7 @@ spring:
               deny-empty-key: false
 
           default-filters:
-            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+#            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
