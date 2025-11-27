@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.models;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class InvestmentOptions extends BaseModel<String> {
 
     private String name;
 
+    @Builder
     public InvestmentOptions(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, String name) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.investmentId = investmentId;

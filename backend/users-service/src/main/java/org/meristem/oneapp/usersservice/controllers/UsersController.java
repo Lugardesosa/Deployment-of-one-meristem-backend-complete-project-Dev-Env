@@ -216,8 +216,8 @@ public class UsersController {
     })
     @PreAuthorize("hasRole('ROLE_users.instrument.accessed')")
     @PutMapping(value = "/instrument-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> updateInstrumentAccessed(@Valid @RequestBody InstrumentAccessedRequest request) {
-        return ApiUtil.buildResponse(usersService.updateInstrumentAccessed(request), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<UpdateResponse>> updateUserInstrument(@Valid @RequestBody UserInstrumentRequest request) {
+        return ApiUtil.buildResponse(usersService.updateUserInstrument(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Mark an subsidiary option as visited")
@@ -228,5 +228,25 @@ public class UsersController {
     @PutMapping(value = "/option-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateOptionAccessed(@Valid @RequestBody OptionAccessedRequest request) {
         return ApiUtil.buildResponse(usersService.updateOptionAccessed(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Approve or revoke data sharing")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approve or revoke data sharing")
+    })
+    @PreAuthorize("hasRole('ROLE_users.instrument.data.share')")
+    @PutMapping(value = "/share-data", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@Valid @RequestBody DataSharingRequest request) {
+        return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Approve all data sharing")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approve all data sharing")
+    })
+    @PreAuthorize("hasRole('ROLE_users.instrument.data.share')")
+    @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing() {
+        return ApiUtil.buildResponse(usersService.updateDataSharing(), HttpStatus.OK.toString(), "Successful");
     }
 }

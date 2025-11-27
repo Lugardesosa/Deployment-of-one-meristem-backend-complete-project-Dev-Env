@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Objects.nonNull;
@@ -31,6 +30,7 @@ public class UserResponseResultSetExtractor implements ResultSetExtractor<UsersR
                         .name(rs.getString("name")).id(rs.getLong("iiid"))
                         .code(rs.getString("code"))
                         .accessed(rs.getBoolean("accessed"))
+                        .dataSharingAllowed(rs.getBoolean("data_sharing_allowed"))
                         .build());
 
                 user.userOptionResponses().put(rs.getString("code"), new HashSet<>());

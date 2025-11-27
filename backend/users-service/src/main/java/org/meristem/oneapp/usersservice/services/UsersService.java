@@ -96,7 +96,7 @@ public class UsersService {
                     userOnboardingRepository.save(userOnboarding);
                 });
         customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
-                        .stream().map(i -> InstrumentAccessed.builder().userId(userId).instrumentId(i.getId()).build()).toList());
+                        .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
         customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
@@ -218,18 +218,18 @@ public class UsersService {
         }
 
         // Ensure the password is different from the old one
-        UsersResponse usersResponse = usersRepository.findUserByEmailOrPhoneNumber(request.recipient());
-        if (passwordEncoder.matches(request.password(), usersResponse.password())) {
+        Users users = usersRepository.findUsersByEmailOrPhoneNumber(request.recipient(), request.recipient()).orElseThrow(() -> new BadRequestException("User not found."));
+        if (passwordEncoder.matches(request.password(), users.getPassword())) {
             throw new BadRequestException("Password cannot be the same as your old password.");
         }
 
         // Update the password and expire otp
-        usersRepository.updateUsersPassword(usersResponse.email(), passwordEncoder.encode(request.password()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(usersResponse.id());
+        usersRepository.updateUsersPassword(users.getEmail(), passwordEncoder.encode(request.password()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(users.getId());
         otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), MessageSubject.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
-        notifyUserAboutPasswordChange(usersResponse.email());
+        notifyUserAboutPasswordChange(users.getEmail());
         return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
@@ -467,11 +467,11 @@ public class UsersService {
      * @param request payload containing the instrument access identifier
      * @return UpdateResponse indicating whether the update succeeded
      */
-    public UpdateResponse updateInstrumentAccessed(InstrumentAccessedRequest request) {
+    public UpdateResponse updateUserInstrument(UserInstrumentRequest request) {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
-        int updated = customRepository.dynamicUpdate(InstrumentAccessed.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
@@ -502,6 +502,25 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("biometric_enabled", request.biometricLogin());
         int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+
+    public UpdateResponse updateDataSharing(DataSharingRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("data_sharing_allowed", request.dataSharing());
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse updateDataSharing() {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("data_sharing_allowed", true);
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }

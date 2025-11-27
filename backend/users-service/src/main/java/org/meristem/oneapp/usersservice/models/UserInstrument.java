@@ -12,25 +12,28 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table("instrument_accessed")
-public class InstrumentAccessed extends BaseModel<String> {
+@Table("user_instrument")
+public class UserInstrument extends BaseModel<String> {
 
     private Long userId;
     private Long instrumentId;
     private Boolean accessed;
+    private Boolean dataSharingAllowed;
+
 
     @Builder
-    public InstrumentAccessed(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long instrumentId) {
+    public UserInstrument(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long instrumentId, Boolean dataSharingAllowed) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
         this.instrumentId = instrumentId;
         this.accessed = false;
+        this.dataSharingAllowed = false;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        InstrumentAccessed that = (InstrumentAccessed) o;
+        UserInstrument that = (UserInstrument) o;
         return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getInstrumentId(), that.getInstrumentId());
     }
 
