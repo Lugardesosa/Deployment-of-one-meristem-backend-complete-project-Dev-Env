@@ -85,3 +85,7 @@ spring:
 
 whitelisted:
   ips: ${WHITELISTED_IPS}
+
+server:
+  error:
+    include-stacktrace: never
