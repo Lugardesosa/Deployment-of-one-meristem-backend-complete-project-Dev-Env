@@ -47,6 +47,9 @@ spring:
               uri: lb://${one-app.users-service.application-name}
               predicates:
                 - Path=${one-app.users-service.context-path}/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
               metadata:
                 cors:
                   allowedOrigins: '*'
