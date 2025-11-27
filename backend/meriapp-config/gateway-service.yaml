@@ -40,7 +40,22 @@ spring:
                 fallbackUri: forward:/fallback
                 statusCodes:
                   - 500
-                  - "NOT_FOUND"
+
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${ALLOWED_ORIGINS}
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
 
           routes:
             - id: ${one-app.users-service.application-name}
@@ -70,3 +85,7 @@ spring:
 
 whitelisted:
   ips: ${WHITELISTED_IPS}
+
+server:
+  error:
+    include-stacktrace: never
