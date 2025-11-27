@@ -49,14 +49,14 @@ spring:
                 - Path=${one-app.users-service.context-path}/**
               metadata:
                 cors:
-#                  allowedOrigins: '*'
+                  allowedOrigins: '*'
                   allowedMethods:
                     - GET
                     - POST
                     - PUT
                     - DELETE
                     - OPTIONS
-                  allowedHeaders: '*'
+#                  allowedHeaders: '*'
                   maxAge: 30
 
             - id: ${one-app.wallet-service.application-name}
