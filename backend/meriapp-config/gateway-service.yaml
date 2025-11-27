@@ -47,6 +47,17 @@ spring:
               uri: lb://${one-app.users-service.application-name}
               predicates:
                 - Path=${one-app.users-service.context-path}/**
+              metadata:
+                cors:
+                  allowedOrigins: '*'
+                  allowedMethods:
+                    - GET
+                    - POST
+                    - PUT
+                    - DELETE
+                    - OPTIONS
+                  allowedHeaders: '*'
+                  maxAge: 30
 
             - id: ${one-app.wallet-service.application-name}
               uri: lb://${one-app.wallet-service.application-name}
