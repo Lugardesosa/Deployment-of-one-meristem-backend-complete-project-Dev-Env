@@ -34,12 +34,11 @@ spring:
                 redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
                 redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
                 redis-rate-limiter.key-resolver: '#{@keyResolver}'
-#            - name: CircuitBreaker
-#              args:
-#                name: downstreamCircuitBreaker
-#                fallbackUri: forward:/fallback
-#                statusCodes:
-#                  - 500
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback
+
 
           globalcors:
             add-to-simple-url-handler-mapping: true
