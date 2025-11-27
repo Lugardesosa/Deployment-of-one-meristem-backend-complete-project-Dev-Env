@@ -28,6 +28,7 @@ spring:
               deny-empty-key: false
 
           default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
@@ -47,20 +48,20 @@ spring:
               uri: lb://${one-app.users-service.application-name}
               predicates:
                 - Path=${one-app.users-service.context-path}/**
-              filters:
-                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-
-              metadata:
-                cors:
-                  allowedOrigins: '*'
-                  allowedMethods:
-                    - GET
-                    - POST
-                    - PUT
-                    - DELETE
-                    - OPTIONS
-#                  allowedHeaders: '*'
-                  maxAge: 30
+#              filters:
+#                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+#
+#              metadata:
+#                cors:
+#                  allowedOrigins: '*'
+#                  allowedMethods:
+#                    - GET
+#                    - POST
+#                    - PUT
+#                    - DELETE
+#                    - OPTIONS
+##                  allowedHeaders: '*'
+#                  maxAge: 30
 
             - id: ${one-app.wallet-service.application-name}
               uri: lb://${one-app.wallet-service.application-name}
