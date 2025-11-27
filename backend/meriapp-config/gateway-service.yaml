@@ -43,25 +43,27 @@ spring:
                   - 500
                   - "NOT_FOUND"
 
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${ALLOWED_ORIGINS}
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
+
           routes:
             - id: ${one-app.users-service.application-name}
               uri: lb://${one-app.users-service.application-name}
               predicates:
                 - Path=${one-app.users-service.context-path}/**
-#              filters:
-#                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-#
-#              metadata:
-#                cors:
-#                  allowedOrigins: '*'
-#                  allowedMethods:
-#                    - GET
-#                    - POST
-#                    - PUT
-#                    - DELETE
-#                    - OPTIONS
-##                  allowedHeaders: '*'
-#                  maxAge: 30
 
             - id: ${one-app.wallet-service.application-name}
               uri: lb://${one-app.wallet-service.application-name}
