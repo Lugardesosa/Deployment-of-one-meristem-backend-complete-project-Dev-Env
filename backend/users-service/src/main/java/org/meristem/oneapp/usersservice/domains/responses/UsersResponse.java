@@ -119,7 +119,9 @@ public record UsersResponse(
             @Schema(description = "Whether the instrument has been accessed by the user.", example = "true")
             Boolean accessed,
             @Schema(description = "Code or short identifier for the instrument.", example = "MER-WEALTH")
-            String code
+            String code,
+            @Schema(description = "Whether user wants to share this subsidiary's data with other subsidiaries.", example = "true")
+            Boolean dataSharingAllowed
     ) implements Serializable {
 
     }
