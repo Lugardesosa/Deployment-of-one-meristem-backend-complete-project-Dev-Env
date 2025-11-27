@@ -56,7 +56,7 @@ spring:
                     - PUT
                     - DELETE
                     - OPTIONS
-                  allowedHeaders: '*'
+                  allowedHeaders: ''
                   maxAge: 30
 
             - id: ${one-app.wallet-service.application-name}
