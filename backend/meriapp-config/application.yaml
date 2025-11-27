@@ -150,7 +150,7 @@ call:
 
 # TODO: KEEP UPDATED
 # THESE VALUES REPLACED WITH [REDACTED] IN LOGS
-what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber"
+what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword"
 headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"
 
 expo-url: ${EXPO_URL}
