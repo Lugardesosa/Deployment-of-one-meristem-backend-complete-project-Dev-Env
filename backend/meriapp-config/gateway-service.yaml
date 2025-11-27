@@ -35,6 +35,11 @@ spring:
                 redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
                 redis-rate-limiter.key-resolver: '#{@keyResolver}'
 
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback
+
           globalcors:
             add-to-simple-url-handler-mapping: true
             cors-configurations:
