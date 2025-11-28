@@ -39,9 +39,9 @@ jobs:
       #Add git log for debugging
       - name: Show Commit History
         run: git log --oneline -n 5
-      - name: Clean up old docker images older than 24h
-        run: |
-          docker image prune -a --filter "until=24h" -f
+      # - name: Clean up old docker images older than 24h
+      #   run: |
+      #     docker image prune -a --filter "until=24h" -f
       # Detect changed services in backend/
       - name: Detect Changed Microservices
         id: check_change
