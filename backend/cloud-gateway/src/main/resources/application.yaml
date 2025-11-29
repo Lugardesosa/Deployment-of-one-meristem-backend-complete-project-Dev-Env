@@ -26,7 +26,7 @@ resilience4j:
   timelimiter:
     configs:
       default:
-        timeoutDuration: 3s   # or whatever you need
+        timeoutDuration: 4s
     instances:
       downstreamCircuitBreaker:
-        timeoutDuration: 3s
+        timeoutDuration: 30s

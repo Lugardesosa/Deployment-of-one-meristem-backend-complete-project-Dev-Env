@@ -82,6 +82,9 @@ public record UsersResponse(
         )
         List<UserInstrumentResponse> userInstrumentResponses,
 
+        @Schema(description = "States whether all data sharing across subsidiary.", example = "true")
+        Boolean allDataShared,
+
         @Schema(
                 description = "User feature options grouped by category.",
                 example = "{\"MER-STOCKS\":[{\"id\":1,\"name\":\"Dollar Fund\",\"accessed\":true}],\"TRUSTEES\":[{\"id\":2,\"name\":\"Comprehensive WIll\",\"accessed\":false}]}"
@@ -95,18 +98,18 @@ public record UsersResponse(
 ) implements Serializable {
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                         String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
+                         String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared, Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled);
     }
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
                          String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, Boolean biometricEnabled) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, null, null, biometricEnabled);
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, null, null, null, biometricEnabled);
     }
 
     public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                                     String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses,  Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
-        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, userOptionResponses, biometricEnabled);
+                                     String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared, Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled) {
+        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled);
     }
 
     @Schema(name = "UserInstrumentResponse", description = "Instrument access information for the user.")

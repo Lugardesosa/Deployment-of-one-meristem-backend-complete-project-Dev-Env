@@ -198,8 +198,9 @@ public class UsersService {
                     .type(SignedUrlType.IMAGE).build());
             signedUrl = signedUrlResponse.signedUrl();
         }
+        boolean allDataShared = response.userInstrumentResponses().stream().allMatch(i -> i.dataSharingAllowed() == true);
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.passwordSet(), response.emailVerified(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), response.userOptionResponses(), response.biometricEnabled());
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.passwordSet(), response.emailVerified(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled());
     }
 
     /**
@@ -471,9 +472,7 @@ public class UsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
-        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("instrument_id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
-        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+        return getUpdateResponse(updates, request.instrumentId());
     }
 
     /**
@@ -511,7 +510,11 @@ public class UsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("data_sharing_allowed", request.dataSharing());
-        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("id", request.instrumentId(), "user_id", AppUtil.getLoggedInUserId()));
+        return getUpdateResponse(updates, request.instrumentId());
+    }
+
+    private UpdateResponse getUpdateResponse(Map<String, Object> updates, Long aLong) {
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("instrument_id", aLong, "user_id", AppUtil.getLoggedInUserId()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
