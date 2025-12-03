@@ -29,10 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,7 +53,7 @@ public class UsersService {
     private final PasswordEncoder passwordEncoder;
     private final KafkaSenderService kafkaSenderService;
     private final UserProfileRepository userProfileRepository;
-    private final ImagesRepository imagesRepository;
+    private final FilesRepository filesRepository;
     private final CacheManager cacheManager;
     private final UserProfileRepository profileRepository;
     private final RequirementsRepository requirementsRepository;
@@ -200,7 +197,9 @@ public class UsersService {
         }
         boolean allDataShared = response.userInstrumentResponses().stream().allMatch(i -> i.dataSharingAllowed() == true);
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.passwordSet(), response.emailVerified(), response.referralCode(), response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled());
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.passwordSet(), response.emailVerified(), response.referralCode(),
+                response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), response.pinSet(),
+                response.interestFreeInvestment(), response.interestFreeInvestmentSet());
     }
 
     /**
@@ -299,20 +298,20 @@ public class UsersService {
         Long userId = AppUtil.getLoggedInUserId();
 
         String imageKey;
-        if (request.imageType() == ImageType.AVATAR) {
-            Images avatars = imagesRepository.findByImageKeyAndImageType(request.imageKey(), ImageType.AVATAR.getValue()).orElseThrow(() -> new BadRequestException("Avatar not found."));
-            imageKey = avatars.getImageKey();
+        if (request.imageType() == FileType.AVATAR) {
+            Files avatars = filesRepository.findByFileKeyAndFileType(request.imageKey(), FileType.AVATAR.getValue()).orElseThrow(() -> new BadRequestException("Avatar not found."));
+            imageKey = avatars.getFileKey();
             userProfileRepository.updateUsersImage(imageKey, userId);
         } else {
             if (request.contentType() == null) {
                 throw new BadRequestException("Content type not found.");
             }
             imageKey = request.imageKey();
-            imagesRepository.findByImageTypeAndUserId(ImageType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
+            filesRepository.findByFileTypeAndUserId(FileType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
                     .ifPresentOrElse(i -> {
                             },
                             () -> {
-                                imagesRepository.save(Images.builder().userId(userId).imageKey(imageKey).contentType(request.contentType()).imageType(ImageType.PROFILE_PICTURE.getValue()).build());
+                                filesRepository.save(Files.builder().userId(userId).fileKey(imageKey).contentType(request.contentType()).fileType(FileType.PROFILE_PICTURE.getValue()).build());
                                 userProfileRepository.updateUsersImage(imageKey, userId);
                             }
                     );
@@ -335,6 +334,10 @@ public class UsersService {
         Long userId = AppUtil.getLoggedInUserId();
 
         String oldPin = usersRepository.findPinByEmailOrPhoneNumber(userId);
+
+        if (oldPin != null && request.isNew().equals(AppConstants.IS_NEW_PIN)) {
+            throw new BadRequestException("Pin has already been created for this account, you should update pin instead.");
+        }
 
         if (oldPin == null && request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
             throw new BadRequestException("You need to create a pin first.");
@@ -371,8 +374,8 @@ public class UsersService {
     @Cacheable("avatars")
     public List<SignedUrlResponse> getAvatarUrls() {
         List<SignedUrlResponse> responses = new ArrayList<>();
-        for (Images images : imagesRepository.findAllByImageType(ImageType.AVATAR.getValue())) {
-            responses.add(huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(images.getImageKey())
+        for (Files images : filesRepository.findAllByFileType(FileType.AVATAR.getValue())) {
+            responses.add(huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(images.getFileKey())
                     .type(SignedUrlType.IMAGE).build()));
         }
         return responses;
@@ -486,7 +489,7 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
         int updated = customRepository.dynamicUpdate(InvestmentOptionsAccessed.class, updates, Map.of("option_id", request.optionId(), "user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+        clearUsersCache();
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 
@@ -500,9 +503,7 @@ public class UsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("biometric_enabled", request.biometricLogin());
-        int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
-        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+        return getUpdateResponse(updates);
     }
 
 
@@ -515,8 +516,12 @@ public class UsersService {
 
     private UpdateResponse getUpdateResponse(Map<String, Object> updates, Long aLong) {
         int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("instrument_id", aLong, "user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+        clearUsersCache();
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    private void clearUsersCache() {
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
     }
 
     public UpdateResponse updateDataSharing() {
@@ -524,7 +529,20 @@ public class UsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("data_sharing_allowed", true);
         int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse interestFree(InterestSharingRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("interest_free_investment", request.wantInterest());
+        return getUpdateResponse(updates);
+    }
+
+    private UpdateResponse getUpdateResponse(Map<String, Object> updates) {
+        int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
+        clearUsersCache();
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 }

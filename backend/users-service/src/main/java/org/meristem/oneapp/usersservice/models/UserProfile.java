@@ -68,6 +68,9 @@ public class UserProfile extends BaseModel<String> {
     @NotNull(message = "emailVerified cannot be null")
     private Boolean emailVerified = Boolean.FALSE;
 
+    @Column("interest_free_investment")
+    private Boolean interestFreeInvestment;
+
     /**
      * Constructs a new UserOnboarding instance.
      *
@@ -82,7 +85,7 @@ public class UserProfile extends BaseModel<String> {
      */
     @Builder
     public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
-                       Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode) {
+                       Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode, Boolean interestFreeInvestment) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -94,6 +97,7 @@ public class UserProfile extends BaseModel<String> {
         this.biometricEnabled = Boolean.FALSE;
         this.passwordSet = Boolean.FALSE;
         this.emailVerified = Boolean.FALSE;
+        this.interestFreeInvestment = interestFreeInvestment;
     }
 
     /**

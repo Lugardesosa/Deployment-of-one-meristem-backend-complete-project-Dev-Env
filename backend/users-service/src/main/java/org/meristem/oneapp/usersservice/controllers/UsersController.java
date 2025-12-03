@@ -245,8 +245,18 @@ public class UsersController {
             @ApiResponse(responseCode = "200", description = "Approve all data sharing")
     })
     @PreAuthorize("hasRole('ROLE_users.instrument.data.share')")
-    @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing() {
         return ApiUtil.buildResponse(usersService.updateDataSharing(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Approve all data sharing")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approve all data sharing")
+    })
+    @PreAuthorize("hasRole('ROLE_users.interest.free.update')")
+    @PutMapping(value = "/interest-free", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> interestFree(@Valid @RequestBody InterestSharingRequest request) {
+        return ApiUtil.buildResponse(usersService.interestFree(request), HttpStatus.OK.toString(), "Successful");
     }
 }

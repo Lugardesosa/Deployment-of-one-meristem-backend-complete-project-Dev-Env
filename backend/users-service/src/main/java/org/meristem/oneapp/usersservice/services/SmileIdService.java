@@ -22,7 +22,6 @@ import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

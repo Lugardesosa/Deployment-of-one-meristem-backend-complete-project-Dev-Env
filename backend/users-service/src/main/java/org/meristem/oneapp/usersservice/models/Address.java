@@ -37,23 +37,17 @@ public class Address extends BaseModel<String> {
     @NotNull(message = "Cannot be null")
     private Long userId;
 
-//    @Builder
-//    public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-//                   String houseAddress, String city, String street, String number, String state, String country, String landmark, Long userId) {
-//        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-//        this.houseAddress = houseAddress;
-//        this.city = city;
-//        this.street = street;
-//        this.number = number;
-//        this.state = state;
-//        this.country = country;
-//        this.landmark = landmark;
-//        this.userId = userId;
-//    }
+    // 0 for automatic (okhi), 1 for manual
+    @NotNull(message = "Cannot be null")
+    private Integer verificationMethod;
+
+    private Integer utilityBillType;
+    private String documentKey;
 
     @Builder
     public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status,
-                   String houseAddress, String city, String street, String number, String state, String country, String landmark, Long userId) {
+                   String houseAddress, String city, String street, String number, String state, String country, String landmark, Long userId, Integer verificationMethod,
+                   Integer utilityBillType, String documentKey) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.houseAddress = houseAddress;
         this.city = city;
@@ -63,6 +57,9 @@ public class Address extends BaseModel<String> {
         this.country = country;
         this.landmark = landmark;
         this.userId = userId;
+        this.verificationMethod = verificationMethod;
+        this.utilityBillType = utilityBillType;
+        this.documentKey = documentKey;
     }
 
     @Override

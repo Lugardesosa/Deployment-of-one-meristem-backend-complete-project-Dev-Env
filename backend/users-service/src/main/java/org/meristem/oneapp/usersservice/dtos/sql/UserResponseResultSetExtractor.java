@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
 
 import static java.util.Objects.nonNull;
 

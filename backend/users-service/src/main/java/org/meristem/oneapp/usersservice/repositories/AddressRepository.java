@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface AddressRepository extends BaseRepository<Address, Long> {
     boolean existsByUserId(Long userId);
     Optional<Address> findByUserId(Long userId);
+
+    Optional<Address> findByUserIdAndVerificationMethod(Long userId, Integer verificationMethod);
 }
