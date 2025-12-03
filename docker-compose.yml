@@ -409,6 +409,8 @@ services:
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - PAYSTACK_API_BASE_URL=https://api.paystack.co
+      - PAYSTACK_SECRET_KEY=sk_test_a9ac370269c4cfcfa6c79426d18189dc0dbe1661 ${PAYSTACK_SECRET_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wallet-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
