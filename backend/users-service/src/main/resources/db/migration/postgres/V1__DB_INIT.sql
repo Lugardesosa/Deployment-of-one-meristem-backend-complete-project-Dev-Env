@@ -879,7 +879,7 @@ $$
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.submit.address')
-        RETURNING id INTO UsersInterestFreeUpdateID;
+        RETURNING id INTO UsersSubmitAddressID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.get')
