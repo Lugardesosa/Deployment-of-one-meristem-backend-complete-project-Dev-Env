@@ -158,11 +158,14 @@ public final class AppUtil {
                 .gender(rs.getString("gender"))
                 .dateOfBirth(rs.getObject("date_of_birth", LocalDate.class))
                 .pin(rs.getString("pin"))
+                .pinSet(rs.getString("pin") != null)
                 .password(rs.getString("password"))
                 .biometricEnabled(rs.getBoolean("biometric_enabled"))
                 .passwordSet(rs.getBoolean("password_set"))
                 .emailVerified(rs.getBoolean("email_verified"))
                 .passwordAttempt(rs.getInt("password_attempt"))
+                .interestFreeInvestment(rs.getObject("interest_free_investment", Boolean.class))
+                .interestFreeInvestmentSet(rs.getObject("interest_free_investment", Boolean.class) != null)
                 .build();
     }
 }

@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.domains.annotations;
 
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 

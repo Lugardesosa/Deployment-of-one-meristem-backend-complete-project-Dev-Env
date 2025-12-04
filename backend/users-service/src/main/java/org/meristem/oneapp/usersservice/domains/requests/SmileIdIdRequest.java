@@ -1,9 +1,9 @@
 package org.meristem.oneapp.usersservice.domains.requests;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "SmileIdIdRequest", description = "Request payload containing identifiers required to start or fetch a Smile Identity verification job.")
 @Builder

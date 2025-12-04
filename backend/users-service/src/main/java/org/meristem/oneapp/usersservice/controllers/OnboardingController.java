@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
+import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SignedUrlRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
@@ -30,6 +32,7 @@ public class OnboardingController {
 
     private final OnboardingService onboardingService;
     private final SmileIdService smileIdService;
+
 
     @Operation(summary = "Get the onboarding flow")
     @ApiResponses(value = {
@@ -98,5 +101,15 @@ public class OnboardingController {
     @GetMapping(value = "/instruments", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<InstrumentResponse>>> getInstruments() {
         return ApiUtil.buildResponse(onboardingService.getInstruments(), HttpStatus.OK.toString(), "Request successful");
+    }
+
+    @Operation(summary = "Submit Address for manual verification")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Submit Address for manual verification")
+    })
+    @PreAuthorize("hasRole('ROLE_users.submit.address')")
+    @PostMapping(value = "/submit-address", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AddressVerificationResponse>> submitAddress(@RequestBody @Valid AddressVerificationRequest request) {
+        return ApiUtil.buildResponse(onboardingService.submitAddress(request), HttpStatus.OK.toString(), "Successful");
     }
 }

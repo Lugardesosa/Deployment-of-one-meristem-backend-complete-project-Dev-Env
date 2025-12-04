@@ -46,14 +46,6 @@ public class SmileIdRecord extends BaseModel<String> {
     private String message;
 
     /**
-     * The product type associated with the Smile ID job.
-     * Must not be null.
-     */
-    @NotNull(message = "jobType cannot be null")
-    @Column("job_type")
-    private Integer jobType;
-
-    /**
      * The requirement id associated with the Smile ID job.
      */
     @NotNull(message = "requirementId cannot be null")
@@ -72,17 +64,15 @@ public class SmileIdRecord extends BaseModel<String> {
      * @param version the version of the record
      * @param jobId the job ID of the Smile ID record
      * @param userId the user ID associated with the Smile ID record
-     * @param jobType the product type of the Smile ID record
      * @param requirementId the requirement id associated with this job
      */
 
     @Builder
     public SmileIdRecord(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String jobId, String userId,
-                         Integer jobType, Long requirementId) {
+                         Long requirementId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.jobId = jobId;
         this.userId = userId;
-        this.jobType = jobType;
         this.requirementId = requirementId;
     }
 
