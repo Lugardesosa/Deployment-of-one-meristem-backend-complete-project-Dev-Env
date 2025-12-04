@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SignedUrlRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
