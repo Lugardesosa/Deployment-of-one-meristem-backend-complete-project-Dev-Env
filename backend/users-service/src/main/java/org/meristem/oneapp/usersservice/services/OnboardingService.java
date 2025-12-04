@@ -1,9 +1,11 @@
 package org.meristem.oneapp.usersservice.services;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -11,6 +13,7 @@ import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +25,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Objects.nonNull;
 
 
 @Slf4j
@@ -37,6 +42,11 @@ public class OnboardingService {
     private final GeneralRepository generalRepository;
     private final UsersMapping usersMapping = UsersMapping.INSTANCE;
     private final CustomRepository customRepository;
+    private final HttpServletRequest httpServletRequest;
+    private final FilesRepository filesRepository;
+
+    @Value("${one-app.users-service.okhi.header-value}")
+    private String okhiHeaderId;
 
     /**
      * Retrieves the onboarding details for a user.
@@ -49,7 +59,6 @@ public class OnboardingService {
 
     /**
      * Handles OkHi webhook callbacks and updates the user's address and onboarding status based on the event type.
-     *
      * Supported events include address collection, verification started, verification completed, and verification cancelled.
      *
      * @param request the webhook payload received from OkHi
@@ -58,40 +67,46 @@ public class OnboardingService {
      */
     @Transactional
     public OkHiWebhookResponse handleOkhiWebhook(OkHiWebhookRequest request) {
+
+        if (nonNull(httpServletRequest.getHeader("X-MERISTEM-KEY")) && !httpServletRequest.getHeader("X-MERISTEM-KEY").equals(okhiHeaderId)) {
+            throw new BadRequestException("Invalid API key");
+        }
+
         switch (request.eventType()) {
 
             case OkhiEventTypes.ADDRESS_COLLECTED -> {
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-                addressRepository.findByUserId(users.getId()).ifPresentOrElse(address -> {
-                        address.setCity(request.data().location().city());
-                        address.setCountry(request.data().location().country());
-                        address.setState(request.data().location().state());
-                        address.setHouseAddress(request.data().location().formattedAddress());
-                        address.setNumber(request.data().location().propertyNumber());
-                        address.setStatus(AddressStatus.PENDING.getValue());
-                        addressRepository.save(address);
-                    },
-                    () -> {
-                        Address address = Address.builder()
-                            .userId(users.getId())
-                            .street(request.data().location().streetName())
-                            .city(request.data().location().city())
-                            .country(request.data().location().country())
-                            .state(request.data().location().state())
-                            .number(request.data().location().propertyNumber())
-                            .status(AddressStatus.PENDING.getValue())
-                            .houseAddress(request.data().location().formattedAddress())
-                            .build();
-                        addressRepository.save(address);
-                    });
+                addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO.getValue()).ifPresentOrElse(address -> {
+                            address.setCity(request.data().location().city());
+                            address.setCountry(request.data().location().country());
+                            address.setState(request.data().location().state());
+                            address.setHouseAddress(request.data().location().formattedAddress());
+                            address.setNumber(request.data().location().propertyNumber());
+                            address.setStatus(AddressStatus.PENDING.getValue());
+                            addressRepository.save(address);
+                        },
+                        () -> {
+                            Address address = Address.builder()
+                                    .userId(users.getId())
+                                    .street(request.data().location().streetName())
+                                    .city(request.data().location().city())
+                                    .country(request.data().location().country())
+                                    .state(request.data().location().state())
+                                    .number(request.data().location().propertyNumber())
+                                    .status(AddressStatus.PENDING.getValue())
+                                    .houseAddress(request.data().location().formattedAddress())
+                                    .verificationMethod(AddressVerificationMethod.AUTO.getValue())
+                                    .build();
+                            addressRepository.save(address);
+                        });
             }
 
             case OkhiEventTypes.ADDRESS_VERIFICATION_STARTED -> {
 
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 addressRepository.findByUserId(users.getId()).ifPresent(address -> {
-                            address.setStatus(AddressStatus.PENDING.getValue());
-                            addressRepository.save(address);
+                    address.setStatus(AddressStatus.PENDING.getValue());
+                    addressRepository.save(address);
                 });
             }
 
@@ -188,6 +203,34 @@ public class OnboardingService {
     public List<InstrumentResponse> getInstruments() {
 
         return customRepository.findAll(InvestmentInstruments.class, (rs, rn) -> InstrumentResponse.builder().id(rs.getLong("id"))
-                        .name(rs.getString("name")).code(rs.getString("code")).build());
+                .name(rs.getString("name")).code(rs.getString("code")).build());
+    }
+
+    public AddressVerificationResponse submitAddress(AddressVerificationRequest request) {
+
+        filesRepository.save(Files.builder().userId(AppUtil.getLoggedInUserId()).fileKey(request.fileKey()).contentType(request.contentType()).fileType(FileType.DOCUMENT.getValue()).build());
+
+        addressRepository.findByUserIdAndVerificationMethod(AppUtil.getLoggedInUserId(), AddressVerificationMethod.MANUAL.getValue()).ifPresentOrElse(address -> {
+
+            address.setCity(request.city());
+            address.setState(request.state());
+            address.setHouseAddress(request.houseAddress());
+            address.setLandmark(request.landMark());
+            address.setUtilityBillType(request.utilityBillType().getValue());
+            address.setDocumentKey(request.fileKey());
+            address.setStatus(AddressStatus.PENDING.getValue());
+            addressRepository.save(address);
+        }, () -> addressRepository.save(Address.builder()
+                .verificationMethod(AddressVerificationMethod.MANUAL.getValue())
+                .houseAddress(request.houseAddress())
+                .userId(AppUtil.getLoggedInUserId())
+                .state(request.state())
+                .city(request.city())
+                .landmark(request.landMark())
+                .utilityBillType(request.utilityBillType().getValue())
+                .status(AddressStatus.PENDING.getValue())
+                .documentKey(request.fileKey())
+                .build()));
+        return AddressVerificationResponse.builder().message("Successful").status(true).build();
     }
 }

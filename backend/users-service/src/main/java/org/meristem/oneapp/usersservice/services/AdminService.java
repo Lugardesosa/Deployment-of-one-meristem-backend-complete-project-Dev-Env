@@ -15,8 +15,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
-import static java.util.Objects.requireNonNull;
-
 
 /**
  * Service class for managing administrative operations.

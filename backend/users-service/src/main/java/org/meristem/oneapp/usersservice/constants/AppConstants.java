@@ -28,6 +28,7 @@ public final class AppConstants {
 
     public static final String USERS_CACHE_NAME = "users";
     public static final Integer IS_UPDATE_PIN = 1;
+    public static final Integer IS_NEW_PIN = 0;
     public static final String RE_PASSWORD = "password";
     public static final String DATE_REGEX = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
     public static final String APPLICATION_JSON_UTF8_VALUE = "application/json;charset=UTF-8";

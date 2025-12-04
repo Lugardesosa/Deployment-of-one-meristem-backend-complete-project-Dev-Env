@@ -5,10 +5,11 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum ImageType {
+public enum FileType {
 
     AVATAR(1),
-    PROFILE_PICTURE(2);
+    PROFILE_PICTURE(2),
+    DOCUMENT(2);
 
     private final int value;
 }

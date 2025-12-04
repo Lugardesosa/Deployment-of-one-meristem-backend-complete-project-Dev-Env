@@ -154,3 +154,8 @@ what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_
 headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"
 
 expo-url: ${EXPO_URL}
+
+paystack:
+  api:
+    baseUrl: ${PAYSTACK_API_BASE_URL}
+    secretKey: ${PAYSTACK_SECRET_KEY}

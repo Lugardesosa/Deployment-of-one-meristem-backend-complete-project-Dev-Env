@@ -44,7 +44,7 @@ class UsersServiceTest {
     @Mock
     private UserProfileRepository userProfileRepository;
     @Mock
-    private ImagesRepository imagesRepository;
+    private FilesRepository filesRepository;
     @Mock
     private CacheManager cacheManager;
     @Mock

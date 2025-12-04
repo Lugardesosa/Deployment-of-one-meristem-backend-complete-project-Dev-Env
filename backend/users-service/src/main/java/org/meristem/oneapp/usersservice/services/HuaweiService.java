@@ -8,13 +8,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.meristem.oneapp.usersservice.config.configProperties.HuaweiConfigProperties;
-import org.meristem.oneapp.usersservice.domains.enums.ImageType;
+import org.meristem.oneapp.usersservice.domains.enums.FileType;
 import org.meristem.oneapp.usersservice.domains.enums.SignedUrlType;
 import org.meristem.oneapp.usersservice.domains.requests.SignedUrlRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SignedUrlResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
-import org.meristem.oneapp.usersservice.models.Images;
-import org.meristem.oneapp.usersservice.repositories.ImagesRepository;
+import org.meristem.oneapp.usersservice.repositories.FilesRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +35,7 @@ import java.util.Map;
 public class HuaweiService {
 
     private final HuaweiConfigProperties huaweiConfigProperties;
-    private final ImagesRepository imagesRepository;
+    private final FilesRepository filesRepository;
 
     /**
      * Generates a temporary signed URL for uploading or downloading a file in Huawei OBS.
@@ -67,8 +66,8 @@ public class HuaweiService {
             request.setObjectKey(objectKey);
 
             if (SignedUrlType.PROFILE_PICTURE.equals(signedUrlRequest.type())) {
-                imagesRepository.findByImageTypeAndUserId(ImageType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
-                        .ifPresent(i -> request.setObjectKey(i.getImageKey()));
+                filesRepository.findByFileTypeAndUserId(FileType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
+                        .ifPresent(i -> request.setObjectKey(i.getFileKey()));
                 objectKey = request.getObjectKey();
             }
 
