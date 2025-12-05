@@ -4,11 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import org.meristem.oneapp.usersservice.domains.enums.FileType;
 import org.meristem.oneapp.usersservice.domains.enums.UtilityBillType;
 
 public record AddressVerificationRequest(
         @Schema(example = "my_bio.pdf", description = "pass the document name of the address") @NotBlank(message = "cannot be null") String fileKey,
-        @Schema(pattern = "DOCUMENT", example = "DOCUMENT", description = "pass the type of the document uploaded") @Pattern(regexp = "DOCUMENT", message = "cannot be null") String fileType,
+        @Schema(anyOf = FileType.class, example = "DOCUMENT", description = "pass the type of the document uploaded") @NotNull(message = "cannot be null") FileType fileType,
         @Schema(example = "application/pdf", description = "Pass the content type of the document.") @NotBlank(message = "Cannot be blank") String contentType,
         @Schema(example = "40 Adepoju Street, Ikate, Lagos", description = "Pass your house address.") @NotBlank(message = "Cannot be blank") String houseAddress,
         @Schema(example = "Lekki", description = "Pass the city you reside in.") @NotBlank(message = "Cannot be blank") String city,
