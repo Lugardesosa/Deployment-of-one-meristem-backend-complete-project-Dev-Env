@@ -10,11 +10,11 @@ import org.meristem.oneapp.walletservice.domains.enums.*;
 import org.meristem.oneapp.walletservice.domains.requests.ProvidusAccountFundedEventRequest;
 import org.meristem.oneapp.walletservice.domains.responses.ProvidusTransactionResponse;
 import org.meristem.oneapp.walletservice.mappers.TransactionsMapper;
-import org.meristem.oneapp.walletservice.models.ProvidusBankCodes;
+import org.meristem.oneapp.walletservice.models.Banks;
 import org.meristem.oneapp.walletservice.models.Transactions;
 import org.meristem.oneapp.walletservice.models.VirtualAccounts;
 import org.meristem.oneapp.walletservice.models.Wallets;
-import org.meristem.oneapp.walletservice.repositories.ProvidusBankCodesRepository;
+import org.meristem.oneapp.walletservice.repositories.BanksRepository;
 import org.meristem.oneapp.walletservice.repositories.TransactionsRepository;
 import org.meristem.oneapp.walletservice.repositories.VirtualAccountRepository;
 import org.meristem.oneapp.walletservice.repositories.WalletRepository;
@@ -37,7 +37,7 @@ public class TransactionService {
     private final WalletRepository walletRepository;
     private final TransactionsMapper transactionsMapper = TransactionsMapper.INSTANCE;
     private final TransactionsRepository transactionsRepository;
-    private final ProvidusBankCodesRepository providusBankCodesRepository;
+    private final BanksRepository banksRepository;
     private final KafkaSenderService kafkaSenderService;
 
     @Transactional
@@ -47,7 +47,7 @@ public class TransactionService {
 
             getWalletsById(virtualAccounts.getWalletId()).ifPresent(wallets -> {
                 String bankCode = request.data().sessionId().substring(0, 6);
-                ProvidusBankCodes bankCodes = providusBankCodesRepository.findByBankCode(bankCode);
+                Banks bankCodes = banksRepository.findBanksByProviderCodeAndBankCode(ProviderCode.PROVIDUS.getValue(), bankCode);
 
                 Transactions transactions = transactionsMapper.providusTransactionsToTransactions(request);
                 transactions.setWalletId(wallets.getId());
