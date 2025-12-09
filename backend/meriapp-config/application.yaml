@@ -159,3 +159,11 @@ paystack:
   api:
     baseUrl: ${PAYSTACK_API_BASE_URL}
     secretKey: ${PAYSTACK_SECRET_KEY}
+
+
+encryption:
+  algorithm_gcm: ${ENC_ALGORITHM_GCM}
+  algorithm: ${ENC_ALGORITHM}
+  salt: ${ENC_SALT}
+  iv:
+    size: 12
