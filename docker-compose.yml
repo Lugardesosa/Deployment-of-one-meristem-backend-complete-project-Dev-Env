@@ -542,7 +542,7 @@ services:
       - GATEWAY_SERVICE_HOSTNAME=cloud-gateway
       - GATEWAY_SERVICE_PORT=20010
       - CONSUL_HOST=consul
-      - ALLOWED_ORIGINS=http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,https://onemeristemwebdev.meristemng.com
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=cloud-gateway
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
