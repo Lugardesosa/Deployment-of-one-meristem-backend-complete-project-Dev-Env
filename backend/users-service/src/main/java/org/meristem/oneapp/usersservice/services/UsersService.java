@@ -2,6 +2,7 @@ package org.meristem.oneapp.usersservice.services;
 
 
 import com.obs.services.model.HttpMethodEnum;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
@@ -535,5 +536,11 @@ public class UsersService {
         int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
         clearUsersCache();
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse verifyPin(VerifyPinRequest request) {
+
+        return UpdateResponse.builder().success(passwordEncoder.matches(request.pin(), usersRepository
+                .findPinByEmailOrPhoneNumber(AppUtil.getLoggedInUserId()))).message("Pin verified").build();
     }
 }

@@ -725,6 +725,7 @@ $$
         AdminChangePasswordID     integer;
         UsersChangeAvatarID       integer;
         UsersChangePinID          integer;
+        UsersVerifyPinID          integer;
         AdminChangeDobID          integer;
         AdminSelectionUpdateID    integer;
         AdminFormItemUpdateID     integer;
@@ -944,6 +945,10 @@ $$
         RETURNING id INTO UsersChangePinID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.pin')
+        RETURNING id INTO UsersVerifyPinID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob')
         RETURNING id INTO AdminChangeDobID;
 
@@ -1026,6 +1031,7 @@ $$
                (RolesAdminID, AdminChangeGenderID),
                (RolesUserID, UsersChangeAvatarID),
                (RolesUserID, UsersChangePinID),
+               (RolesUserID, UsersVerifyPinID),
                (RolesUserID, UsersDeactivateAccountID),
                (RolesUserID, UsersGetAvatarID),
                (RolesUserID, UsersPhoneNumberUpdateID),

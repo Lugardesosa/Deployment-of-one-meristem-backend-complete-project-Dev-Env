@@ -259,4 +259,14 @@ public class UsersController {
     public ResponseEntity<AppResponse<UpdateResponse>> interestFree(@Valid @RequestBody InterestSharingRequest request) {
         return ApiUtil.buildResponse(usersService.interestFree(request), HttpStatus.OK.toString(), "Successful");
     }
+
+    @Operation(summary = "Approve all data sharing")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approve all data sharing")
+    })
+    @PreAuthorize("hasRole('ROLE_users.verify.pin')")
+    @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
+        return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
+    }
 }
