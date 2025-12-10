@@ -756,6 +756,7 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.gender'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.avatar'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.pin'),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.pin'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.deactivate.account'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get.images'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'super_admin.admin.create');
@@ -916,6 +917,11 @@ SET @UsersChangeAvatarID = (SELECT id
 SET @UsersChangePinID = (SELECT id
                          FROM permissions
                          WHERE name = 'users.change.pin');
+
+SET @UsersVerifyPinID = (SELECT id
+                         FROM permissions
+                         WHERE name = 'users.verify.pin');
+
 SET @UsersDeactivateAccountID = (SELECT id
                                  FROM permissions
                                  WHERE name = 'users.deactivate.account');
@@ -978,6 +984,7 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesAdminID, @AdminChangeGenderID),
        (@RolesUserID, @UsersChangeAvatarID),
        (@RolesUserID, @UsersChangePinID),
+       (@RolesUserID, @UsersVerifyPinID),
        (@RolesUserID, @UsersDeactivateAccountID),
        (@RolesUserID, @UsersGetAvatarID),
        (@RolesSuperAdminID, @SuperAdminAdminCreateID);
