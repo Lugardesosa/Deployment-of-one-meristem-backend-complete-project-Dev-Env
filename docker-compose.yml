@@ -77,6 +77,9 @@ services:
       - SPRING_CLOUD_CONFIG_SERVER_GIT_TIMEOUT=30  # Default is 5s (often too short)
       - SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESH_RATE=10  # Check for updates every 10s
       - H2_PASSWORD=${H2_PASSWORD} 
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
     restart: unless-stopped
 
   # --------------------
@@ -204,6 +207,9 @@ services:
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - OKHI_HEADER_VALUE=18094500-14e3-498a-b1ab-9c874392a9b8
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -278,8 +284,11 @@ services:
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - MAIL_SENDER_NAME=One Meristem
       - MAILER_PORT=2525
-      - EXPO_URL=https://exp.host/--/api/v2
-      - EXPO_PUSH_TOKEN=Mv4GbMdYQBYIDTagCVNw7N0bcADZAre5o8bsB1fp
+      - EXPO_URL=https://exp.host/--/api/v2 
+      - EXPO_PUSH_TOKEN=${EXPO_PUSH_TOKEN}
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -343,6 +352,9 @@ services:
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=report-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -412,6 +424,9 @@ services:
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - PAYSTACK_API_BASE_URL=https://api.paystack.co
       - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wallet-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -475,6 +490,9 @@ services:
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=trustees-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -543,6 +561,9 @@ services:
       - GATEWAY_SERVICE_PORT=20010
       - CONSUL_HOST=consul
       - ALLOWED_ORIGINS=http://localhost:3000,https://onemeristemwebdev.meristemng.com
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=cloud-gateway
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
