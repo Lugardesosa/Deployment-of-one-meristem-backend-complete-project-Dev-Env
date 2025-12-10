@@ -18,10 +18,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -152,6 +155,22 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return handleExceptionInternal("Unauthorized request", HttpStatus.UNAUTHORIZED, request, List.of("Your are not authorized to make this call"));
     }
 
+    @ExceptionHandler({AccessDeniedException.class})
+    protected ResponseEntity<ErrorDetails> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        return handleExceptionInternal("Unauthorized request", HttpStatus.FORBIDDEN, request, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler({HandlerMethodValidationException.class})
+    protected ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(HandlerMethodValidationException ex, WebRequest request) {
+        Map<String, Object> properties = new HashMap<>();
+        for (int i = 0; i < ex.getParameterValidationResults().size(); i++) {
+            ParameterValidationResult parameterValidationResult = ex.getParameterValidationResults().get(i);
+            properties.put(parameterValidationResult.getMethodParameter().getParameter().getName(), String.format("%s is invalid. %s", parameterValidationResult.getArgument(), ex.getDetailMessageArguments()[i]));
+        }
+
+        return createProblemDetail(ex, HttpStatus.BAD_REQUEST, properties);
+    }
+
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
         // TODO: DELETE THE LOG STATEMENT
@@ -169,7 +188,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return new ResponseEntity<>(apiError, status);
     }
 
-    private ResponseEntity<ProblemDetail> createProblemDetail(Exception ex, WebRequest request, HttpStatus status, Map<String, Object> properties) {
+    private ResponseEntity<ProblemDetail> createProblemDetail(Exception ex, HttpStatus status, Map<String, Object> properties) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         detail.setProperties(properties);
         return new ResponseEntity<>(detail, status);

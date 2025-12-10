@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -29,11 +30,13 @@ public class UsersServiceApplication {
     }
 
     @Bean
+    @Profile("!prod")
     public CommandLineRunner warmUp(CacheManager cacheManager, KafkaTemplate<String, String> kafkaTemplate) {
 
         return args -> {
             try {
                 requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).clear();
+                requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).clear();
                 kafkaTemplate.send(KafkaTopics.KAFKA_HEALTH_TOPIC, "ping");
             } catch (Exception e) {
                 log.error(e.getMessage());

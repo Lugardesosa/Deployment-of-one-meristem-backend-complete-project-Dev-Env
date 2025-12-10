@@ -172,8 +172,6 @@ CREATE TABLE user_profile
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
     biometric_enabled    BOOLEAN DEFAULT FALSE                   NOT NULL,
-    password_set         BOOLEAN DEFAULT FALSE                   NOT NULL,
-    email_verified       BOOLEAN DEFAULT FALSE                   NOT NULL,
     interest_free_investment       BOOLEAN DEFAULT FALSE,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
@@ -226,7 +224,7 @@ CREATE TABLE id_card
     version            INT,
     status             INT DEFAULT 1                           NOT NULL,
     id_card_type       VARCHAR(30)                             NOT NULL,
-    id_value           VARCHAR(30)                             NOT NULL,
+    id_value           VARCHAR(300)                             NOT NULL,
     issued_date        VARCHAR(20),
     expiry_date        VARCHAR(20),
     user_id            BIGINT                                  NOT NULL,
@@ -711,6 +709,7 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.otp.send'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.otp.verify'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.risk.update'),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.id.query'),
 
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.add'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.remove'),
@@ -750,7 +749,6 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.transactions.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.next_of_kin.update'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.phone-number.update'),
-       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.email.update'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.selection.update'),
@@ -770,6 +768,9 @@ SET @UsersInstrumentDataShareID = (SELECT id
 SET @UsersGetID = (SELECT id
                    FROM permissions
                    WHERE name = 'users.get');
+SET @UsersBvnQueryID = (SELECT id
+                   FROM permissions
+                   WHERE name = 'users.id.query');
 
 SET @UsersResolveBankID = (SELECT id
                    FROM permissions
@@ -893,9 +894,7 @@ SET @AdminNextOfKinUpdateID = (SELECT id
 SET @UsersPhoneNumberUpdateID = (SELECT id
                                  FROM permissions
                                  WHERE name = 'users.phone-number.update');
-SET @UsersEmailUpdateID = (SELECT id
-                           FROM permissions
-                           WHERE name = 'users.email.update');
+
 SET @AdminChangePasswordID = (SELECT id
                               FROM permissions
                               WHERE name = 'admin.change.password');
@@ -930,6 +929,7 @@ SET @SuperAdminAdminCreateID = (SELECT id
 INSERT INTO roles_permissions (roles_id, permissions_id)
 VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersOtpSendID),
+       (@RolesUserID, @UsersBvnQueryID),
        (@RolesUserID, @UsersOtpVerifyID),
        (@RolesUserID, @UsersRiskUpdateID),
        (@RolesUserID, @UsersInstrumentDataShareID),
@@ -971,7 +971,6 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersGetSmileIdTokenID),
        (@RolesAdminID, @AdminNextOfKinUpdateID),
        (@RolesUserID, @UsersPhoneNumberUpdateID),
-       (@RolesUserID, @UsersEmailUpdateID),
        (@RolesAdminID, @AdminChangePasswordID),
        (@RolesAdminID, @AdminChangeDobID),
        (@RolesAdminID, @AdminSelectionUpdateID),

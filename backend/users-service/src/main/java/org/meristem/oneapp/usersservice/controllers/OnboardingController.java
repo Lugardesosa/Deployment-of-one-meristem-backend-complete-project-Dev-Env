@@ -6,11 +6,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
-import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
+import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.OnboardingService;
 import org.meristem.oneapp.usersservice.services.SmileIdService;
@@ -110,5 +109,25 @@ public class OnboardingController {
     @PostMapping(value = "/submit-address", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<AddressVerificationResponse>> submitAddress(@RequestBody @Valid AddressVerificationRequest request) {
         return ApiUtil.buildResponse(onboardingService.submitAddress(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Query BVN Details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Query BVN Details")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_users.id.query')")
+    @PostMapping(value = "/bvn-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<BvnQueryResponse>> bvnQuery(@RequestBody @Valid BvnQueryRequest request) {
+        return ApiUtil.buildResponse(smileIdService.bvnQuery(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get customer's id number")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get customer's BVN")
+    })
+    @PreAuthorize("hasRole('ROLE_users.id.query')")
+    @GetMapping(value = "/id-number", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GetIdNumberResponse>> getIdNumber(@Pattern(regexp = "^BVN|NIN$", message = "Pass a valid id type (BVN or NIN)") @RequestParam String idType) {
+        return ApiUtil.buildResponse(onboardingService.getIdNumber(idType), HttpStatus.OK.toString(), "Successful");
     }
 }

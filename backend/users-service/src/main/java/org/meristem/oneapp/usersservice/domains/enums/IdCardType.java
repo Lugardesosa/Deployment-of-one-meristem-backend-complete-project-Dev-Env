@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum IdCardType {
 
+    BVN("BVN", "Bvn"),
     NIN("NIN", "Nin"),
     DRIVERS_LICENSE("DRIVERS_LICENSE", "Driver's License"),
     INTERNATIONAL_PASSPORT("PASSPORT", "International Passport"),
@@ -18,7 +19,7 @@ public enum IdCardType {
 
     public static IdCardType fromName(String name) {
         return switch (name) {
-            case "NIN_SLIP", "NIN" -> NIN;
+            case "NIN_SLIP", "NIN", "NIN_V2" -> NIN;
             case "DRIVERS_LICENSE" -> DRIVERS_LICENSE;
             case "PASSPORT", "INTERNATIONAL_PASSPORT" -> INTERNATIONAL_PASSPORT;
             case "VOTER_ID", "VOTERS_CARD" -> VOTERS_CARD;

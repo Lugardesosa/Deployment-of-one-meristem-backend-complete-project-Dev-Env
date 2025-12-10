@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
-import org.meristem.oneapp.kafka.dtos.OtpVerifiedDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
+import org.meristem.oneapp.usersservice.config.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -20,20 +20,25 @@ import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.*;
+import static java.util.Objects.isNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Service class for managing user-related operations.
@@ -62,25 +67,59 @@ public class UsersService {
     private final HuaweiService huaweiService;
     private final GeneralRepository generalRepository;
     private final CustomRepository customRepository;
+    private final EncryptionUtil encryptionUtil;
+    private final IdCardRepository idCardRepository;
 
-    /**
-     * Creates a new user after validating the request and OTP.
-     *
-     * @param userRequest the request containing user details
-     * @return the created user's response
-     * @throws BadRequestException if the email or phone number already exists, or OTP is invalid/expired
-     */
     @Transactional
-    public  UsersResponse createUser(CreateUserRequest userRequest) {
-        if (usersRepository.existsByEmailOrPhoneNumber(userRequest.email(), userRequest.phoneNumber())) {
+    public  UpdateResponse create(CreateUserRequest request) {
+        if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        Users user = usersMapper.createUserRequestToUsers(userRequest);
-        user.setStatus(UserStatus.EMAIL_NOT_VERIFIED.getValue());
+        String bvn = requireNonNull(encryptionUtil.encrypt(request.bvn()), "Bvn cannot be null.");
+
+        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
+                .email(request.email()).firstName(request.firstName()).lastName(request.lastName())
+                .phoneNumber(request.phoneNumber()).bvn(bvn)
+                .build();
+        requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
+
+        return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    @Transactional
+    public UpdateResponse setPassword(SetPasswordRequest userRequest) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+        BvnQueryResponse bvnQueryResponse = cache.get(userRequest.email(), BvnQueryResponse.class);
+
+        if (bvnQueryResponse == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+
+        if (!bvnQueryResponse.isEmailVerified()) {
+            throw new BadRequestException("Email not verified.");
+        }
+        Users user = usersMapper.bvnQueryResponseToUsers(bvnQueryResponse);
+
+        user.setPassword(passwordEncoder.encode(userRequest.password()));
+        save(user, bvnQueryResponse.getBvn());
+        cache.evict(userRequest.email());
+        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+    }
+
+    public  UsersResponse save(Users user, String bvn) {
+        if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
+            throw new BadRequestException("Email or Phone number already exists.");
+        }
+
+        user.setStatus(UserStatus.ACTIVE.getValue());
         user = usersRepository.save(user);
 
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userRequest.email(), userRequest.phoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
+        idCardRepository.save(IdCard.builder().idValue(bvn)
+                .idCardType(IdCardType.BVN.getName())
+                .userId(user.getId())
+                .build());
 
         UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(AppUtil.generateReferralCode(user.getFirstName())).build();
 
@@ -93,61 +132,11 @@ public class UsersService {
                     userOnboardingRepository.save(userOnboarding);
                 });
         customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
-                        .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
+                .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
         customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
         return usersMapper.usersToUserResponse(user);
-    }
-
-    /**
-     * Sets an initial password for a user who currently has no password.
-     * If the user is found, hashes and saves the provided password, marks the profile as passwordSet,
-     * and activates the account if the email is already verified.
-     *
-     * @param userRequest payload containing the user's email and desired password
-     * @return UpdateResponse indicating whether the operation succeeded
-     */
-
-
-    public UpdateResponse setPassword(SetPasswordRequest userRequest) {
-        Optional<Users> users = usersRepository.findOneByEmailAndPasswordIsNull(userRequest.email());
-        if (users.isEmpty()) {
-            throw new BadRequestException("Password already set or user not found. Please contact support if the issue persists.");
-        }
-        Users user = users.get();
-        user.setPassword(passwordEncoder.encode(userRequest.password()));
-        usersRepository.save(user);
-
-        Optional<UserProfile> userProfile = userProfileRepository.findByUserId(user.getId());
-        userProfile.ifPresent(up -> {
-            up.setPasswordSet(true);
-            if (up.getEmailVerified())
-                up.setStatus(UserStatus.ACTIVE.getValue());
-            userProfileRepository.save(up);
-        });
-        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
-    }
-
-    /**
-     * Marks a user's email as verified and updates status/cache accordingly.
-     * If the user has already set a password, their overall status is set to ACTIVE.
-     * Also flags email_verified on the user profile and evicts the cache entry for the email.
-     *
-     * @param dto payload containing the verified email
-     */
-    public void emailVerified(OtpVerifiedDto dto) {
-        Optional<Users> users = usersRepository.findOneByEmailAndEmailVerifiedIsNull(dto.email());
-        users.ifPresent(user -> {
-            if (!user.getEmail().equals(dto.email())) return;
-            if (nonNull(user.getPassword()))
-                user.setStatus(UserStatus.ACTIVE.getValue());
-            usersRepository.save(user);
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("email_verified", true);
-            customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", user.getId()));
-            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(user.getId());
-        });
     }
 
     /**
@@ -160,9 +149,14 @@ public class UsersService {
      */
     public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
 
-        Long userId = AppUtil.getLoggedInUserId();
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
-        if (userRequest.newEmail().equals(AppUtil.getLoggedInUserEmail())) {
+        BvnQueryResponse response = cache.get(userRequest.oldEmail(), BvnQueryResponse.class);
+
+        if (response == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+        if (userRequest.newEmail().equals(userRequest.oldEmail())) {
             throw new BadRequestException("Email cannot be the same as your current email.");
         }
 
@@ -170,12 +164,9 @@ public class UsersService {
             throw new BadRequestException("Email already in use.");
         }
 
-        if (userProfileRepository.existsByUserIdAndEmailVerified(userId, true)) {
-            throw new BadRequestException("Email already verified, so cannot be updated.");
-        }
-
-        usersRepository.updateEmail(userId, userRequest.newEmail());
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        response.setEmail(userRequest.newEmail());
+        cache.put(response.getEmail(), response);
+        cache.evict(userRequest.oldEmail());
 
         return UpdateResponse.builder().success(true).message("Email successfully updated").build();
     }
@@ -197,7 +188,7 @@ public class UsersService {
         }
         boolean allDataShared = response.userInstrumentResponses().stream().allMatch(i -> i.dataSharingAllowed() == true);
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
-                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.passwordSet(), response.emailVerified(), response.referralCode(),
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(),
                 response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), response.pinSet(),
                 response.interestFreeInvestment(), response.interestFreeInvestmentSet());
     }
