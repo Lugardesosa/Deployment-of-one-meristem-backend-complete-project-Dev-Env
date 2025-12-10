@@ -15,6 +15,7 @@ import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -67,9 +68,10 @@ public class AppConfig {
     public RedisCacheManagerBuilderCustomizer cacheManagerBuilderCustomizer() {
         return builder -> builder
 
-                .withCacheConfiguration("users", defaultCacheConfiguration())
-                .withCacheConfiguration("avatars", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(50)))
-                .withCacheConfiguration("settings", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
+                .withCacheConfiguration(AppConstants.USERS_CACHE_NAME, defaultCacheConfiguration())
+                .withCacheConfiguration(AppConstants.AVATAR_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(50)))
+                .withCacheConfiguration(AppConstants.SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
+                .withCacheConfiguration(AppConstants.SETTINGS_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
 
 

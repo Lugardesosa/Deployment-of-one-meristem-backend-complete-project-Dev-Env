@@ -14,6 +14,7 @@ import org.meristem.oneapp.usersservice.domains.enums.MessageSubject;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
+import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -22,13 +23,17 @@ import org.meristem.oneapp.usersservice.models.OtpVerification;
 import org.meristem.oneapp.usersservice.repositories.OtpVerificationRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -45,6 +50,7 @@ public class OtpService {
     private final KafkaSenderService kafkaSenderService;
     private final OtpVerificationRepository otpVerificationRepository;
     private final UsersRepository usersRepository;
+    private final CacheManager cacheManager;
 
 
     /**
@@ -142,9 +148,19 @@ public class OtpService {
         otpVerification.setVerified(true);
         otpVerificationRepository.save(otpVerification);
 
+
         if (request.otpType().equals(MessageSubject.EMAIL_VERIFICATION.getCode())) {
+            Cache cache = Objects.requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+            BvnQueryResponse bvnQueryResponse = cache.get(otpVerification.getUserId(), BvnQueryResponse.class);
+            if (bvnQueryResponse == null) {
+                throw new AccessDeniedException("Initial sign up details not found.");
+            }
+            bvnQueryResponse.setEmailVerified(true);
+            cache.put(otpVerification.getUserId(), bvnQueryResponse);
+            otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), bvnQueryResponse.getEmail(), bvnQueryResponse.getPhoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
             kafkaSenderService.send(new OtpVerifiedDto(otpVerification.getUserId()), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC));
         }
+
         return VerifyOtpResponse.builder().status(true).message("OTP verified").build();
     }
 }

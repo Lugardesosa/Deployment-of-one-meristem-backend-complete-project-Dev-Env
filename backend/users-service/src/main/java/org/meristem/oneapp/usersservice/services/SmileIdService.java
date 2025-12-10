@@ -9,12 +9,17 @@ import org.meristem.oneapp.usersservice.config.configProperties.SmileIdPropertie
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.requests.BvnQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
+import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
+import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
+import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
+import org.meristem.oneapp.usersservice.integrations.responses.SmileIdEnhancedKycResponse;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -34,6 +39,7 @@ import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -57,8 +63,12 @@ import static java.util.Objects.requireNonNull;
 @Service
 public class SmileIdService {
 
+    public static final String ID_APPROVED_STATUS = "1012";
     @Value("${one-app.users-service.smile-id.server-ips}")
     private List<String> smileIps;
+
+    @Value("${one-app.users-service.smile-id.partner-id}")
+    private String partnerId;
     private static final String DOCUMENT_APPROVED_STATUS = "0810";
     private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
@@ -77,14 +87,40 @@ public class SmileIdService {
     private final CustomRepository customRepository;
     private final HttpServletRequest httpServletRequest;
     private final KafkaSenderService kafkaSenderService;
-
-
+    private final SmileIdClient smileIdClient;
     private final SmileIdProperties smileIdProperties;
 
-    List<String> dataStatus = List.of("1012", DOCUMENT_APPROVED_STATUS);
+    List<String> dataStatus = List.of(ID_APPROVED_STATUS, DOCUMENT_APPROVED_STATUS);
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
+    List<String> errorCodes = List.of("1013", "1014");
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
+
+
+
+    public BvnQueryResponse bvnQuery(BvnQueryRequest request) {
+
+        SmileIdEnhancedKycRequest.PartnerParams  partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
+                .job_id(UUID.randomUUID().toString())
+                .job_type(ENHANCED_JOB_TYPE)
+                .user_id(UUID.randomUUID().toString())
+                .build();
+        String timestamp = AppUtil.getSmileIdTimestamp();
+        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.bvn(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
+
+        SmileIdEnhancedKycResponse response = smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
+
+        if (ID_APPROVED_STATUS.equals(response.resultCode()) && confirmSignature(response.signature(), response.timestamp())) {
+
+            return BvnQueryResponse.builder()
+                    .email(response.email()).firstName(response.firstName()).lastName(response.lastName())
+                    .phoneNumber(response.phoneNumber()).build();
+        } else if (errorCodes.contains(response.resultCode())) {
+            throw new BadRequestException("Enter a valid bvn");
+        } else {
+            throw new BadRequestException("Try again later.");
+        }
+    }
 
     /**
      * Generates a Smile ID smart link for user verification.
@@ -242,12 +278,14 @@ public class SmileIdService {
         userDocumentRepository.save(document);
 
         if (AppUtil.nonIsNull(notification.idNumber(), notification.idType())) {
-            idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
-                    .idCardType(notification.idType())
-                    .expiryDate(notification.expirationDate())
-                    .issuedDate(notification.issuanceDate())
-                    .userId(loggedInUser.getId())
-                    .build());
+            idCardRepository.findIdCardByIdCardTypeAndIdValue(IdCardType.fromName(notification.idType()).getName(), notification.idNumber())
+                    .ifPresentOrElse(id -> {
+                    }, () -> idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
+                            .idCardType(notification.idType())
+                            .expiryDate(notification.expirationDate())
+                            .issuedDate(notification.issuanceDate())
+                            .userId(loggedInUser.getId())
+                            .build()));
         }
 
         if (OnboardingRequirements.of(notification.idType()) == OnboardingRequirements.BVN) {
@@ -310,6 +348,16 @@ public class SmileIdService {
         mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
         mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
         return mac;
+    }
+
+    private String getSignature(String timestamp) {
+
+        try {
+            return Base64.getEncoder().encodeToString(getMac(timestamp).doFinal());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new BadRequestException("Bad request: invalid request");
+        }
     }
 
     /**

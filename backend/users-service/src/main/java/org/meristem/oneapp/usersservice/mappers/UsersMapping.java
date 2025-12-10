@@ -5,6 +5,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
+import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.CountriesResponse;
 import org.meristem.oneapp.usersservice.domains.responses.StatesResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
@@ -25,4 +26,6 @@ public interface UsersMapping {
     List<CountriesResponse> countriesToCountriesResponse(List<Countries> content);
 
     List<StatesResponse> countryStatesToStatesResponseResponse(List<CountryStates> content);
+
+    Users bvnQueryResponseToUsers(BvnQueryResponse bvnQueryResponse);
 }

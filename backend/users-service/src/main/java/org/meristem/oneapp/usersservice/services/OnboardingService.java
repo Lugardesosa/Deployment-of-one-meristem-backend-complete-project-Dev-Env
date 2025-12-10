@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.usersservice.config.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
@@ -44,6 +45,8 @@ public class OnboardingService {
     private final CustomRepository customRepository;
     private final HttpServletRequest httpServletRequest;
     private final FilesRepository filesRepository;
+    private final IdCardRepository idCardRepository;
+    private final EncryptionUtil encryptionUtil;
 
     @Value("${one-app.users-service.okhi.header-value}")
     private String okhiHeaderId;
@@ -232,5 +235,10 @@ public class OnboardingService {
                 .documentKey(request.fileKey())
                 .build()));
         return AddressVerificationResponse.builder().message("Successful").status(true).build();
+    }
+
+    public GetIdNumberResponse getIdNumber(String idType) {
+        String idNumber = idCardRepository.findIdCardValueByUserId(AppUtil.getLoggedInUserId(), idType);
+        return new GetIdNumberResponse(encryptionUtil.decrypt(idNumber));
     }
 }

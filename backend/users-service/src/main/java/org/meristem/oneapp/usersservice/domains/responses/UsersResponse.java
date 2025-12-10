@@ -61,12 +61,6 @@ public record UsersResponse(
         @Schema(description = "Date of birth.", type = "string", format = "date", example = "1990-05-12")
         LocalDate dateOfBirth,
 
-        @Schema(description = "Whether the user has set a password.", example = "true")
-        Boolean passwordSet,
-
-        @Schema(description = "Whether the user's email has been verified.", example = "false")
-        Boolean emailVerified,
-
         @Column("referral_code")
         @Schema(description = "Referral code associated with the user's account.", example = "REF-1A2B3C")
         String referralCode,
@@ -106,18 +100,18 @@ public record UsersResponse(
 ) implements Serializable {
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                         String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared, Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet);
+                         String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared, Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet) {
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet);
     }
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                         String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, Boolean biometricEnabled) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, null, null, null, biometricEnabled, null, null, null);
+                         String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, Boolean biometricEnabled) {
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, referralCode, onboardingCompleted, null, null, null, biometricEnabled, null, null, null);
     }
 
     public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                                     String image, String gender, LocalDate dateOfBirth, Boolean passwordSet, Boolean emailVerified, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared, Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet) {
-        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, passwordSet, emailVerified, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet);
+                                     String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared, Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet) {
+        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet);
     }
 
     @Schema(name = "UserInstrumentResponse", description = "Instrument access information for the user.")
