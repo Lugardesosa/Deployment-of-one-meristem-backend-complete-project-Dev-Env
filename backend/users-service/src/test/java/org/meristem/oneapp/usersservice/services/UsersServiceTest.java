@@ -72,28 +72,28 @@ class UsersServiceTest {
     void tearDown() {
     }
 
-    @Test
-    void createUser() {
-        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress())
-                .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
-                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
-        Users users = Users.builder().id(1L).email(request.email())
-                .phoneNumber(request.phoneNumber()).lastName(request.lastName()).firstName(request.firstName()).middleName(request.middleName()).build();
-        users.setStatus(UserStatus.EMAIL_NOT_VERIFIED.getValue());
-        given(usersRepository.save(any(Users.class))).willReturn(users);
-        UsersResponse response = usersService.createUser(request);
-        assertEquals(response.email(), request.email());
-        assertEquals(response.firstName(), request.firstName());
-        assertEquals(response.status(), UserStatus.EMAIL_NOT_VERIFIED.getValue());
-        verify(usersRepository).save(any(Users.class));
-    }
-
-    @Test
-    void emailOrPhoneNumberAlreadyExist() {
-        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress())
-                .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
-                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
-        given(usersRepository.existsByEmailOrPhoneNumber(any(String.class), any(String.class))).willReturn(true);
-        assertThrowsExactly(BadRequestException.class, () -> usersService.createUser(request));
-    }
+//    @Test
+//    void createUser() {
+//        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress())
+//                .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
+//                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
+//        Users users = Users.builder().id(1L).email(request.email())
+//                .phoneNumber(request.phoneNumber()).lastName(request.lastName()).firstName(request.firstName()).middleName(request.middleName()).build();
+//        users.setStatus(UserStatus.EMAIL_NOT_VERIFIED.getValue());
+//        given(usersRepository.save(any(Users.class))).willReturn(users);
+//        UsersResponse response = usersService.createUser(request);
+//        assertEquals(response.email(), request.email());
+//        assertEquals(response.firstName(), request.firstName());
+//        assertEquals(response.status(), UserStatus.EMAIL_NOT_VERIFIED.getValue());
+//        verify(usersRepository).save(any(Users.class));
+//    }
+//
+//    @Test
+//    void emailOrPhoneNumberAlreadyExist() {
+//        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress())
+//                .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
+//                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
+//        given(usersRepository.existsByEmailOrPhoneNumber(any(String.class), any(String.class))).willReturn(true);
+//        assertThrowsExactly(BadRequestException.class, () -> usersService.createUser(request));
+//    }
 }

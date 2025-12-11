@@ -30,14 +30,14 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("INSERT INTO users_roles(users_id, roles_id) VALUES (:users_id, :rolesId)")
     void saveRole(Long users_id, Long rolesId);
 
-    @Query(value = "SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed, up.biometric_enabled, up.password_set, up.email_verified, up.interest_free_investment " +
+    @Query(value = "SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed, up.biometric_enabled, up.interest_free_investment " +
             "FROM users u LEFT JOIN user_profile up ON u.id = up.user_id " +
             "WHERE u.email = :email AND u.password IS NOT NULL ", rowMapperClass = UserResponseRowMapper.class)
     Optional<UsersResponse> findUserDetailsByEmail(String email);
 
     // TODO: INCREASE up COLUMNS AS THE TABLE INCREASES
     @Cacheable(value = "users", key = "#a0", unless = "#result == null")
-    @Query(value = "SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed, up.biometric_enabled, up.password_set, up.email_verified, up.interest_free_investment, ii.code, ii.id AS iiid, ii.name, ia.data_sharing_allowed, ia.accessed, " +
+    @Query(value = "SELECT u.*, up.image_key, up.pin, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed, up.biometric_enabled, up.interest_free_investment, ii.code, ii.id AS iiid, ii.name, ia.data_sharing_allowed, ia.accessed, " +
             "io.id AS o_iiid, io.name AS o_name, ioa.accessed AS o_accessed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id " +
             "LEFT JOIN user_instrument ia ON ia.user_id = u.id LEFT JOIN investment_instruments ii ON ii.id = ia.instrument_id " +
             " LEFT JOIN investment_options io ON io.investment_id = ii.id LEFT JOIN investment_options_accessed ioa ON ioa.option_id = io.id " +
@@ -85,11 +85,6 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     KycCompletedDto getUserKyc(String userId);
 
     Optional<Users> findOneByEmailAndPasswordIsNull(String email);
-
-    @Query("SELECT u.* FROM users u " +
-            "LEFT JOIN user_profile up ON up.user_id = u.id " +
-            " WHERE u.email = :email AND up.email_verified = FALSE ")
-    Optional<Users> findOneByEmailAndEmailVerifiedIsNull(String email);
 
     @Modifying
     @Transactional

@@ -32,4 +32,7 @@ public final class AppConstants {
     public static final String RE_PASSWORD = "password";
     public static final String DATE_REGEX = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
     public static final String APPLICATION_JSON_UTF8_VALUE = "application/json;charset=UTF-8";
+    public static final String AVATAR_CACHE_NAME = "avatars";
+    public static final String SIGN_UP_CACHE_NAME = "sign-ups";
+    public static final String SETTINGS_CACHE_NAME = "settings";
 }

@@ -172,8 +172,6 @@ CREATE TABLE user_profile
     referral_code        VARCHAR(15)                             NOT NULL,
     onboarding_completed BOOLEAN DEFAULT FALSE                   NOT NULL,
     biometric_enabled BOOLEAN DEFAULT FALSE                      NOT NULL,
-    password_set         BOOLEAN DEFAULT FALSE                   NOT NULL,
-    email_verified       BOOLEAN DEFAULT FALSE                   NOT NULL,
     interest_free_investment       BOOLEAN DEFAULT FALSE,
     CONSTRAINT pk_user_profile PRIMARY KEY (id)
 );
@@ -226,7 +224,7 @@ CREATE TABLE id_card
     version              INT,
     status               INT DEFAULT 1                           NOT NULL,
     id_card_type         VARCHAR(30)                             NOT NULL,
-    id_value             VARCHAR(30)                             NOT NULL,
+    id_value             VARCHAR(300)                             NOT NULL,
     issued_date          VARCHAR(20),
     expiry_date          VARCHAR(20),
     user_id             BIGINT                                  NOT NULL,
@@ -690,6 +688,7 @@ $$
         RolesSuperAdminID         integer;
         RolesUserID               integer;
         UsersGetID                integer;
+        UsersBvnQueryID                integer;
         UsersOtpSendID            integer;
         UsersOtpVerifyID          integer;
         UsersRiskUpdateID         integer;
@@ -726,6 +725,7 @@ $$
         AdminChangePasswordID     integer;
         UsersChangeAvatarID       integer;
         UsersChangePinID          integer;
+        UsersVerifyPinID          integer;
         AdminChangeDobID          integer;
         AdminSelectionUpdateID    integer;
         AdminFormItemUpdateID     integer;
@@ -733,7 +733,6 @@ $$
         UsersDeactivateAccountID  integer;
         UsersGetAvatarID          integer;
         UsersPhoneNumberUpdateID  integer;
-        UsersEmailUpdateID  integer;
         SuperAdminAdminCreateID   integer;
         UsersBeneficiaryAddID     integer;
         UsersBeneficiaryRemoveID  integer;
@@ -771,6 +770,10 @@ $$
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get')
         RETURNING id INTO UsersGetID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.id.query')
+        RETURNING id INTO UsersBvnQueryID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.otp.send')
@@ -930,10 +933,6 @@ $$
         RETURNING id INTO UsersPhoneNumberUpdateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.email.update')
-        RETURNING id INTO UsersEmailUpdateID;
-
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password')
         RETURNING id INTO AdminChangePasswordID;
 
@@ -944,6 +943,10 @@ $$
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.pin')
         RETURNING id INTO UsersChangePinID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.pin')
+        RETURNING id INTO UsersVerifyPinID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob')
@@ -990,6 +993,7 @@ $$
                (RolesUserID, UsersAssetAddID),
                (RolesUserID, UsersAssetRemoveID),
                (RolesUserID, UsersExecutorAddID),
+               (RolesUserID, UsersBvnQueryID),
 
                (RolesUserID, UsersAssetCreateID),
                (RolesUserID, UsersAssetGetID),
@@ -1027,10 +1031,10 @@ $$
                (RolesAdminID, AdminChangeGenderID),
                (RolesUserID, UsersChangeAvatarID),
                (RolesUserID, UsersChangePinID),
+               (RolesUserID, UsersVerifyPinID),
                (RolesUserID, UsersDeactivateAccountID),
                (RolesUserID, UsersGetAvatarID),
                (RolesUserID, UsersPhoneNumberUpdateID),
-               (RolesUserID, UsersEmailUpdateID),
                (RolesSuperAdminID, SuperAdminAdminCreateID);
     END
 $$;

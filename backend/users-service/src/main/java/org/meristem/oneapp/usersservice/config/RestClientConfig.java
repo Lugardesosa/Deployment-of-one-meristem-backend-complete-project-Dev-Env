@@ -57,7 +57,7 @@ public class RestClientConfig {
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         requestFactory.setConnectTimeout(Duration.ofSeconds(3));
-        requestFactory.setReadTimeout(Duration.ofSeconds(6));
+        requestFactory.setReadTimeout(Duration.ofSeconds(12));
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }

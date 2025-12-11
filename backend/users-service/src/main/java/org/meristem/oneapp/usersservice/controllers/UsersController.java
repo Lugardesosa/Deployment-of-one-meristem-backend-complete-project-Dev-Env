@@ -43,8 +43,8 @@ public class UsersController {
     })
     @PreAuthorize("hasAuthority('SCOPE_create_user')")
     @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UsersResponse>> createUser(@RequestBody @Valid CreateUserRequest userRequest) {
-         return ApiUtil.buildResponse(usersService.createUser(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
+    public ResponseEntity<AppResponse<UpdateResponse>> createUser(@RequestBody @Valid CreateUserRequest userRequest) {
+         return ApiUtil.buildResponse(usersService.create(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
     @Operation(summary = "Set a user's password.")
@@ -71,9 +71,9 @@ public class UsersController {
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
 
     })
-    @PreAuthorize("hasAuthority('ROLE_users.email.update')")
+    @PreAuthorize("hasAuthority('SCOPE_users.email.update')")
     @PutMapping(value = "/update-email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> createUser(@RequestBody @Valid UpdateEmailRequest request) {
+    public ResponseEntity<AppResponse<UpdateResponse>> updateEmail(@RequestBody @Valid UpdateEmailRequest request) {
         return ApiUtil.buildResponse(usersService.updateEmail(request), HttpStatus.OK.toString(), "Created successfully.");
     }
 
@@ -258,5 +258,15 @@ public class UsersController {
     @PutMapping(value = "/interest-free", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> interestFree(@Valid @RequestBody InterestSharingRequest request) {
         return ApiUtil.buildResponse(usersService.interestFree(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Approve all data sharing")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approve all data sharing")
+    })
+    @PreAuthorize("hasRole('ROLE_users.verify.pin')")
+    @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
+        return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
     }
 }

@@ -18,6 +18,10 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Objects.nonNull;
@@ -26,6 +30,8 @@ import static org.meristem.oneapp.usersservice.constants.AppConstants.specialCha
 @Slf4j
 @UtilityClass
 public final class AppUtil {
+
+    private static final String ALGORITHM = "AES";
 
     public static int randomInt(int min, int max) {
         return (int) (Math.random() * (max - min) + min);
@@ -161,11 +167,18 @@ public final class AppUtil {
                 .pinSet(rs.getString("pin") != null)
                 .password(rs.getString("password"))
                 .biometricEnabled(rs.getBoolean("biometric_enabled"))
-                .passwordSet(rs.getBoolean("password_set"))
-                .emailVerified(rs.getBoolean("email_verified"))
                 .passwordAttempt(rs.getInt("password_attempt"))
                 .interestFreeInvestment(rs.getObject("interest_free_investment", Boolean.class))
                 .interestFreeInvestmentSet(rs.getObject("interest_free_investment", Boolean.class) != null)
                 .build();
+    }
+
+    public String getSmileIdTimestamp() {
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        OffsetDateTime offsetDateTime = localDateTime.atOffset(ZoneOffset.UTC);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        return offsetDateTime.format(formatter);
     }
 }
