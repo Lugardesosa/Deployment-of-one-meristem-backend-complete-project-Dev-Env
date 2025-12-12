@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.NextOfKinService;
@@ -268,5 +270,14 @@ public class UsersController {
     @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_users.onboarding.stage')")
+    @GetMapping(value = "/process-details", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<StageResponse>> processDetails(@Pattern(regexp = AppConstants.EMAIL_REGEX_PATTERN, message = "Enter a valid email") @RequestParam(name = "email") String email) {
+        return ApiUtil.buildResponse(usersService.processDetails(email), HttpStatus.OK.toString(), "Successful");
     }
 }
