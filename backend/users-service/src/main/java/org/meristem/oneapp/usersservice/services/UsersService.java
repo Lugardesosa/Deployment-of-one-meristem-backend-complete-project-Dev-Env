@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.services;
 
 import com.obs.services.model.HttpMethodEnum;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
@@ -542,5 +543,20 @@ public class UsersService {
 
         return UpdateResponse.builder().success(passwordEncoder.matches(request.pin(), usersRepository
                 .findPinByEmailOrPhoneNumber(AppUtil.getLoggedInUserId()))).message("Pin verified").build();
+    }
+
+    public StageResponse processDetails(String email) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+        BvnQueryResponse bvnQueryResponse = cache.get(email, BvnQueryResponse.class);
+
+        if (bvnQueryResponse == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+
+        if (!bvnQueryResponse.isEmailVerified()) {
+            return new StageResponse(OnboardingStage.EMAIL);
+        }
+        return new StageResponse(OnboardingStage.PASSWORD);
     }
 }
