@@ -595,6 +595,8 @@ CREATE INDEX idx_otpver_uid_ot ON otp_verification (user_id, otp_type);
 
 CREATE INDEX idx_image_key_files ON files (file_key);
 
+CREATE INDEX user_id_user_profile ON user_profile (user_id);
+
 ALTER TABLE user_profile
     ADD CONSTRAINT uc_user_profile_user UNIQUE (user_id);
 
@@ -757,6 +759,7 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.avatar'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.pin'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.pin'),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.password'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.deactivate.account'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get.images'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'super_admin.admin.create');
@@ -922,6 +925,10 @@ SET @UsersVerifyPinID = (SELECT id
                          FROM permissions
                          WHERE name = 'users.verify.pin');
 
+SET @UsersVerifyPasswordID = (SELECT id
+                         FROM permissions
+                         WHERE name = 'users.verify.password');
+
 SET @UsersDeactivateAccountID = (SELECT id
                                  FROM permissions
                                  WHERE name = 'users.deactivate.account');
@@ -985,6 +992,7 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersChangeAvatarID),
        (@RolesUserID, @UsersChangePinID),
        (@RolesUserID, @UsersVerifyPinID),
+       (@RolesUserID, @UsersVerifyPasswordID),
        (@RolesUserID, @UsersDeactivateAccountID),
        (@RolesUserID, @UsersGetAvatarID),
        (@RolesSuperAdminID, @SuperAdminAdminCreateID);
