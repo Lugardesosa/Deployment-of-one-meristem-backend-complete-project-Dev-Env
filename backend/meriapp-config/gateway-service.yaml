@@ -58,7 +58,8 @@ spring:
 
           routes:
             - id: ${one-app.users-service.application-name}
-              uri: lb://${one-app.users-service.application-name}
+#              uri: lb://${one-app.users-service.application-name}
+              uri: ${USER_SERVICE_URI}
               predicates:
                 - Path=${one-app.users-service.context-path}/**
 
