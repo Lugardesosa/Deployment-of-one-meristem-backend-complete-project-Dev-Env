@@ -19,10 +19,10 @@ spring:
     gateway:
       server:
         webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
+#          discovery:
+#            locator:
+#              enabled: true
+#              lower-case-service-id: true
 #          filter:
 #            request-rate-limiter:
 #              deny-empty-key: false
