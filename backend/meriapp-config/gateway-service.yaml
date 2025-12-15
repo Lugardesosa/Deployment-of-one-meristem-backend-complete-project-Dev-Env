@@ -19,47 +19,46 @@ spring:
     gateway:
       server:
         webflux:
-#          discovery:
-#            locator:
-#              enabled: true
-#              lower-case-service-id: true
-#          filter:
-#            request-rate-limiter:
-#              deny-empty-key: false
-#
-#          default-filters:
-#            - name: RequestRateLimiter
-#              args:
-#                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
-#                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
-#                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
-#                redis-rate-limiter.key-resolver: '#{@keyResolver}'
-#
-#            - name: CircuitBreaker
-#              args:
-#                name: downstreamCircuitBreaker
-#                fallbackUri: forward:/fallback
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          filter:
+            request-rate-limiter:
+              deny-empty-key: false
 
-#          globalcors:
-#            add-to-simple-url-handler-mapping: true
-#            cors-configurations:
-#              '[/**]':
-#                allowed-origins: ${ALLOWED_ORIGINS}
-#                allowedMethods:
-#                  - GET
-#                  - POST
-#                  - PUT
-#                  - DELETE
-#                  - OPTIONS
-#                allowedHeaders:
-#                  - "*"
-#                allowCredentials: true
-#                maxAge: 3600
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback
+
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${ALLOWED_ORIGINS}
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
 
           routes:
             - id: ${one-app.users-service.application-name}
-#              uri: lb://${one-app.users-service.application-name}
-              uri: ${USER_SERVICE_URI}
+              uri: lb://${one-app.users-service.application-name}
               predicates:
                 - Path=${one-app.users-service.context-path}/**
 
