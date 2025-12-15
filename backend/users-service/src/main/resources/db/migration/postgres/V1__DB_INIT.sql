@@ -619,6 +619,8 @@ CREATE INDEX idx_users_email ON users (email);
 
 CREATE INDEX idx_image_key_files ON files (file_key);
 
+CREATE INDEX user_id_user_profile ON user_profile (user_id);
+
 CREATE UNIQUE INDEX idx_onbaording_user_requirement_id ON user_onboarding(user_id, requirement_id);
 
 CREATE INDEX idx_oauth2_registered_client_client_id ON oauth2_registered_client(client_id);
@@ -726,6 +728,7 @@ $$
         UsersChangeAvatarID       integer;
         UsersChangePinID          integer;
         UsersVerifyPinID          integer;
+        UsersVerifyPasswordID     integer;
         AdminChangeDobID          integer;
         AdminSelectionUpdateID    integer;
         AdminFormItemUpdateID     integer;
@@ -949,6 +952,10 @@ $$
         RETURNING id INTO UsersVerifyPinID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.password')
+        RETURNING id INTO UsersVerifyPasswordID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob')
         RETURNING id INTO AdminChangeDobID;
 
@@ -1032,6 +1039,7 @@ $$
                (RolesUserID, UsersChangeAvatarID),
                (RolesUserID, UsersChangePinID),
                (RolesUserID, UsersVerifyPinID),
+               (RolesUserID, UsersVerifyPasswordID),
                (RolesUserID, UsersDeactivateAccountID),
                (RolesUserID, UsersGetAvatarID),
                (RolesUserID, UsersPhoneNumberUpdateID),

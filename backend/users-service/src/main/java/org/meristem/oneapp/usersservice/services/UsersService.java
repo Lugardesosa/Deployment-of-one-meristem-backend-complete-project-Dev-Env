@@ -2,8 +2,6 @@ package org.meristem.oneapp.usersservice.services;
 
 
 import com.obs.services.model.HttpMethodEnum;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
@@ -326,7 +324,7 @@ public class UsersService {
 
         Long userId = AppUtil.getLoggedInUserId();
 
-        String oldPin = usersRepository.findPinByEmailOrPhoneNumber(userId);
+        String oldPin = usersRepository.findPinById(userId);
 
         if (oldPin != null && request.isNew().equals(AppConstants.IS_NEW_PIN)) {
             throw new BadRequestException("Pin has already been created for this account, you should update pin instead.");
@@ -541,8 +539,9 @@ public class UsersService {
 
     public UpdateResponse verifyPin(VerifyPinRequest request) {
 
-        return UpdateResponse.builder().success(passwordEncoder.matches(request.pin(), usersRepository
-                .findPinByEmailOrPhoneNumber(AppUtil.getLoggedInUserId()))).message("Pin verified").build();
+        boolean matches = passwordEncoder.matches(request.pin(), usersRepository
+                .findPinById(AppUtil.getLoggedInUserId()));
+        return UpdateResponse.builder().success(matches).message(matches ? "Pin verified" : "Invalid pin").build();
     }
 
     public StageResponse processDetails(String email) {
@@ -558,5 +557,12 @@ public class UsersService {
             return new StageResponse(OnboardingStage.EMAIL);
         }
         return new StageResponse(OnboardingStage.PASSWORD);
+    }
+
+    public UpdateResponse verifyPassword(VerifyPasswordRequest request) {
+
+        boolean matches = passwordEncoder.matches(request.password(), usersRepository
+                .findPasswordById(AppUtil.getLoggedInUserId()));
+        return UpdateResponse.builder().success(matches).message(matches ? "Password verified" : "Invalid Password").build();
     }
 }

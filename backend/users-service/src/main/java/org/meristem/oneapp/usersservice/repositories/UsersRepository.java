@@ -54,7 +54,10 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     String findPasswordByEmailOrPhoneNumber(String recipient);
 
     @Query("SELECT pin FROM user_profile u WHERE u.user_id = :userId ")
-    String findPinByEmailOrPhoneNumber(Long userId);
+    String findPinById(Long userId);
+
+    @Query("SELECT password FROM users u WHERE u.id = :userId ")
+    String findPasswordById(Long userId);
 
     @Query("SELECT email FROM users u WHERE u.id = :id ")
     String findEmailById(Long id);
