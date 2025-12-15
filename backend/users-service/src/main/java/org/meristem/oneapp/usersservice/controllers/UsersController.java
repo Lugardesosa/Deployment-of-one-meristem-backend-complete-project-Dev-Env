@@ -262,14 +262,24 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.interestFree(request), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Operation(summary = "Approve all data sharing")
+    @Operation(summary = "Verifies users pin")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Approve all data sharing")
+            @ApiResponse(responseCode = "200", description = "Verifies users pin")
     })
     @PreAuthorize("hasRole('ROLE_users.verify.pin')")
     @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Verifies users password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Verifies users password")
+    })
+    @PreAuthorize("hasRole('ROLE_users.verify.password')")
+    @PostMapping(value = "/verify-password", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPasswordRequest request) {
+        return ApiUtil.buildResponse(usersService.verifyPassword(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @ApiResponses(value = {
