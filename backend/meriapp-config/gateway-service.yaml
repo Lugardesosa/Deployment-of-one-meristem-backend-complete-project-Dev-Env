@@ -23,38 +23,38 @@ spring:
             locator:
               enabled: true
               lower-case-service-id: true
-          filter:
-            request-rate-limiter:
-              deny-empty-key: false
+#          filter:
+#            request-rate-limiter:
+#              deny-empty-key: false
+#
+#          default-filters:
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+#                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+#                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+#                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+#
+#            - name: CircuitBreaker
+#              args:
+#                name: downstreamCircuitBreaker
+#                fallbackUri: forward:/fallback
 
-          default-filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
-                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
-                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
-                redis-rate-limiter.key-resolver: '#{@keyResolver}'
-
-            - name: CircuitBreaker
-              args:
-                name: downstreamCircuitBreaker
-                fallbackUri: forward:/fallback
-
-          globalcors:
-            add-to-simple-url-handler-mapping: true
-            cors-configurations:
-              '[/**]':
-                allowed-origins: ${ALLOWED_ORIGINS}
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - OPTIONS
-                allowedHeaders:
-                  - "*"
-                allowCredentials: true
-                maxAge: 3600
+#          globalcors:
+#            add-to-simple-url-handler-mapping: true
+#            cors-configurations:
+#              '[/**]':
+#                allowed-origins: ${ALLOWED_ORIGINS}
+#                allowedMethods:
+#                  - GET
+#                  - POST
+#                  - PUT
+#                  - DELETE
+#                  - OPTIONS
+#                allowedHeaders:
+#                  - "*"
+#                allowCredentials: true
+#                maxAge: 3600
 
           routes:
             - id: ${one-app.users-service.application-name}
