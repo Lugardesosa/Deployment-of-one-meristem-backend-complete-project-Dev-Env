@@ -9,11 +9,14 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.notificationservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.notificationservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.notificationservice.exception.exceptions.UpstreamServiceException;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
@@ -22,7 +25,6 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.lang.NonNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
@@ -47,7 +49,14 @@ public class RestClientConfig {
     private final List<String> bodyToSanitize = List.of("password", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN", "API_KEY", "API-KEY", "Connection");
 
     @Bean
+    @Primary
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
+        return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
+                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+    }
+
+    private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(200);
         connectionManager.setDefaultMaxPerRoute(5);
@@ -58,7 +67,14 @@ public class RestClientConfig {
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         requestFactory.setConnectTimeout(Duration.ofSeconds(3));
-        requestFactory.setReadTimeout(Duration.ofSeconds(6));
+        requestFactory.setReadTimeout(Duration.ofSeconds(12));
+        return requestFactory;
+    }
+
+    @Bean
+    @LoadBalanced
+    public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }
@@ -92,7 +108,7 @@ public class RestClientConfig {
 
             @NonNull
             @Override
-            public ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
+            public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
 
                 long startTime = System.nanoTime() / 1_000_000;
                 ClientHttpResponse response = execution.execute(request, body);
