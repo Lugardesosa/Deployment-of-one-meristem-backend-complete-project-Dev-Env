@@ -8,17 +8,19 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.walletservice.dtos.config.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.walletservice.exception.exceptions.UpstreamServiceException;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.lang.NonNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
@@ -43,18 +45,32 @@ public class RestClientConfig {
     private final List<String> bodyToSanitize = List.of("password", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN", "Authorization");
 
     @Bean
+    @Primary
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
+        return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
+                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+    }
 
+    private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(200);
         connectionManager.setDefaultMaxPerRoute(5);
 
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
-                .evictIdleConnections(TimeValue.of(Duration.ofSeconds(60))).build();
+                .evictIdleConnections(TimeValue.of(Duration.ofSeconds(30)))
+                .build();
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         requestFactory.setConnectTimeout(Duration.ofSeconds(3));
-        requestFactory.setReadTimeout(Duration.ofSeconds(6));
+        requestFactory.setReadTimeout(Duration.ofSeconds(12));
+        return requestFactory;
+    }
+
+    @Bean
+    @LoadBalanced
+    public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }

@@ -9,12 +9,15 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
+import org.jetbrains.annotations.NotNull;
 import org.meristem.oneapp.usersservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -46,7 +49,14 @@ public class RestClientConfig {
     private List<String> bodyToSanitize;
 
     @Bean
+    @Primary
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
+        return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
+                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+    }
+
+    private static @NotNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(200);
         connectionManager.setDefaultMaxPerRoute(5);
@@ -58,6 +68,13 @@ public class RestClientConfig {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         requestFactory.setConnectTimeout(Duration.ofSeconds(3));
         requestFactory.setReadTimeout(Duration.ofSeconds(12));
+        return requestFactory;
+    }
+
+    @Bean
+    @LoadBalanced
+    public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }
