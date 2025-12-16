@@ -103,7 +103,7 @@ public class RestClientConfig {
 
             @NonNull
             @Override
-            public ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
+            public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
 
                 long startTime = System.nanoTime() / 1_000_000;
                 ClientHttpResponse response = execution.execute(request, body);

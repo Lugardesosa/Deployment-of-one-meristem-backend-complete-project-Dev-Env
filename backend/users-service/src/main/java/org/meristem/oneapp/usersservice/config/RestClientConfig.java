@@ -9,7 +9,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
@@ -23,7 +23,6 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.lang.NonNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
@@ -56,7 +55,7 @@ public class RestClientConfig {
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }
 
-    private static @NotNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
+    private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(200);
         connectionManager.setDefaultMaxPerRoute(5);
@@ -108,7 +107,7 @@ public class RestClientConfig {
 
             @NonNull
             @Override
-            public ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
+            public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull [] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
 
                 long startTime = System.nanoTime() / 1_000_000L;
                 ClientHttpResponse response = execution.execute(request, body);
