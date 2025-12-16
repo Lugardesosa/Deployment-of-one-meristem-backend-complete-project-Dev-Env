@@ -103,17 +103,12 @@ one-app:
     application-name: gateway-service
 
     # APP NAMES
-  services:
-    wallet-service.first: ${one-app.wallet-service.application-name}
-    wallet-service.second: ${WALLET_SERVICE_URI}/${one-app.wallet-service.context-path}
-    trustees-service.first: ${one-app.trustees-service.application-name}
-    trustees-service.second: ${TRUSTEES_SERVICE_URI}/${one-app.trustees-service.context-path}
-    report-service.first: ${one-app.report-service.application-name}
-    report-service.second: ${REPORT_SERVICE_URI}/${one-app.report-service.context-path}
-    users-service.first: ${one-app.users-service.application-name}
-    users-service.second: ${USER_SERVICE_URI}/${one-app.users-service.context-path}
-    notification-service.first: ${one-app.notification-service.application-name}
-    notification-service.second: ${NOTIFICATION_SERVICE_URI}/${one-app.notification-service.context-path}
+  services-url:
+    wallet-service: http://${one-app.wallet-service.application-name}/${one-app.wallet-service.context-path}
+    trustees-service: http://${one-app.trustees-service.application-name}/${one-app.trustees-service.context-path}
+    report-service: http://${one-app.report-service.application-name}/${one-app.report-service.context-path}
+    users-service: http://${one-app.users-service.application-name}/${one-app.users-service.context-path}
+    notification-service: http://${one-app.notification-service.application-name}/${one-app.notification-service.context-path}
 
 
 logging:
