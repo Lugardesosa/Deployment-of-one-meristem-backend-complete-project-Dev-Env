@@ -104,11 +104,11 @@ one-app:
 
     # APP NAMES
   services-url:
-    walletService: http://${one-app.wallet-service.application-name}/${one-app.wallet-service.context-path}
-    trusteesService: http://${one-app.trustees-service.application-name}/${one-app.trustees-service.context-path}
-    reportService: http://${one-app.report-service.application-name}/${one-app.report-service.context-path}
-    usersService: http://${one-app.users-service.application-name}/${one-app.users-service.context-path}
-    notificationService: http://${one-app.notification-service.application-name}/${one-app.notification-service.context-path}
+    wallet-service: http://${one-app.wallet-service.application-name}${one-app.wallet-service.context-path}
+    trustees-service: http://${one-app.trustees-service.application-name}${one-app.trustees-service.context-path}
+    report-service: http://${one-app.report-service.application-name}${one-app.report-service.context-path}
+    users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
+    notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
 
 
 logging:
