@@ -70,7 +70,6 @@ public class UsersService {
     private final EncryptionUtil encryptionUtil;
     private final IdCardRepository idCardRepository;
 
-    @Transactional
     public  UpdateResponse create(CreateUserRequest request) {
         if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
