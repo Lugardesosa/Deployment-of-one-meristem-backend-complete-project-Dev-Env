@@ -18,33 +18,40 @@ import java.util.List;
         name = "CreatePrivateTrustsRequest",
         description = "Request payload to create a private trust, including settlor details, objectives, contribution plan, beneficiaries, currency, and designated representatives.",
         anyOf = {CreatePrivateTrustsRequest.DesignatedRepresentativeRequest.class},
-        example = "{\n" +
-                "  \"lastName\": \"Doe\",\n" +
-                "  \"firstName\": \"Jane\",\n" +
-                "  \"email\": \"jane.doe@example.com\",\n" +
-                "  \"phoneNumber\": \"+2348012345678\",\n" +
-                "  \"address\": \"123 Lagos Ave, Victoria Island, Lagos\",\n" +
-                "  \"title\": \"Ms\",\n" +
-                "  \"objective\": \"EDUCATION_TRUST\",\n" +
-                "  \"frequency\": \"MONTHLY\",\n" +
-                "  \"commencementDate\": \"2025-01-01\",\n" +
-                "  \"terminationDate\": \"2030-12-31\",\n" +
-                "  \"powerOfTrustee\": [\"Hire Advisers\", \"Reinvest proceeds\"],\n" +
-                "  \"beneficiaryIds\": [101, 102],\n" +
-                "  \"currencyId\": 1,\n" +
-                "  \"fundContribution\": 1000.00,\n" +
-                "  \"designatedRepresentativeRequests\": [\n" +
-                "    {\n" +
-                "      \"representativeName\": \"Samuel Okoro\",\n" +
-                "      \"representativeAddress\": \"45 Adeola Odeku St, Lagos\",\n" +
-                "      \"representativeEmail\": \"samuel.okoro@example.com\",\n" +
-                "      \"representativePhoneNumber\": \"+2348098765432\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}"
+        example = """
+                {
+                  "ownerId": 1,
+                  "lastName": "Doe",
+                  "firstName": "Jane",
+                  "email": "jane.doe@example.com",
+                  "phoneNumber": "+2348012345678",
+                  "address": "123 Lagos Ave, Victoria Island, Lagos",
+                  "title": "Ms",
+                  "objective": "EDUCATION_TRUST",
+                  "frequency": "MONTHLY",
+                  "commencementDate": "2025-01-01",
+                  "terminationDate": "2030-12-31",
+                  "powerOfTrustee": ["Hire Advisers", "Reinvest proceeds"],
+                  "beneficiaryIds": [101, 102],
+                  "currencyId": 1,
+                  "fundContribution": 1000.00,
+                  "designatedRepresentativeRequests": [
+                    {
+                      "representativeName": "Samuel Okoro",
+                      "representativeAddress": "45 Adeola Odeku St, Lagos",
+                      "representativeEmail": "samuel.okoro@example.com",
+                      "representativePhoneNumber": "+2348098765432"
+                    }
+                  ]
+                }"""
 )
 @Builder
 public record CreatePrivateTrustsRequest(
+
+
+        @Schema(description = "Owner's id if created by an admin", example = "1")
+        Long ownerId,
+
         @NotBlank(message = "Not blank")
         @Size(min = 1, max = 150)
         @Schema(description = "Settlor's last name", example = "Doe")

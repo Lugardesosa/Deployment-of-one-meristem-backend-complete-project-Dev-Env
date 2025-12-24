@@ -115,8 +115,7 @@ public class AuthorizationServerConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/oauth/token", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "/base/password-reset", "/onboard/smile-id/webhook", "/onboard/okhi/webhook").permitAll()
-                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/admin/**")).hasRole("ADMIN")
-                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/super-admin/**")).hasRole("SUPER_ADMIN")
+                        .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/admin/**")).hasAnyRole("ADMIN", "SYSTEM_ADMIN", "AUDITOR", "COMPLIANCE_OFFICER")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> {
                     oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtConverter));
@@ -132,7 +131,7 @@ public class AuthorizationServerConfig {
     OAuth2TokenGenerator<OAuth2Token> tokenGenerator(JdbcTemplate jdbcTemplate, RsaKeys rsaKeys) {
         JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource(rsaKeys));
         JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
-        OAuth2AccessTokenCustomizer customizer = new OAuth2AccessTokenCustomizer(clientRepository(jdbcTemplate), jdbcTemplate);
+        OAuth2AccessTokenCustomizer customizer = new OAuth2AccessTokenCustomizer(clientRepository(jdbcTemplate));
         jwtGenerator.setJwtCustomizer(customizer);
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();

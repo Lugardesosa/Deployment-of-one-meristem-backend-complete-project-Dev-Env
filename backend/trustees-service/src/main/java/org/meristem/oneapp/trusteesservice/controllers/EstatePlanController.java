@@ -16,6 +16,7 @@ import org.meristem.oneapp.trusteesservice.domains.requests.*;
 import org.meristem.oneapp.trusteesservice.domains.responses.*;
 import org.meristem.oneapp.trusteesservice.services.EstatePlanService;
 import org.meristem.oneapp.trusteesservice.utils.ApiUtil;
+import org.meristem.oneapp.trusteesservice.utils.AppUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,15 +37,15 @@ public class EstatePlanController {
 
     @Operation(summary = "Create a simple will", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a simple will")})
-    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PreAuthorize("hasRole('ROLE_users.plan.create') or hasRole('ROLE_admin.trust.create')")
     @PostMapping(value = "/simple-will", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<EstatePlanResponse>> createSimpleWill(@RequestBody @Valid CreateWillRequest request) {
+    public ResponseEntity<AppResponse<EstatePlanResponse>> saveSimpleWill(@RequestBody @Valid CreateWillRequest request) {
         return ApiUtil.buildResponse(estatePlanService.saveSimpleWill(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
     @Operation(summary = "Create a comprehensive will", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a comprehensive will")})
-    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PreAuthorize("hasRole('ROLE_users.plan.create') or hasRole('ROLE_admin.trust.create')")
     @PostMapping(value = "/comprehensive-will", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EstatePlanResponse>> createComprehensiveWill(@RequestBody @Valid CreateComprehensiveWillRequest request) {
         return ApiUtil.buildResponse(estatePlanService.saveComprehensiveWill(request), HttpStatus.CREATED.toString(), "Successful");
@@ -52,7 +53,7 @@ public class EstatePlanController {
 
     @Operation(summary = "Add a beneficiary", method = "PUT")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Add a beneficiary")})
-    @PreAuthorize("hasRole('ROLE_users.beneficiary.add')")
+    @PreAuthorize("hasRole('ROLE_users.beneficiary.add') OR hasRole('ROLE_admin.beneficiary.add')")
     @PutMapping(value = "/add-beneficiary", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EstatePlanResponse>> addBeneficiary(@RequestBody @Valid AddBeneficiaryRequest request) {
         return ApiUtil.buildResponse(estatePlanService.addBeneficiary(request), HttpStatus.CREATED.toString(), "Successful");
@@ -60,7 +61,7 @@ public class EstatePlanController {
 
     @Operation(summary = "Remove a beneficiary", method = "PUT")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Remove a beneficiary")})
-    @PreAuthorize("hasRole('ROLE_users.beneficiary.remove')")
+    @PreAuthorize("hasRole('ROLE_users.beneficiary.remove') OR hasRole('ROLE_admin.beneficiary.remove')")
     @PutMapping(value = "/remove-beneficiary", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EstatePlanResponse>> removeBeneficiary(@RequestBody @Valid RemoveBeneficiaryRequest request) {
         return ApiUtil.buildResponse(estatePlanService.removeBeneficiary(request), HttpStatus.CREATED.toString(), "Successful");
@@ -85,7 +86,7 @@ public class EstatePlanController {
     @Hidden
     @Operation(summary = "Add an executor", method = "PUT")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Add an executor")})
-    @PreAuthorize("hasRole('ROLE_users.executor.add')")
+    @PreAuthorize("hasRole('ROLE_users.executor.add') OR hasRole('ROLE_admin.trust.update')")
     @PutMapping(value = "/add-executor", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EstatePlanResponse>> addExecutor(@RequestBody @Valid AddExecutorRequest request) {
         return ApiUtil.buildResponse(estatePlanService.addExecutor(request), HttpStatus.CREATED.toString(), "Successful");
@@ -95,16 +96,16 @@ public class EstatePlanController {
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a nominated fund")})
     @PreAuthorize("hasRole('ROLE_users.plan.create')")
     @PostMapping(value = "/nominated-fund", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<EstatePlanResponse>> createSimpleWill(@RequestBody @Valid CreateNominatedFundRequest request) {
+    public ResponseEntity<AppResponse<EstatePlanResponse>> saveNominatedFund(@RequestBody @Valid CreateNominatedFundRequest request) {
         return ApiUtil.buildResponse(estatePlanService.saveNominatedFund(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
 
     @Operation(summary = "Create a private trusts", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a private trusts")})
-    @PreAuthorize("hasRole('ROLE_users.plan.create')")
+    @PreAuthorize("hasRole('ROLE_users.plan.create') or hasRole('ROLE_admin.trust.create')")
     @PostMapping(value = "/private-trusts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<EstatePlanResponse>> createSimpleWill(@RequestBody @Valid CreatePrivateTrustsRequest request) {
+    public ResponseEntity<AppResponse<EstatePlanResponse>> savePrivateTrust(@RequestBody @Valid CreatePrivateTrustsRequest request) {
         return ApiUtil.buildResponse(estatePlanService.savePrivateTrust(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
@@ -114,18 +115,19 @@ public class EstatePlanController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GetPlanResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.plan.get')")
+    @PreAuthorize("hasRole('ROLE_users.plan.get') OR hasRole('ROLE_admin.trust.view')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<GetPlanResponse>> getPlans(@RequestParam(name = "plan") Plans plan, @RequestParam(name = "plan-id", required = false) Long planId) {
-        return ApiUtil.buildResponse(estatePlanService.getPlans(plan, planId), HttpStatus.CREATED.toString(), "Successful");
+    public ResponseEntity<AppResponse<GetPlanResponse>> getPlans(@RequestParam(name = "plan") Plans plan, @RequestParam(name = "plan-id", required = false) Long planId,
+                                                                 @RequestParam(name = "ownerId", required = false) Long ownerId) {
+        return ApiUtil.buildResponse(estatePlanService.getPlans(plan, planId, ownerId), HttpStatus.CREATED.toString(), "Successful");
     }
 
     @Operation(summary = "Get all plans", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get all plans")
-    @PreAuthorize("hasRole('ROLE_users.plan.get')")
+    @PreAuthorize("hasRole('ROLE_users.plan.get') OR hasRole('ROLE_admin.trust.view')")
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets() {
-        return ApiUtil.buildResponse(estatePlanService.getAllPlans(), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets(@RequestParam(name = "ownerId", required = false) Long ownerId) {
+        return ApiUtil.buildResponse(estatePlanService.getAllPlans(ownerId), HttpStatus.OK.toString(), "Successful");
     }
 
 
@@ -134,9 +136,9 @@ public class EstatePlanController {
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GetAssetValueResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @PreAuthorize("hasRole('ROLE_users.asset.get') OR hasRole('ROLE_admin.beneficiary.distribution.view')")
     @GetMapping(value = "/beneficiary-plans", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<GetBeneficiaryPlansResponse>> getBeneficiaryValue(@RequestParam(name = "beneficiary-id") Long beneficiaryId) {
-        return ApiUtil.buildResponse(estatePlanService.getBeneficiaryValue(beneficiaryId), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<GetBeneficiaryPlansResponse>> getBeneficiaryValue(@RequestParam(name = "beneficiary-id") Long beneficiaryId, @RequestParam(name = "ownerId", required = false) Long ownerId) {
+        return ApiUtil.buildResponse(estatePlanService.getBeneficiaryValue(beneficiaryId, ownerId), HttpStatus.OK.toString(), "Successful");
     }
 }

@@ -10,9 +10,13 @@ import java.util.List;
 @Schema(
     name = "AddBeneficiaryRequest",
     description = "Request payload to add one or more beneficiaries to a plan.",
-    example = "{\"assetType\": 12345, \"beneficiaryIds\": [101,102,103], \"planType\": \"SIMPLE_WILL\"}"
+    example = "{\n  \"ownerId\": 3, \"assetType\": 12345, \"beneficiaryIds\": [101,102,103], \"planType\": \"SIMPLE_WILL\"}"
 )
 public record AddBeneficiaryRequest(
+
+    @Schema(description = "Owner's id if created by an admin", example = "1")
+    Long ownerId,
+
     @Schema(
         description = "Unique identifier of the plan. Accepts either a numeric ID or a numeric string.",
         example = "12345",

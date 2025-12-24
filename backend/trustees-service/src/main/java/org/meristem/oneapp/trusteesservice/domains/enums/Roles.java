@@ -1,10 +1,11 @@
-package org.meristem.oneapp.usersservice.domains.enums;
+package org.meristem.oneapp.trusteesservice.domains.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
@@ -23,8 +24,16 @@ public enum Roles {
     private final Integer value;
     private final String name;
 
-    public static List<String> getAdminRoles() {
+    public static Roles fromValue(Integer value) {
+        for (Roles obj : Roles.values()) {
+            if (Objects.equals(obj.value, value)) {
+                return obj;
+            }
+        }
+        return null;
+    }
 
+    public static List<String> getAdminRoles() {
         return Arrays.stream(Roles.values()).filter(r -> r != Roles.USER).map(Enum::name).toList();
     }
 }

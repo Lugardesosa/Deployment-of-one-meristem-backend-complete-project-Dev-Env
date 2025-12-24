@@ -71,6 +71,8 @@ public class UsersService {
     private final IdCardRepository idCardRepository;
 
     public  UpdateResponse create(CreateUserRequest request) {
+        System.out.println(AppUtil.isAdmin());
+
         if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
@@ -134,7 +136,7 @@ public class UsersService {
                 .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
         customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
-        usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.getName()));
+        usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.name()));
         return usersMapper.usersToUserResponse(user);
     }
 

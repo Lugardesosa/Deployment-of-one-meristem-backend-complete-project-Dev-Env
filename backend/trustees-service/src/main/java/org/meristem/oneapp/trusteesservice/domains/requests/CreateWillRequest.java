@@ -23,9 +23,12 @@ import java.util.List;
 @Schema(
         name = "WillRequest",
         description = "Request DTO for creating or updating a Will.",
-        example = "{\"lastName\":\"Doe\",\"firstName\":\"John\",\"middleName\":\"A\",\"email\":\"john.doe@example.com\",\"phoneNumber\":\"+2348012345678\",\"address\":\"12, Adeola Odeku St, Victoria Island, Lagos\",\"title\":\"Mr\",\"maritalStatus\":\"MARRIED\",\"assetIds\":{},\"beneficiaryIds\":[101,102],\"willExecutorRequests\":[{\"willExecutorName\":\"Jane Doe\",\"willExecutorAddress\":\"34, Marina Rd, Lagos\"}]}"
+        example = "{\"ownerId\":\"1\", \"lastName\":\"Doe\",\"firstName\":\"John\",\"middleName\":\"A\",\"email\":\"john.doe@example.com\",\"phoneNumber\":\"+2348012345678\",\"address\":\"12, Adeola Odeku St, Victoria Island, Lagos\",\"title\":\"Mr\",\"maritalStatus\":\"MARRIED\",\"assetIds\":{},\"beneficiaryIds\":[101,102],\"willExecutorRequests\":[{\"willExecutorName\":\"Jane Doe\",\"willExecutorAddress\":\"34, Marina Rd, Lagos\"}]}"
 )
 public class CreateWillRequest extends EstatePlanRequest {
+
+    @Schema(description = "Owner's id if created by an admin", example = "1")
+    private Long ownerId;
 
     @Schema(
             description = "Surname / Family name.",

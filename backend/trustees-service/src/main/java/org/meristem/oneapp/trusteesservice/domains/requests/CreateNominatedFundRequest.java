@@ -16,6 +16,7 @@ import java.util.List;
         description = "Request to create a nominated fund for a beneficiary.",
         example = """
         {
+          "ownerId": 1,
           "lastName": "Doe",
           "firstName": "Jane",
           "email": "jane.doe@example.com",
@@ -29,6 +30,9 @@ import java.util.List;
         """
 )
 public record CreateNominatedFundRequest(
+
+        @Schema(description = "Owner's id if created by an admin", example = "1")
+        Long ownerId,
 
         @Schema(description = "Beneficiary's last name", example = "Doe")
         @NotBlank(message = "Cannot be blank")

@@ -52,6 +52,13 @@ credit-switch:
   password: ${CREDIT_SWITCH_SMS_PASSWORD}
 
 
+holla-tags:
+  base-url: ${HOLLA_TAGS_BASE_URL}
+  user: ${HOLLA_TAGS_USER}
+  pass: ${HOLLA_TAGS_PASS}
+  callbackUrl: ${HOLLATAGS_CALLBACK_URL}
+
+
 expo:
   push:
     notifications:

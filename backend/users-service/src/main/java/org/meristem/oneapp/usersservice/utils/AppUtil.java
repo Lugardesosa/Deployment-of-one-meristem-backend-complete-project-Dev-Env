@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -180,5 +181,17 @@ public final class AppUtil {
         OffsetDateTime offsetDateTime = localDateTime.atOffset(ZoneOffset.UTC);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         return offsetDateTime.format(formatter);
+    }
+
+    public static Boolean isAdmin() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            Boolean isAdmin = jwt.getClaimAsBoolean("isAdmin");
+            if (isAdmin == null) return false;
+            return isAdmin;
+        }
+        return false;
     }
 }

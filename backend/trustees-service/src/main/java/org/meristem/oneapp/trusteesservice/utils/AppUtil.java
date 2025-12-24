@@ -2,6 +2,7 @@ package org.meristem.oneapp.trusteesservice.utils;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.trusteesservice.domains.enums.Roles;
 import org.meristem.oneapp.trusteesservice.exception.exceptions.BadRequestException;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.data.util.Pair;
@@ -94,5 +95,17 @@ public final class AppUtil {
     public static String _upperCaseToTitleCase(String str) {
         return String.join(" ", Arrays.stream(str.toLowerCase().split("_"))
                 .map(StringUtils::capitalize).toList());
+    }
+
+    public static Boolean isAdmin() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            Boolean isAdmin = jwt.getClaimAsBoolean("isAdmin");
+            if (isAdmin == null) return false;
+            return isAdmin;
+        }
+        return false;
     }
 }

@@ -10,6 +10,10 @@ import java.util.List;
 
 @Schema(name = "AddExecutorRequest", description = "Request to add one or more executors to a will.")
 public record AddExecutorRequest(
+
+        @Schema(description = "Owner's id if created by an admin", example = "1")
+        Long ownerId,
+
         @Schema(description = "Unique identifier of the will.", example = "42")
         @NotNull(message = "Cannot be null") Long planId,
 

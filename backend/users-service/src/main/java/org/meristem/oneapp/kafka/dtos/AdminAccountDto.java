@@ -11,7 +11,7 @@ public class AdminAccountDto {
 
     private String[] recipient;
     private String subject;
-    private String password;
+    private String body;
     private String firstName;
 
 }
