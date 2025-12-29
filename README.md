@@ -68,7 +68,7 @@ Test results and logs are published as workflow artifacts for visibility.
 Trigger
 Pushes to the development branch
 
-# CD Responsibilities
+### CD Responsibilities
 
 This workflow automates deployment of the One-Meristem Mobile-backend to the development environment hosted on Huawei ECS.
 
