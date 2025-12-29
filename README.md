@@ -24,7 +24,7 @@ Deployments follow a **GitOps-based approach** using **Argo CD**, with a clear s
 
 ---
 
-## Continuous Integration (CI)
+# Continuous Integration (CI)
 
 ### Workflow
 
@@ -37,7 +37,7 @@ Deployments follow a **GitOps-based approach** using **Argo CD**, with a clear s
 
 Pull requests targeting the staging branch
 
-# CI Responsibilities
+## CI Responsibilities
 
 1. Change Detection
 Identifies which microservices were modified in the PR
@@ -66,7 +66,7 @@ Images become available for deployment via Argo CD
 
 
 # Continuous Deployment (CD)
-# Workflow
+## Workflow
 .github/workflows/STAG_CD_Push.yml
 
 Trigger
