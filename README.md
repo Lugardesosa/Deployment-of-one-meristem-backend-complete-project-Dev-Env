@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Production environment** hosts the live One-Meristem platform and is designed for **stability, security, and controlled change management**.  
+The **Production environment** hosts the live One-Meristem Mobile Backend platform and is designed for **stability, security, and controlled change management**.  
 Deployments follow a **strict GitOps model** using **Argo CD**, with additional safeguards compared to staging.
 
 - **CI** ensures only tested, scanned, and approved images are eligible for production
