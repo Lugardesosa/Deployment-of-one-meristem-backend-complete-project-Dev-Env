@@ -64,11 +64,16 @@ Tags validated images
 Pushes images to Huawei SWR
 Images become available for deployment via Argo CD
 
+---
+
 
 # Continuous Deployment (CD)
 ## Workflow
-.github/workflows/STAG_CD_Push.yml
 
+```text
+.github/workflows/STAG_CD_Push.yml
+```
+---
 Trigger
 Pushes to the stag_env branch
 
