@@ -30,8 +30,6 @@ Instead, it relies on **Docker Compose** deployed to a **Huawei ECS virtual mach
 .github/workflows/ci_test_checks.yml
 ```
 
----
-
 Trigger
 
 Pull requests or pushes to the development branch
@@ -64,7 +62,6 @@ Test results and logs are published as workflow artifacts for visibility.
 ```text
 .github/workflows/deploy_to_Huawei_cloud.yml
 ```
----
 
 Trigger
 Pushes to the development branch
