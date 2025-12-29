@@ -34,7 +34,8 @@ Trigger
 
 Pull requests or pushes to the development branch
 
-CI Responsibilities
+### CI Responsibilities
+
 1. Change Detection
 
 Detects which microservices were modified
