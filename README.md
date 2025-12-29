@@ -37,7 +37,7 @@ Deployments follow a **GitOps-based approach** using **Argo CD**, with a clear s
 
 Pull requests targeting the staging branch
 
-## CI Responsibilities
+# CI Responsibilities
 
 1. Change Detection
 Identifies which microservices were modified in the PR
