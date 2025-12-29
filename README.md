@@ -4,7 +4,7 @@
 
 ## Overview
 
-The **Staging environment** is used to validate application changes in a production-like setup before release.  
+The **Staging environment** is used to validate application changes in a production-like setup before release. This is actually for the Mobile Backend Deployment  
 Deployments follow a **GitOps-based approach** using **Argo CD**, with a clear separation between **Continuous Integration (CI)** and **Continuous Deployment (CD)** workflows.
 
 - **CI** is responsible for building, testing, scanning, and publishing container images
