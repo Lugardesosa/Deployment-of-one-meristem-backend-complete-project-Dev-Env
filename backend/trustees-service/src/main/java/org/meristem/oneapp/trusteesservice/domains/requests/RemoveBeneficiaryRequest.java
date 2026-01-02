@@ -11,9 +11,13 @@ import java.util.List;
 @Schema(
         name = "RemoveBeneficiaryRequest",
         description = "Request payload to remove one or more beneficiaries from a plan",
-        example = "{\n  \"assetType\": 123456,\n  \"beneficiaryIds\": [111, 222, 333],\n  \"planType\": \"SIMPLE_WILL\"\n}"
+        example = "{\n  \"ownerId\": 3, \n  \"assetType\": 123456,\n  \"beneficiaryIds\": [111, 222, 333],\n  \"planType\": \"SIMPLE_WILL\"\n}"
 )
 public record RemoveBeneficiaryRequest(
+
+        @Schema(description = "Owner's id if created by an admin", example = "1")
+        Long ownerId,
+
         @Schema(
                 description = "Unique identifier of the plan",
                 requiredMode = Schema.RequiredMode.REQUIRED,

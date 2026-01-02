@@ -2,18 +2,37 @@ package org.meristem.oneapp.usersservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.AdminAccountDto;
+import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
+import org.meristem.oneapp.usersservice.constants.MessageSubjects;
+import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
+import org.meristem.oneapp.usersservice.domains.enums.MessageType;
+import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
 import org.meristem.oneapp.usersservice.domains.requests.CreateNextOfKinRequest;
 import org.meristem.oneapp.usersservice.domains.requests.DobRequest;
 import org.meristem.oneapp.usersservice.domains.requests.GenderRequest;
 import org.meristem.oneapp.usersservice.domains.responses.DobResponse;
 import org.meristem.oneapp.usersservice.domains.responses.GenderResponse;
 import org.meristem.oneapp.usersservice.domains.responses.NextOfKinResponse;
+import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.mappers.UsersMapping;
+import org.meristem.oneapp.usersservice.models.AdminProfile;
+import org.meristem.oneapp.usersservice.models.Users;
+import org.meristem.oneapp.usersservice.repositories.CustomRepository;
+import org.meristem.oneapp.usersservice.repositories.RolesRepository;
 import org.meristem.oneapp.usersservice.repositories.UserProfileRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
+import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 
 /**
@@ -33,7 +52,11 @@ public class AdminService {
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
     private final UserProfileRepository userProfileRepository;
-
+    private final UsersMapping usersMapper = UsersMapping.INSTANCE;
+    private final KafkaSenderService kafkaSenderService;
+    private final PasswordEncoder passwordEncoder;
+    private final RolesRepository rolesRepository;
+    private final CustomRepository customRepository;
 
     /**
      * Updates the next-of-kin details for a user.
@@ -59,5 +82,33 @@ public class AdminService {
     public GenderResponse updateGender(GenderRequest request) {
         int updated = userProfileRepository.updateGender(request.userId(), request.gender().name());
         return GenderResponse.builder().status(updated > 0).message(updated > 0 ? "Dob successfully updated." : "Invalid id passed").build();
+    }
+
+
+    /**
+     * Creates a new admin user with a randomly generated password.
+     * Assigns the admin role to the user and notifies them of their credentials via email.
+     *
+     * @param request the request containing admin user details
+     * @return a {@link UsersResponse} containing the created admin user's details
+     */
+    @Transactional
+    public UsersResponse create(CreateAdminRequest request) {
+
+        Users users = usersMapper.createAdminRequestToUsers(request);
+        String password = AppUtil.generatePassword(AppConstants.ADMIN_PASSWORD_LENGTH);
+        users.setPassword(passwordEncoder.encode(password));
+        users = usersRepository.save(users);
+        usersRepository.saveRole(users.getId(), rolesRepository.findIdByName(request.role().name()));
+        customRepository.save(AdminProfile.builder().adminId(users.getId()).build());
+
+        log.info("Created admin user, password: ------> {}", password);
+        // Notify the user about the password rest via mail
+        AdminAccountDto messageDetailsDto = AdminAccountDto.builder().recipient(new String[]{users.getEmail()})
+                .body("An account was created with your mail, kindly use this password to log in. Password is " + password)
+                .subject(MessageSubjects.ADMIN_ACCOUNT_CREATED).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).classSimpleName(AdminAccountDto.class.getSimpleName()).build();
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED));
+        return usersMapper.usersToUserResponse(users);
     }
 }

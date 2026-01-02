@@ -4,9 +4,11 @@ package org.meristem.oneapp.notificationservice.config;
 import lombok.RequiredArgsConstructor;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.meristem.oneapp.notificationservice.config.configProperties.CreditSwitchProperties;
+import org.meristem.oneapp.notificationservice.config.configProperties.HollaTagsProperties;
 import org.meristem.oneapp.notificationservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
 import org.meristem.oneapp.notificationservice.integrations.ExpoPushNotificationClient;
+import org.meristem.oneapp.notificationservice.integrations.HollaTagsClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,13 +24,21 @@ public class IntegrationConfig {
     private final CreditSwitchProperties creditSwitchProperties;
 
     @Bean
-    CreditSwitchClient smileIdClient(RestClient.Builder restClientBuilder) {
+    CreditSwitchClient creditSwitchClient(RestClient.Builder restClientBuilder) {
         return HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(creditSwitchProperties.baseUrl())
                         .defaultHeader(oneAppProperties.defaultHeaderName(), "CreditSwitchClient").build()))
                 .build().createClient(CreditSwitchClient.class);
     }
 
+
+    @Bean
+    HollaTagsClient hollaTagsClient(RestClient.Builder restClientBuilder, HollaTagsProperties properties) {
+        return HttpServiceProxyFactory
+                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(properties.baseUrl())
+                        .defaultHeader(oneAppProperties.defaultHeaderName(), "HollaTagsClient").build()))
+                .build().createClient(HollaTagsClient.class);
+    }
 
     @Bean
     ExpoPushNotificationClient expoPushNotificationClient(RestClient.Builder restClientBuilder, @Value("${expo-url}") String expoUrl, @Value("${expo.push.notifications.token}") String accessToken) {

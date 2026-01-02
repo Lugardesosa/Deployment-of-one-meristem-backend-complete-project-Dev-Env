@@ -22,16 +22,21 @@ import org.meristem.oneapp.trusteesservice.validations.constraints.ContainsEnum;
 @Schema(
         name = "ComprehensiveWillRequest",
         description = "Request payload containing comprehensive will information.",
-        example = "{\n" +
-                "  \"marriageType\": \"ISLAMIC_MARRIAGE\",\n" +
-                "  \"religion\": \"CHRISTIANITY\",\n" +
-                "  \"occupation\": \"Software Engineer\",\n" +
-                "  \"customaryTradition\": \"YES\",\n" +
-                "  \"traditionDetails\": \"Follows XYZ tradition\",\n" +
-                "  \"otherDetails\": \"Additional notes\"\n" +
-                "}"
+        example = """
+                {
+                  "ownerId": 1,
+                  "marriageType": "ISLAMIC_MARRIAGE",
+                  "religion": "CHRISTIANITY",
+                  "occupation": "Software Engineer",
+                  "customaryTradition": "YES",
+                  "traditionDetails": "Follows XYZ tradition",
+                  "otherDetails": "Additional notes"
+                }"""
 )
 public class CreateComprehensiveWillRequest extends CreateWillRequest {
+
+    @Schema(description = "Owner's id if created by an admin", example = "1")
+    private Long ownerId;
 
     @NotBlank(message = "Not blank")
     @ContainsEnum(enumClass = MarriageType.class)
