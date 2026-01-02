@@ -1,8 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
 import lombok.RequiredArgsConstructor;
-import org.meristem.oneapp.usersservice.domains.enums.Roles;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -29,7 +28,7 @@ public class OAuth2AccessTokenCustomizer implements OAuth2TokenCustomizer<JwtEnc
                 if (principal instanceof AuthenticatedUser users) {
                     Set<String> roles = AuthorityUtils.authorityListToSet(users.getAuthorities());
                     claim.put("roles", roles);
-                    claim.put("isAdmin", roles.stream().anyMatch(role -> Roles.getAdminRoles().contains(role)));
+                    claim.put("isAdmin", roles.stream().noneMatch(role -> role.equals(AppConstants.USER_ROLE)));
                     claim.put("sub", users.getEmail());
                     claim.put("email", users.getEmail());
                     claim.put("firstName", users.getFirstName());

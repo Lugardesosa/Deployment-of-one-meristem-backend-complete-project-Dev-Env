@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.Users;

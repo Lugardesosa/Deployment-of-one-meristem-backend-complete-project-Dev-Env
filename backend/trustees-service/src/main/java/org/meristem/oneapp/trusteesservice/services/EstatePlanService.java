@@ -84,6 +84,7 @@ public class EstatePlanService {
                 .planId(will.getId())
                 .planType(plans.name())
                 .build()).toList();
+        // Maps beneficiary IDs to plan beneficiaries for persistence
         List<PlanBeneficiaries> planBeneficiaries = request.getBeneficiaryIds().stream().map(b ->
                 PlanBeneficiaries.builder().beneficiaryId(b).planType(plans.name()).planId(will.getId()).build()).toList();
         customRepository.saveAll(planAssets);

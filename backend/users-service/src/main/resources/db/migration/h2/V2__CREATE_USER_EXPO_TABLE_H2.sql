@@ -6,5 +6,5 @@ VALUES
 
 SET @UsersDeviceRegisterID = (SELECT id FROM permissions WHERE name = 'users.device.register');
 
-INSERT INTO roles_permissions (roles_id, permissions_id)
+INSERT INTO permissions_mapping (roles_id, permissions_id)
 VALUES (@RolesUserID, @UsersDeviceRegisterID);

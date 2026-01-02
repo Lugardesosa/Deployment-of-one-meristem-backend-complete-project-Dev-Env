@@ -111,11 +111,14 @@ CREATE TABLE roles
     CONSTRAINT pk_roles PRIMARY KEY (id)
 );
 
-CREATE TABLE roles_permissions
+CREATE TABLE permissions_mapping
 (
-    roles_id       BIGINT NOT NULL,
+    users_id       BIGINT DEFAULT NULL,
+    roles_id       BIGINT DEFAULT NULL,
     permissions_id BIGINT NOT NULL
 );
+
+
 
 CREATE TABLE user_document
 (
@@ -667,11 +670,14 @@ ALTER TABLE user_profile
 ALTER TABLE admin_profile
     ADD CONSTRAINT FK_admin_profile_ON_USER FOREIGN KEY (admin_id) REFERENCES users (id);
 
-ALTER TABLE roles_permissions
+ALTER TABLE permissions_mapping
     ADD CONSTRAINT fk_rolper_on_permissions FOREIGN KEY (permissions_id) REFERENCES permissions (id);
 
-ALTER TABLE roles_permissions
+ALTER TABLE permissions_mapping
     ADD CONSTRAINT fk_rolper_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
+
+ALTER TABLE permissions_mapping
+    ADD CONSTRAINT fk_rolper_on_users FOREIGN KEY (users_id) REFERENCES users (id);
 
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
@@ -681,9 +687,9 @@ CREATE INDEX idx_oauth2_registered_client_client_id ON oauth2_registered_client 
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_users FOREIGN KEY (users_id) REFERENCES users (id);
 
-CREATE INDEX idx_roles_permissions_permissions_id ON roles_permissions (permissions_id);
+CREATE INDEX idx_roles_permissions_permissions_id_roles_id ON permissions_mapping (permissions_id, roles_id);
 
-CREATE INDEX idx_roles_permissions_roles_id ON roles_permissions (roles_id);
+CREATE INDEX idx_roles_permissions_permissions_id_users_id ON permissions_mapping (permissions_id, users_id);
 
 CREATE INDEX idx_users_roles_user_id ON users_roles (users_id);
 
@@ -851,6 +857,9 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.workflow.sla.configure'),
 
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.assign'),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.update'),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.get'),
+       (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.admin.get'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.disable'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.enable'),
        (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.activity.audit.view'),
@@ -1111,6 +1120,9 @@ SET @AdminWorkflowRouteID = (SELECT id FROM permissions WHERE name = 'admin.work
 SET @SystemWorkflowSlaConfigureID = (SELECT id FROM permissions WHERE name = 'system.workflow.sla.configure');
 
 SET @SystemAdminRoleAssignID = (SELECT id FROM permissions WHERE name = 'system.admin.role.assign');
+SET @SystemAdminRoleUpdateID = (SELECT id FROM permissions WHERE name = 'system.admin.role.update');
+SET @SystemAdminRoleGetID = (SELECT id FROM permissions WHERE name = 'system.admin.role.get');
+SET @SystemAdminAdminGetID = (SELECT id FROM permissions WHERE name = 'system.admin.admin.get');
 SET @SystemAdminDisableID = (SELECT id FROM permissions WHERE name = 'system.admin.disable');
 SET @SystemAdminEnableID = (SELECT id FROM permissions WHERE name = 'system.admin.enable');
 SET @AdminActivityAuditViewID = (SELECT id FROM permissions WHERE name = 'admin.activity.audit.view');
@@ -1144,7 +1156,7 @@ SET @SystemProductThresholdManageID = (SELECT id FROM permissions WHERE name = '
 SET @SystemIntegrationManageID = (SELECT id FROM permissions WHERE name = 'system.integration.manage');
 
 
-INSERT INTO roles_permissions (roles_id, permissions_id)
+INSERT INTO permissions_mapping (roles_id, permissions_id)
 VALUES (@RolesUserID, @UsersGetID),
        (@RolesUserID, @UsersOtpSendID),
        (@RolesUserID, @UsersBvnQueryID),
@@ -1251,6 +1263,9 @@ VALUES (@RolesUserID, @UsersGetID),
        (@RolesSystemAdminID, @SystemWorkflowSlaConfigureID),
 
        (@RolesSystemAdminID, @SystemAdminRoleAssignID),
+       (@RolesSystemAdminID, @SystemAdminRoleUpdateID),
+       (@RolesSystemAdminID, @SystemAdminRoleGetID),
+       (@RolesSystemAdminID, @SystemAdminAdminGetID),
        (@RolesSystemAdminID, @SystemAdminDisableID),
        (@RolesSystemAdminID, @SystemAdminEnableID),
 

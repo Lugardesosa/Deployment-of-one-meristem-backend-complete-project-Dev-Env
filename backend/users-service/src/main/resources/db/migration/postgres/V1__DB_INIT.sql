@@ -111,9 +111,10 @@ CREATE TABLE roles
     CONSTRAINT pk_roles PRIMARY KEY (id)
 );
 
-CREATE TABLE roles_permissions
+CREATE TABLE permissions_mapping
 (
-    roles_id       BIGINT NOT NULL,
+    users_id       BIGINT DEFAULT NULL,
+    roles_id       BIGINT DEFAULT NULL,
     permissions_id BIGINT NOT NULL
 );
 
@@ -667,18 +668,21 @@ ALTER TABLE user_onboarding
 ALTER TABLE user_profile
     ADD CONSTRAINT FK_USER_PROFILE_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
 
-ALTER TABLE roles_permissions
+ALTER TABLE permissions_mapping
     ADD CONSTRAINT fk_rolper_on_permissions FOREIGN KEY (permissions_id) REFERENCES permissions (id);
 
-ALTER TABLE roles_permissions
+ALTER TABLE permissions_mapping
     ADD CONSTRAINT fk_rolper_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
+
+ALTER TABLE permissions_mapping
+    ADD CONSTRAINT fk_rolper_on_users FOREIGN KEY (users_id) REFERENCES users (id);
 
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
 
-CREATE INDEX idx_roles_permissions_permissions_id ON roles_permissions (permissions_id);
+CREATE INDEX idx_roles_permissions_permissions_id_roles_id ON permissions_mapping (permissions_id, roles_id);
 
-CREATE INDEX idx_roles_permissions_roles_id ON roles_permissions (roles_id);
+CREATE INDEX idx_roles_permissions_permissions_id_users_id ON permissions_mapping (permissions_id, users_id);
 
 CREATE INDEX idx_users_roles_user_id ON users_roles (users_id);
 
@@ -705,7 +709,6 @@ VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 1, 1, 'BVN Verification', 'BVN', 1, TR
 DO
 $$
     DECLARE
-        UsersId                                        integer;
         RolesAdminID                                   integer;
         RolesSystemAdminID                             integer;
         RolesUserID                                    integer;
@@ -815,6 +818,9 @@ $$
         AdminWorkflowRouteID                           integer;
         SystemWorkflowSlaConfigureID                   integer;
         SystemAdminRoleAssignID                        integer;
+        SystemAdminRoleUpdateID                        integer;
+        SystemAdminRoleGetID                           integer;
+        SystemAdminAdminGetID                          integer;
         SystemAdminDisableID                           integer;
         SystemAdminEnableID                            integer;
         AdminActivityAuditViewID                       integer;
@@ -840,13 +846,6 @@ $$
         SystemIntegrationManageID                      integer;
 
     BEGIN
-
-        -- USERS
-        INSERT INTO users (created_date, created_by, last_modified_date, last_modified_by, version, email, first_name,
-                           last_name, middle_name, password, phone_number)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'oneappsuperadmin@meristemng.com', 'Super', 'Admin', '',
-                '$2a$12$zoqPU9DmUuSysmmH47ic.OHx3tXVHf5lJDUDNtpJjC3FM5tUcVd3W', '')
-        RETURNING id INTO UsersId;
 
         -- ROLES
         INSERT INTO roles (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
@@ -1296,6 +1295,18 @@ $$
         RETURNING id INTO SystemAdminRoleAssignID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.update')
+        RETURNING id INTO SystemAdminRoleUpdateID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.get')
+        RETURNING id INTO SystemAdminRoleGetID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.admin.get')
+        RETURNING id INTO SystemAdminAdminGetID;
+
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.disable')
         RETURNING id INTO SystemAdminDisableID;
 
@@ -1391,11 +1402,8 @@ $$
         RETURNING id INTO SystemIntegrationManageID;
 
 
-        -- USERS_ROLES
-        INSERT INTO users_roles VALUES (UsersId, RolesSystemAdminID);
-
         -- ROLES_PERMISSIONS
-        INSERT INTO roles_permissions (roles_id, permissions_id)
+        INSERT INTO permissions_mapping (roles_id, permissions_id)
         VALUES (RolesUserID, UsersGetID),
                (RolesUserID, UsersOtpSendID),
                (RolesUserID, UsersOtpVerifyID),
@@ -1498,6 +1506,9 @@ $$
                (RolesSystemAdminID, SystemWorkflowSlaConfigureID),
 
                (RolesSystemAdminID, SystemAdminRoleAssignID),
+               (RolesSystemAdminID, SystemAdminRoleUpdateID),
+               (RolesSystemAdminID, SystemAdminRoleGetID),
+               (RolesSystemAdminID, SystemAdminAdminGetID),
                (RolesSystemAdminID, SystemAdminDisableID),
                (RolesSystemAdminID, SystemAdminEnableID),
 
