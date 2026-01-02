@@ -511,8 +511,10 @@ services:
   cloud-gateway:
     image: cloud-gateway
     container_name: cloud-gateway
-    ports:
-      - "443:8443"
+    expose:
+      - "20010"
+      #ports:
+      #- "443:8443"
       #- "8080:20010"  # Exposed for HTTP
         #- "443:20010" # Exposed for HTTPS
     networks:
@@ -551,8 +553,12 @@ services:
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI} 
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - SSL_KEY_ALIAS=one-meristem-app
-      - KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
+        #- SSL_KEY_ALIAS=one-meristem-app
+        #- KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
+      - VIRTUAL_HOST=onemeristemdev.meristemng.com
+      - VIRTUAL_PORT=20010
+      - LETSENCRYPT_HOST=onemeristemdev.meristemng.com
+      - LETSENCRYPT_EMAIL=esosamumen@meristemng.com
       - GATEWAY_REPLENISH_RATE=10
       - GATEWAY_BURST_CAPACITY=20
       - GATEWAY_REQUESTED_TOKENS=2
@@ -582,6 +588,47 @@ services:
     restart: unless-stopped
     #healthcheck:
       #test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]   
+  
+  # ======================
+  # NGINX REVERSE PROXY (SSL TERMINATION)
+  # ======================
+  nginx:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - cloud-gateway
+    networks:
+      - meristem-network
+    restart: unless-stopped
+
+  # ======================
+  # ACME COMPANION (ZeroSSL Auto-Renewal)
+  # ======================
+  acme:
+    image: nginxproxy/acme-companion
+    container_name: nginx-acme
+    environment:
+      - DEFAULT_EMAIL=esosamumen@meristemng.com
+      - ACME_CA_URI=https://acme.zerossl.com/v2/DV90
+      - NGINX_PROXY_CONTAINER=nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./acme:/etc/acme.sh
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - nginx
+    networks:
+      - meristem-network
+    restart: unless-stopped
 
   #OBSERVABILITY
   # otel-collector:
