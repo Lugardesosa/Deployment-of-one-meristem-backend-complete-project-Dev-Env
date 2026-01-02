@@ -15,4 +15,6 @@ public interface IdCardRepository extends BaseRepository<IdCard, Long> {
 
     @Query("SELECT id_value FROM id_card WHERE user_id = :loggedInUserId AND id_card_type = :idType")
     String findIdCardValueByUserId(Long loggedInUserId, String idType);
+
+    boolean existsByIdValueAndIdCardType(String idValue, String idCardType);
 }

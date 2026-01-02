@@ -144,7 +144,7 @@ public class RestClientConfig {
             HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);
             HashMap<String, List<String>> responseHeaders1 = new HashMap<>(responseHeaders);
             sanitizeHeaders(requestHeaders1, responseHeaders1);
-            log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
+            log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"requestHeaders\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"responseHeaders\": {}}",
                     status,
                     method,
                     url,
@@ -176,8 +176,6 @@ public class RestClientConfig {
             requestHeaders.forEach((key, value) -> {
                 if (key.equals(k)) {
                     requestHeaders.put(k, Collections.singletonList(REDACTED));
-                } else {
-                    responseHeaders.put(k, Collections.singletonList(REDACTED));
                 }
             });
 
