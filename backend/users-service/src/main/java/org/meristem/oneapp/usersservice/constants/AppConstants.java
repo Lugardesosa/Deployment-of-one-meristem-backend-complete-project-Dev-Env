@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.constants;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.util.Pair;
 
@@ -35,4 +36,5 @@ public final class AppConstants {
     public static final String AVATAR_CACHE_NAME = "avatars";
     public static final String SIGN_UP_CACHE_NAME = "sign-ups";
     public static final String SETTINGS_CACHE_NAME = "settings";
+    public static final String USER_ROLE = "USER";
 }

@@ -12,7 +12,6 @@ import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.*;
-import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -136,7 +135,7 @@ public class UsersService {
                 .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
         customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
-        usersRepository.saveRole(userId, rolesRepository.findIdByName(Roles.USER.name()));
+        usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
         return usersMapper.usersToUserResponse(user);
     }
 

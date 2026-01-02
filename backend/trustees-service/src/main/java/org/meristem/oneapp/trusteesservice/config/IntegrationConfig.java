@@ -19,7 +19,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class IntegrationConfig {
 
     @Bean

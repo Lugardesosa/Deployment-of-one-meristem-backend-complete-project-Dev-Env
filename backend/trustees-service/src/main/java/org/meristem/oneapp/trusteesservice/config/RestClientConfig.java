@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RestClientConfig {
 
     public static final String REDACTED = "[REDACTED]";

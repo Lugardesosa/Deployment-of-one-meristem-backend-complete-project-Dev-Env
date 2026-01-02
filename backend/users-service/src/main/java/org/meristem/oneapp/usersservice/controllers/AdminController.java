@@ -2,16 +2,14 @@ package org.meristem.oneapp.usersservice.controllers;
 
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
-import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
-import org.meristem.oneapp.usersservice.domains.requests.CreateNextOfKinRequest;
-import org.meristem.oneapp.usersservice.domains.requests.DobRequest;
-import org.meristem.oneapp.usersservice.domains.requests.GenderRequest;
+import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.AdminService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
@@ -20,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -68,4 +68,97 @@ public class AdminController {
     public ResponseEntity<AppResponse<UsersResponse>> createAmin(@RequestBody @Valid CreateAdminRequest request) {
         return ApiUtil.buildResponse(adminService.create(request), HttpStatus.CREATED.toString(), "Admin created successfully");
     }
+
+    @Operation(summary = "Enable admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows system admins to create admins")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.enable')")
+    @PutMapping(value = "/enable-admin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> enable(@RequestBody @Valid EnableAdminRequest request) {
+        return ApiUtil.buildResponse(adminService.enable(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+
+    @Operation(summary = "Assign roles to admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Assign roles to admin")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.assign')")
+    @PutMapping(value = "/assign-role", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> assignRole(@RequestBody @Valid AssignAdminRoleRequest request) {
+        return ApiUtil.buildResponse(adminService.assignRole(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Assign permissions to admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Assign permissions to admin")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.assign')")
+    @PutMapping(value = "/assign-permission", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> assignPermission(@RequestBody @Valid AssignAdminPermissionRequest request) {
+        return ApiUtil.buildResponse(adminService.assignPermission(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Assign roles to admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Assign roles to admin")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.update')")
+    @PutMapping(value = "/add-role", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> addRole(@RequestBody @Valid AddRoleRequest request) {
+        return ApiUtil.buildResponse(adminService.addRole(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Add permissions ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Add permissions ")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.update')")
+    @PutMapping(value = "/add-permission", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> addPermission(@RequestBody @Valid AddPermissionRequest request) {
+        return ApiUtil.buildResponse(adminService.addPermission(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Add permissions to role ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Add permissions to role ")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.update')")
+    @PutMapping(value = "/add-permission-role", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> addPermission(@RequestBody @Valid AddPermissionToRoleRequest request) {
+        return ApiUtil.buildResponse(adminService.addPermissionToRole(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get Roles ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get roles ")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.get') OR hasAuthority('SCOPE_roles.get')")
+    @GetMapping(value = "/roles", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<RolesResponse>> getRoles(@RequestParam(name = "userId", required = false) Long userId) {
+        return ApiUtil.buildResponse(adminService.getRoles(userId), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get Permissions ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get permissions ")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.role.get')")
+    @GetMapping(value = "/permissions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<PermissionsResponse>> getPermissions(@Schema(description = "Pass userId to get permissions for a user") @RequestParam(name = "userId", required = false) Long userId,
+                                                                           @Schema(description = "Pass roleId to get permissions for a role") @RequestParam(name = "roleId", required = false) Long roleId) {
+        return ApiUtil.buildResponse(adminService.getPermissions(userId, roleId), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get Admins ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get Admins ")
+    })
+    @PreAuthorize("hasRole('ROLE_system.admin.admin.get')")
+    @GetMapping(value = "/admins", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AdminsResponse>> getAdmins() {
+        return ApiUtil.buildResponse(adminService.getAdmins(), HttpStatus.CREATED.toString(), "Successful");
+    }
+
 }

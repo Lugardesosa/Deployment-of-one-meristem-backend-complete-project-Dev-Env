@@ -248,6 +248,7 @@ public class AuthorizationServerConfig {
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .scope(AuthScopes.GET_BENEFICIARIES)
+                    .scope(AuthScopes.GET_ROLES)
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                     .build();
             clientRepo.save(trustees);

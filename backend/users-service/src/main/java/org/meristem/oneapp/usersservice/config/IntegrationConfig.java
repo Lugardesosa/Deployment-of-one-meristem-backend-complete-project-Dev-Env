@@ -11,15 +11,12 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class IntegrationConfig {
 
-    private final SmileIdProperties smileIdProperties;
-    private final OneAppProperties oneAppProperties;
-
     @Bean
-    SmileIdClient smileIdClient(RestClient.Builder restClientBuilder) {
+    SmileIdClient smileIdClient(RestClient.Builder restClientBuilder, SmileIdProperties smileIdProperties, OneAppProperties oneAppProperties) {
         return HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(smileIdProperties.url())
                         .defaultHeader(oneAppProperties.defaultHeaderName(), smileIdProperties.clientName())

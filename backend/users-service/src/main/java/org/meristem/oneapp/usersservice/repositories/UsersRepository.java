@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.repositories;
 
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.domains.annotations.UsersQueryModifier;
+import org.meristem.oneapp.usersservice.domains.responses.AdminsResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.dtos.sql.UserResponseResultSetExtractor;
 import org.meristem.oneapp.usersservice.dtos.sql.UserResponseRowMapper;
@@ -14,6 +15,7 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -97,4 +99,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     boolean existsByEmail(String email);
 
     Optional<Users> findUsersByEmailOrPhoneNumber(String email, String phoneNumber);
+
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email FROM users u WHERE u.id IN (:adminIds) ")
+    List<AdminsResponse.Admin> findAllAdminsByIds(List<Long> adminIds);
 }

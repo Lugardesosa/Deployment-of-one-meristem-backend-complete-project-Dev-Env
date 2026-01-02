@@ -2,7 +2,6 @@ package org.meristem.oneapp.trusteesservice.utils;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trusteesservice.domains.enums.Roles;
 import org.meristem.oneapp.trusteesservice.exception.exceptions.BadRequestException;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.data.util.Pair;

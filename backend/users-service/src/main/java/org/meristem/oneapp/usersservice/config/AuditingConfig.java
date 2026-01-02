@@ -8,7 +8,7 @@ import org.springframework.data.jdbc.repository.config.EnableJdbcAuditing;
 
 import java.util.Optional;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableJdbcAuditing
 public class AuditingConfig {
 
