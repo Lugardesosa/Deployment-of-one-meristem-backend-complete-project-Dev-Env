@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.VirtualAccountResponse;
-import org.meristem.oneapp.walletservice.services.VirtualAccountService;
+import org.meristem.oneapp.walletservice.services.IVirtualAccountService;
 import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,7 +28,7 @@ import java.util.List;
 @Tag(name = "Account Controller", description = "This controllers manages users account")
 public class AccountController {
 
-    private final VirtualAccountService virtualAccountService;
+    private final IVirtualAccountService virtualAccountService;
 
     @Operation(summary = "Gets user's accounts", method = "GET")
     @ApiResponses(value = {

@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.usersservice.services.OnboardingService;
-import org.meristem.oneapp.usersservice.services.SmileIdService;
+import org.meristem.oneapp.usersservice.services.IOnboardingService;
+import org.meristem.oneapp.usersservice.services.ISmileIdService;
+import org.meristem.oneapp.usersservice.services.implementations.OnboardingService;
+import org.meristem.oneapp.usersservice.services.implementations.SmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,8 +30,8 @@ import java.util.List;
 @RequestMapping(ApiConstants.CONTEXT_PATH + "onboard")
 public class OnboardingController {
 
-    private final OnboardingService onboardingService;
-    private final SmileIdService smileIdService;
+    private final IOnboardingService onboardingService;
+    private final ISmileIdService smileIdService;
 
 
     @Operation(summary = "Get the onboarding flow")

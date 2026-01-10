@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.notificationservice.constants.ApiConstants;
 import org.meristem.oneapp.notificationservice.domains.requests.HollaTagsCallbackRequest;
 import org.meristem.oneapp.notificationservice.domains.responses.HollaTagsCallbackResponse;
-import org.meristem.oneapp.notificationservice.services.CallbackService;
+import org.meristem.oneapp.notificationservice.services.ICallbackService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(ApiConstants.CONTEXT_PATH + "callback")
 public class CallbackControllers {
 
-    private final CallbackService callbackService;
+    private final ICallbackService callbackService;
 
     @Operation(summary = "Holla Tags callback url")
     @ApiResponses(value = {

@@ -11,7 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
 import org.meristem.oneapp.walletservice.domains.requests.ProvidusAccountFundedEventRequest;
 import org.meristem.oneapp.walletservice.domains.responses.ProvidusTransactionResponse;
-import org.meristem.oneapp.walletservice.services.TransactionService;
+import org.meristem.oneapp.walletservice.services.ITransactionService;
+import org.meristem.oneapp.walletservice.services.implementations.TransactionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Providus api", description = "This controller manages everything about providus virtual account integration")
 public class ProvidusController {
 
-    private final TransactionService transactionService;
+    private final ITransactionService transactionService;
 
     @Operation(summary = "Wema transaction webhook")
     @ApiResponses(value = {@ApiResponse(

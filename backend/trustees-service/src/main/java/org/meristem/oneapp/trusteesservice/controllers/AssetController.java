@@ -13,7 +13,8 @@ import org.meristem.oneapp.trusteesservice.constants.ApiConstants;
 import org.meristem.oneapp.trusteesservice.domains.enums.Assets;
 import org.meristem.oneapp.trusteesservice.domains.requests.*;
 import org.meristem.oneapp.trusteesservice.domains.responses.*;
-import org.meristem.oneapp.trusteesservice.services.AssetService;
+import org.meristem.oneapp.trusteesservice.services.IAssetService;
+import org.meristem.oneapp.trusteesservice.services.implementations.AssetService;
 import org.meristem.oneapp.trusteesservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +32,7 @@ import java.util.Map;
 @Tag(name = "Asset API", description = "Controls everything asset")
 public class AssetController {
 
-    private final AssetService assetService;
+    private final IAssetService assetService;
 
     @Operation(summary = "Create a cash asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a cash asset")})

@@ -11,7 +11,7 @@ import org.meristem.oneapp.trusteesservice.constants.ApiConstants;
 import org.meristem.oneapp.trusteesservice.domains.requests.UpdateSelectionRequest;
 import org.meristem.oneapp.trusteesservice.domains.responses.AppResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.UpdateSelectionResponse;
-import org.meristem.oneapp.trusteesservice.services.AdminService;
+import org.meristem.oneapp.trusteesservice.services.IAdminService;
 import org.meristem.oneapp.trusteesservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final AdminService adminService;
+    private final IAdminService adminService;
 
     @Operation(summary = "Add or remove form Selection")
     @ApiResponses(value = {

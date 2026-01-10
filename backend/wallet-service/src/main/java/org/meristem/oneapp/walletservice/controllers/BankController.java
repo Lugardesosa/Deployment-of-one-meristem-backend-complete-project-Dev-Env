@@ -14,7 +14,7 @@ import org.meristem.oneapp.walletservice.domains.requests.BankAccountRequest;
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.BankAccountResponse;
 import org.meristem.oneapp.walletservice.domains.responses.BankCodeResponse;
-import org.meristem.oneapp.walletservice.services.BankService;
+import org.meristem.oneapp.walletservice.services.IBankService;
 import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,7 +30,7 @@ import java.util.List;
 @Tag(name = "Banks api", description = "This controller manages everything about banks")
 public class BankController {
 
-    private final BankService bankService;
+    private final IBankService bankService;
 
     @Operation(summary = "Get bank account details")
     @ApiResponses(value = {@ApiResponse(

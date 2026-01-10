@@ -13,8 +13,8 @@ import org.meristem.oneapp.usersservice.domains.enums.MessageSubject;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.dtos.events.DeviceMetadataEvent;
 import org.meristem.oneapp.usersservice.models.DeviceMetadata;
-import org.meristem.oneapp.usersservice.services.KafkaSenderService;
-import org.meristem.oneapp.usersservice.services.LoginService;
+import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
+import org.meristem.oneapp.usersservice.services.ILoginService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -51,9 +51,9 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
 
     private Consumer<OAuth2AccessTokenAuthenticationContext> accessTokenResponseCustomizer;
 
-    private final KafkaSenderService kafkaSenderService;
+    private final IKafkaSenderService kafkaSenderService;
 
-    private final LoginService loginService;
+    private final ILoginService loginService;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 

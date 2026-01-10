@@ -11,7 +11,7 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.BeneficiaryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
 import org.meristem.oneapp.usersservice.domains.responses.BeneficiaryResponse;
-import org.meristem.oneapp.usersservice.services.BeneficiaryService;
+import org.meristem.oneapp.usersservice.services.IBeneficiaryService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BeneficiaryController {
 
-    private final BeneficiaryService beneficiaryService;
+    private final IBeneficiaryService beneficiaryService;
 
     @Operation(summary = "Get a beneficiary")
     @ApiResponses(value = {

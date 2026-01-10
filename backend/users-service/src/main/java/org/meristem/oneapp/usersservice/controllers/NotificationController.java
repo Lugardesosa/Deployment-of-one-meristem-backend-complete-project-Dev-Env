@@ -14,7 +14,7 @@ import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
-import org.meristem.oneapp.usersservice.services.OtpService;
+import org.meristem.oneapp.usersservice.services.IOtpService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class NotificationController {
 
-    private final OtpService otpService;
+    private final IOtpService otpService;
 
 
     @Operation(summary = "Sends an otp.")

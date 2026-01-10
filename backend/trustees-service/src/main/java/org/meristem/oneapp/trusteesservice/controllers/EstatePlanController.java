@@ -14,9 +14,9 @@ import org.meristem.oneapp.trusteesservice.constants.ApiConstants;
 import org.meristem.oneapp.trusteesservice.domains.enums.Plans;
 import org.meristem.oneapp.trusteesservice.domains.requests.*;
 import org.meristem.oneapp.trusteesservice.domains.responses.*;
-import org.meristem.oneapp.trusteesservice.services.EstatePlanService;
+import org.meristem.oneapp.trusteesservice.services.IEstatePlanService;
+import org.meristem.oneapp.trusteesservice.services.implementations.EstatePlanService;
 import org.meristem.oneapp.trusteesservice.utils.ApiUtil;
-import org.meristem.oneapp.trusteesservice.utils.AppUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ import java.util.Map;
 @Tag(name = "Estate Plan API", description = "Controls everything estate plans")
 public class EstatePlanController {
 
-    private final EstatePlanService estatePlanService;
+    private final IEstatePlanService estatePlanService;
 
 
     @Operation(summary = "Create a simple will", method = "POST")

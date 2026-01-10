@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
 import org.meristem.oneapp.walletservice.domains.requests.WemaAccountQueryRequest;
 import org.meristem.oneapp.walletservice.domains.responses.WemaAccountQueryResponse;
-import org.meristem.oneapp.walletservice.services.VirtualAccountService;
+import org.meristem.oneapp.walletservice.services.IVirtualAccountService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Wema api", description = "This controller manages everything about wema virtual account integration")
 public class WemaController {
 
-    private final VirtualAccountService virtualAccountService;
+    private final IVirtualAccountService virtualAccountService;
 
     @Operation(summary = "Queries Wema account details")
     @ApiResponses(value = {@ApiResponse(

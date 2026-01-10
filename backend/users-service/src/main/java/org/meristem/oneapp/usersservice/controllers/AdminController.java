@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.usersservice.services.AdminService;
+import org.meristem.oneapp.usersservice.services.IAdminService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Admin api", description = "This controller manages everything admin related")
 public class AdminController {
 
-    private final AdminService adminService;
+    private final IAdminService adminService;
 
     @Operation(summary = "Update next of kin")
     @ApiResponses(value = {

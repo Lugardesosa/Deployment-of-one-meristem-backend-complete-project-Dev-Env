@@ -14,8 +14,9 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.usersservice.services.NextOfKinService;
-import org.meristem.oneapp.usersservice.services.UsersService;
+import org.meristem.oneapp.usersservice.services.INextOfKinService;
+import org.meristem.oneapp.usersservice.services.IUsersService;
+import org.meristem.oneapp.usersservice.services.implementations.NextOfKinService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,8 +32,8 @@ import java.util.List;
 @Tag(name = "Users api", description = "This controller manages everything users")
 public class UsersController {
 
-    private final UsersService usersService;
-    private final NextOfKinService nextOfKinService;
+    private final IUsersService usersService;
+    private final INextOfKinService nextOfKinService;
 
     @Operation(summary = "Creates a user.")
     @ApiResponses(value = {

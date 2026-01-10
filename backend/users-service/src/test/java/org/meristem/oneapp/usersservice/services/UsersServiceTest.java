@@ -17,6 +17,9 @@ import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
+import org.meristem.oneapp.usersservice.services.implementations.HuaweiService;
+import org.meristem.oneapp.usersservice.services.implementations.KafkaSenderService;
+import org.meristem.oneapp.usersservice.services.implementations.UsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

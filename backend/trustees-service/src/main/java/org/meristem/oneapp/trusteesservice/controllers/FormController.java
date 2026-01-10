@@ -13,7 +13,8 @@ import org.meristem.oneapp.trusteesservice.domains.responses.AppResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.BankResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.FormNamesResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.FormResponse;
-import org.meristem.oneapp.trusteesservice.services.FormService;
+import org.meristem.oneapp.trusteesservice.services.IFormService;
+import org.meristem.oneapp.trusteesservice.services.implementations.FormService;
 import org.meristem.oneapp.trusteesservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FormController {
 
-    private final FormService formService;
+    private final IFormService formService;
 
     @Operation(summary = "Get a form or forms", method = "GET")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Get a form and its properties")})

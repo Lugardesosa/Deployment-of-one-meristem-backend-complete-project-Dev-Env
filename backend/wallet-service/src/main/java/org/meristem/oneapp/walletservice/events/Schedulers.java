@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.walletservice.domains.enums.OutboxStatus;
 import org.meristem.oneapp.walletservice.models.OutboxEvent;
 import org.meristem.oneapp.walletservice.repositories.OutboxEventRepository;
-import org.meristem.oneapp.walletservice.services.KafkaSenderService;
+import org.meristem.oneapp.walletservice.services.IKafkaSenderService;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,7 +23,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class Schedulers {
 
     private final OutboxEventRepository outboxEventRepository;
-    private final KafkaSenderService kafkaSenderService;
+    private final IKafkaSenderService kafkaSenderService;
     private final ObjectMapper objectMapper;
 
     @Scheduled(fixedDelay = 2000)

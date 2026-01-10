@@ -11,7 +11,8 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.RiskAppetiteRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
 import org.meristem.oneapp.usersservice.domains.responses.RiskAppetiteResponse;
-import org.meristem.oneapp.usersservice.services.RiskAppetiteService;
+import org.meristem.oneapp.usersservice.services.IRiskAppetiteService;
+import org.meristem.oneapp.usersservice.services.implementations.RiskAppetiteService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Risk appetite api", description = "This controller manages everything risk appetite related")
 public class RiskAppetiteController {
 
-    private final RiskAppetiteService riskAppetiteService;
+    private final IRiskAppetiteService riskAppetiteService;
 
     @Operation(summary = "Create or Update risk appetite")
     @ApiResponses(value = {
