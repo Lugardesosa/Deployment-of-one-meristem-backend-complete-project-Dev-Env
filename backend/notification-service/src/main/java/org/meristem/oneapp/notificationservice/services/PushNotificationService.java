@@ -73,6 +73,7 @@ public class PushNotificationService {
         }
         customRepository.saveAll(tickets);
         userExpoTokensRepository.deleteUserExpoTokensByExpoTokenIn(tokenToDelete);
+        log.info("Push notification sent to {} users", tickets.size());
     }
 
     public void recoverPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {

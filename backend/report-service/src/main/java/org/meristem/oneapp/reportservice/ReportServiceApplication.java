@@ -31,7 +31,7 @@ public class ReportServiceApplication {
             try {
                 kafkaTemplate.send(KafkaTopics.KAFKA_HEALTH_TOPIC, "ping");
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("Failed to send Kafka health ping ", e);
             }
         };
     }

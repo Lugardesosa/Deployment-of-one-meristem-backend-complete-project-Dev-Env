@@ -38,7 +38,7 @@ public class AccountController {
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
     })
-    @PreAuthorize("hasRole('ROLE_users.virtual_accounts.get')")
+    @PreAuthorize("hasRole('ROLE_1038')")
     @GetMapping(value = "")
     public ResponseEntity<AppResponse<List<VirtualAccountResponse>>> getVirtualAccounts() {
         return ApiUtil.buildResponse(virtualAccountService.getAccounts(), HttpStatus.OK.toString(), "Successful");

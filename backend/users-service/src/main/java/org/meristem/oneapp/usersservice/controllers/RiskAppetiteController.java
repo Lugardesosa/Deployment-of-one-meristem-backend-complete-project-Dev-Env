@@ -34,7 +34,7 @@ public class RiskAppetiteController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to Create or Update risk appetite")
     })
-    @PreAuthorize("hasRole('ROLE_users.risk.update')")
+    @PreAuthorize("hasRole('ROLE_1003')")
     @PutMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<RiskAppetiteResponse>> createOrUpdate(@Valid @RequestBody RiskAppetiteRequest request) {
         return ApiUtil.buildResponse(riskAppetiteService.createOrUpdateRiskAppetite(request), HttpStatus.OK.toString(), "Successful");

@@ -88,7 +88,7 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
                             .userId(users.getId()).lastLoggedIn(LocalDateTime.now()).location(loginService.formatLocation(location.cityName(), location.country())).build();
                     applicationEventPublisher.publishEvent(new DeviceMetadataEvent(this, deviceMetadata));
                     MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.LOGIN_SUCCESSFUL).message(loginDto).classSimpleName(LoginDto.class.getSimpleName()).isHtml(true).build();
-                    kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC));
+                    kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC, KafkaHeaders.KEY, users.getEmail()));
                 }
             }
         } catch(Exception e) {

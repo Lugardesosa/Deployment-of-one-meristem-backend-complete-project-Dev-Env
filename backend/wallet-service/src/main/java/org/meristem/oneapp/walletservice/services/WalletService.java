@@ -22,7 +22,9 @@ public class WalletService {
     public Wallets createWallet(KycCompletedDto kycCompletedDto) {
         Wallets wallets = Wallets.builder().userId(kycCompletedDto.userId()).balance(BigDecimal.ZERO).fullName(AppUtil.getUserFullName(kycCompletedDto.firstName(), "", kycCompletedDto.lastName()))
                 .build();
-        return walletRepository.save(wallets);
+        Wallets savedWallet = walletRepository.save(wallets);
+        log.info("Wallet created for user {}", savedWallet.getUserId());
+        return savedWallet;
     }
 
     public WalletBalanceResponse getAccountBalance() {

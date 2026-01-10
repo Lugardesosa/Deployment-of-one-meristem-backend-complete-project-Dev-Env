@@ -37,7 +37,7 @@ public class BankController {
             responseCode = "200", description = "Resolves bank account details",
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BankAccountResponse.class))}
     )})
-    @PreAuthorize("hasAuthority('ROLE_users.resolve.bank')")
+    @PreAuthorize("hasAuthority('ROLE_1010')")
     @PostMapping(value = "/resolve-account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<BankAccountResponse>> resolveAccount(@RequestBody @Valid BankAccountRequest request) {
         return ApiUtil.buildResponse(bankService.resolveAccount(request), HttpStatus.OK.toString(), "Successful");
@@ -49,7 +49,7 @@ public class BankController {
             responseCode = "200", description = "Resolves bank account details",
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BankCodeResponse.class))}
     )})
-    @PreAuthorize("hasAuthority('ROLE_users.banks.get')")
+    @PreAuthorize("hasAuthority('ROLE_1029')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<BankCodeResponse>>> getBanks(@RequestParam ProviderCode providerCode) {
         return ApiUtil.buildResponse(bankService.getBanks(providerCode), HttpStatus.OK.toString(), "Successful");

@@ -1,5 +1,6 @@
 package org.meristem.oneapp.kafka.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -8,6 +9,7 @@ import java.util.Map;
 
 @Builder
 public record TransactionEventDto(
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         LocalDateTime createdDate,
         Long walletId,
         Long virtualAccountId,

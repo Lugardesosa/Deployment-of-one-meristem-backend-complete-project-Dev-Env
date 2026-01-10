@@ -70,8 +70,8 @@ public class UsersService {
     private final IdCardRepository idCardRepository;
 
     public  UpdateResponse create(CreateUserRequest request) {
-        System.out.println(AppUtil.isAdmin());
 
+        log.info("First stage of User with email creation started {}", request.email());
         if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
@@ -84,12 +84,14 @@ public class UsersService {
                 .build();
         requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
 
+        log.info("First stage of User with email {} created ", request.email());
         return UpdateResponse.builder().success(true).message("Successful").build();
     }
 
     @Transactional
     public UpdateResponse setPassword(SetPasswordRequest userRequest) {
 
+        log.info("User with email {} started stage 2", userRequest.email());
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
         BvnQueryResponse bvnQueryResponse = cache.get(userRequest.email(), BvnQueryResponse.class);
 
@@ -105,10 +107,12 @@ public class UsersService {
         user.setPassword(passwordEncoder.encode(userRequest.password()));
         save(user, bvnQueryResponse.getBvn());
         cache.evict(userRequest.email());
+        log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
     public  UsersResponse save(Users user, String bvn) {
+        log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
@@ -136,6 +140,7 @@ public class UsersService {
         customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
+        log.info("User with email {} onboarding completion finished ", user.getEmail());
         return usersMapper.usersToUserResponse(user);
     }
 
@@ -148,6 +153,7 @@ public class UsersService {
      * @throws BadRequestException if the existing email is already verified
      */
     public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
+        log.info("User with email {} email update started", userRequest.oldEmail());
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
@@ -167,7 +173,7 @@ public class UsersService {
         response.setEmail(userRequest.newEmail());
         cache.put(response.getEmail(), response);
         cache.evict(userRequest.oldEmail());
-
+        log.info("User with email {} email update completed", userRequest.newEmail());
         return UpdateResponse.builder().success(true).message("Email successfully updated").build();
     }
 
@@ -203,6 +209,7 @@ public class UsersService {
     @Transactional
     public PasswordResetResponse resetPassword(PasswordResetRequest request) {
 
+        log.info("Password reset started for user {}", request.recipient());
         // Ensure otp exists and not expired
         if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), request.recipient(), request.recipient(), true, LocalDateTime.now())) {
             throw new BadRequestException("OTP not verified or expired.");
@@ -221,6 +228,7 @@ public class UsersService {
 
         // Notify the user about the password rest via mail
         notifyUserAboutPasswordChange(users.getEmail());
+        log.info("Password reset completed for user {}", request.recipient());
         return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
@@ -235,6 +243,7 @@ public class UsersService {
     public UpdateResponse updatePassword(UpdatePasswordRequest request) {
 
         String userEmail = AppUtil.getLoggedInUserEmail();
+        log.info("Password update started for user {}", userEmail);
         Long userId = AppUtil.getLoggedInUserId();
         String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
 
@@ -258,6 +267,7 @@ public class UsersService {
 
         // Notify the user about the password rest via mail
         notifyUserAboutPasswordChange(userEmail);
+        log.info("Password update completed for user {}", userEmail);
         return UpdateResponse.builder().success(true).message("Password successfully updated.").build();
     }
 
@@ -274,6 +284,7 @@ public class UsersService {
 
         usersRepository.updateUsersPhoneNumber(request.phoneNumber(), userEmail);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        log.info("User with email {} updated phone number", userEmail);
         return UpdatePhoneNumberResponse.builder().status(true).message("User phone number updated").build();
     }
 
@@ -397,7 +408,7 @@ public class UsersService {
         if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
             userProfileRepository.completeOnboarding(kycCompletedDto.userId());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
-            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED));
+            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED, KafkaHeaders.KEY, userId));
         }
     }
 
@@ -414,7 +425,7 @@ public class UsersService {
         userProfileRepository.resetOnboarding(kycCompletedDto.userId());
         userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
-        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED));
+        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, userId));
     }
 
     /**
@@ -449,11 +460,12 @@ public class UsersService {
      * @param userEmail recipient email address
      */
     private void notifyUserAboutPasswordChange(String userEmail) {
+        Long userId = usersRepository.findIdByEmail(userEmail);
         PasswordChangeDto otpDto = PasswordChangeDto.builder().recipient(new String[]{userEmail})
                 .body("Your password was changed, if you didn't initiate this, click this link.")
                 .subject(MessageSubjects.PASSWORD_RESET).build();
         MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.PASSWORD_RESET).message(otpDto).classSimpleName(PasswordChangeDto.class.getSimpleName()).build();
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET));
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET, KafkaHeaders.KEY, userId));
     }
 
     /**

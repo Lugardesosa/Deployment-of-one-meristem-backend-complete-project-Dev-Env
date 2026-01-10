@@ -173,7 +173,7 @@ public final class AppUtil {
                 .build();
     }
 
-    public String getSmileIdTimestamp() {
+    public static String getSmileIdTimestamp() {
 
         LocalDateTime localDateTime = LocalDateTime.now();
 

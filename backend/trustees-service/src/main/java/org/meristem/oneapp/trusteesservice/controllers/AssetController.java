@@ -35,7 +35,7 @@ public class AssetController {
 
     @Operation(summary = "Create a cash asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a cash asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/cash", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<CashResponse>> createCash(@RequestBody @Valid CashRequest cashRequest) {
         return ApiUtil.buildResponse(assetService.saveCash(cashRequest), HttpStatus.CREATED.toString(), "Successful");
@@ -43,7 +43,7 @@ public class AssetController {
 
     @Operation(summary = "Create a public equities asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a public equities asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/public-equities", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<PublicEquitiesResponse>> createPublicEquities(@RequestBody @Valid PublicEquitiesRequest request) {
         return ApiUtil.buildResponse(assetService.savePublicEquities(request), HttpStatus.CREATED.toString(), "Successful");
@@ -51,7 +51,7 @@ public class AssetController {
 
     @Operation(summary = "Create a private equities asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a private equities asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/private-equities", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<EquitiesResponse>> createPrivateEquities(@RequestBody @Valid EquitiesRequest request) {
         return ApiUtil.buildResponse(assetService.savePrivateEquities(request), HttpStatus.CREATED.toString(), "Successful");
@@ -59,7 +59,7 @@ public class AssetController {
 
     @Operation(summary = "Create a real estate asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a real estate asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/real-estate", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<RealEstateResponse>> createRealEstate(@RequestBody @Valid RealEstateRequest request) {
         return ApiUtil.buildResponse(assetService.saveRealEstate(request), HttpStatus.CREATED.toString(), "Successful");
@@ -67,7 +67,7 @@ public class AssetController {
 
     @Operation(summary = "Create a fixed income / money market asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a fixed income / money market asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/money-market", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<MoneyMarketResponse>> createMoneyMarket(@RequestBody @Valid MoneyMarketRequest request) {
         return ApiUtil.buildResponse(assetService.saveMoneyMarket(request), HttpStatus.CREATED.toString(), "Successful");
@@ -75,7 +75,7 @@ public class AssetController {
 
     @Operation(summary = "Create a intellectual property asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a intellectual property asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/intellectual-property", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<IntellectualPropertyResponse>> createIntellectualProperty(@RequestBody @Valid IntellectualPropertyRequest request) {
         return ApiUtil.buildResponse(assetService.saveIntellectualProperty(request), HttpStatus.CREATED.toString(), "Successful");
@@ -83,7 +83,7 @@ public class AssetController {
 
     @Operation(summary = "Create a alternate asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a alternate asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/alternate-assets", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<AlternateAssetsResponse>> createAlternateAssets(@RequestBody @Valid AlternateAssetsRequest request) {
         return ApiUtil.buildResponse(assetService.saveAlternateAssets(request), HttpStatus.CREATED.toString(), "Successful");
@@ -91,7 +91,7 @@ public class AssetController {
 
     @Operation(summary = "Create a personal asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a personal asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/personal-assets", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<PersonalAssetsResponse>> createPersonalAssets(@RequestBody @Valid PersonalAssetsRequest request) {
         return ApiUtil.buildResponse(assetService.savePersonalAssets(request), HttpStatus.CREATED.toString(), "Successful");
@@ -99,7 +99,7 @@ public class AssetController {
 
     @Operation(summary = "Create a pension asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a pension asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/pension", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<PensionResponse>> createPension(@RequestBody @Valid PensionRequest request) {
         return ApiUtil.buildResponse(assetService.savePension(request), HttpStatus.CREATED.toString(), "Successful");
@@ -107,7 +107,7 @@ public class AssetController {
 
     @Operation(summary = "Create a life insurance asset", method = "POST")
     @ApiResponses(value = {@ApiResponse(responseCode = "201", description = "Create a life insurance asset")})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PostMapping(value = "/life-insurance", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<LifeInsuranceResponse>> createLifeInsurance(@RequestBody @Valid LifeInsuranceRequest request) {
         return ApiUtil.buildResponse(assetService.saveLifeInsurance(request), HttpStatus.CREATED.toString(), "Successful");
@@ -118,7 +118,7 @@ public class AssetController {
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GetAssetResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @PreAuthorize("hasRole('ROLE_1020')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetAssetResponse>> getAssets(@RequestParam(name = "asset-name") Assets assetName, @RequestParam(name = "asset-id", required = false) Long assetId) {
         return ApiUtil.buildResponse(assetService.getAssets(assetName, assetId), HttpStatus.OK.toString(), "Successful");
@@ -129,7 +129,7 @@ public class AssetController {
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = SuccessResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.asset.create')")
+    @PreAuthorize("hasRole('ROLE_1019')")
     @PutMapping(value = "/estimated-value", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<SuccessResponse>> updateEstimatedValue(@RequestBody @Valid EstimatedValueRequest request) {
         return ApiUtil.buildResponse(assetService.updateEstimatedValue(request), HttpStatus.OK.toString(), "Successful");
@@ -138,7 +138,7 @@ public class AssetController {
 
     @Operation(summary = "Get all assets", method = "GET")
     @ApiResponse(responseCode = "200", description = "Get all assets")
-    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @PreAuthorize("hasRole('ROLE_1020')")
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<Map<String, List<?>>>> getAllAssets() {
         return ApiUtil.buildResponse(assetService.getAllAssets(), HttpStatus.OK.toString(), "Successful");
@@ -149,7 +149,7 @@ public class AssetController {
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = GetAssetValueResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.asset.get')")
+    @PreAuthorize("hasRole('ROLE_1020')")
     @GetMapping(value = "/estimated-value", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetAssetValueResponse>> getAssetsValue(@RequestParam(name = "asset-name", required = false) Assets assets) {
         return ApiUtil.buildResponse(assetService.getAssetsValue(assets), HttpStatus.OK.toString(), "Successful");
@@ -160,7 +160,7 @@ public class AssetController {
             content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = AssetDeleteResponse.class)
             )})
-    @PreAuthorize("hasRole('ROLE_users.asset.remove')")
+    @PreAuthorize("hasRole('ROLE_1008')")
     @DeleteMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<AssetDeleteResponse>> deleteAsset(@RequestParam(name = "asset-name") Assets assets, @RequestParam(name = "asset-id") long assetId) {
         return ApiUtil.buildResponse(assetService.deleteAsset(assets, assetId), HttpStatus.OK.toString(), "Successful");

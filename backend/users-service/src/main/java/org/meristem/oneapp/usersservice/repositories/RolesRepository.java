@@ -7,6 +7,7 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional(readOnly = true)
 public interface RolesRepository extends BaseRepository<Roles, Long> {
@@ -21,14 +22,16 @@ public interface RolesRepository extends BaseRepository<Roles, Long> {
     @Query("INSERT INTO users_roles(roles_id, users_id) VALUES ( :roleId, :userId ) ")
     int updateUserRole(Long userId, Long roleId);
 
-
-    @Query("SELECT r.name FROM roles  ")
+    @Query("SELECT r.name FROM roles r ")
     List<String> findAllNames();
 
-    @Query("SELECT r.id, r.name FROM roles r ")
+    @Query("SELECT r.name FROM roles r WHERE r.id = :roleId OR LOWER(r.name) LIKE LOWER('ADDITIONAL') ")
+    Optional<String> findAllNames(Long roleId);
+
+    @Query("SELECT r.id, r.name, r.display_name FROM roles r ")
     List<RolesResponse.Role> findAllRoles();
 
-    @Query("SELECT r.name, r.id FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
+    @Query("SELECT r.name, r.display_name, r.id FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
     List<RolesResponse.Role> findAllRoles(Long userId);
 
     @Query("SELECT r.id FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
@@ -36,4 +39,10 @@ public interface RolesRepository extends BaseRepository<Roles, Long> {
 
     @Query("SELECT r.name FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
     List<String> findAllNamesByUserId(Long userId);
+
+    Optional<Roles> findByIdAndNameIsNotLike(Long id, String name);
+
+    @Modifying
+    @Query("DELETE FROM users_roles WHERE users_id = :userId  ")
+    void deleteUserRole(Long userId);
 }

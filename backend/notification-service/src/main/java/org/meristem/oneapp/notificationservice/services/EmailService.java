@@ -96,6 +96,7 @@ public class EmailService implements NotificationService<MessageDto> {
                 helper.addAttachment(entry.getKey(), entry.getValue());
             }
             mailSender.send(message);
+            log.info("Email sent to {}", (Object) messageDetails.getRecipient());
         } catch (Exception e) {
             log.error("Error sending email with subject {} to email {}", messageDetails.getSubject(), messageDetails.getRecipient(), e);
         }

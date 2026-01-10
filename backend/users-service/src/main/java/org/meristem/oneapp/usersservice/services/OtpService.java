@@ -93,7 +93,7 @@ public class OtpService {
 
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(otpDto).classSimpleName(OtpDto.class.getSimpleName()).isHtml(messageMedium.equals(MessageMedium.EMAIL)).build();
 
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC));
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC, KafkaHeaders.KEY, sendOtpRequest.recipient()));
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
                 .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerification.getExpiresAt()))
                 .build();
@@ -158,7 +158,7 @@ public class OtpService {
             bvnQueryResponse.setEmailVerified(true);
             cache.put(otpVerification.getUserId(), bvnQueryResponse);
             otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), bvnQueryResponse.getEmail(), bvnQueryResponse.getPhoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
-            kafkaSenderService.send(new OtpVerifiedDto(otpVerification.getUserId()), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC));
+            kafkaSenderService.send(new OtpVerifiedDto(otpVerification.getUserId()), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, otpVerification.getUserId()));
         }
 
         return VerifyOtpResponse.builder().status(true).message("OTP verified").build();

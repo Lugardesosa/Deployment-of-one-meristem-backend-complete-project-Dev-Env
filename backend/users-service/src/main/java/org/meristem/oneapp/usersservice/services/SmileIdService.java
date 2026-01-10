@@ -164,17 +164,17 @@ public class SmileIdService {
                 handleSuccessfulNotification(request, record);
                 response = new SmileIdWebhookResponse("Success", true);
                 WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
-                kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC));
+                kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, record.getJobId()));
                 return response;
             }
         } catch (RuntimeException e) {
             WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
-            kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC));
+            kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, request.partnerParams().jobId()));
             log.error(e.getMessage(), e);
             throw new BadRequestException("Bad request: invalid request");
         }
         WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
-        kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC));
+        kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, request.partnerParams().jobId()));
 
         return response;
     }
@@ -268,17 +268,30 @@ public class SmileIdService {
 
         // Save document url for non bvn requirement
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-        UserDocument document = UserDocument.builder().userId(loggedInUser.getId()).requirementId(smileIdRecord.getRequirementId())
-                .idType(notification.idType()).additionalUrl(notification.kycReceipt()).build();
-        if (nonNull(notification.imageLinks())) {
-            document.setIdCardFront(notification.imageLinks().idCardImage());
-            document.setIdCardBack(notification.imageLinks().idCardBack());
-            document.setSelfieImage(notification.imageLinks().selfieImage());
-        }
-        userDocumentRepository.save(document);
+
+        userDocumentRepository.findByUserIdAndIdType(loggedInUser.getId(), notification.idType())
+                .ifPresentOrElse(id -> {
+                    id.setAdditionalUrl(notification.kycReceipt());
+                    if (nonNull(notification.imageLinks())) {
+                        id.setIdCardFront(notification.imageLinks().idCardImage());
+                        id.setIdCardBack(notification.imageLinks().idCardBack());
+                        id.setSelfieImage(notification.imageLinks().selfieImage());
+                    }
+                    userDocumentRepository.save(id);
+                }, () -> {
+                    UserDocument document = UserDocument.builder().userId(loggedInUser.getId()).requirementId(smileIdRecord.getRequirementId())
+                            .idType(notification.idType()).additionalUrl(notification.kycReceipt()).build();
+                    if (nonNull(notification.imageLinks())) {
+                        document.setIdCardFront(notification.imageLinks().idCardImage());
+                        document.setIdCardBack(notification.imageLinks().idCardBack());
+                        document.setSelfieImage(notification.imageLinks().selfieImage());
+                    }
+                    userDocumentRepository.save(document);
+                });
+
 
         if (AppUtil.nonIsNull(notification.idNumber(), notification.idType())) {
-            idCardRepository.findIdCardByIdCardTypeAndIdValue(IdCardType.fromName(notification.idType()).getName(), notification.idNumber())
+            idCardRepository.findByIdCardTypeAndIdValue(IdCardType.fromName(notification.idType()).getName(), notification.idNumber())
                     .ifPresentOrElse(id -> {
                     }, () -> idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
                             .idCardType(notification.idType())

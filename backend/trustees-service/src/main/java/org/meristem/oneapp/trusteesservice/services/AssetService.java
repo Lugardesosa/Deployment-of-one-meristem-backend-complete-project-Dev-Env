@@ -2,7 +2,7 @@ package org.meristem.oneapp.trusteesservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trusteesservice.controllers.AssetDeleteResponse;
+import org.meristem.oneapp.trusteesservice.domains.responses.AssetDeleteResponse;
 import org.meristem.oneapp.trusteesservice.domains.enums.*;
 import org.meristem.oneapp.trusteesservice.domains.enums.Assets;
 import org.meristem.oneapp.trusteesservice.domains.requests.*;

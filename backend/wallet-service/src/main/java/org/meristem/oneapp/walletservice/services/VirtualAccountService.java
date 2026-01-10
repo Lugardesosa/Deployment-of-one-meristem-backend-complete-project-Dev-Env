@@ -14,12 +14,10 @@ import org.meristem.oneapp.walletservice.integrations.requests.CreateProvidusWal
 import org.meristem.oneapp.walletservice.integrations.responses.CreateProvidusWalletResponse;
 import org.meristem.oneapp.walletservice.models.VirtualAccounts;
 import org.meristem.oneapp.walletservice.models.Wallets;
-import org.meristem.oneapp.walletservice.repositories.CustomRepository;
 import org.meristem.oneapp.walletservice.repositories.VirtualAccountRepository;
 import org.meristem.oneapp.walletservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,12 +31,10 @@ public class VirtualAccountService {
     private final VirtualAccountRepository virtualAccountRepository;
     private final WalletService walletService;
 
-    private final CustomRepository generalRepository;
     private final ProvidusClient providusClient;
 
     public void createVirtualAccounts(KycCompletedDto record) {
         Wallets wallets = walletService.createWallet(record);
-        createWemaAccount(record, wallets.getId());
         createProvidusAccount(record, wallets.getId());
 
     }
@@ -62,7 +58,7 @@ public class VirtualAccountService {
                 .walletId(walletId)
                 .build();
         virtualAccountRepository.save(virtualAccounts);
-
+        log.info("Providus Virtual account created for user {} with account number {}", record.userId(), virtualAccounts.getAccountNumber());
     }
 
     public WemaAccountQueryResponse queryWemaAccount(@Valid WemaAccountQueryRequest request) {
@@ -72,24 +68,6 @@ public class VirtualAccountService {
                 .statusDesc(nonNull(fullName) ? "Account found" : "Account not found").build();
     }
 
-
-    public void createWemaAccount(KycCompletedDto value, Long walletId) {
-
-        AccountProvider WEMA = AccountProvider.WEMA;
-        String accountNumber = generalRepository.generateWemaVirtualAccount();
-        String reference = AppUtil.generateVirtualAccountReference(WEMA, value.userId());
-        VirtualAccounts virtualAccounts = VirtualAccounts.builder()
-                .accountName(AppUtil.getUserFullName(value.firstName(), "", value.lastName()))
-                .accountNumber(accountNumber)
-                .balance(BigDecimal.ZERO)
-                .bankCode(WEMA.getBankCode())
-                .bankName(WEMA.getBankName())
-                .reference(reference)
-                .providerWalletId(reference)
-                .walletId(walletId)
-                .build();
-        virtualAccountRepository.save(virtualAccounts);
-    }
 
     public List<VirtualAccountResponse> getAccounts() {
         Long userId = AppUtil.getLoggedInUserId();

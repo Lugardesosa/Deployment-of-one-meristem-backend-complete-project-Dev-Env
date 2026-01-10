@@ -22,11 +22,15 @@ public class InvestmentInstruments extends BaseModel<String> {
     @Column("code")
     private String code;
 
+    @Column("type")
+    private Integer type;
+
     @Builder
-    public InvestmentInstruments(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, String code) {
+    public InvestmentInstruments(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, String code, Integer type) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.name = name;
         this.code = code;
+        this.type = type;
     }
 
     @Override

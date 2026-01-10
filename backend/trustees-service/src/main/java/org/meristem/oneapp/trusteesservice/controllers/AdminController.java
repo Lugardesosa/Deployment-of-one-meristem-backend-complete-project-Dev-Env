@@ -34,7 +34,7 @@ public class AdminController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows super admins to add or remove form selections")
     })
-    @PreAuthorize("hasRole('ROLE_admin.selection.update')")
+    @PreAuthorize("hasRole('ROLE_2003')")
     @PutMapping(value = "/update-selections", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateSelectionResponse>> updateSelections(@Valid @RequestBody UpdateSelectionRequest request) {
 

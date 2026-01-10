@@ -15,6 +15,9 @@ public interface PermissionsRepository extends BaseRepository<Permissions, Long>
     @Query("SELECT p.name FROM permissions p LEFT JOIN permissions_mapping rp ON rp.permissions_id = p.id WHERE rp.roles_id IN (:ids) ")
     List<String> findAllByRolesIds(List<Long> ids);
 
+    @Query("SELECT p.code FROM permissions p LEFT JOIN permissions_mapping rp ON rp.permissions_id = p.id WHERE rp.roles_id IN (:ids) ")
+    List<String> findAllCodesByRolesIds(List<Long> ids);
+
     @Query("SELECT p.name FROM permissions p LEFT JOIN permissions_mapping rp ON rp.permissions_id = p.id WHERE rp.users_id = :userId")
     List<String> findAllByUsersId(Long userId);
 
@@ -45,4 +48,8 @@ public interface PermissionsRepository extends BaseRepository<Permissions, Long>
 
     @Query("SELECT p.id, p.name FROM permissions p LEFT JOIN permissions_mapping pm ON pm.permissions_id = p.id WHERE pm.users_id = :userId OR pm.roles_id IN (:roleIds) ")
     List<PermissionsResponse.Permission> findAllNamesByUserIdAndRoleIds(Long userId, List<Long> roleIds);
+
+    Permissions findByNameStartsWithOrderByCodeDesc(String name);
+
+    Permissions findTopByNameStartsWithOrderByCodeDesc(String startsWith);
 }

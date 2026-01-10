@@ -1,4 +1,4 @@
-package org.meristem.oneapp.trusteesservice.controllers;
+package org.meristem.oneapp.trusteesservice.domains.responses;
 
 import lombok.Builder;
 

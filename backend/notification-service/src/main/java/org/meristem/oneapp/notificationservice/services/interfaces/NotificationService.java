@@ -35,33 +35,30 @@ public interface NotificationService<T> {
      */
     default Message unbox(MessageDto request, ObjectMapper mapper, MessageDtoToMessageMapper messageMapper) {
 
+        Message message = null;
         if (request.classSimpleName().equals(OtpDto.class.getSimpleName())) {
             OtpDto detailsDto = mapper.convertValue(request.message(), OtpDto.class);
-            Message message = messageMapper.otpDtoToMessage(detailsDto);
+            message = messageMapper.otpDtoToMessage(detailsDto);
             message.setEmailTemplate(EmailTemplate.CONFIRM_VERIFICATION_CODE);
             Map<String, Object> context = new HashMap<>();
             context.put("code", detailsDto.getCode());
             context.put("firstName", nonNull(detailsDto.getFirstName()) ? detailsDto.getFirstName() : "");
             message.setContext(context);
-            return message;
         } else if (request.classSimpleName().equals(LoginDto.class.getSimpleName())) {
             LoginDto loginDto = mapper.convertValue(request.message(), LoginDto.class);
-            Message message = messageMapper.loginDtoToMessage(loginDto);
+            message = messageMapper.loginDtoToMessage(loginDto);
             message.setContext(buildLoginMail(loginDto));
             message.setEmailTemplate(EmailTemplate.LOGIN_NOTIFICATION);
-            return message;
         } else if (request.classSimpleName().equals(AdminAccountDto.class.getSimpleName())) {
             AdminAccountDto adminAccountDto = mapper.convertValue(request.message(), AdminAccountDto.class);
-            Message message = messageMapper.adminAccountDtoToMessage(adminAccountDto);
+            message = messageMapper.adminAccountDtoToMessage(adminAccountDto);
             message.setEmailTemplate(EmailTemplate.LOGIN_NOTIFICATION);
-            return message;
         } else if (request.classSimpleName().equals(PasswordChangeDto.class.getSimpleName())) {
             PasswordChangeDto passwordChangeDto = mapper.convertValue(request.message(), PasswordChangeDto.class);
-            Message message = messageMapper.passwordChangeDtoToMessage(passwordChangeDto);
+            message = messageMapper.passwordChangeDtoToMessage(passwordChangeDto);
             message.setEmailTemplate(EmailTemplate.LOGIN_NOTIFICATION);
-            return message;
         }
-        return null;
+        return message;
     }
 
     /**

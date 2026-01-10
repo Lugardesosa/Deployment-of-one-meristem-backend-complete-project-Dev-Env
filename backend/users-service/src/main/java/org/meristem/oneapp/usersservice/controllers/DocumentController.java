@@ -34,7 +34,7 @@ public class DocumentController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to generate signed url")
     })
-    @PreAuthorize("hasRole('ROLE_users.generate_signed_url')")
+    @PreAuthorize("hasRole('ROLE_1036')")
     @PostMapping(value = "/generate-signed-url", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<SignedUrlResponse>> generateSignedUrl(@RequestBody @Valid SignedUrlRequest request) {
         return ApiUtil.buildResponse(huaweiService.getSignedUrl(request), HttpStatus.OK.toString(), "Successful");

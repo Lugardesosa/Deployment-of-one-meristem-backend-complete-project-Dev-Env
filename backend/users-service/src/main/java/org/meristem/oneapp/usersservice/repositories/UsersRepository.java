@@ -100,6 +100,13 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     Optional<Users> findUsersByEmailOrPhoneNumber(String email, String phoneNumber);
 
-    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email FROM users u WHERE u.id IN (:adminIds) ")
+    @Query("""
+            SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, u.status, u.created_date, r.display_name, ii.code, r.id AS roleId, ap.investment_instrument_id FROM users u 
+                LEFT JOIN users_roles ur ON ur.users_id = u.id 
+                LEFT JOIN roles r ON ur.roles_id = r.id 
+                LEFT JOIN admin_profile ap ON ap.admin_id = u.id
+                LEFT JOIN investment_instruments ii ON ii.id = ap.investment_instrument_id 
+                WHERE u.id IN (:adminIds) 
+            """)
     List<AdminsResponse.Admin> findAllAdminsByIds(List<Long> adminIds);
 }

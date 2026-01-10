@@ -9,15 +9,14 @@ import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
+import org.meristem.oneapp.usersservice.domains.enums.PermissionsEnum;
 import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
-import org.meristem.oneapp.usersservice.models.AdminProfile;
-import org.meristem.oneapp.usersservice.models.Permissions;
-import org.meristem.oneapp.usersservice.models.Roles;
-import org.meristem.oneapp.usersservice.models.Users;
+import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.CacheManager;
@@ -27,9 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -59,6 +56,7 @@ public class AdminService {
     private final CacheManager cacheManager;
     private final PermissionsRepository permissionsRepository;
     private final AdminProfileRepository adminProfileRepository;
+    private final InvestmentInstrumentsRepository investmentInstrumentsRepository;
 
     /**
      * Updates the next-of-kin details for a user.
@@ -102,8 +100,9 @@ public class AdminService {
         users.setPassword(passwordEncoder.encode(password));
         users = usersRepository.save(users);
         Roles roles = rolesRepository.findById(request.roleId()).orElseThrow(() -> new BadRequestException("Role does not exist"));
+        InvestmentInstruments investmentInstruments = investmentInstrumentsRepository.findById(request.investmentInstrumentId()).orElseThrow(() -> new BadRequestException("Subsidiary does not exist"));
         usersRepository.saveRole(users.getId(), roles.getId());
-        customRepository.save(AdminProfile.builder().adminId(users.getId()).build());
+        customRepository.save(AdminProfile.builder().adminId(users.getId()).investmentInstrumentId(investmentInstruments.getId()).build());
 
         log.info("Created admin user, password: ------> {}", password);
         // Notify the user about the password rest via mail
@@ -111,7 +110,7 @@ public class AdminService {
                 .body("An account was created with your mail, kindly use this password to log in. Password is " + password)
                 .subject(MessageSubjects.ADMIN_ACCOUNT_CREATED).build();
         MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).classSimpleName(AdminAccountDto.class.getSimpleName()).build();
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED));
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED, KafkaHeaders.KEY, users.getId()));
         return usersMapper.usersToUserResponse(users);
     }
 
@@ -145,7 +144,7 @@ public class AdminService {
     public UpdateResponse assignRole(AssignAdminRoleRequest request) {
 
         if (!usersRepository.existsById(request.userId())) {
-            throw new BadRequestException("User not found");
+            throw new ResourceNotFoundException("User not found", "User", request.userId().toString());
         }
         Roles roles = rolesRepository.findById(request.roleId()).orElseThrow(() -> new BadRequestException("Role not found"));
         boolean isAdmin = !roles.getName().equals(AppConstants.USER_ROLE);
@@ -205,7 +204,15 @@ public class AdminService {
             throw new BadRequestException("Permission already exists");
         }
 
-        Permissions permissions = Permissions.builder().name(request.permissionName()).build();
+        Optional<PermissionsEnum> permissionsEnum;
+        String roleName;
+
+        roleName = rolesRepository.findAllNames(request.roleId()).orElseThrow(() -> new BadRequestException("Role not found"));
+        permissionsEnum = Arrays.stream(PermissionsEnum.values()).filter(p -> p.name().equals(roleName)).findFirst();
+
+        Permissions next = permissionsRepository.findTopByNameStartsWithOrderByCodeDesc(permissionsEnum.orElseThrow().getStartsWith());
+
+        Permissions permissions = Permissions.builder().name(permissionsEnum.get().getStartsWith().concat(".").concat(request.permissionName())).code(nonNull(next) ? Integer.parseInt(next.getCode()) + 1 + "" : permissionsEnum.get().getCode()).build();
         permissionsRepository.save(permissions);
         return UpdateResponse.builder().success(true).message("Permission successfully added").build();
     }
@@ -249,10 +256,31 @@ public class AdminService {
         return new PermissionsResponse(permissionsRepository.findAllPermissions());
     }
 
-    public AdminsResponse getAdmins() {
+    public AdminsResponse getAdmins(Long adminId) {
 
-        List<Long> adminIds = adminProfileRepository.findAllAdminIds();
+        List<Long> adminIds;
+        if (nonNull(adminId)) {
+            adminIds = Collections.singletonList(adminId);
+        } else {
+            adminIds = adminProfileRepository.findAllAdminIds();
+        }
 
         return new AdminsResponse(usersRepository.findAllAdminsByIds(adminIds));
+    }
+
+    @Transactional
+    public UpdateResponse updateAdmin(UpdateAdminRequest request) {
+
+        usersRepository.findById(request.adminId()).orElseThrow(() -> new BadRequestException("Admin does not exist."));
+        InvestmentInstruments investmentInstruments = investmentInstrumentsRepository.findById(request.subsidiaryId()).orElseThrow(() -> new BadRequestException("Subsidiary does not exist"));
+
+        int updated = adminProfileRepository.updateAdminProfile(investmentInstruments.getId());
+
+        rolesRepository.findByIdAndNameIsNotLike(request.roleId(), org.meristem.oneapp.usersservice.domains.enums.Roles.USER.name())
+                .orElseThrow(() -> new BadRequestException("Role does not exist or Role is not an admin."));
+
+        rolesRepository.deleteUserRole(request.adminId());
+        int updatedRole = rolesRepository.updateUserRole(request.adminId(), request.roleId());
+        return UpdateResponse.builder().success(updated > 0 || updatedRole > 0).message(updatedRole + " role and " + updated + " subsidiary successfully updated").build();
     }
 }

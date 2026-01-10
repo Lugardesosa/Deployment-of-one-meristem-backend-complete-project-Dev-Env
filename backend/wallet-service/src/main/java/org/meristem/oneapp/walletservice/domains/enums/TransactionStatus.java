@@ -13,7 +13,7 @@ public enum TransactionStatus {
     FAILED("FAILED", 3);
 
     private final String name;
-    private final int value;
+    private final Integer value;
 
     public static TransactionStatus fromName(String name) {
         return switch (name) {

@@ -19,6 +19,7 @@ public class KafkaListeners {
     @KafkaListener(topicPattern = KafkaTopics.KAFKA_KYC_COMPLETED)
     @Transactional
     public void listenKycCompleted(ConsumerRecord<String, KycCompletedDto> record) {
+        log.info("Received KycCompleted event: {}", record.value());
         virtualAccountService.createVirtualAccounts(record.value());
     }
 }

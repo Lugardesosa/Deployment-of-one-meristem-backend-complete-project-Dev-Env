@@ -40,7 +40,7 @@ public class NotificationController {
                             schema = @Schema(implementation = SendOtpResponse.class))
                     }),
     })
-    @PreAuthorize("hasAuthority('SCOPE_send_otp') OR hasRole('ROLE_users.otp.send')")
+    @PreAuthorize("hasAuthority('SCOPE_send_otp') OR hasRole('ROLE_1001')")
     @PostMapping(value = "/otp")
     public ResponseEntity<AppResponse<SendOtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest sendOtpRequest) {
         return ApiUtil.buildResponse(otpService.sendOtp(sendOtpRequest), HttpStatus.OK.toString(), "Otp sent to ".concat(sendOtpRequest.recipient()));
@@ -53,7 +53,7 @@ public class NotificationController {
                             schema = @Schema(implementation = VerifyOtpResponse.class))
                     })
     })
-    @PreAuthorize("hasAuthority('SCOPE_verify_otp') OR hasRole('ROLE_users.otp.verify')")
+    @PreAuthorize("hasAuthority('SCOPE_verify_otp') OR hasRole('ROLE_1002')")
     @PostMapping(value = "/otp/verify")
     public ResponseEntity<AppResponse<VerifyOtpResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest verifyOtpRequest) {
         return ApiUtil.buildResponse(otpService.verifyOtp(verifyOtpRequest), HttpStatus.OK.toString(), "Otp request verification processed.");
