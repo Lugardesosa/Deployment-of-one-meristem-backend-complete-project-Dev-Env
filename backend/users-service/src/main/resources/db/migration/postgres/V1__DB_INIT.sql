@@ -54,6 +54,7 @@ CREATE TABLE permissions
     version            INTEGER      NOT NULL DEFAULT 0,
     status             INTEGER      NOT NULL DEFAULT 1,
     name               VARCHAR(255) NOT NULL,
+    description        VARCHAR(255) NOT NULL,
     code               VARCHAR(255) NOT NULL,
     CONSTRAINT pk_permissions PRIMARY KEY (id),
     CONSTRAINT uq_permissions_name UNIQUE (name),
@@ -117,7 +118,6 @@ CREATE TABLE roles
 
 CREATE TABLE permissions_mapping
 (
-    users_id       BIGINT DEFAULT NULL,
     roles_id       BIGINT DEFAULT NULL,
     permissions_id BIGINT NOT NULL
 );
@@ -688,15 +688,10 @@ ALTER TABLE permissions_mapping
 ALTER TABLE permissions_mapping
     ADD CONSTRAINT fk_rolper_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
 
-ALTER TABLE permissions_mapping
-    ADD CONSTRAINT fk_rolper_on_users FOREIGN KEY (users_id) REFERENCES users (id);
-
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
 
 CREATE INDEX idx_roles_permissions_permissions_id_roles_id ON permissions_mapping (permissions_id, roles_id);
-
-CREATE INDEX idx_roles_permissions_permissions_id_users_id ON permissions_mapping (permissions_id, users_id);
 
 CREATE INDEX idx_users_roles_user_id ON users_roles (users_id);
 
@@ -920,772 +915,684 @@ $$
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'ADDITIONAL', 'Additional');
 
         -- PERMISSIONS
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.instrument.data.share', '1013')
         RETURNING id INTO UsersInstrumentDataShareID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get', '1000')
         RETURNING id INTO UsersGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.id.query', '1004')
         RETURNING id INTO UsersBvnQueryID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.otp.send', '1001')
         RETURNING id INTO UsersOtpSendID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.otp.verify', '1002')
         RETURNING id INTO UsersOtpVerifyID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.risk.update', '1003')
         RETURNING id INTO UsersRiskUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.add', '1005')
         RETURNING id INTO UsersBeneficiaryAddID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.remove', '1006')
         RETURNING id INTO UsersBeneficiaryRemoveID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.add', '1007')
         RETURNING id INTO UsersAssetAddID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.activity_log.get', '1021')
         RETURNING id INTO UsersActivityLogGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.instrument.accessed', '1022')
         RETURNING id INTO UsersUserInstrumentID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.instrument.get', '1023')
         RETURNING id INTO UsersInstrumentGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.remove', '1008')
         RETURNING id INTO UsersAssetRemoveID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.executor.add', '1009')
         RETURNING id INTO UsersExecutorAddID;
 
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.state.update', '1014')
         RETURNING id INTO UsersUpdateStateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.biometric.update', '1015')
         RETURNING id INTO UsersUpdateBiometricID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.country.update', '1016')
         RETURNING id INTO UsersUpdateCountryID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_countries', '1017')
         RETURNING id INTO UsersGetStatesID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_states', '1018')
         RETURNING id INTO UsersGetCountriesID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.create', '1019')
         RETURNING id INTO UsersAssetCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.asset.get', '1020')
         RETURNING id INTO UsersAssetGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.plan.create', '1024')
         RETURNING id INTO UsersPlanCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.plan.get', '1025')
         RETURNING id INTO UsersPlanGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change-password', '1026')
         RETURNING id INTO UsersChangePasswordID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.onboard', '1027')
         RETURNING id INTO UsersOnboardOnboardID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.forms.get', '1028')
         RETURNING id INTO UsersFormsGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.banks.get', '1029')
         RETURNING id INTO UsersBanksGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.resolve.bank', '1010')
         RETURNING id INTO UsersResolveBankID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.interest.free.update', '1011')
         RETURNING id INTO UsersInterestFreeUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.submit.address', '1012')
         RETURNING id INTO UsersSubmitAddressID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.get', '1030')
         RETURNING id INTO UsersBeneficiaryGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.beneficiary.create', '1031')
         RETURNING id INTO UsersBeneficiaryCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.onboard.get', '1032')
         RETURNING id INTO UsersOnboardGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.create', '1033')
         RETURNING id INTO UsersNextOfKinCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.next_of_kin.get', '1034')
         RETURNING id INTO UsersNextOfKinGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.p_picture.post', '1035')
         RETURNING id INTO UsersPPicturePostID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.generate_signed_url', '1036')
         RETURNING id INTO UsersSignedUrlID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.virtual_accounts.get', '1038')
         RETURNING id INTO UsersVirtualAccountsGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.transactions.get', '1039')
         RETURNING id INTO UsersTransactionsGetID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get_smile_id_token', '1037')
         RETURNING id INTO UsersGetSmileIdTokenID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.next_of_kin.update', '2000')
         RETURNING id INTO AdminNextOfKinUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.phone-number.update', '1040')
         RETURNING id INTO UsersPhoneNumberUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.password', '2001')
         RETURNING id INTO AdminChangePasswordID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.avatar', '1041')
         RETURNING id INTO UsersChangeAvatarID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.change.pin', '1042')
         RETURNING id INTO UsersChangePinID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.pin', '1043')
         RETURNING id INTO UsersVerifyPinID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.verify.password', '1044')
         RETURNING id INTO UsersVerifyPasswordID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.dob', '2002')
         RETURNING id INTO AdminChangeDobID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.selection.update', '2003')
         RETURNING id INTO AdminSelectionUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.form.items.update', '2004')
         RETURNING id INTO AdminFormItemUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.change.gender', '2005')
         RETURNING id INTO AdminChangeGenderID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.deactivate.account', '1045')
         RETURNING id INTO UsersDeactivateAccountID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.get.images', '1046')
         RETURNING id INTO UsersGetAvatarID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.create', '3000')
         RETURNING id INTO SystemAdminAdminCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.trust.create', '2006')
         RETURNING id INTO AdminTrustCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.trust.update', '2007')
         RETURNING id INTO AdminTrustUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.trust.view', '2008')
         RETURNING id INTO AdminTrustViewID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.trust.assign_manager', '2009')
         RETURNING id INTO AdminTrustAssignManagerID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.trust.profile.view', '2010')
         RETURNING id INTO AdminTrustProfileViewID;
 
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.beneficiary.add', '2011')
         RETURNING id INTO AdminBeneficiaryAddID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.beneficiary.update', '2012')
         RETURNING id INTO AdminBeneficiaryUpdateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.beneficiary.remove', '2013')
         RETURNING id INTO AdminBeneficiaryRemoveID;
 
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.deed.upload', '2014')
         RETURNING id INTO AdminDeedUploadID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.deed.manage', '2015')
         RETURNING id INTO AdminDeedManageID;
 
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.kyc.review', '4000')
         RETURNING id INTO ComplianceKycReviewID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.kyc.approve', '4001')
         RETURNING id INTO ComplianceKycApproveID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.kyc.reject', '4002')
         RETURNING id INTO ComplianceKycRejectID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.kyc.flag_edd', '4003')
         RETURNING id INTO ComplianceKycFlagEddID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.kyc.track', '2016')
         RETURNING id INTO AdminKycTrackID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.aml.screen', '4004')
         RETURNING id INTO ComplianceAmlScreenID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.compliance.audit.view', '2017')
         RETURNING id INTO AdminComplianceAuditViewID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.contribution.record', '2018')
         RETURNING id INTO AdminContributionRecordID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.contribution.allocate', '2019')
         RETURNING id INTO AdminContributionAllocateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.contribution.reconcile', '2020')
         RETURNING id INTO AdminContributionReconcileID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.funding.source.manage', '2021')
         RETURNING id INTO AdminFundingSourceManageID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.process', '2022')
         RETURNING id INTO AdminDisbursementProcessID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.validate', '2023')
         RETURNING id INTO AdminDisbursementValidateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.approve', '2024')
         RETURNING id INTO AdminDisbursementApproveID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.limit.configure', '2025')
         RETURNING id INTO AdminDisbursementLimitConfigureID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.history.view', '2026')
         RETURNING id INTO AdminDisbursementHistoryViewID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.document.upload', '2027')
         RETURNING id INTO AdminDisbursementDocumentUploadID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.disbursement.multilevel.approval', '2028')
         RETURNING id INTO AdminDisbursementMultilevelApprovalConfigureID;
 
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'investment.portfolio.create', '5000')
         RETURNING id INTO InvestmentPortfolioCreateID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'investment.portfolio.view', '5001')
         RETURNING id INTO InvestmentPortfolioViewID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.portfolio.track', '2029')
         RETURNING id INTO AdminPortfolioTrackID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.asset.view', '2030')
         RETURNING id INTO AdminAssetViewID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.portfolio.export', '2031')
         RETURNING id INTO AdminPortfolioExportID;
 
-        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'investment.instruction.approve', '5002')
         RETURNING id INTO InvestmentInstructionApproveID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'investment.instruction.reject', '5003')
         RETURNING id INTO InvestmentInstructionRejectID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'investment.instruction.manage', '5004')
         RETURNING id INTO InvestmentInstructionManageID;
 
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.deed.version.manage', '2032')
         RETURNING id INTO AdminDeedVersionManageID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'legal.document.validate', '6000')
         RETURNING id INTO LegalDocumentValidateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'legal.document.invalidate', '6001')
         RETURNING id INTO LegalDocumentInvalidateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.document.access.manage', '2033')
         RETURNING id INTO AdminDocumentAccessManageID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.document.expiry.track', '2034')
         RETURNING id INTO AdminDocumentExpiryTrackID;
 
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.workflow.configure', '3001')
         RETURNING id INTO SystemWorkflowConfigureID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.workflow.track', '2035')
         RETURNING id INTO AdminWorkflowTrackID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.workflow.route', '2036')
         RETURNING id INTO AdminWorkflowRouteID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.workflow.sla.configure', '3002')
         RETURNING id INTO SystemWorkflowSlaConfigureID;
 
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.assign', '3003')
         RETURNING id INTO SystemAdminRoleAssignID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.update', '3004')
         RETURNING id INTO SystemAdminRoleUpdateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.role.get', '3005')
         RETURNING id INTO SystemAdminRoleGetID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.admin.get', '3006')
         RETURNING id INTO SystemAdminAdminGetID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.disable', '3007')
         RETURNING id INTO SystemAdminDisableID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.admin.update', '3013')
         RETURNING id INTO SystemAdminAdminUpdateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.admin.enable', '3008')
         RETURNING id INTO SystemAdminEnableID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.activity.audit.view', '2037')
         RETURNING id INTO AdminActivityAuditViewID;
 
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.dashboard.view', '2038')
         RETURNING id INTO AdminDashboardViewID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.report.kyc', '4005')
         RETURNING id INTO ComplianceReportKycID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'investment.report.performance', '5005')
         RETURNING id INTO InvestmentReportPerformanceID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'finance.report.revenue', '7000')
         RETURNING id INTO FinanceReportRevenueID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.report.export', '2039')
         RETURNING id INTO AdminReportExportID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.report.trust.breakdown', '2040')
         RETURNING id INTO AdminReportTrustBreakdownID;
 
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'audit.log.view', '8001')
         RETURNING id INTO AuditLogViewID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'audit.log.export', '8002')
         RETURNING id INTO AuditLogExportID;
 
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'finance.fee.configure', '7001')
         RETURNING id INTO FinanceFeeConfigureID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.fee.apply', '2041')
         RETURNING id INTO AdminFeeApplyID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'finance.statement.generate', '7002')
         RETURNING id INTO FinanceStatementGenerateID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.fee.adjust', '2042')
         RETURNING id INTO AdminFeeAdjustID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.beneficiary.distribution.view', '2043')
         RETURNING id INTO AdminBeneficiaryDistributionViewID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'admin.trust.relationship.record', '2044')
         RETURNING id INTO AdminTrustRelationshipRecordID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.risk.classify', '4006')
         RETURNING id INTO ComplianceRiskClassifyID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'compliance.review.perform', '4007')
         RETURNING id INTO ComplianceReviewPerformID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.trust.type.configure', '3009')
         RETURNING id INTO SystemTrustTypeConfigureID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.investment.rule.configure', '3010')
         RETURNING id INTO SystemInvestmentRuleConfigureID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.product.threshold.manage', '3011')
         RETURNING id INTO SystemProductThresholdManageID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
 
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'system.integration.manage', '3012')
         RETURNING id INTO SystemIntegrationManageID;
 
         INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
-                                 code)
+                                 code, description)
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.device.register', '1047')
         RETURNING id INTO UsersDeviceRegisterID;
 

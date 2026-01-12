@@ -24,6 +24,8 @@ public class Permissions extends BaseModel<String> {
 
     private String name;
 
+    private String description;
+
     private String code;
 
 
@@ -39,10 +41,11 @@ public class Permissions extends BaseModel<String> {
      * @param name the name of the permission
      */
     @Builder
-    public Permissions(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, String code) {
+    public Permissions(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, String code, String description) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.name = name;
         this.code = code;
+        this.description = description;
     }
 
     /**

@@ -13,15 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.AuthScopes;
-import org.meristem.oneapp.usersservice.repositories.UsersRepository;
-import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
-import org.meristem.oneapp.usersservice.services.ILoginService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -88,18 +83,15 @@ public class AuthorizationServerConfig {
 
     @Order(1)
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JdbcTemplate jdbcTemplate, JdbcOperations jdbcOperations, RsaKeys rsaKeys,
-                                                   CustomUserDetailsService userDetailsService, UsersRepository usersRepository, IKafkaSenderService kafkaSenderService,
-                                                   ILoginService loginService, ApplicationEventPublisher publisher, RedisCacheManager cacheManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomPasswordAuthenticationConverter customPasswordAuthenticationConverter,
+                                                   CustomCodeGrantAuthenticationProvider customCodeGrantAuthenticationProvider, LoginSuccessAuthenticationHandler loginSuccessAuthenticationHandler) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
         http.securityMatcher(configurer.getEndpointsMatcher())
-                .with(configurer, (customizer) -> {
+                .with(configurer, customizer -> {
 
                         customizer.oidc(Customizer.withDefaults())
-                                .tokenEndpoint(te -> te.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
-                                        .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(jdbcOperations, jdbcTemplate),
-                                                tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository, cacheManager)
-                                        ).accessTokenResponseHandler(new LoginSuccessAuthenticationHandler(kafkaSenderService, loginService, publisher))
+                                .tokenEndpoint(te -> te.accessTokenRequestConverter(customPasswordAuthenticationConverter)
+                                        .authenticationProvider(customCodeGrantAuthenticationProvider).accessTokenResponseHandler(loginSuccessAuthenticationHandler)
                                 );
                         }
                 );

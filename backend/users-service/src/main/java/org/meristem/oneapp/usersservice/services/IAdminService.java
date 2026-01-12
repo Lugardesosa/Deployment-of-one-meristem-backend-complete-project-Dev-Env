@@ -60,14 +60,6 @@ public interface IAdminService {
     UpdateResponse assignRole(AssignAdminRoleRequest request);
 
     /**
-     * Assigns a permission to an admin user.
-     *
-     * @param request the request containing user ID and permission ID
-     * @return an {@link UpdateResponse} indicating the operation result
-     */
-    UpdateResponse assignPermission(AssignAdminPermissionRequest request);
-
-    /**
      * Adds a new role to the system.
      *
      * @param request the request containing role name

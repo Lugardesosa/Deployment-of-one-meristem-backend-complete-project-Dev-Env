@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
@@ -164,27 +163,6 @@ public class AdminService implements IAdminService {
         return UpdateResponse.builder().success(updated > 0).message(updated + " role successfully assigned").build();
     }
 
-    @Transactional
-    public UpdateResponse assignPermission(AssignAdminPermissionRequest request) {
-
-        if (!usersRepository.existsById(request.userId())) {
-            throw new BadRequestException("User not found");
-        }
-
-        Permissions permissions = permissionsRepository.findById(request.permissionId()).orElseThrow(() -> new BadRequestException("Permission not found"));
-        List<Roles> usersRoles = rolesRepository.findAllByUsersId(request.userId());
-        List<String> rolesPermissions = permissionsRepository.findAllByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
-        rolesPermissions.addAll(permissionsRepository.findAllByUsersId(request.userId()));
-
-        boolean userAlreadyHasPermission = rolesPermissions.contains(permissions.getName());
-        if (userAlreadyHasPermission) {
-            throw new BadRequestException("User already has this permission");
-        }
-
-        int updated = permissionsRepository.updateUserPermission(request.userId(), request.permissionId());
-        return UpdateResponse.builder().success(updated > 0).message(updated + " permission successfully assigned").build();
-    }
-
     public UpdateResponse addRole(AddRoleRequest request) {
 
         List<String> roleNames = rolesRepository.findAllNames();
@@ -249,7 +227,7 @@ public class AdminService implements IAdminService {
 
         if (nonNull(userId)) {
             List<Long> roleIds = rolesRepository.findAllRolesId(userId);
-            return new PermissionsResponse(permissionsRepository.findAllPermissionsByUserIdAndRoleIds(userId, roleIds.isEmpty() ? null : roleIds));
+            return new PermissionsResponse(permissionsRepository.findAllPermissionsByRoleIds(roleIds));
         }
 
         if (nonNull(roleId)) {

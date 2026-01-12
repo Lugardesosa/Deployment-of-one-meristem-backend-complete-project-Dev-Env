@@ -89,16 +89,6 @@ public class AdminController {
         return ApiUtil.buildResponse(adminService.assignRole(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
-    @Operation(summary = "Assign permissions to admin")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Assign permissions to admin")
-    })
-    @PreAuthorize("hasRole('ROLE_3003')")
-    @PutMapping(value = "/assign-permission", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> assignPermission(@RequestBody @Valid AssignAdminPermissionRequest request) {
-        return ApiUtil.buildResponse(adminService.assignPermission(request), HttpStatus.CREATED.toString(), "Successful");
-    }
-
     @Operation(summary = "Assign roles to admin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assign roles to admin")

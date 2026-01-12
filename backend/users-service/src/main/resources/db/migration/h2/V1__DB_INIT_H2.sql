@@ -54,6 +54,7 @@ CREATE TABLE permissions
     version            INTEGER      NOT NULL DEFAULT 0,
     status             INTEGER      NOT NULL DEFAULT 1,
     name               VARCHAR(255) NOT NULL,
+    description        VARCHAR(255) NOT NULL,
     code               VARCHAR(255) NOT NULL,
     CONSTRAINT pk_permissions PRIMARY KEY (id),
     CONSTRAINT uq_permissions_name UNIQUE (name),
@@ -117,7 +118,6 @@ CREATE TABLE roles
 
 CREATE TABLE permissions_mapping
 (
-    users_id       BIGINT DEFAULT NULL,
     roles_id       BIGINT DEFAULT NULL,
     permissions_id BIGINT NOT NULL
 );
@@ -690,9 +690,6 @@ ALTER TABLE permissions_mapping
 ALTER TABLE permissions_mapping
     ADD CONSTRAINT fk_rolper_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
 
-ALTER TABLE permissions_mapping
-    ADD CONSTRAINT fk_rolper_on_users FOREIGN KEY (users_id) REFERENCES users (id);
-
 ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_roles FOREIGN KEY (roles_id) REFERENCES roles (id);
 
@@ -702,8 +699,6 @@ ALTER TABLE users_roles
     ADD CONSTRAINT fk_userol_on_users FOREIGN KEY (users_id) REFERENCES users (id);
 
 CREATE INDEX idx_roles_permissions_permissions_id_roles_id ON permissions_mapping (permissions_id, roles_id);
-
-CREATE INDEX idx_roles_permissions_permissions_id_users_id ON permissions_mapping (permissions_id, users_id);
 
 CREATE INDEX idx_users_roles_user_id ON users_roles (users_id);
 
@@ -763,7 +758,7 @@ VALUES (SELECT id FROM users WHERE email = 'oneappsystemadmin@meristemng.com',
         SELECT id FROM roles WHERE name = 'SYSTEM_ADMIN');
 
 -- PERMISSIONS
-INSERT INTO permissions (created_by, last_modified_by, name, code)
+INSERT INTO permissions (created_by, last_modified_by, name, code, description)
 VALUES ('SYSTEM', 'SYSTEM', 'users.get', '1000'),
        ('SYSTEM', 'SYSTEM', 'users.otp.send', '1001'),
        ('SYSTEM', 'SYSTEM', 'users.otp.verify', '1002'),
@@ -890,14 +885,8 @@ VALUES ('SYSTEM', 'SYSTEM', 'users.get', '1000'),
        ('SYSTEM', 'SYSTEM', 'system.integration.manage', '3012'),
        ('SYSTEM', 'SYSTEM', 'system.admin.admin.update', '3013'),
        ('SYSTEM', 'SYSTEM', 'audit.log.view', '8001'),
-       ('SYSTEM', 'SYSTEM', 'audit.log.export', '8002');
-
-
-SET @RolesUserID = (SELECT (id) FROM roles WHERE name = 'USER');
-
-INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name, code)
-VALUES
-    (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.device.register', '1047');
+       ('SYSTEM', 'SYSTEM', 'audit.log.export', '8002'),
+       ('SYSTEM', 'SYSTEM', 'users.device.register', '1047');
 
 SET @UsersDeviceRegisterID = (SELECT id FROM permissions WHERE name = 'users.device.register');
 
