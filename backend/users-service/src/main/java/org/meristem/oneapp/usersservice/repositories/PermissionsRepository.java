@@ -36,13 +36,13 @@ public interface PermissionsRepository extends BaseRepository<Permissions, Long>
     @Query("INSERT INTO permissions_mapping(permissions_id, roles_id) VALUES (:permissionId, :rolesId) ")
     int updateRolePermission(Long rolesId, Long permissionId);
 
-    @Query("SELECT p.id, p.name FROM permissions p ")
+    @Query("SELECT p.id, p.name, p.description FROM permissions p ")
     List<PermissionsResponse.Permission> findAllPermissions();
 
 //    @Query("SELECT p.id, p.name FROM permissions p LEFT JOIN permissions_mapping pm ON pm.permissions_id = p.id WHERE pm.users_id = :userId OR pm.roles_id IN (:roleIds) ")
 //    List<PermissionsResponse.Permission> findAllPermissionsByUserIdAndRoleIds(Long userId, List<Long> roleIds);
 
-    @Query("SELECT p.id, p.name FROM permissions p LEFT JOIN permissions_mapping pm ON pm.permissions_id = p.id WHERE pm.roles_id = :roleId ")
+    @Query("SELECT p.id, p.name, p.description FROM permissions p LEFT JOIN permissions_mapping pm ON pm.permissions_id = p.id WHERE pm.roles_id = :roleId ")
     List<PermissionsResponse.Permission> findAllPermissionsByRoles(Long roleId);
 
 //    @Query("SELECT p.id, p.name FROM permissions p LEFT JOIN permissions_mapping pm ON pm.permissions_id = p.id WHERE pm.users_id = :userId OR pm.roles_id IN (:roleIds) ")
@@ -52,6 +52,6 @@ public interface PermissionsRepository extends BaseRepository<Permissions, Long>
 
     Permissions findTopByNameStartsWithOrderByCodeDesc(String startsWith);
 
-    @Query("SELECT p.id, p.name FROM permissions p LEFT JOIN permissions_mapping rp ON rp.permissions_id = p.id WHERE rp.roles_id IN (:roleIds) ")
+    @Query("SELECT p.id, p.name, p.description FROM permissions p LEFT JOIN permissions_mapping rp ON rp.permissions_id = p.id WHERE rp.roles_id IN (:roleIds) ")
     List<PermissionsResponse.Permission> findAllPermissionsByRoleIds(List<Long> roleIds);
 }
