@@ -12,7 +12,7 @@ import org.meristem.oneapp.reportservice.constants.ApiConstants;
 import org.meristem.oneapp.reportservice.domains.requests.ActivityLogRequest;
 import org.meristem.oneapp.reportservice.domains.responses.ActivityLogResponse;
 import org.meristem.oneapp.reportservice.domains.responses.AppResponse;
-import org.meristem.oneapp.reportservice.services.ActivityLogService;
+import org.meristem.oneapp.reportservice.services.IActivityLogService;
 import org.meristem.oneapp.reportservice.utils.ApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Activity Log Controller", description = "Manages activity log query from the report microservice")
 public class ActivityLogController {
 
-    private final ActivityLogService activityLogService;
+    private final IActivityLogService activityLogService;
 
 
     @Operation(summary = "Gets user's transactions", method = "GET")

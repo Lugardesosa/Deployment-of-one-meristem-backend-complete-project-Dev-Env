@@ -10,7 +10,8 @@ import org.meristem.oneapp.notificationservice.domains.requests.UserDeviceRegist
 import org.meristem.oneapp.notificationservice.domains.requests.UserDeviceUpdateRequest;
 import org.meristem.oneapp.notificationservice.domains.responses.AppResponse;
 import org.meristem.oneapp.notificationservice.domains.responses.UserDeviceRegistrationResponse;
-import org.meristem.oneapp.notificationservice.services.UserDeviceRegistrationService;
+import org.meristem.oneapp.notificationservice.services.IUserDeviceRegistrationService;
+import org.meristem.oneapp.notificationservice.services.implementations.UserDeviceRegistrationService;
 import org.meristem.oneapp.notificationservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(ApiConstants.CONTEXT_PATH + "users")
 public class UserSettingsController {
 
-    private final UserDeviceRegistrationService registerUserDevice;
+    private final IUserDeviceRegistrationService registerUserDevice;
 
     @Operation(summary = "Register a user device token")
     @ApiResponses(value = {

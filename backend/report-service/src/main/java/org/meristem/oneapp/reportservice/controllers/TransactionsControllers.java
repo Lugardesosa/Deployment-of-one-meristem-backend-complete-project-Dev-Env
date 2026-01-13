@@ -13,7 +13,7 @@ import org.meristem.oneapp.reportservice.domains.requests.TransactionsRequest;
 import org.meristem.oneapp.reportservice.domains.responses.AppResponse;
 import org.meristem.oneapp.reportservice.domains.responses.PageTransactionsResponse;
 import org.meristem.oneapp.reportservice.domains.responses.TransactionsResponse;
-import org.meristem.oneapp.reportservice.services.TransactionsService;
+import org.meristem.oneapp.reportservice.services.ITransactionsService;
 import org.meristem.oneapp.reportservice.utils.ApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Transactions Controller", description = "Manages transactions query from the report microservice")
 public class TransactionsControllers {
 
-    private final TransactionsService transactionsService;
+    private final ITransactionsService transactionsService;
 
     @Operation(summary = "Gets user's transactions", method = "GET")
     @ApiResponses(value = {

@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.usersservice.services.OnboardingService;
-import org.meristem.oneapp.usersservice.services.SmileIdService;
+import org.meristem.oneapp.usersservice.services.IOnboardingService;
+import org.meristem.oneapp.usersservice.services.ISmileIdService;
+import org.meristem.oneapp.usersservice.services.implementations.OnboardingService;
+import org.meristem.oneapp.usersservice.services.implementations.SmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,15 +30,15 @@ import java.util.List;
 @RequestMapping(ApiConstants.CONTEXT_PATH + "onboard")
 public class OnboardingController {
 
-    private final OnboardingService onboardingService;
-    private final SmileIdService smileIdService;
+    private final IOnboardingService onboardingService;
+    private final ISmileIdService smileIdService;
 
 
     @Operation(summary = "Get the onboarding flow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get the onboarding flow details for a user ")
     })
-    @PreAuthorize("hasRole('ROLE_users.onboard.get')")
+    @PreAuthorize("hasRole('ROLE_1032')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<UserOnboardingResponse>>> getOnboard() {
         return ApiUtil.buildResponse(onboardingService.getOnboardingDetails(), HttpStatus.OK.toString(), "User onboarding details request successful");
@@ -46,7 +48,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
     })
-    @PreAuthorize("hasRole('ROLE_users.get_smile_id_token')")
+    @PreAuthorize("hasRole('ROLE_1037')")
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> getSmileIdToken(@RequestBody @Valid SmileIdIdRequest smileRequest) {
         return ApiUtil.buildResponse(smileIdService.saveSmileIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
@@ -75,7 +77,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows Users to get all countries")
     })
-    @PreAuthorize("hasRole('ROLE_users.get_countries')")
+    @PreAuthorize("hasRole('ROLE_1017')")
     @GetMapping(value = "/countries", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<Page<CountriesResponse>>> getCountries() {
         return ApiUtil.buildResponse(onboardingService.getCountries(), HttpStatus.OK.toString(), "Request successful");
@@ -85,7 +87,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows Users to get all states for a given country")
     })
-    @PreAuthorize("hasRole('ROLE_users.get_states')")
+    @PreAuthorize("hasRole('ROLE_1018')")
     @GetMapping(value = "/states", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates() {
         return ApiUtil.buildResponse(onboardingService.getStates(), HttpStatus.OK.toString(), "Request successful");
@@ -95,7 +97,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows Users to get all the instruments")
     })
-    @PreAuthorize("hasRole('ROLE_users.instrument.get')")
+    @PreAuthorize("hasRole('ROLE_1023')")
     @GetMapping(value = "/instruments", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<InstrumentResponse>>> getInstruments() {
         return ApiUtil.buildResponse(onboardingService.getInstruments(), HttpStatus.OK.toString(), "Request successful");
@@ -105,7 +107,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Submit Address for manual verification")
     })
-    @PreAuthorize("hasRole('ROLE_users.submit.address')")
+    @PreAuthorize("hasRole('ROLE_1012')")
     @PostMapping(value = "/submit-address", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<AddressVerificationResponse>> submitAddress(@RequestBody @Valid AddressVerificationRequest request) {
         return ApiUtil.buildResponse(onboardingService.submitAddress(request), HttpStatus.OK.toString(), "Successful");
@@ -115,7 +117,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Query BVN Details")
     })
-    @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_users.id.query')")
+    @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_1004')")
     @PostMapping(value = "/bvn-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<BvnQueryResponse>> bvnQuery(@RequestBody @Valid BvnQueryRequest request) {
         return ApiUtil.buildResponse(smileIdService.bvnQuery(request), HttpStatus.OK.toString(), "Successful");
@@ -125,7 +127,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get customer's BVN")
     })
-    @PreAuthorize("hasRole('ROLE_users.id.query')")
+    @PreAuthorize("hasRole('ROLE_1004')")
     @GetMapping(value = "/id-number", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetIdNumberResponse>> getIdNumber(@Pattern(regexp = "^BVN|NIN$", message = "Pass a valid id type (BVN or NIN)") @RequestParam String idType) {
         return ApiUtil.buildResponse(onboardingService.getIdNumber(idType), HttpStatus.OK.toString(), "Successful");

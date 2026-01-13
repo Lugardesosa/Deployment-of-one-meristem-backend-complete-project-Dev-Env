@@ -17,10 +17,13 @@ public class AdminProfile extends BaseModel<String> {
 
     private Long adminId;
 
+    private Long investmentInstrumentId;
+
     @Builder
-    public AdminProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long adminId) {
+    public AdminProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long adminId, Long investmentInstrumentId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.adminId = adminId;
+        this.investmentInstrumentId = investmentInstrumentId;
     }
 
     @Override

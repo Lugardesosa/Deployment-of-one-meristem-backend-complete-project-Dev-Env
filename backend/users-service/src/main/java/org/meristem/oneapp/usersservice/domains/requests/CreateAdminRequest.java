@@ -15,7 +15,8 @@ public record CreateAdminRequest(@Schema(example = "johndoe@gmail.com", descript
                                  @Schema(example = "John", description = "Users first name") @Name(message = "alphabets allowed") @NotBlank(message = "cannot be blank") @Size(min = 1, max = 150, message = "cannot be less than 1 and more than 150") String firstName,
                                  @Schema(example = "Doe", description = "Users last name") @Name(message = "alphabets allowed") @NotBlank(message = "cannot be blank") @Size(min = 1, max = 150, message = "cannot be less than 1 and more than 150") String lastName,
                                  @Schema(example = "+2349098989876", description = "Pass the user's phone number. can be 08123456545, 2348123456545, +2348123456545") @NotBlank(message = "cannot be null") @PhoneNumberNG @Size(min = 11, max = 14, message = "cannot be less than 1 and more than 14") String phoneNumber,
-                                 @Schema(example = "1", description = "Pass the role id") @NotNull(message = "Cannot be null") Long roleId)
+                                 @Schema(example = "1", description = "Pass the role id") @NotNull(message = "Cannot be null") Long roleId,
+                                 @Schema(example = "1", description = "Pass the subsidiary id") @NotNull(message = "Cannot be null") Long investmentInstrumentId)
 {
     @Override
     public String phoneNumber() {

@@ -23,8 +23,7 @@ public record CustomUserDetailsService(UsersRepository usersRepository, RolesRep
 
         UsersResponse user = usersRepository.findUserDetailsByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
         List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.id());
-        List<String> rolesPermissions = permissionsRepository.findAllByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
-        rolesPermissions.addAll(permissionsRepository.findAllByUsersId(user.id()));
+        List<String> rolesPermissions = permissionsRepository.findAllCodesByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         return new AuthenticatedUser(user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt());

@@ -14,8 +14,9 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.usersservice.services.NextOfKinService;
-import org.meristem.oneapp.usersservice.services.UsersService;
+import org.meristem.oneapp.usersservice.services.INextOfKinService;
+import org.meristem.oneapp.usersservice.services.IUsersService;
+import org.meristem.oneapp.usersservice.services.implementations.NextOfKinService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,8 +32,8 @@ import java.util.List;
 @Tag(name = "Users api", description = "This controller manages everything users")
 public class UsersController {
 
-    private final UsersService usersService;
-    private final NextOfKinService nextOfKinService;
+    private final IUsersService usersService;
+    private final INextOfKinService nextOfKinService;
 
     @Operation(summary = "Creates a user.")
     @ApiResponses(value = {
@@ -93,7 +94,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their phone number")
     })
-    @PreAuthorize("hasRole('ROLE_users.phone-number.update')")
+    @PreAuthorize("hasRole('ROLE_1040')")
     @PutMapping(value = "/phone-number", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdatePhoneNumberResponse>> updatePhoneNumber(@RequestBody @Valid UpdatePhoneNumberRequest request) {
         return ApiUtil.buildResponse(usersService.updatePhoneNumber(request), HttpStatus.OK.toString(), "Successful");
@@ -103,7 +104,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to upload profile pictures")
     })
-    @PreAuthorize("hasRole('ROLE_users.p_picture.post')")
+    @PreAuthorize("hasRole('ROLE_1035')")
     @PutMapping(value = "/image", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateImageResponse>> updateImage(@RequestBody @Valid UpdateImageRequest request) {
         return ApiUtil.buildResponse(usersService.updateImage(request), HttpStatus.OK.toString(), "Successful");
@@ -123,7 +124,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Allows users to create a next of kin")
     })
-    @PreAuthorize("hasRole('ROLE_users.next_of_kin.create')")
+    @PreAuthorize("hasRole('ROLE_1033')")
     @PostMapping(value = "/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<NextOfKinResponse>> createNextOfKin(@RequestBody @Valid CreateNextOfKinRequest request) {
         return ApiUtil.buildResponse(nextOfKinService.createNextOfKin(request), HttpStatus.CREATED.toString(), "Successful");
@@ -133,7 +134,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their password")
     })
-    @PreAuthorize("hasAnyRole('ROLE_users.change-password', 'ROLE_admin.change.password')")
+    @PreAuthorize("hasAnyRole('ROLE_1026', 'ROLE_2001')")
     @PutMapping(value = {"/password-update", "/admin/password-update"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updatePassword(@RequestBody @Valid UpdatePasswordRequest request) {
         return ApiUtil.buildResponse(usersService.updatePassword(request), HttpStatus.OK.toString(), "Successful");
@@ -143,7 +144,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their pin")
     })
-    @PreAuthorize("hasRole('ROLE_users.change.pin')")
+    @PreAuthorize("hasRole('ROLE_1042')")
     @PutMapping(value = "/pin-update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<PinResponse>> updatePin(@RequestBody @Valid PinRequest request) {
         return ApiUtil.buildResponse(usersService.updatePin(request), HttpStatus.OK.toString(), "Successful");
@@ -154,7 +155,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to get all avatars")
     })
-    @PreAuthorize("hasRole('ROLE_users.get.images')")
+    @PreAuthorize("hasRole('ROLE_1046')")
     @GetMapping(value = "/avatars", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<SignedUrlResponse>>> getAvatars() {
         return ApiUtil.buildResponse(usersService.getAvatarUrls(), HttpStatus.OK.toString(), "Successful");
@@ -164,7 +165,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to deactivate their accounts")
     })
-    @PreAuthorize("hasRole('ROLE_users.deactivate.account')")
+    @PreAuthorize("hasRole('ROLE_1045')")
     @PutMapping(value = "/deactivate", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<AccountDeactivationResponse>> deactivateUser() {
         return ApiUtil.buildResponse(usersService.deactivateUser(), HttpStatus.OK.toString(), "Successful");
@@ -174,7 +175,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to get their next of kin")
     })
-    @PreAuthorize("hasRole('ROLE_users.next_of_kin.get')")
+    @PreAuthorize("hasRole('ROLE_1034')")
     @GetMapping(value = "/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<NextOfKinResponse>> getNextOfKin() {
         return ApiUtil.buildResponse(nextOfKinService.getNextOfKin(), HttpStatus.OK.toString(), "Successful");
@@ -184,7 +185,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their state of origin")
     })
-    @PreAuthorize("hasRole('ROLE_users.state.update')")
+    @PreAuthorize("hasRole('ROLE_1014')")
     @PutMapping(value = "/state", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateStateOfOrigin(@Valid @RequestBody StateUpdateRequest request) {
         return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
@@ -195,7 +196,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their biometric log in")
     })
-    @PreAuthorize("hasRole('ROLE_users.biometric.update')")
+    @PreAuthorize("hasRole('ROLE_1015')")
     @PutMapping(value = "/biometric-login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateBiometricOfOrigin(@Valid @RequestBody BiometricLoginUpdateRequest request) {
         return ApiUtil.buildResponse(usersService.updateBiometricOfOrigin(request), HttpStatus.OK.toString(), "Successful");
@@ -206,7 +207,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their state of origin")
     })
-    @PreAuthorize("hasRole('ROLE_users.country.update')")
+    @PreAuthorize("hasRole('ROLE_1016')")
     @PutMapping(value = "/country", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateCountryOfOrigin(@Valid @RequestBody CountryUpdateRequest request) {
         return ApiUtil.buildResponse(usersService.updateCountryOfOrigin(request), HttpStatus.OK.toString(), "Successful");
@@ -216,7 +217,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Mark an instrument/subsidiary as visited")
     })
-    @PreAuthorize("hasRole('ROLE_users.instrument.accessed')")
+    @PreAuthorize("hasRole('ROLE_1022')")
     @PutMapping(value = "/instrument-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateUserInstrument(@Valid @RequestBody UserInstrumentRequest request) {
         return ApiUtil.buildResponse(usersService.updateUserInstrument(request), HttpStatus.OK.toString(), "Successful");
@@ -226,7 +227,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Mark an subsidiary option as visited")
     })
-    @PreAuthorize("hasRole('ROLE_users.instrument.accessed')")
+    @PreAuthorize("hasRole('ROLE_1022')")
     @PutMapping(value = "/option-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateOptionAccessed(@Valid @RequestBody OptionAccessedRequest request) {
         return ApiUtil.buildResponse(usersService.updateOptionAccessed(request), HttpStatus.OK.toString(), "Successful");
@@ -236,7 +237,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approve or revoke data sharing")
     })
-    @PreAuthorize("hasRole('ROLE_users.instrument.data.share')")
+    @PreAuthorize("hasRole('ROLE_1013')")
     @PutMapping(value = "/share-data", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@Valid @RequestBody DataSharingRequest request) {
         return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");
@@ -246,7 +247,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approve all data sharing")
     })
-    @PreAuthorize("hasRole('ROLE_users.instrument.data.share')")
+    @PreAuthorize("hasRole('ROLE_1013')")
     @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing() {
         return ApiUtil.buildResponse(usersService.updateDataSharing(), HttpStatus.OK.toString(), "Successful");
@@ -256,7 +257,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approve all data sharing")
     })
-    @PreAuthorize("hasRole('ROLE_users.interest.free.update')")
+    @PreAuthorize("hasRole('ROLE_1011')")
     @PutMapping(value = "/interest-free", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> interestFree(@Valid @RequestBody InterestSharingRequest request) {
         return ApiUtil.buildResponse(usersService.interestFree(request), HttpStatus.OK.toString(), "Successful");
@@ -266,7 +267,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Verifies users pin")
     })
-    @PreAuthorize("hasRole('ROLE_users.verify.pin')")
+    @PreAuthorize("hasRole('ROLE_1043')")
     @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
@@ -276,7 +277,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Verifies users password")
     })
-    @PreAuthorize("hasRole('ROLE_users.verify.password')")
+    @PreAuthorize("hasRole('ROLE_1044')")
     @PostMapping(value = "/verify-password", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPasswordRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPassword(request), HttpStatus.OK.toString(), "Successful");
