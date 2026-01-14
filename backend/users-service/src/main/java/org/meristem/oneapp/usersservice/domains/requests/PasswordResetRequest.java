@@ -11,6 +11,6 @@ public record PasswordResetRequest(@Schema(name = "password", minLength = 8, des
                                    @Schema(example = "johndoe@gmail.com", description = "Pass the user's email or phone number") @NotBlank(message = "must not be null") String recipient) {
     @Override
     public String recipient() {
-        return recipient.contains("@") ? recipient : recipient.replace("+", "").replaceAll("^234", "0");
+        return recipient.contains("@") ? recipient : recipient.replace("+", "");
     }
 }

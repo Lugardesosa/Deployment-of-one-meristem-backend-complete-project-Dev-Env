@@ -12,7 +12,6 @@ import org.meristem.oneapp.notificationservice.domains.enums.MessageType;
 import org.meristem.oneapp.notificationservice.dtos.messaging.Message;
 import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
 import org.meristem.oneapp.notificationservice.integrations.HollaTagsClient;
-import org.meristem.oneapp.notificationservice.integrations.requests.HollaTagsSmsRequest;
 import org.meristem.oneapp.notificationservice.integrations.requests.SmsNotificationRequest;
 import org.meristem.oneapp.notificationservice.integrations.responses.SmsNotificationResponse;
 import org.meristem.oneapp.notificationservice.mappers.MessageDtoToMessageMapper;
@@ -21,12 +20,11 @@ import org.meristem.oneapp.notificationservice.utils.AppUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 
 @RequiredArgsConstructor
@@ -79,19 +77,19 @@ public class SmsService implements NotificationService<MessageDto> {
 
         try {
             String messageUuid = UUID.randomUUID().toString();
-            HollaTagsSmsRequest request = HollaTagsSmsRequest.builder()
-                    .user(hollaTagsProperties.user())
-                    .pass(hollaTagsProperties.pass())
-                    .callbackUrl(hollaTagsProperties.callbackUrl())
-                    .msg(getBody(messageDto, message))
-                    .to(message.getRecipient().length == 1 ? message.getRecipient()[0] : getHollaTagsToNumbers(message))
-                    .from(hollaTagsProperties.from())
-                    .type(0)
-                    .messageUuid(messageUuid)
-                    .build();
+
+            MultiValueMap<String, Object> request = new LinkedMultiValueMap<>();
+            request.add("user", hollaTagsProperties.user());
+            request.add("pass", hollaTagsProperties.pass());
+            request.add("callbackUrl", hollaTagsProperties.callbackUrl());
+            request.add("msg", getBody(messageDto, message));
+            request.add("to", message.getRecipient().length == 1 ? message.getRecipient()[0] : getHollaTagsToNumbers(message));
+            request.add("from", hollaTagsProperties.from());
+            request.add("type", 0);
+            request.add("messageUuid", messageUuid);
 
             String response = hollaTagsClient.sendSms(request);
-            log.info("SMS with messageUuid {} sent . Details: {}", messageUuid, response);
+            log.info(((!Objects.equals(response, "sent")) ? "SMS with messageUuid {} not sent. Details: {}" : "SMS with messageUuid {} sent . Details: {}"), messageUuid, response);
         } catch (Exception e) {
             log.error("Unable to send sms", e);
         }
@@ -99,7 +97,7 @@ public class SmsService implements NotificationService<MessageDto> {
 
     private static @NonNull String getHollaTagsToNumbers(Message message) {
         String[] numbers = message.getRecipient().length > 500 ? Arrays.copyOfRange(message.getRecipient(), 0, 500) : message.getRecipient();
-        return String.join(",", numbers).replace("+", "");
+        return String.join(",", numbers).replaceAll("\\+", "");
     }
 
     private String getBody(MessageDto messageDto, Message message) {
@@ -110,9 +108,12 @@ public class SmsService implements NotificationService<MessageDto> {
                 StringSubstitutor sub = new StringSubstitutor(message.getContext());
                 body = sub.replace(template);
             }
-            case LOGIN_SUCCESSFUL -> {}
-            case NOTIFICATION -> {}
-            case PASSWORD_RESET -> {}
+            case LOGIN_SUCCESSFUL -> {
+            }
+            case NOTIFICATION -> {
+            }
+            case PASSWORD_RESET -> {
+            }
         }
         return body;
     }

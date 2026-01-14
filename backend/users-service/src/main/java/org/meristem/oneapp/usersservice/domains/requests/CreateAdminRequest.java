@@ -20,7 +20,7 @@ public record CreateAdminRequest(@Schema(example = "johndoe@gmail.com", descript
 {
     @Override
     public String phoneNumber() {
-        return phoneNumber.replace("+", "").replaceAll("^234", "0");
+        return phoneNumber.replace("+", "");
     }
 
     @Override

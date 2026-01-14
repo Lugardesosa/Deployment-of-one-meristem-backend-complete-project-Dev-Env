@@ -19,7 +19,7 @@ public record CreateNextOfKinRequest(@Schema(example = "johndoe@gmail.com", desc
                                      @Schema(example = "Grand Father", description = "Pass this value if OTHERS was chosen as nextOfKins type") String relationship) {
     @Override
     public String phoneNumber() {
-        return phoneNumber.replace("+", "").replaceAll("^234", "0");
+        return phoneNumber.replace("+", "");
     }
 
 }
