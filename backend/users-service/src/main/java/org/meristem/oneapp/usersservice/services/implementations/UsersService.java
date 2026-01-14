@@ -410,7 +410,7 @@ public class UsersService implements IUsersService {
         if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
             userProfileRepository.completeOnboarding(kycCompletedDto.userId());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
-            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED, KafkaHeaders.KEY, userId));
+            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED, KafkaHeaders.KEY, String.valueOf(userId)));
         }
     }
 
@@ -427,7 +427,7 @@ public class UsersService implements IUsersService {
         userProfileRepository.resetOnboarding(kycCompletedDto.userId());
         userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
-        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, userId));
+        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, String.valueOf(userId)));
     }
 
     /**
@@ -467,7 +467,7 @@ public class UsersService implements IUsersService {
                 .body("Your password was changed, if you didn't initiate this, click this link.")
                 .subject(MessageSubjects.PASSWORD_RESET).build();
         MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.PASSWORD_RESET).message(otpDto).classSimpleName(PasswordChangeDto.class.getSimpleName()).build();
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET, KafkaHeaders.KEY, userId));
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET, KafkaHeaders.KEY, String.valueOf(userId)));
     }
 
     /**

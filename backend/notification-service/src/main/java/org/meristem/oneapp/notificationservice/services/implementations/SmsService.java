@@ -4,11 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.notificationservice.config.configProperties.CreditSwitchProperties;
+import org.meristem.oneapp.notificationservice.config.configProperties.HollaTagsProperties;
 import org.meristem.oneapp.notificationservice.domains.enums.MessageType;
 import org.meristem.oneapp.notificationservice.dtos.messaging.Message;
 import org.meristem.oneapp.notificationservice.integrations.CreditSwitchClient;
+import org.meristem.oneapp.notificationservice.integrations.HollaTagsClient;
+import org.meristem.oneapp.notificationservice.integrations.requests.HollaTagsSmsRequest;
 import org.meristem.oneapp.notificationservice.integrations.requests.SmsNotificationRequest;
 import org.meristem.oneapp.notificationservice.integrations.responses.SmsNotificationResponse;
 import org.meristem.oneapp.notificationservice.mappers.MessageDtoToMessageMapper;
@@ -19,8 +23,10 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 
 
 @RequiredArgsConstructor
@@ -29,8 +35,10 @@ import java.util.Map;
 public class SmsService implements NotificationService<MessageDto> {
 
     private final CreditSwitchClient creditSwitchClient;
+    private final HollaTagsClient hollaTagsClient;
     private final MessageDtoToMessageMapper messageMapper = MessageDtoToMessageMapper.INSTANCE;
     private final CreditSwitchProperties creditSwitchProperties;
+    private final HollaTagsProperties hollaTagsProperties;
     private final ObjectMapper mapper;
     private final Map<String, String> textMessages;
 
@@ -38,8 +46,7 @@ public class SmsService implements NotificationService<MessageDto> {
     private String activeProfile;
 
 
-    @Override
-    public void send(MessageDto messageDto) {
+    public void sendCS(MessageDto messageDto) {
         if ("local".equals(activeProfile)) return;
 
         Message message = unbox(messageDto, mapper, messageMapper);
@@ -61,6 +68,38 @@ public class SmsService implements NotificationService<MessageDto> {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+
+    @Override
+    public void send(MessageDto messageDto) {
+        if ("local".equals(activeProfile)) return;
+
+        Message message = unbox(messageDto, mapper, messageMapper);
+
+        try {
+            String messageUuid = UUID.randomUUID().toString();
+            HollaTagsSmsRequest request = HollaTagsSmsRequest.builder()
+                    .user(hollaTagsProperties.user())
+                    .pass(hollaTagsProperties.pass())
+                    .callbackUrl(hollaTagsProperties.callbackUrl())
+                    .msg(getBody(messageDto, message))
+                    .to(message.getRecipient().length == 1 ? message.getRecipient()[0] : getHollaTagsToNumbers(message))
+                    .from(hollaTagsProperties.from())
+                    .type(0)
+                    .messageUuid(messageUuid)
+                    .build();
+
+            String response = hollaTagsClient.sendSms(request);
+            log.info("SMS with messageUuid {} sent . Details: {}", messageUuid, response);
+        } catch (Exception e) {
+            log.error("Unable to send sms", e);
+        }
+    }
+
+    private static @NonNull String getHollaTagsToNumbers(Message message) {
+        String[] numbers = message.getRecipient().length > 500 ? Arrays.copyOfRange(message.getRecipient(), 0, 500) : message.getRecipient();
+        return String.join(",", numbers).replace("+", "");
     }
 
     private String getBody(MessageDto messageDto, Message message) {
