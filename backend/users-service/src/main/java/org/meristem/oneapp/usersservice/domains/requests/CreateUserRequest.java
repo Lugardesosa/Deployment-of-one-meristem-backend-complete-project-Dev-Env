@@ -22,7 +22,7 @@ public record CreateUserRequest(@Schema(example = "johndoe@gmail.com", descripti
                                 @Schema(description = "Enter the bvn details returned earlier.") @NotBlank(message = "Kindly pass this value returned earlier") String bvn) {
     @Override
     public String phoneNumber() {
-        return phoneNumber.replace("+", "").replaceAll("^234", "0");
+        return phoneNumber.replace("+", "");
     }
 
     @Override

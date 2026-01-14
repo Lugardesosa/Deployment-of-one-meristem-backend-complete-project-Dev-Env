@@ -23,6 +23,6 @@ public record SendOtpRequest(@Schema(anyOf = {MessageSubject.class}, example = "
 
     @Override
     public String recipient() {
-        return recipient.contains("@") ? recipient : recipient.replace("+", "").replaceAll("^234", "0");
+        return recipient.contains("@") ? recipient : recipient.replace("+", "");
     }
 }

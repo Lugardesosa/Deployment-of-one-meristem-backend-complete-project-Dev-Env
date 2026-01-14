@@ -111,7 +111,7 @@ public class AdminService implements IAdminService {
                 .body("An account was created with your mail, kindly use this password to log in. Password is " + password)
                 .subject(MessageSubjects.ADMIN_ACCOUNT_CREATED).build();
         MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.ADMIN_ACCOUNT_CREATED).message(messageDetailsDto).classSimpleName(AdminAccountDto.class.getSimpleName()).build();
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED, KafkaHeaders.KEY, users.getId()));
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.ADMIN_ACCOUNT_CREATED, KafkaHeaders.KEY, users.getId().toString()));
         return usersMapper.usersToUserResponse(users);
     }
 

@@ -82,6 +82,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("UPDATE users SET status = :status WHERE email = :email ")
     int updateUsersStatus(String email, Integer status);
 
+    @Query("SELECT id FROM users WHERE email = :email")
     Long findIdByEmail(String email);
 
     @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, i.id_value, up.date_of_birth FROM users u " +

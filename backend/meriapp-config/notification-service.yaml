@@ -55,6 +55,7 @@ credit-switch:
 holla-tags:
   base-url: ${HOLLA_TAGS_BASE_URL}
   user: ${HOLLA_TAGS_USER}
+  from: ${HOLLA_TAGS_FROM}
   pass: ${HOLLA_TAGS_PASS}
   callbackUrl: ${HOLLATAGS_CALLBACK_URL}
 
