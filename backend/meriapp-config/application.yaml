@@ -157,8 +157,4 @@ paystack:
 
 
 encryption:
-  algorithm_gcm: ${ENC_ALGORITHM_GCM}
-  algorithm: ${ENC_ALGORITHM}
-  salt: ${ENC_SALT}
-  iv:
-    size: 12
+  secret-key: ${ENC_SALT}
