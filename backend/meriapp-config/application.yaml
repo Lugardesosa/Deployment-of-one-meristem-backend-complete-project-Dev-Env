@@ -159,4 +159,4 @@ paystack:
 encryption:
   secret-key: ${ENC_SALT}
 hashing:
-  bvn-hash-key: ${BVN_HASHING_SECRET}
+  id-hash-key: ${ID_HASHING_SECRET}
