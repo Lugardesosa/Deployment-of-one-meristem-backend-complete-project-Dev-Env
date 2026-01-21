@@ -7,7 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
-import org.meristem.oneapp.usersservice.config.EncryptionUtil;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
+import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -21,6 +22,8 @@ import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.meristem.oneapp.usersservice.utils.HashingUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -53,6 +56,9 @@ import static java.util.Objects.requireNonNull;
 @Transactional
 public class UsersService implements IUsersService {
 
+    @Value("${hashing.id-hash-key}")
+    private String idHashKey;
+
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
     private final OtpVerificationRepository otpVerificationRepository;
@@ -69,6 +75,7 @@ public class UsersService implements IUsersService {
     private final GeneralRepository generalRepository;
     private final CustomRepository customRepository;
     private final EncryptionUtil encryptionUtil;
+    private final HashingUtil hashingUtil;
     private final IdCardRepository idCardRepository;
 
     public  UpdateResponse create(CreateUserRequest request) {
@@ -78,12 +85,12 @@ public class UsersService implements IUsersService {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        String bvn = requireNonNull(encryptionUtil.encrypt(request.bvn()), "Bvn cannot be null.");
+        String bvn = encryptionUtil.encrypt(request.bvn());
 
         BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
                 .email(request.email()).firstName(request.firstName()).lastName(request.lastName())
                 .phoneNumber(request.phoneNumber()).bvn(bvn)
-                .build();
+                .bvnHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn())).build();
         requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
 
         log.info("First stage of User with email {} created ", request.email());
@@ -98,7 +105,7 @@ public class UsersService implements IUsersService {
         BvnQueryResponse bvnQueryResponse = cache.get(userRequest.email(), BvnQueryResponse.class);
 
         if (bvnQueryResponse == null) {
-            throw new AccessDeniedException("Initial sign up details not found.");
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Email", userRequest.email());
         }
 
         if (!bvnQueryResponse.isEmailVerified()) {
@@ -107,27 +114,35 @@ public class UsersService implements IUsersService {
         Users user = usersMapper.bvnQueryResponseToUsers(bvnQueryResponse);
 
         user.setPassword(passwordEncoder.encode(userRequest.password()));
-        save(user, bvnQueryResponse.getBvn());
-        cache.evict(userRequest.email());
+        save(user, bvnQueryResponse.getBvn(), bvnQueryResponse.getBvnHashed());
         log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
+        cache.evict(userRequest.email());
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
-    public  UsersResponse save(Users user, String bvn) {
+    public  UsersResponse save(Users user, String bvn, String bvnHashed) {
         log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        user.setStatus(UserStatus.ACTIVE.getValue());
+        if (idCardRepository.existsByIdValueHashed(bvnHashed)) {
+            throw new BadRequestException("Bvn already exists.");
+        }
+
+        user.setStatus(UserStatus.KYC_NOT_COMPLETED.getValue());
         user = usersRepository.save(user);
 
         idCardRepository.save(IdCard.builder().idValue(bvn)
                 .idCardType(IdCardType.BVN.getName())
-                .userId(user.getId())
+                .userId(user.getId()).idValueHashed(bvnHashed)
                 .build());
 
-        UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(AppUtil.generateReferralCode(user.getFirstName())).build();
+        String referralCode;
+        do {
+            referralCode = AppUtil.generateReferralCode(user.getFirstName());
+        } while (userProfileRepository.existsByReferralCode(referralCode));
+        UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(referralCode).build();
 
         profileRepository.save(profile);
         Long userId = user.getId();
@@ -198,7 +213,7 @@ public class UsersService implements IUsersService {
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
                 response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(),
                 response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), response.pinSet(),
-                response.interestFreeInvestment(), response.interestFreeInvestmentSet());
+                response.interestFreeInvestment(), response.interestFreeInvestmentSet(), response.cscsNumber(), response.chnNumber());
     }
 
     /**
@@ -409,6 +424,7 @@ public class UsersService implements IUsersService {
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
         if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
             userProfileRepository.completeOnboarding(kycCompletedDto.userId());
+            usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.ACTIVE.getValue());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
             kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED, KafkaHeaders.KEY, String.valueOf(userId)));
         }
@@ -425,6 +441,7 @@ public class UsersService implements IUsersService {
 
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
         userProfileRepository.resetOnboarding(kycCompletedDto.userId());
+        usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.KYC_NOT_COMPLETED.getValue());
         userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
         kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, String.valueOf(userId)));
@@ -440,6 +457,7 @@ public class UsersService implements IUsersService {
         AtomicInteger updated = new AtomicInteger();
         generalRepository.findOneBy(CountryStates.class, Map.of("id", request.stateId(), "countryId", request.countryId()))
                 .ifPresent(countryStates -> updated.set(userProfileRepository.updateState(AppUtil.getLoggedInUserId(), countryStates.getName())));
+        clearUsersCache();
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 
@@ -453,6 +471,7 @@ public class UsersService implements IUsersService {
 
         AtomicInteger updated = new AtomicInteger();
         generalRepository.findById(Countries.class, request.id()).ifPresent(country -> updated.set(userProfileRepository.updateCountry(AppUtil.getLoggedInUserId(), country.getName())));
+        clearUsersCache();
         return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
     }
 
@@ -480,6 +499,7 @@ public class UsersService implements IUsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("accessed", true);
+        clearUsersCache();
         return getUpdateResponse(updates, request.instrumentId());
     }
 
@@ -504,18 +524,19 @@ public class UsersService implements IUsersService {
      * @param request payload indicating whether biometric login should be enabled
      * @return UpdateResponse indicating whether the update succeeded
      */
-    public UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request) {
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("biometric_enabled", request.biometricLogin());
-        return getUpdateResponse(updates);
-    }
+//    public UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request) {
+//
+//        Map<String, Object> updates = new HashMap<>();
+//        updates.put("biometric_enabled", request.biometricLogin());
+//        return getUpdateResponse(updates);
+//    }
 
 
     public UpdateResponse updateDataSharing(DataSharingRequest request) {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("data_sharing_allowed", request.dataSharing());
+        clearUsersCache();
         return getUpdateResponse(updates, request.instrumentId());
     }
 
@@ -542,6 +563,7 @@ public class UsersService implements IUsersService {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("interest_free_investment", request.wantInterest());
+        clearUsersCache();
         return getUpdateResponse(updates);
     }
 
@@ -579,4 +601,11 @@ public class UsersService implements IUsersService {
                 .findPasswordById(AppUtil.getLoggedInUserId()));
         return UpdateResponse.builder().success(matches).message(matches ? "Password verified" : "Invalid Password").build();
     }
+
+    @Override
+    public UpdateResponse updateCscs(UpdateCscsRequest request) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("chn_number", request.chnNumber());
+        clearUsersCache();
+        return getUpdateResponse(updates);    }
 }

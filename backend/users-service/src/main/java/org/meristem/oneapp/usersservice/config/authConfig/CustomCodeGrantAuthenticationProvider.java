@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import static java.util.Objects.isNull;
@@ -60,7 +61,7 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         CustomCodeGrantAuthenticationToken token = (CustomCodeGrantAuthenticationToken) authentication;
-        OAuth2ClientAuthenticationToken clientPrincipal = getAuthenticatedClientElseThrowInvalidClient(token);
+        OAuth2ClientAuthenticationToken clientPrincipal = CustomOAuth2AuthenticationProviderUtils.getAuthenticatedClientElseThrowInvalidClient(token);
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
         String username = token.getUsername();
         String password = token.getPassword();
@@ -154,23 +155,12 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
                 .attribute(Principal.class.getName(), usernamePasswordAuthenticationToken)
                 .build();
         this.authorizationService.save(authorization);
+        log.info("user - {} logged in successfully at {}", user.getEmail(), LocalDateTime.now());
         return new OAuth2AccessTokenAuthenticationToken(registeredClient, usernamePasswordAuthenticationToken, accessToken, refreshToken);
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
         return CustomCodeGrantAuthenticationToken.class.isAssignableFrom(authentication);
-    }
-
-    private static OAuth2ClientAuthenticationToken getAuthenticatedClientElseThrowInvalidClient(Authentication token) {
-        OAuth2ClientAuthenticationToken authenticatedClient = null;
-
-        if (OAuth2ClientAuthenticationToken.class.isAssignableFrom(token.getPrincipal().getClass())) {
-            authenticatedClient = (OAuth2ClientAuthenticationToken) token.getPrincipal();
-        }
-        if (authenticatedClient != null && authenticatedClient.isAuthenticated()) {
-            return authenticatedClient;
-        }
-        throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_CLIENT);
     }
 }

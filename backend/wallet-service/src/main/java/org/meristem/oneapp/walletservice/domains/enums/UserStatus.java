@@ -1,4 +1,4 @@
-package org.meristem.oneapp.usersservice.domains.enums;
+package org.meristem.oneapp.walletservice.domains.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,8 +10,7 @@ public enum UserStatus {
     LOCKED(2),
     DEACTIVATED(3),
     EMAIL_NOT_VERIFIED(4),
-    KYC_NOT_COMPLETED(5),
-    DELETED(6);
+    KYC_NOT_COMPLETED(5);
 
     private final Integer value;
 }

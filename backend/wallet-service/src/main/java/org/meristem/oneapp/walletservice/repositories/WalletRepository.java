@@ -17,4 +17,6 @@ public interface WalletRepository extends BaseRepository<Wallets, Long> {
 
     @Query("SELECT balance FROM wallets WHERE user_id = :userId")
     BigDecimal findBalanceByUserId(Long userId);
+
+    Optional<Wallets> findByUserId(Long id);
 }

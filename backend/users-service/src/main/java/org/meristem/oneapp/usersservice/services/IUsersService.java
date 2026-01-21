@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.services;
 
+import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -37,7 +38,7 @@ public interface IUsersService {
      * @param bvn the user's BVN
      * @return a {@link UsersResponse} containing the created user's details
      */
-    UsersResponse save(Users user, String bvn);
+    UsersResponse save(Users user, String bvn, String bvnHashed);
 
     /**
      * Updates the user's email address.
@@ -155,13 +156,13 @@ public interface IUsersService {
      */
     UpdateResponse updateOptionAccessed(OptionAccessedRequest request);
 
-    /**
-     * Updates biometric login setting.
-     *
-     * @param request the biometric login update request
-     * @return an {@link UpdateResponse} indicating the operation result
-     */
-    UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request);
+//    /**
+//     * Updates biometric login setting.
+//     *
+//     * @param request the biometric login update request
+//     * @return an {@link UpdateResponse} indicating the operation result
+//     */
+//    UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request);
 
     /**
      * Updates data sharing setting for a specific instrument.
@@ -209,4 +210,6 @@ public interface IUsersService {
      * @return an {@link UpdateResponse} indicating the verification result
      */
     UpdateResponse verifyPassword(VerifyPasswordRequest request);
+
+    UpdateResponse updateCscs(@Valid UpdateCscsRequest request);
 }

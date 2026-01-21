@@ -16,4 +16,6 @@ public interface IdCardRepository extends BaseRepository<IdCard, Long> {
     String findIdCardValueByUserId(Long loggedInUserId, String idType);
 
     boolean existsByIdValueAndIdCardType(String idValue, String idCardType);
+
+    boolean existsByIdValueHashed(String idValueHashed);
 }

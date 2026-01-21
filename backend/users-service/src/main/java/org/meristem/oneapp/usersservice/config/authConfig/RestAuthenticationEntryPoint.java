@@ -18,7 +18,7 @@ public record RestAuthenticationEntryPoint(ObjectMapper mapper) implements Authe
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
-            throws IOException, ServletException {
+            throws IOException {
 
         LocalDateTime currentTimeStamp = LocalDateTime.now();
         String message = (authException != null && authException.getMessage() != null) ? authException.getMessage()

@@ -59,4 +59,7 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     int updateCountry(long userId, String name);
 
     Optional<UserProfile> findByUserId(Long userId);
+
+    boolean existsByReferralCode(String referralCode);
+
 }

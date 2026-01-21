@@ -65,6 +65,21 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.setPassword(request), HttpStatus.OK.toString(), "Successful.");
     }
 
+    @Operation(summary = "Set a user's cscs and chn number.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set a user's cscs number.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateCscsRequest.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - Cscs and Chn number could not be updated")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1048')")
+    @PutMapping(value = "/cscs-chn-update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateCscs(@RequestBody @Valid UpdateCscsRequest request) {
+        return ApiUtil.buildResponse(usersService.updateCscs(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
     @Operation(summary = "Set a user's email.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Set a user's email only when it has not been verified.",
@@ -84,7 +99,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get a user.")
     })
-    @PreAuthorize("hasAuthority('SCOPE_users.get') OR hasRole('ROLE_users.get')")
+    @PreAuthorize("hasAuthority('SCOPE_users.get') OR hasRole('ROLE_1000')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UsersResponse>> getUser() {
         return ApiUtil.buildResponse(usersService.getUser(), HttpStatus.OK.toString(), "Successful.");
@@ -191,16 +206,16 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateStateOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Hidden
-    @Operation(summary = "Update biometric log in")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows users to update their biometric log in")
-    })
-    @PreAuthorize("hasRole('ROLE_1015')")
-    @PutMapping(value = "/biometric-login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> updateBiometricOfOrigin(@Valid @RequestBody BiometricLoginUpdateRequest request) {
-        return ApiUtil.buildResponse(usersService.updateBiometricOfOrigin(request), HttpStatus.OK.toString(), "Successful");
-    }
+//    @Hidden
+//    @Operation(summary = "Update biometric log in")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Allows users to update their biometric log in")
+//    })
+//    @PreAuthorize("hasRole('ROLE_1015')")
+//    @PutMapping(value = "/biometric-login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<AppResponse<UpdateResponse>> updateBiometricOfOrigin(@Valid @RequestBody BiometricLoginUpdateRequest request) {
+//        return ApiUtil.buildResponse(usersService.updateBiometricOfOrigin(request), HttpStatus.OK.toString(), "Successful");
+//    }
 
     @Hidden
     @Operation(summary = "Update Country")

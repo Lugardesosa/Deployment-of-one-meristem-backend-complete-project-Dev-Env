@@ -3,7 +3,7 @@ package org.meristem.oneapp.usersservice.services.implementations;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.config.EncryptionUtil;
+import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;

@@ -44,23 +44,29 @@ public class VirtualAccountService implements IVirtualAccountService {
     private void createProvidusAccount(KycCompletedDto record, Long walletId) {
 
         AccountProvider PROVIDUS = AccountProvider.PROVIDUS;
-        CreateProvidusWalletRequest request = CreateProvidusWalletRequest.builder().metadata(new HashMap<>())
-                .bvn(record.bvn()).address(record.address()).email(record.email()).dateOfBirth(record.dob())
-                .firstName(record.firstName()).lastName(record.lastName()).phoneNumber(record.phoneNumber()).build();
-        CreateProvidusWalletResponse response = providusClient.createWallet(request);
 
-        VirtualAccounts virtualAccounts = VirtualAccounts.builder()
-                .accountName(response.wallet().accountName())
-                .accountNumber(response.wallet().accountNumber())
-                .balance(response.wallet().availableBalance())
-                .bankCode(PROVIDUS.getBankCode())
-                .bankName(PROVIDUS.getBankName())
-                .reference(AppUtil.generateVirtualAccountReference(PROVIDUS, record.userId()))
-                .providerWalletId(response.wallet().walletId())
-                .walletId(walletId)
-                .build();
-        virtualAccountRepository.save(virtualAccounts);
-        log.info("Providus Virtual account created for user {} with account number {}", record.userId(), virtualAccounts.getAccountNumber());
+        virtualAccountRepository.findByBankCodeAndWalletId(PROVIDUS.getBankCode(), walletId).ifPresentOrElse(v -> {
+                },
+                () -> {
+
+                    CreateProvidusWalletRequest request = CreateProvidusWalletRequest.builder().metadata(new HashMap<>())
+                            .bvn(record.bvn()).address(record.address()).email(record.email()).dateOfBirth(record.dob())
+                            .firstName(record.firstName()).lastName(record.lastName()).phoneNumber(record.phoneNumber()).build();
+                    CreateProvidusWalletResponse response = providusClient.createWallet(request);
+
+                    VirtualAccounts virtualAccounts = VirtualAccounts.builder()
+                            .accountName(response.wallet().accountName())
+                            .accountNumber(response.wallet().accountNumber())
+                            .balance(response.wallet().availableBalance())
+                            .bankCode(PROVIDUS.getBankCode())
+                            .bankName(PROVIDUS.getBankName())
+                            .reference(AppUtil.generateVirtualAccountReference(PROVIDUS, record.userId()))
+                            .providerWalletId(response.wallet().walletId())
+                            .walletId(walletId)
+                            .build();
+                    virtualAccountRepository.save(virtualAccounts);
+                    log.info("Providus Virtual account created for user {} with account number {}", record.userId(), virtualAccounts.getAccountNumber());
+                });
     }
 
     public WemaAccountQueryResponse queryWemaAccount(@Valid WemaAccountQueryRequest request) {
