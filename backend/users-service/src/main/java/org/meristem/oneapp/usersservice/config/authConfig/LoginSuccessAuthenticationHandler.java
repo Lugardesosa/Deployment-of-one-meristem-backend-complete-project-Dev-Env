@@ -140,11 +140,4 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
         ServletServerHttpResponse httpResponse = new ServletServerHttpResponse(response);
         this.accessTokenResponseConverter.write(accessTokenResponse, null, httpResponse);
     }
-
-    public void setAccessTokenResponseCustomizer(
-            Consumer<OAuth2AccessTokenAuthenticationContext> accessTokenResponseCustomizer) {
-        Assert.notNull(accessTokenResponseCustomizer, "accessTokenResponseCustomizer cannot be null");
-        this.accessTokenResponseCustomizer = accessTokenResponseCustomizer;
-    }
-
 }

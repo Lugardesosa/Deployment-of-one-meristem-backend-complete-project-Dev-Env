@@ -24,4 +24,6 @@ public interface VirtualAccountRepository extends BaseRepository<VirtualAccounts
 
     @Query("SELECT v.account_number, v.bank_name FROM virtual_accounts v LEFT JOIN wallets w ON w.id = v.wallet_id WHERE user_id = :userId ")
     List<VirtualAccountResponse> findAccountNumberAndBankNameByUserId(Long userId);
+
+    Optional<VirtualAccounts> findByBankCodeAndWalletId(String bankCode, Long walletId);
 }

@@ -21,11 +21,15 @@ public class WalletService implements IWalletService {
     private final WalletRepository walletRepository;
 
     public Wallets createWallet(KycCompletedDto kycCompletedDto) {
-        Wallets wallets = Wallets.builder().userId(kycCompletedDto.userId()).balance(BigDecimal.ZERO).fullName(AppUtil.getUserFullName(kycCompletedDto.firstName(), "", kycCompletedDto.lastName()))
-                .build();
-        Wallets savedWallet = walletRepository.save(wallets);
-        log.info("Wallet created for user {}", savedWallet.getUserId());
-        return savedWallet;
+        final Wallets[] savedWallet = new Wallets[1];
+        walletRepository.findByUserId(kycCompletedDto.userId()).ifPresentOrElse(w -> savedWallet[0] = w,
+                () -> {
+                    Wallets wallets = Wallets.builder().userId(kycCompletedDto.userId()).balance(BigDecimal.ZERO).fullName(AppUtil.getUserFullName(kycCompletedDto.firstName(), "", kycCompletedDto.lastName()))
+                            .build();
+                    savedWallet[0] = walletRepository.save(wallets);
+                    log.info("Wallet created for user {}", savedWallet[0].getUserId());
+                });
+        return savedWallet[0];
     }
 
     public WalletBalanceResponse getAccountBalance() {

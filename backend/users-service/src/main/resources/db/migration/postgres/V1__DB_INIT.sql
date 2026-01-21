@@ -174,6 +174,8 @@ CREATE TABLE user_profile
     country_of_origin        VARCHAR(200),
     lg_of_origin             VARCHAR(200),
     marital_status           VARCHAR(50),
+    chn_number               VARCHAR(20),
+    cscs_number              VARCHAR(20),
     referral_code            VARCHAR(15)                             NOT NULL,
     onboarding_completed     BOOLEAN DEFAULT FALSE                   NOT NULL,
     biometric_enabled        BOOLEAN DEFAULT FALSE                   NOT NULL,
@@ -246,10 +248,12 @@ CREATE TABLE id_card
     status             INT DEFAULT 1                           NOT NULL,
     id_card_type       VARCHAR(30)                             NOT NULL,
     id_value           VARCHAR(300)                            NOT NULL,
-    issued_date        VARCHAR(20),
-    expiry_date        VARCHAR(20),
+    id_value_hashed    VARCHAR(300)                            NOT NULL,
+    issued_date        DATE,
+    expiry_date        DATE,
     user_id            BIGINT                                  NOT NULL,
-    CONSTRAINT pk_id_card PRIMARY KEY (id)
+    CONSTRAINT pk_id_card PRIMARY KEY (id),
+    CONSTRAINT uq_id_card_id_value_hashed UNIQUE (id_value_hashed)
 );
 
 CREATE TABLE users_roles
@@ -856,6 +860,7 @@ $$
         SystemProductThresholdManageID                 integer;
         SystemIntegrationManageID                      integer;
         UsersDeviceRegisterID                          INT;
+        UsersCscsChnUpdateID                           INT;
 
     BEGIN
 
@@ -1596,11 +1601,17 @@ $$
         VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.device.register', '1047', 'Permission to register user devices')
         RETURNING id INTO UsersDeviceRegisterID;
 
+        INSERT INTO permissions (created_date, created_by, last_modified_date, last_modified_by, version, status, name,
+                                 code, description)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 1, 'users.cscs.chn.update', '1048', 'Permission to register user devices')
+        RETURNING id INTO UsersCscsChnUpdateID;
+
 
         -- ROLES_PERMISSIONS
         INSERT INTO permissions_mapping (roles_id, permissions_id)
         VALUES (RolesUserID, UsersGetID),
                (RolesUserID, UsersDeviceRegisterID),
+               (RolesUserID, UsersCscsChnUpdateID),
 
                (RolesUserID, UsersOtpSendID),
                (RolesUserID, UsersOtpVerifyID),
@@ -1842,12 +1853,13 @@ $$
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MSBL', 1);
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MWML', 1)
+        RETURNING id INTO WealthId;
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MWML', 1)
-        RETURNING id INTO WealthId;
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MSBL', 1);
+
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
@@ -1856,10 +1868,9 @@ $$
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Securities', 'MSL', 1),
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS', 1),
+               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Securities', 'MSL', 1),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Finance', 'MFL', 1),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS', 1),
                (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'AI Agent', 'MER-AI-AGENT', 0);
 
 

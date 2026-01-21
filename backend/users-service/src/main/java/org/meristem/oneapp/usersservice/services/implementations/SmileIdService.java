@@ -27,6 +27,7 @@ import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.ISmileIdService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -72,6 +73,10 @@ public class SmileIdService implements ISmileIdService {
 
     @Value("${one-app.users-service.smile-id.partner-id}")
     private String partnerId;
+
+    @Value("${hashing.id-hash-key}")
+    private String idHashKey;
+
     private static final String DOCUMENT_APPROVED_STATUS = "0810";
     private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
@@ -92,6 +97,7 @@ public class SmileIdService implements ISmileIdService {
     private final IKafkaSenderService kafkaSenderService;
     private final SmileIdClient smileIdClient;
     private final SmileIdProperties smileIdProperties;
+    private final HashingUtil hashingUtil;
 
     List<String> dataStatus = List.of(ID_APPROVED_STATUS, DOCUMENT_APPROVED_STATUS);
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
@@ -103,6 +109,9 @@ public class SmileIdService implements ISmileIdService {
 
     public BvnQueryResponse bvnQuery(BvnQueryRequest request) {
 
+        if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn()))) {
+            throw new BadRequestException("Bvn already exists.");
+        }
         SmileIdEnhancedKycRequest.PartnerParams  partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
                 .job_id(UUID.randomUUID().toString())
                 .job_type(ENHANCED_JOB_TYPE)
@@ -298,8 +307,9 @@ public class SmileIdService implements ISmileIdService {
                     .ifPresentOrElse(id -> {
                     }, () -> idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
                             .idCardType(notification.idType())
-                            .expiryDate(notification.expirationDate())
-                            .issuedDate(notification.issuanceDate())
+                            // "yyyy-MM-dd"
+                            .expiryDate(StringUtils.isNotBlank(notification.expirationDate()) ? LocalDate.parse(notification.expirationDate()) : null)
+                            .issuedDate(StringUtils.isNotBlank(notification.issuanceDate()) ? LocalDate.parse(notification.issuanceDate()) : null)
                             .userId(loggedInUser.getId())
                             .build()));
         }

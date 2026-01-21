@@ -38,4 +38,9 @@ public record CreateUserRequest(@Schema(example = "johndoe@gmail.com", descripti
     public String middleName() {
         return isNull(middleName) ? null : middleName.trim();
     }
+
+    @Override
+    public String bvn() {
+        return bvn.trim();
+    }
 }

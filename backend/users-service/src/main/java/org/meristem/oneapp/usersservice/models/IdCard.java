@@ -8,6 +8,7 @@ import lombok.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -22,15 +23,20 @@ public class IdCard extends BaseModel<String> {
     @NotBlank(message = "Cannot be null")
     String idCardType;
 
+    // ENCRYPTED
     @Column("id_value")
-    @NotBlank(message = "cannot be null") @Size(min = 5, max = 30, message = "cannot be longer than 20 and less than 9")
+    @NotBlank(message = "cannot be null")
     String idValue;
 
+    @Column("id_value_hashed")
+    @NotBlank(message = "cannot be null")
+    String idValueHashed;
+
     @Column("issued_date")
-    String issuedDate;
+    LocalDate issuedDate;
 
     @Column("expiry_date")
-    String expiryDate;
+    LocalDate expiryDate;
 
     @Column("user_id")
     @NotNull(message = "User id cannot be null")
@@ -38,24 +44,25 @@ public class IdCard extends BaseModel<String> {
 
     @Builder
     public IdCard(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                  String idCardType, String idValue, String issuedDate, String expiryDate, Long userId) {
+                  String idCardType, String idValue, LocalDate issuedDate, LocalDate expiryDate, Long userId, String idValueHashed) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.idCardType = idCardType;
         this.idValue = idValue;
         this.issuedDate = issuedDate;
         this.expiryDate = expiryDate;
         this.userId = userId;
+        this.idValueHashed = idValueHashed;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         IdCard idCard = (IdCard) o;
-        return Objects.equals(getId(), idCard.getId()) && Objects.equals(getUserId(), idCard.getUserId());
+        return Objects.equals(getId(), idCard.getId()) && Objects.equals(getIdValueHashed(), idCard.getIdValueHashed());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getUserId());
+        return Objects.hash(getId(), getIdValueHashed());
     }
 }

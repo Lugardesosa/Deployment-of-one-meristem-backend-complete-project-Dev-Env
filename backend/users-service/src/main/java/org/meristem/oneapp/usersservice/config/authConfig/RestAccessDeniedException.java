@@ -18,7 +18,7 @@ public record RestAccessDeniedException(ObjectMapper mapper) implements AccessDe
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
+                       AccessDeniedException accessDeniedException) throws IOException {
         LocalDateTime currentTimeStamp = LocalDateTime.now();
         String message = (accessDeniedException != null && accessDeniedException.getMessage() != null) ?
                 accessDeniedException.getMessage() : "Authorization failed";

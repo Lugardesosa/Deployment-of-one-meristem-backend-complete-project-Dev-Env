@@ -48,6 +48,9 @@ one-app:
   mobile-service:
     secret: ${MOBILE_SECRET}
     name: MobileService
+  web-service:
+    secret: ${WEB_SECRET}
+    name: WebService
   notification-service:
     secret: ${NOTIFICATION_SECRET}
     name: NotificationService

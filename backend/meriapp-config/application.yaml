@@ -146,7 +146,7 @@ call:
 # TODO: KEEP UPDATED
 # THESE VALUES REPLACED WITH [REDACTED] IN LOGS
 what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword,pass,PASS"
-headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"
+headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type,X-PLATFORM"
 
 expo-url: ${EXPO_URL}
 
@@ -157,8 +157,6 @@ paystack:
 
 
 encryption:
-  algorithm_gcm: ${ENC_ALGORITHM_GCM}
-  algorithm: ${ENC_ALGORITHM}
-  salt: ${ENC_SALT}
-  iv:
-    size: 12
+  secret-key: ${ENC_SALT}
+hashing:
+  id-hash-key: ${ID_HASHING_SECRET}

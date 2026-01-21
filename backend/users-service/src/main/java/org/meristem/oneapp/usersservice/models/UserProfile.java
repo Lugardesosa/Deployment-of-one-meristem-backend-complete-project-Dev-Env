@@ -48,6 +48,10 @@ public class UserProfile extends BaseModel<String> {
 
     private String maritalStatus;
 
+    private String cscsNumber;
+
+    private String chnNumber;
+
     @NotBlank(message = "Cannot be empty")
     @Size(max = 15, min = 1, message = "Not more than 50 and less than 1")
     private String referralCode;
@@ -77,7 +81,8 @@ public class UserProfile extends BaseModel<String> {
      */
     @Builder
     public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
-                       Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode, Boolean interestFreeInvestment) {
+                       Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode,
+                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -88,6 +93,8 @@ public class UserProfile extends BaseModel<String> {
         this.onboardingCompleted = Boolean.FALSE;
         this.biometricEnabled = Boolean.FALSE;
         this.interestFreeInvestment = interestFreeInvestment;
+        this.chnNumber = chnNumber;
+        this.cscsNumber = cscsNumber;
     }
 
     /**
