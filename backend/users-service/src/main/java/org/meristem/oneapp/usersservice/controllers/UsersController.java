@@ -306,4 +306,13 @@ public class UsersController {
     public ResponseEntity<AppResponse<StageResponse>> processDetails(@Pattern(regexp = AppConstants.EMAIL_REGEX_PATTERN, message = "Enter a valid email") @RequestParam(name = "email") String email) {
         return ApiUtil.buildResponse(usersService.processDetails(email), HttpStatus.OK.toString(), "Successful");
     }
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200")
+    })
+    @PreAuthorize("hasRole('ROLE_1049')")
+    @PostMapping(value = "/create-spouse", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createSpouse(@Valid @RequestBody CreateSpouseRequest request) {
+        return ApiUtil.buildResponse(usersService.createSpouse(request), HttpStatus.OK.toString(), "Successful");
+    }
 }

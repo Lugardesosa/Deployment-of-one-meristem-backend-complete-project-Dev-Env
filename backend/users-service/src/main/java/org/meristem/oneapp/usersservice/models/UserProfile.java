@@ -46,7 +46,7 @@ public class UserProfile extends BaseModel<String> {
 
     private String lgOfOrigin;
 
-    private String maritalStatus;
+    private Integer maritalStatus;
 
     private String cscsNumber;
 
@@ -82,7 +82,7 @@ public class UserProfile extends BaseModel<String> {
     @Builder
     public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode,
-                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber) {
+                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -95,6 +95,7 @@ public class UserProfile extends BaseModel<String> {
         this.interestFreeInvestment = interestFreeInvestment;
         this.chnNumber = chnNumber;
         this.cscsNumber = cscsNumber;
+        this.maritalStatus = maritalStatus;
     }
 
     /**

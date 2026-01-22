@@ -212,4 +212,6 @@ public interface IUsersService {
     UpdateResponse verifyPassword(VerifyPasswordRequest request);
 
     UpdateResponse updateCscs(@Valid UpdateCscsRequest request);
+
+    UpdateResponse createSpouse(@Valid CreateSpouseRequest request);
 }

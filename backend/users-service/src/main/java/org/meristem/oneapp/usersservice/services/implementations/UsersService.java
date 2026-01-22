@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
+import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
@@ -41,8 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Service class for managing user-related operations.
@@ -607,5 +608,50 @@ public class UsersService implements IUsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("chn_number", request.chnNumber());
         clearUsersCache();
-        return getUpdateResponse(updates);    }
+        return getUpdateResponse(updates);
+    }
+
+    @Override
+    public UpdateResponse createSpouse(CreateSpouseRequest request) {
+
+        Long userId = AppUtil.getLoggedInUserId();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("marital_status", request.maritalStatus().getNumber());
+        if (request.maritalStatus() == MaritalStatus.MARRIED) {
+            List<String> errors = new ArrayList<>();
+            if (isNull(request.title())) {
+                errors.add("title: Kindly pass the title");
+            }
+            if (isBlank(request.fullName())) {
+                errors.add("fullName: Kindly pass the fullName");
+            }
+            if (isBlank(request.email())) {
+                errors.add("email: Kindly pass the email");
+            }
+            if (nonNull(request.nationalityId())) {
+                errors.add("nationality: Kindly pass the nationality");
+            }
+            boolean countryDoesNotExist = !customRepository.existById(Countries.class, request.nationalityId());
+            if (countryDoesNotExist) {
+                errors.add("nationality: Nationality does not exist");
+            }
+            if (isBlank(request.phoneNumber())) {
+                errors.add("phoneNumber: Kindly pass the phoneNumber");
+            }
+            if (isBlank(request.phoneNumberFormat())) {
+                errors.add("phoneNumberFormat: Kindly pass the phoneNumberFormat");
+            }
+            if (!request.validateData() || countryDoesNotExist) {
+                throw new ContextException("Kindly pass the required values", errors);
+            }
+            Spouse spouse = Spouse.builder()
+                    .title(request.title().getNumber()).email(request.email()).phoneNumber(request.phoneNumber())
+                    .userId(userId).fullName(request.fullName()).nationalityId(request.nationalityId())
+                    .build();
+            customRepository.save(spouse);
+        }
+        clearUsersCache();
+        return getUpdateResponse(updates);
+    }
 }

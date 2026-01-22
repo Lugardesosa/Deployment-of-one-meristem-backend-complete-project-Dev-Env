@@ -23,14 +23,20 @@ public class Countries extends BaseModel<String> {
     private String name;
 
     @NotBlank(message = "Cannot be blank")
+    @Column("nationality")
+    private String nationality;
+
+    @NotBlank(message = "Cannot be blank")
     @Column("code")
     private String code;
 
     @Builder
-    public Countries(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name,  String code) {
+    public Countries(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name,  String code,
+                     String nationality) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.name = name;
         this.code = code;
+        this.nationality = nationality;
     }
 
     @Override
