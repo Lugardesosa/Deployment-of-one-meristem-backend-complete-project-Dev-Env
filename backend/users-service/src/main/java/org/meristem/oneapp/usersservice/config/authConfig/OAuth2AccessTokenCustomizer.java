@@ -30,11 +30,8 @@ public class OAuth2AccessTokenCustomizer implements OAuth2TokenCustomizer<JwtEnc
                     claim.put("roles", roles);
                     claim.put("isAdmin", roles.stream().noneMatch(role -> role.equals(AppConstants.USER_ROLE)));
                     claim.put("sub", users.getEmail());
-                    claim.put("email", users.getEmail());
                     claim.put("firstName", users.getFirstName());
-                    claim.put("lastName", users.getLastName());
                     claim.put("id", users.getId());
-                    claim.put("phoneNumber", users.getPhoneNumber());
                     claim.put("status", users.getStatus());
                 } else if (principal instanceof String) {
                     RegisteredClient rc = requireNonNull(registeredClientRepository.findByClientId((String) principal), "Client not found");
