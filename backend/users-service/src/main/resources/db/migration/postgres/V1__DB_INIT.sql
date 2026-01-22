@@ -1853,25 +1853,26 @@ $$
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Wealth', 'MWML', 1)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'WealthBuddy', 'MWML', 1)
         RETURNING id INTO WealthId;
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Stocks', 'MSBL', 1);
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'MeriTrade', 'MSBL', 1);
 
 
         INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Trustees', 'MTL', 1)
+        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Trustee Services', 'MTL', 1)
         RETURNING id INTO TrusteesId;
 
-        INSERT INTO investment_instruments (created_date, created_by, last_modified_date, last_modified_by, version,
+        INSERT INTO investment_instruments (status, created_date, created_by, last_modified_date, last_modified_by, version,
                                             name, code, type)
-        VALUES (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MER-PROB-REGIS', 1),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Securities', 'MSL', 1),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Finance', 'MFL', 1),
-               (NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'AI Agent', 'MER-AI-AGENT', 0);
+        VALUES (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Probate & Registrars', 'MRPSL', 1),
+               (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Investment Profile', 'MER-INV-PROF', 0),
+               (1, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Finance & Loans', 'MFL', 1),
+               (0, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'Securities', 'MSL', 1),
+               (0, NOW(), 'SYSTEM', NOW(), 'SYSTEM', 0, 'AI Agent', 'MER-AI-AGENT', 0);
 
 
         INSERT INTO investment_options (created_date, created_by, last_modified_date, last_modified_by, version,
