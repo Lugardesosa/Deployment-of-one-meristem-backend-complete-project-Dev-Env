@@ -1,4 +1,4 @@
-package org.meristem.oneapp.trusteesservice.integrations.responses;
+package org.meristem.oneapp.walletservice.integrations.responses;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;

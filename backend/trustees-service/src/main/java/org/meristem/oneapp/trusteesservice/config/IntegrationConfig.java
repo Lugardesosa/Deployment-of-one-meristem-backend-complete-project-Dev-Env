@@ -3,7 +3,7 @@ package org.meristem.oneapp.trusteesservice.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.trusteesservice.config.configProperties.OneAppProperties;
-import org.meristem.oneapp.trusteesservice.config.configProperties.ServicesProperties;
+import org.meristem.oneapp.trusteesservice.config.configProperties.ServicesUrlProperties;
 import org.meristem.oneapp.trusteesservice.config.configProperties.TrusteesServiceProperties;
 import org.meristem.oneapp.trusteesservice.integrations.UserServiceClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +24,7 @@ public class IntegrationConfig {
 
     @Bean
     UserServiceClient userServiceClient(@Qualifier("restClientBuilderInternal") RestClient.Builder restClientBuilder, OneAppProperties oneAppProperties, @Value("${spring.application.name}") String applicationName,
-                                        TrusteesServiceProperties trusteesServiceProperties, ServicesProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
+                                        TrusteesServiceProperties trusteesServiceProperties, ServicesUrlProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
 
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 

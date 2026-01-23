@@ -1,4 +1,4 @@
-package org.meristem.oneapp.trusteesservice.config.configProperties;
+package org.meristem.oneapp.walletservice.config.configProperties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

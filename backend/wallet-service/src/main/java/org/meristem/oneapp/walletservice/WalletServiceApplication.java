@@ -2,6 +2,7 @@ package org.meristem.oneapp.walletservice;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.meristem.oneapp.walletservice.constants.KafkaTopics;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationPropertiesScan
 @SpringBootApplication
 @RequiredArgsConstructor
+@EnableSchedulerLock(defaultLockAtMostFor = "5m")  // Max lock duration of 5 minutes
 @Slf4j
 public class WalletServiceApplication {
 
@@ -30,6 +32,7 @@ public class WalletServiceApplication {
     public CommandLineRunner warmUp(KafkaTemplate<String, String> kafkaTemplate) {
 
         return args -> {
+
             try {
                 kafkaTemplate.send(KafkaTopics.KAFKA_HEALTH_TOPIC, "ping");
             } catch (KafkaException e) {

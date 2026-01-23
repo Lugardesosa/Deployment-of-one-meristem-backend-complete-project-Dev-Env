@@ -70,7 +70,7 @@ public class RestClientConfig {
         return requestFactory;
     }
 
-    @Bean
+    @Bean("restClientBuilderInternal")
     @LoadBalanced
     public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
         HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
