@@ -45,13 +45,13 @@ spring:
 
       client:
         registration:
-#          trustees-service:
-#            client-id: ${TRUSTEES_CLIENT_ID}
-#            client-secret: ${TRUSTEES_CLIENT_SECRET}
-#            authorization-grant-type: client_credentials
-#            provider: users-service
-#            scope:
-#              - beneficiaries.get
+          trustees-service:
+            client-id: ${TRUSTEES_CLIENT_ID}
+            client-secret: ${TRUSTEES_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            provider: users-service
+            scope:
+              - beneficiaries.get
 
           wallet-service:
             client-id: ${WALLET_CLIENT_ID}
