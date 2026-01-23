@@ -57,6 +57,9 @@ one-app:
   trustees-service:
     secret: ${TRUSTEES_SECRET}
     name: TrusteesService
+  wallet-service:
+    secret: ${WALLET_SECRET}
+    name: WalletService
 
 
 logging:
