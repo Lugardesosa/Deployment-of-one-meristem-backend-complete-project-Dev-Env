@@ -49,6 +49,7 @@ spring:
             client-id: ${TRUSTEES_CLIENT_ID}
             client-secret: ${TRUSTEES_CLIENT_SECRET}
             authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
             provider: users-service
             scope:
               - beneficiaries.get
@@ -57,6 +58,7 @@ spring:
             client-id: ${WALLET_CLIENT_ID}
             client-secret: ${WALLET_CLIENT_SECRET}
             authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
             provider: users-service
             scope:
               - verify.pin
