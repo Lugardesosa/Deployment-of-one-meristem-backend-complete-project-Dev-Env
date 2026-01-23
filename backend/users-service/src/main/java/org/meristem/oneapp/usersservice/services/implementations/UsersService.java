@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
+import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
@@ -35,14 +36,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Service class for managing user-related operations.
@@ -77,6 +77,7 @@ public class UsersService implements IUsersService {
     private final EncryptionUtil encryptionUtil;
     private final HashingUtil hashingUtil;
     private final IdCardRepository idCardRepository;
+    private final UserPinRepository userPinRepository;
 
     public  UpdateResponse create(CreateUserRequest request) {
 
@@ -352,13 +353,14 @@ public class UsersService implements IUsersService {
 
         Long userId = AppUtil.getLoggedInUserId();
 
-        String oldPin = usersRepository.findPinById(userId);
+        Optional<UserPin> userPinOptional = userPinRepository.findByUserId(userId);
+        UserPin userPin;
 
-        if (oldPin != null && request.isNew().equals(AppConstants.IS_NEW_PIN)) {
+        if (userPinOptional.isPresent() && request.isNew().equals(AppConstants.IS_NEW_PIN)) {
             throw new BadRequestException("Pin has already been created for this account, you should update pin instead.");
         }
 
-        if (oldPin == null && request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
+        if (userPinOptional.isEmpty() && request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
             throw new BadRequestException("You need to create a pin first.");
         }
 
@@ -368,19 +370,20 @@ public class UsersService implements IUsersService {
                 throw new BadRequestException("You must pass the old pin to update your pin.");
             }
             // Ensure old matches
-            if (!passwordEncoder.matches(request.oldPin(), oldPin)) {
+            if (!passwordEncoder.matches(request.oldPin(), userPinOptional.get().getPin())) {
                 throw new BadRequestException("Wrong old pin entered.");
             }
 
             // Ensure the newPin is different from the old one
-            if (passwordEncoder.matches(request.newPin(), oldPin)) {
+            if (passwordEncoder.matches(request.newPin(), userPinOptional.get().getPin())) {
                 throw new BadRequestException("New pin cannot be the same as your old pin.");
             }
         }
 
-        // Update newPin and return
-        userProfileRepository.updateUsersPin(passwordEncoder.encode(request.newPin()), userId);
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        userPin = userPinOptional.orElse(UserPin.builder().userId(userId).build());
+        userPin.setPin(passwordEncoder.encode(request.newPin()));
+        userPinRepository.save(userPin);
+
         return PinResponse.builder().status(true).message("Pin successfully set.").build();
     }
 
@@ -573,11 +576,55 @@ public class UsersService implements IUsersService {
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 
+    @Transactional
     public UpdateResponse verifyPin(VerifyPinRequest request) {
+        Long userId;
 
-        boolean matches = passwordEncoder.matches(request.pin(), usersRepository
-                .findPinById(AppUtil.getLoggedInUserId()));
-        return UpdateResponse.builder().success(matches).message(matches ? "Pin verified" : "Invalid pin").build();
+        try {
+            userId = AppUtil.getLoggedInUserId();
+            if (isNull(userId)) {
+                userId = request.userId();
+            }
+        } catch (BadRequestException e) {
+            userId = request.userId();
+        }
+
+        Optional<UserPin> userPinOpt = userPinRepository.findByUserId(userId);
+        if (userPinOpt.isEmpty()) {
+            return UpdateResponse.builder().success(false).message("Invalid pin").build();
+        }
+        UserPin userPin = userPinOpt.get();
+
+        if (Objects.equals(userPin.getStatus(), UserPinStatus.LOCKED.getStatus())) {
+            LocalDateTime lockUntil = userPin.getLockUntil();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            return UpdateResponse.builder().success(false).message("Pin is locked, you can retry after %s".formatted(formatter.format(lockUntil))).build();
+        }
+
+        boolean matches = passwordEncoder.matches(request.pin(), userPin.getPin());
+        if (!matches) {
+            int failedAttempts = userPin.getFailedAttempts();
+            userPin.setFailedAttempts(++failedAttempts);
+            userPin.setLastFailedAt(LocalDateTime.now());
+
+            if (Objects.equals(userPin.getFailedAttempts(), AppConstants.MAX_PIN_FAILED_ATTEMPTS_B4_LOCK)) {
+                userPin.setLockUntil(LocalDateTime.now().plusMinutes(AppConstants.PIN_LOCKED_MAX_TIME_IN_MINS));
+                userPin.setStatus(UserPinStatus.LOCKED.getStatus());
+                userPinRepository.save(userPin);
+                LocalDateTime lockUntil = userPin.getLockUntil();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                return UpdateResponse.builder().success(false).message("Pin is locked, you can retry after %s".formatted(formatter.format(lockUntil))).build();
+            }
+
+            userPinRepository.save(userPin);
+            return UpdateResponse.builder().success(false).message("Invalid pin, %d attempts remaining"
+                    .formatted((AppConstants.MAX_PIN_FAILED_ATTEMPTS_B4_LOCK - userPin.getFailedAttempts()))).build();
+        } else {
+            userPin.setFailedAttempts(0);
+            userPinRepository.save(userPin);
+            return UpdateResponse.builder().success(true).message("Pin verified").build();
+        }
+
     }
 
     public StageResponse processDetails(String email) {
@@ -607,5 +654,50 @@ public class UsersService implements IUsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("chn_number", request.chnNumber());
         clearUsersCache();
-        return getUpdateResponse(updates);    }
+        return getUpdateResponse(updates);
+    }
+
+    @Override
+    public UpdateResponse createSpouse(CreateSpouseRequest request) {
+
+        Long userId = AppUtil.getLoggedInUserId();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("marital_status", request.maritalStatus().getNumber());
+        if (request.maritalStatus() == MaritalStatus.MARRIED) {
+            List<String> errors = new ArrayList<>();
+            if (isNull(request.title())) {
+                errors.add("title: Kindly pass the title");
+            }
+            if (isBlank(request.fullName())) {
+                errors.add("fullName: Kindly pass the fullName");
+            }
+            if (isBlank(request.email())) {
+                errors.add("email: Kindly pass the email");
+            }
+            if (nonNull(request.nationalityId())) {
+                errors.add("nationality: Kindly pass the nationality");
+            }
+            boolean countryDoesNotExist = !customRepository.existById(Countries.class, request.nationalityId());
+            if (countryDoesNotExist) {
+                errors.add("nationality: Nationality does not exist");
+            }
+            if (isBlank(request.phoneNumber())) {
+                errors.add("phoneNumber: Kindly pass the phoneNumber");
+            }
+            if (isBlank(request.phoneNumberFormat())) {
+                errors.add("phoneNumberFormat: Kindly pass the phoneNumberFormat");
+            }
+            if (!request.validateData() || countryDoesNotExist) {
+                throw new ContextException("Kindly pass the required values", errors);
+            }
+            Spouse spouse = Spouse.builder()
+                    .title(request.title().getNumber()).email(request.email()).phoneNumber(request.phoneNumber())
+                    .userId(userId).fullName(request.fullName()).nationalityId(request.nationalityId())
+                    .build();
+            customRepository.save(spouse);
+        }
+        clearUsersCache();
+        return getUpdateResponse(updates);
+    }
 }

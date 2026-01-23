@@ -32,10 +32,6 @@ public class UserProfile extends BaseModel<String> {
     @Size(max = 500, min = 5, message = "Not more than 500 and less than 5")
     private String imageKey;
 
-    @Size(max = 200, message = "Cannot be larger than 200")
-    @NotBlank(message = "cannot be null")
-    private String pin;
-
     private LocalDate dateOfBirth;
 
     private String gender;
@@ -46,7 +42,7 @@ public class UserProfile extends BaseModel<String> {
 
     private String lgOfOrigin;
 
-    private String maritalStatus;
+    private Integer maritalStatus;
 
     private String cscsNumber;
 
@@ -81,12 +77,11 @@ public class UserProfile extends BaseModel<String> {
      */
     @Builder
     public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
-                       Integer version, Long userId, String avatarUrl, String pin, LocalDate dateOfBirth, String gender, String referralCode,
-                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber) {
+                       Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
+                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.userId = userId;
         this.imageKey = avatarUrl;
-        this.pin = pin;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
         this.referralCode = referralCode;
@@ -95,6 +90,7 @@ public class UserProfile extends BaseModel<String> {
         this.interestFreeInvestment = interestFreeInvestment;
         this.chnNumber = chnNumber;
         this.cscsNumber = cscsNumber;
+        this.maritalStatus = maritalStatus;
     }
 
     /**

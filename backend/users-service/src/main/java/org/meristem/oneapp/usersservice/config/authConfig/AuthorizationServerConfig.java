@@ -86,8 +86,14 @@ public class AuthorizationServerConfig {
     @Value("${one-app.trustees-service.secret}")
     private String trusteesSecret;
 
+    @Value("${one-app.wallet-service.secret}")
+    private String walletSecret;
+
     @Value("${one-app.trustees-service.name}")
     private String trusteesName;
+
+    @Value("${one-app.wallet-service.name}")
+    private String walletName;
 
     @Order(1)
     @Bean
@@ -246,7 +252,7 @@ public class AuthorizationServerConfig {
                     .clientId("notification-service")
                     .clientName(notificationName)
                     .clientSecret(passwordEncoder().encode(notificationSecret))
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
@@ -260,10 +266,24 @@ public class AuthorizationServerConfig {
                     .clientId("trustees-service")
                     .clientName(trusteesName)
                     .clientSecret(passwordEncoder().encode(trusteesSecret))
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .scope(AuthScopes.GET_BENEFICIARIES)
                     .scope(AuthScopes.GET_ROLES)
+                    .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+                    .build();
+            clientRepo.save(trustees);
+        }
+
+        if (isNull(clientRepo.findByClientId("wallet-service"))) {
+            RegisteredClient trustees = RegisteredClient
+                    .withId(UUID.randomUUID().toString())
+                    .clientId("wallet-service")
+                    .clientName(walletName)
+                    .clientSecret(passwordEncoder().encode(walletSecret))
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                    .scopes(s -> s.addAll(List.of(AuthScopes.GET_BENEFICIARIES, AuthScopes.GET_ROLES, AuthScopes.VERIFY_PIN)))
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                     .build();
             clientRepo.save(trustees);

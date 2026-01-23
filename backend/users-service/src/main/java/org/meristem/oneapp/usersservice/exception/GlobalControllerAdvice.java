@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.beans.TypeMismatchException;
@@ -161,6 +162,11 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     @ExceptionHandler({AccessDeniedException.class})
     protected ResponseEntity<ErrorDetails> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         return handleExceptionInternal("Unauthorized request", HttpStatus.FORBIDDEN, request, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler({ContextException.class})
+    protected ResponseEntity<ErrorDetails> handleContextException(ContextException ex, WebRequest request) {
+        return handleExceptionInternal(ex.getMessage(), HttpStatus.BAD_REQUEST, request, ex.getMessages());
     }
 
     @ExceptionHandler({HandlerMethodValidationException.class})

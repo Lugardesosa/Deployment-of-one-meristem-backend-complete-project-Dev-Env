@@ -52,7 +52,7 @@ public final class AppUtil {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            return jwt.getClaim("email").toString();
+            return jwt.getClaim("sub").toString();
         }
         return "SYSTEM.AUTO";
     }

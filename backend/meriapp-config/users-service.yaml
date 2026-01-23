@@ -57,9 +57,16 @@ one-app:
   trustees-service:
     secret: ${TRUSTEES_SECRET}
     name: TrusteesService
+  wallet-service:
+    secret: ${WALLET_SECRET}
+    name: WalletService
 
 
 logging:
   level:
     com.obs.services: ERROR
     nl.basjes.parse: ERROR
+
+pin-unlock:
+  cron:
+    fix-rate: 5

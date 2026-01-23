@@ -282,7 +282,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Verifies users pin")
     })
-    @PreAuthorize("hasRole('ROLE_1043')")
+    @PreAuthorize("hasAuthority('SCOPE_verify.pin') OR hasRole('ROLE_1043')")
     @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
@@ -305,5 +305,14 @@ public class UsersController {
     @GetMapping(value = "/process-details", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<StageResponse>> processDetails(@Pattern(regexp = AppConstants.EMAIL_REGEX_PATTERN, message = "Enter a valid email") @RequestParam(name = "email") String email) {
         return ApiUtil.buildResponse(usersService.processDetails(email), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200")
+    })
+    @PreAuthorize("hasRole('ROLE_1049')")
+    @PostMapping(value = "/create-spouse", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createSpouse(@Valid @RequestBody CreateSpouseRequest request) {
+        return ApiUtil.buildResponse(usersService.createSpouse(request), HttpStatus.OK.toString(), "Successful");
     }
 }

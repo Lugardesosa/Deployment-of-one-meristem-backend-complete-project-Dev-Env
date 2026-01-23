@@ -7,12 +7,13 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum MaritalStatus {
 
-    SINGLE("Single"),
-    DIVORCED("Divorced"),
-    WIDOWED("Widowed"),
-    MARRIED("Married");
+    SINGLE("Single", 1),
+    DIVORCED("Divorced", 2),
+    WIDOWED("Widowed", 3),
+    MARRIED("Married", 4);
 
     private final String value;
+    private final Integer number;
 
     public static MaritalStatus fromValue(String value) {
         return switch (value) {
