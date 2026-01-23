@@ -63,3 +63,7 @@ logging:
   level:
     com.obs.services: ERROR
     nl.basjes.parse: ERROR
+
+pin-unlock:
+  cron:
+    fix-rate: 5
