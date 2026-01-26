@@ -9,6 +9,6 @@ public record UpdatePhoneNumberRequest(@Schema(example = "+2349098989876", descr
 
     @Override
     public String phoneNumber() {
-        return phoneNumber.replace("+", "").replaceAll("^234", "0");
+        return phoneNumber.replace("+", "");
     }
 }

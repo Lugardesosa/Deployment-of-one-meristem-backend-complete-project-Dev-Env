@@ -1,10 +1,13 @@
 package org.meristem.oneapp.usersservice.repositories;
 
+import org.meristem.oneapp.usersservice.domains.responses.RolesResponse;
 import org.meristem.oneapp.usersservice.models.Roles;
+import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional(readOnly = true)
 public interface RolesRepository extends BaseRepository<Roles, Long> {
@@ -14,4 +17,32 @@ public interface RolesRepository extends BaseRepository<Roles, Long> {
 
     @Query("SELECT id FROM roles WHERE name = :name")
     Long findIdByName(String name);
+
+    @Modifying
+    @Query("INSERT INTO users_roles(roles_id, users_id) VALUES ( :roleId, :userId ) ")
+    int updateUserRole(Long userId, Long roleId);
+
+    @Query("SELECT r.name FROM roles r ")
+    List<String> findAllNames();
+
+    @Query("SELECT r.name FROM roles r WHERE r.id = :roleId OR LOWER(r.name) LIKE LOWER('ADDITIONAL') ")
+    Optional<String> findAllNames(Long roleId);
+
+    @Query("SELECT r.id, r.name, r.display_name FROM roles r ")
+    List<RolesResponse.Role> findAllRoles();
+
+    @Query("SELECT r.name, r.display_name, r.id FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
+    List<RolesResponse.Role> findAllRoles(Long userId);
+
+    @Query("SELECT r.id FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
+    List<Long> findAllRolesId(Long userId);
+
+    @Query("SELECT r.name FROM roles r LEFT JOIN users_roles ur ON ur.roles_id = r.id WHERE ur.users_id = :userId ")
+    List<String> findAllNamesByUserId(Long userId);
+
+    Optional<Roles> findByIdAndNameIsNotLike(Long id, String name);
+
+    @Modifying
+    @Query("DELETE FROM users_roles WHERE users_id = :userId  ")
+    void deleteUserRole(Long userId);
 }

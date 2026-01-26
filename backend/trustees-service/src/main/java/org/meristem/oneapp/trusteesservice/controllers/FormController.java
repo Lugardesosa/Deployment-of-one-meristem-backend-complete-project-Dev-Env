@@ -13,7 +13,8 @@ import org.meristem.oneapp.trusteesservice.domains.responses.AppResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.BankResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.FormNamesResponse;
 import org.meristem.oneapp.trusteesservice.domains.responses.FormResponse;
-import org.meristem.oneapp.trusteesservice.services.FormService;
+import org.meristem.oneapp.trusteesservice.services.IFormService;
+import org.meristem.oneapp.trusteesservice.services.implementations.FormService;
 import org.meristem.oneapp.trusteesservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,11 +31,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FormController {
 
-    private final FormService formService;
+    private final IFormService formService;
 
     @Operation(summary = "Get a form or forms", method = "GET")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Get a form and its properties")})
-    @PreAuthorize("hasRole('ROLE_users.forms.get')")
+    @PreAuthorize("hasRole('ROLE_1028')")
     @GetMapping(value = "/{formName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<FormResponse>> getForm(@PathVariable FormName formName) {
         return ApiUtil.buildResponse(formService.getForm(formName), HttpStatus.OK.toString(), "Successful");
@@ -42,7 +43,7 @@ public class FormController {
 
     @Operation(summary = "Get a form ", method = "GET")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Get a form and its properties")})
-    @PreAuthorize("hasRole('ROLE_users.forms.get')")
+    @PreAuthorize("hasRole('ROLE_1028')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<FormNamesResponse>>> getFormNames(@RequestParam(name = "formName") GeneralFormType generalFormType) {
         return ApiUtil.buildResponse(formService.getFormNames(generalFormType), HttpStatus.OK.toString(), "Successful");
@@ -50,7 +51,7 @@ public class FormController {
 
     @Operation(summary = "Get banks", method = "GET")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Get bank names")})
-    @PreAuthorize("hasRole('ROLE_users.banks.get')")
+    @PreAuthorize("hasRole('ROLE_1029')")
     @GetMapping(value = "/banks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<BankResponse>>> getBankNames() {
         return ApiUtil.buildResponse(formService.getBankNames(), HttpStatus.OK.toString(), "Successful");

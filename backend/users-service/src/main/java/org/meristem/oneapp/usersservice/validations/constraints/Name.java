@@ -6,6 +6,7 @@ import org.meristem.oneapp.usersservice.validations.validators.NameValidator;
 
 import java.lang.annotation.*;
 
+
 @Documented
 @Constraint(validatedBy = NameValidator.class)
 @Target({ElementType.FIELD, ElementType.PARAMETER})

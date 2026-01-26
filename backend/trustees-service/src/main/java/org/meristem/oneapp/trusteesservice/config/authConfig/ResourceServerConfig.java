@@ -11,9 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.*;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
 @EnableWebSecurity
 public class ResourceServerConfig {
@@ -36,5 +38,23 @@ public class ResourceServerConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
+    }
+
+    @Bean
+    public OAuth2AuthorizedClientService authorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
+        return new InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository);
+    }
+
+    @Bean
+    public OAuth2AuthorizedClientManager authorizedClientManager(ClientRegistrationRepository clientRegistrationRepository,
+                                                                 OAuth2AuthorizedClientService authorizedClientService) {
+
+        AuthorizedClientServiceOAuth2AuthorizedClientManager manager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(
+                clientRegistrationRepository, authorizedClientService);
+
+        OAuth2AuthorizedClientProvider provider = OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build();
+
+        manager.setAuthorizedClientProvider(provider);
+        return manager;
     }
 }

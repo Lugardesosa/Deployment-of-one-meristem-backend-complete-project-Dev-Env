@@ -13,8 +13,8 @@ import org.meristem.oneapp.usersservice.domains.enums.MessageSubject;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.dtos.events.DeviceMetadataEvent;
 import org.meristem.oneapp.usersservice.models.DeviceMetadata;
-import org.meristem.oneapp.usersservice.services.KafkaSenderService;
-import org.meristem.oneapp.usersservice.services.LoginService;
+import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
+import org.meristem.oneapp.usersservice.services.ILoginService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -51,9 +51,9 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
 
     private Consumer<OAuth2AccessTokenAuthenticationContext> accessTokenResponseCustomizer;
 
-    private final KafkaSenderService kafkaSenderService;
+    private final IKafkaSenderService kafkaSenderService;
 
-    private final LoginService loginService;
+    private final ILoginService loginService;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -88,7 +88,7 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
                             .userId(users.getId()).lastLoggedIn(LocalDateTime.now()).location(loginService.formatLocation(location.cityName(), location.country())).build();
                     applicationEventPublisher.publishEvent(new DeviceMetadataEvent(this, deviceMetadata));
                     MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.LOGIN_SUCCESSFUL).message(loginDto).classSimpleName(LoginDto.class.getSimpleName()).isHtml(true).build();
-                    kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC));
+                    kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC, KafkaHeaders.KEY, users.getEmail()));
                 }
             }
         } catch(Exception e) {
@@ -140,11 +140,4 @@ public class LoginSuccessAuthenticationHandler implements AuthenticationSuccessH
         ServletServerHttpResponse httpResponse = new ServletServerHttpResponse(response);
         this.accessTokenResponseConverter.write(accessTokenResponse, null, httpResponse);
     }
-
-    public void setAccessTokenResponseCustomizer(
-            Consumer<OAuth2AccessTokenAuthenticationContext> accessTokenResponseCustomizer) {
-        Assert.notNull(accessTokenResponseCustomizer, "accessTokenResponseCustomizer cannot be null");
-        this.accessTokenResponseCustomizer = accessTokenResponseCustomizer;
-    }
-
 }

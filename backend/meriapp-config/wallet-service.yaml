@@ -36,3 +36,7 @@ one-app:
       public-key: ${PROVIDUS_API_PUBLIC_KEY}
       secret-key: ${PROVIDUS_API_SECRET_KEY}
       client-name: Providus
+
+outbox:
+  cron:
+    fix-rate: 2

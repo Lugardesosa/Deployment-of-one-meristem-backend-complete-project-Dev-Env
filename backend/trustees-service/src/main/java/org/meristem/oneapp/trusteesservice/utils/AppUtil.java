@@ -2,7 +2,6 @@ package org.meristem.oneapp.trusteesservice.utils;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trusteesservice.domains.enums.Roles;
 import org.meristem.oneapp.trusteesservice.exception.exceptions.BadRequestException;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.data.util.Pair;
@@ -53,7 +52,7 @@ public final class AppUtil {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            return jwt.getClaim("email").toString();
+            return jwt.getClaim("sub").toString();
         }
         return "SYSTEM.AUTO";
     }

@@ -1,0 +1,84 @@
+package org.meristem.oneapp.notificationservice.services.implementations;
+
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.PushNotificationDto;
+import org.meristem.oneapp.notificationservice.constants.KafkaTopics;
+import org.meristem.oneapp.notificationservice.integrations.ExpoPushNotificationClient;
+import org.meristem.oneapp.notificationservice.integrations.requests.ExpoPushNotificationRequest;
+import org.meristem.oneapp.notificationservice.integrations.responses.ExpoPushNotificationResponse;
+import org.meristem.oneapp.notificationservice.models.ExpoNotificationTicket;
+import org.meristem.oneapp.notificationservice.repositories.CustomRepository;
+import org.meristem.oneapp.notificationservice.repositories.UserExpoTokensRepository;
+import org.meristem.oneapp.notificationservice.services.IKafkaSenderService;
+import org.meristem.oneapp.notificationservice.services.IPushNotificationService;
+import org.meristem.oneapp.notificationservice.utils.AppUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class PushNotificationService implements IPushNotificationService {
+
+    @Value("${expo.push.notifications.token}")
+    private String expoToken;
+    private final UserExpoTokensRepository userExpoTokensRepository;
+    private final ExpoPushNotificationClient expoPushNotificationClient;
+    private final IKafkaSenderService kafkaSenderService;
+    private final CustomRepository customRepository;
+
+    @CircuitBreaker(name = "expo", fallbackMethod = "recoverPushNotificationCircuit")
+    public void sendPushNotification(PushNotificationDto notifications) {
+
+        List<String> to = new ArrayList<>();
+
+        if (notifications.toAll()) {
+            to.addAll(userExpoTokensRepository.findAllExpoTokens());
+        }
+        if (notifications.userId() != null) {
+            to.addAll(userExpoTokensRepository.findAllExpoTokensByUserId(notifications.userId()));
+        } else {
+            return;
+        }
+        if (to.isEmpty()) {
+            return;
+        }
+        ExpoPushNotificationRequest request = ExpoPushNotificationRequest.builder()
+                .to(to)
+                .title(notifications.title())
+                .body(notifications.body())
+                .data(notifications.data() == null ? Map.of() : notifications.data())
+                .build();
+        List<ExpoPushNotificationResponse.ExpoPushResponse> response = expoPushNotificationClient.sendPushNotification(request).data();
+
+        List<ExpoNotificationTicket> tickets = new ArrayList<>();
+        List<String> tokenToDelete = new ArrayList<>();
+        for (ExpoPushNotificationResponse.ExpoPushResponse r : response) {
+
+            if ("ok".equalsIgnoreCase(r.status())) {
+                tickets.add(ExpoNotificationTicket.builder().ticketId(r.id()).build());
+            } else {
+                if ("DeviceNotRegistered".equalsIgnoreCase(r.details().error())) {
+                    String token = r.details().expoPushToken();
+                    tokenToDelete.add(StringUtils.hasText(token) ? token : AppUtil.extractExpoTokenWithRegex(r.message()));
+                }
+            }
+        }
+        customRepository.saveAll(tickets);
+        userExpoTokensRepository.deleteUserExpoTokensByExpoTokenIn(tokenToDelete);
+        log.info("Push notification sent to {} users", tickets.size());
+    }
+
+    public void recoverPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {
+        kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
+    }
+}

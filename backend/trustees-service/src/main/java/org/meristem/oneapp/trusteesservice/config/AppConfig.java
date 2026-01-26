@@ -18,20 +18,18 @@ import org.meristem.oneapp.trusteesservice.dtos.Serializer.BigDecimalTwoDecimalS
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class AppConfig {
 
     @Bean
@@ -54,12 +52,6 @@ public class AppConfig {
         return mapper;
     }
 
-    @Bean
-    public RedisCacheConfiguration defaultRedisCacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .disableCachingNullValues()
-                .entryTtl(Duration.ofHours(1));
-    }
 
     @Bean
     public OpenAPI apiDoclet(@Value("${one-app.server-url:http://localhost:20010/}") String serverUrl,

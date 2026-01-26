@@ -10,11 +10,11 @@ public class ResourceNotFoundException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = 191892892828L;
 
-    private final String name;
-    private final String resource;
-    public ResourceNotFoundException(String message, String name, String resource) {
+    private final String resourceName;
+    private final String resourcePassed;
+    public ResourceNotFoundException(String message, String resourceName, String resourcePassed) {
         super(message);
-        this.name = name;
-        this.resource = resource;
+        this.resourceName = resourceName;
+        this.resourcePassed = resourcePassed;
     }
 }

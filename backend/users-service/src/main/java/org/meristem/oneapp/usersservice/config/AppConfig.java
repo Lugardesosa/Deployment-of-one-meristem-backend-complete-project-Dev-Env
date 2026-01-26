@@ -13,25 +13,32 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
-import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.time.Duration;
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class AppConfig {
 
     public static final int CACHE_SIZE = 10000;
+
+    @Bean
+    public JdbcTemplateLockProvider lockProvider(DataSource dataSource) {
+        return new JdbcTemplateLockProvider(JdbcTemplateLockProvider.Configuration.builder()
+                .withJdbcTemplate(new JdbcTemplate(dataSource))
+                .usingDbTime()
+                .build());
+    }
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -48,30 +55,12 @@ public class AppConfig {
     }
 
     @Bean
-    public RedisCacheConfiguration defaultCacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(8))
-                .disableCachingNullValues();
-    }
-
-
-    @Bean
     public UserAgentAnalyzer userAgentAnalyzer() {
         return UserAgentAnalyzer
                 .newBuilder()
                 .hideMatcherLoadStats()
                 .withCache(CACHE_SIZE)
                 .build();
-    }
-
-    @Bean
-    public RedisCacheManagerBuilderCustomizer cacheManagerBuilderCustomizer() {
-        return builder -> builder
-
-                .withCacheConfiguration(AppConstants.USERS_CACHE_NAME, defaultCacheConfiguration())
-                .withCacheConfiguration(AppConstants.AVATAR_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(50)))
-                .withCacheConfiguration(AppConstants.SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
-                .withCacheConfiguration(AppConstants.SETTINGS_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
 
 

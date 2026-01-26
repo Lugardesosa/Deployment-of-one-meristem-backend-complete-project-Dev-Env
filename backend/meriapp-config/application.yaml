@@ -49,9 +49,19 @@ spring:
             client-id: ${TRUSTEES_CLIENT_ID}
             client-secret: ${TRUSTEES_CLIENT_SECRET}
             authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
             provider: users-service
             scope:
               - beneficiaries.get
+
+          wallet-service:
+            client-id: ${WALLET_CLIENT_ID}
+            client-secret: ${WALLET_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            provider: users-service
+            scope:
+              - verify.pin
         provider:
           users-service:
             token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
@@ -145,8 +155,8 @@ call:
 
 # TODO: KEEP UPDATED
 # THESE VALUES REPLACED WITH [REDACTED] IN LOGS
-what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword"
-headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type"
+what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword,pass,PASS"
+headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type,X-PLATFORM"
 
 expo-url: ${EXPO_URL}
 
@@ -157,8 +167,6 @@ paystack:
 
 
 encryption:
-  algorithm_gcm: ${ENC_ALGORITHM_GCM}
-  algorithm: ${ENC_ALGORITHM}
-  salt: ${ENC_SALT}
-  iv:
-    size: 12
+  secret-key: ${ENC_SALT}
+hashing:
+  id-hash-key: ${ID_HASHING_SECRET}

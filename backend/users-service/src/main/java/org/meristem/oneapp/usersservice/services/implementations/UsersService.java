@@ -1,0 +1,703 @@
+package org.meristem.oneapp.usersservice.services.implementations;
+
+
+import com.obs.services.model.HttpMethodEnum;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
+import org.meristem.oneapp.kafka.dtos.MessageDto;
+import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
+import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
+import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
+import org.meristem.oneapp.usersservice.constants.MessageSubjects;
+import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.requests.*;
+import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.mappers.UsersMapping;
+import org.meristem.oneapp.usersservice.models.*;
+import org.meristem.oneapp.usersservice.repositories.*;
+import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
+import org.meristem.oneapp.usersservice.services.IUsersService;
+import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.meristem.oneapp.usersservice.utils.HashingUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Objects.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+/**
+ * Service class for managing user-related operations.
+ * Provides methods for creating users, updating user details, and handling user authentication and profile updates.
+ *
+ * @author Kingsley
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class UsersService implements IUsersService {
+
+    @Value("${hashing.id-hash-key}")
+    private String idHashKey;
+
+    private final UsersRepository usersRepository;
+    private final UsersMapping usersMapper = UsersMapping.INSTANCE;
+    private final OtpVerificationRepository otpVerificationRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final IKafkaSenderService kafkaSenderService;
+    private final UserProfileRepository userProfileRepository;
+    private final FilesRepository filesRepository;
+    private final CacheManager cacheManager;
+    private final UserProfileRepository profileRepository;
+    private final RequirementsRepository requirementsRepository;
+    private final UserOnboardingRepository userOnboardingRepository;
+    private final RolesRepository rolesRepository;
+    private final HuaweiService huaweiService;
+    private final GeneralRepository generalRepository;
+    private final CustomRepository customRepository;
+    private final EncryptionUtil encryptionUtil;
+    private final HashingUtil hashingUtil;
+    private final IdCardRepository idCardRepository;
+    private final UserPinRepository userPinRepository;
+
+    public  UpdateResponse create(CreateUserRequest request) {
+
+        log.info("First stage of User with email creation started {}", request.email());
+        if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
+            throw new BadRequestException("Email or Phone number already exists.");
+        }
+
+        String bvn = encryptionUtil.encrypt(request.bvn());
+
+        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
+                .email(request.email()).firstName(request.firstName()).lastName(request.lastName())
+                .phoneNumber(request.phoneNumber()).bvn(bvn)
+                .bvnHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn())).build();
+        requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
+
+        log.info("First stage of User with email {} created ", request.email());
+        return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    @Transactional
+    public UpdateResponse setPassword(SetPasswordRequest userRequest) {
+
+        log.info("User with email {} started stage 2", userRequest.email());
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+        BvnQueryResponse bvnQueryResponse = cache.get(userRequest.email(), BvnQueryResponse.class);
+
+        if (bvnQueryResponse == null) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Email", userRequest.email());
+        }
+
+        if (!bvnQueryResponse.isEmailVerified()) {
+            throw new BadRequestException("Email not verified.");
+        }
+        Users user = usersMapper.bvnQueryResponseToUsers(bvnQueryResponse);
+
+        user.setPassword(passwordEncoder.encode(userRequest.password()));
+        save(user, bvnQueryResponse.getBvn(), bvnQueryResponse.getBvnHashed());
+        log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
+        cache.evict(userRequest.email());
+        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+    }
+
+    public  UsersResponse save(Users user, String bvn, String bvnHashed) {
+        log.info("User with email {} onboarding completion started ", user.getEmail());
+        if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
+            throw new BadRequestException("Email or Phone number already exists.");
+        }
+
+        if (idCardRepository.existsByIdValueHashed(bvnHashed)) {
+            throw new BadRequestException("Bvn already exists.");
+        }
+
+        user.setStatus(UserStatus.KYC_NOT_COMPLETED.getValue());
+        user = usersRepository.save(user);
+
+        idCardRepository.save(IdCard.builder().idValue(bvn)
+                .idCardType(IdCardType.BVN.getName())
+                .userId(user.getId()).idValueHashed(bvnHashed)
+                .build());
+
+        String referralCode;
+        do {
+            referralCode = AppUtil.generateReferralCode(user.getFirstName());
+        } while (userProfileRepository.existsByReferralCode(referralCode));
+        UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(referralCode).build();
+
+        profileRepository.save(profile);
+        Long userId = user.getId();
+        requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
+                .forEach(rId -> {
+                    UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.NOT_STARTED.getValue())
+                            .completed(false).userId(userId).requirementId(rId).build();
+                    userOnboardingRepository.save(userOnboarding);
+                });
+        customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
+                .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
+        customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
+                .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
+        usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
+        log.info("User with email {} onboarding completion finished ", user.getEmail());
+        return usersMapper.usersToUserResponse(user);
+    }
+
+    /**
+     * Updates the current user's email if it has not yet been verified.
+     * Evicts the users cache entry for the new email.
+     *
+     * @param userRequest payload with the new email
+     * @return UpdateResponse indicating success
+     * @throws BadRequestException if the existing email is already verified
+     */
+    public UpdateResponse updateEmail(UpdateEmailRequest userRequest) {
+        log.info("User with email {} email update started", userRequest.oldEmail());
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+
+        BvnQueryResponse response = cache.get(userRequest.oldEmail(), BvnQueryResponse.class);
+
+        if (response == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+        if (userRequest.newEmail().equals(userRequest.oldEmail())) {
+            throw new BadRequestException("Email cannot be the same as your current email.");
+        }
+
+        if (usersRepository.existsByEmail(userRequest.newEmail())) {
+            throw new BadRequestException("Email already in use.");
+        }
+
+        response.setEmail(userRequest.newEmail());
+        cache.put(response.getEmail(), response);
+        cache.evict(userRequest.oldEmail());
+        log.info("User with email {} email update completed", userRequest.newEmail());
+        return UpdateResponse.builder().success(true).message("Email successfully updated").build();
+    }
+
+
+    /**
+     * Retrieves the currently logged-in user's details.
+     *
+     * @return the user's response
+     * @throws BadRequestException if the user is not found
+     */
+    public UsersResponse getUser() {
+        UsersResponse response =  usersRepository.findUserDetailsById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new BadRequestException("User not found."));
+        String signedUrl = null;
+        if (StringUtils.hasText(response.image())) {
+            SignedUrlResponse signedUrlResponse = huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(response.image())
+                    .type(SignedUrlType.IMAGE).build());
+            signedUrl = signedUrlResponse.signedUrl();
+        }
+        boolean allDataShared = response.userInstrumentResponses().stream().allMatch(i -> i.dataSharingAllowed() == true);
+        return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
+                response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(),
+                response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), response.pinSet(),
+                response.interestFreeInvestment(), response.interestFreeInvestmentSet(), response.cscsNumber(), response.chnNumber());
+    }
+
+    /**
+     * Resets the user's password after validating the OTP and ensuring the new password is different.
+     *
+     * @param request the password reset request
+     * @return the password reset response
+     * @throws BadRequestException if OTP is invalid/expired, or the new password matches the old one
+     */
+    @Transactional
+    public PasswordResetResponse resetPassword(PasswordResetRequest request) {
+
+        log.info("Password reset started for user {}", request.recipient());
+        // Ensure otp exists and not expired
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), request.recipient(), request.recipient(), true, LocalDateTime.now())) {
+            throw new BadRequestException("OTP not verified or expired.");
+        }
+
+        // Ensure the password is different from the old one
+        Users users = usersRepository.findUsersByEmailOrPhoneNumber(request.recipient(), request.recipient()).orElseThrow(() -> new BadRequestException("User not found."));
+        if (passwordEncoder.matches(request.password(), users.getPassword())) {
+            throw new BadRequestException("Password cannot be the same as your old password.");
+        }
+
+        // Update the password and expire otp
+        usersRepository.updateUsersPassword(users.getEmail(), passwordEncoder.encode(request.password()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(users.getId());
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), MessageSubject.PASSWORD_RESET.getCode());
+
+        // Notify the user about the password rest via mail
+        notifyUserAboutPasswordChange(users.getEmail());
+        log.info("Password reset completed for user {}", request.recipient());
+        return PasswordResetResponse.builder().success(true).message("Password successfully updated.").build();
+    }
+
+    /**
+     * Updates the logged-in user's password after ensuring it is different from the old one.
+     *
+     * @param request the update password request
+     * @return the update password response
+     * @throws BadRequestException if the new password matches the old one
+     */
+    @Transactional
+    public UpdateResponse updatePassword(UpdatePasswordRequest request) {
+
+        String userEmail = AppUtil.getLoggedInUserEmail();
+        log.info("Password update started for user {}", userEmail);
+        Long userId = AppUtil.getLoggedInUserId();
+        String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
+
+        // Ensure otp exists and not expired
+        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), userEmail, userEmail, true, LocalDateTime.now())) {
+            throw new BadRequestException("OTP not verified or expired.");
+        }
+
+        if (!passwordEncoder.matches(request.oldPassword(), userPassword)) {
+            throw new BadRequestException("Wrong oldPassword entered.");
+        }
+
+        if (passwordEncoder.matches(request.newPassword(), userPassword)) {
+            throw new BadRequestException("Password cannot be the same as your old oldPassword.");
+        }
+
+        // Update password and return
+        usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userEmail, userEmail, MessageSubject.PASSWORD_RESET.getCode());
+
+        // Notify the user about the password rest via mail
+        notifyUserAboutPasswordChange(userEmail);
+        log.info("Password update completed for user {}", userEmail);
+        return UpdateResponse.builder().success(true).message("Password successfully updated.").build();
+    }
+
+    /**
+     * Updates the logged-in user's phone number.
+     *
+     * @param request the update phone number request
+     * @return the update phone number response
+     */
+    public UpdatePhoneNumberResponse updatePhoneNumber(UpdatePhoneNumberRequest request) {
+
+        String userEmail = AppUtil.getLoggedInUserEmail();
+        Long userId = AppUtil.getLoggedInUserId();
+
+        usersRepository.updateUsersPhoneNumber(request.phoneNumber(), userEmail);
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        log.info("User with email {} updated phone number", userEmail);
+        return UpdatePhoneNumberResponse.builder().status(true).message("User phone number updated").build();
+    }
+
+    /**
+     * Updates the logged-in user's avatar URL after validating it.
+     *
+     * @param request the update avatar URL request
+     * @return the update avatar URL response
+     * @throws BadRequestException if the avatar URL is invalid
+     */
+    public UpdateImageResponse updateImage(UpdateImageRequest request) {
+
+        Long userId = AppUtil.getLoggedInUserId();
+
+        String imageKey;
+        if (request.imageType() == FileType.AVATAR) {
+            Files avatars = filesRepository.findByFileKeyAndFileType(request.imageKey(), FileType.AVATAR.getValue()).orElseThrow(() -> new BadRequestException("Avatar not found."));
+            imageKey = avatars.getFileKey();
+            userProfileRepository.updateUsersImage(imageKey, userId);
+        } else {
+            if (request.contentType() == null) {
+                throw new BadRequestException("Content type not found.");
+            }
+            imageKey = request.imageKey();
+            filesRepository.findByFileTypeAndUserId(FileType.PROFILE_PICTURE.getValue(), AppUtil.getLoggedInUserId())
+                    .ifPresentOrElse(i -> {
+                            },
+                            () -> {
+                                filesRepository.save(Files.builder().userId(userId).fileKey(imageKey).contentType(request.contentType()).fileType(FileType.PROFILE_PICTURE.getValue()).build());
+                                userProfileRepository.updateUsersImage(imageKey, userId);
+                            }
+                    );
+        }
+
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        return UpdateImageResponse.builder().status(true).message("User image updated").build();
+    }
+
+    /**
+     * This is only for updating the user's newPin when they still know their old newPin.
+     * Updates the logged-in user's PIN after ensuring it is different from the old one.
+     *
+     * @param request the update PIN request
+     * @return the update PIN response
+     * @throws BadRequestException if the new PIN matches the old one
+     */
+    public PinResponse updatePin(PinRequest request) {
+
+        Long userId = AppUtil.getLoggedInUserId();
+
+        Optional<UserPin> userPinOptional = userPinRepository.findByUserId(userId);
+        UserPin userPin;
+
+        if (userPinOptional.isPresent() && request.isNew().equals(AppConstants.IS_NEW_PIN)) {
+            throw new BadRequestException("Pin has already been created for this account, you should update pin instead.");
+        }
+
+        if (userPinOptional.isEmpty() && request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
+            throw new BadRequestException("You need to create a pin first.");
+        }
+
+        if (request.isNew().equals(AppConstants.IS_UPDATE_PIN)) {
+
+            if (isNull(request.oldPin())) {
+                throw new BadRequestException("You must pass the old pin to update your pin.");
+            }
+            // Ensure old matches
+            if (!passwordEncoder.matches(request.oldPin(), userPinOptional.get().getPin())) {
+                throw new BadRequestException("Wrong old pin entered.");
+            }
+
+            // Ensure the newPin is different from the old one
+            if (passwordEncoder.matches(request.newPin(), userPinOptional.get().getPin())) {
+                throw new BadRequestException("New pin cannot be the same as your old pin.");
+            }
+        }
+
+        userPin = userPinOptional.orElse(UserPin.builder().userId(userId).build());
+        userPin.setPin(passwordEncoder.encode(request.newPin()));
+        userPinRepository.save(userPin);
+
+        return PinResponse.builder().status(true).message("Pin successfully set.").build();
+    }
+
+    /**
+     * Retrieves signed URLs for all available avatar images.
+     * Results are cached under the "avatars" cache.
+     *
+     * @return list of signed URL responses for avatars
+     */
+    @Cacheable("avatars")
+    public List<SignedUrlResponse> getAvatarUrls() {
+        List<SignedUrlResponse> responses = new ArrayList<>();
+        for (Files images : filesRepository.findAllByFileType(FileType.AVATAR.getValue())) {
+            responses.add(huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(images.getFileKey())
+                    .type(SignedUrlType.IMAGE).build()));
+        }
+        return responses;
+    }
+
+    /**
+     * Deactivates the currently logged-in user's account.
+     *
+     * @return response indicating whether the operation was successful
+     */
+    public AccountDeactivationResponse deactivateUser() {
+        String userEmail = AppUtil.getLoggedInUserEmail();
+        Long userId = AppUtil.getLoggedInUserId();
+        int updated = usersRepository.updateUsersStatus(userEmail, UserStatus.DEACTIVATED.getValue());
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
+        return AccountDeactivationResponse.builder().message(updated == 1 ? "Successful" : "Failed").status(updated == 1).build();
+    }
+
+    /**
+     * Completes onboarding for the specified user if all requirements are submitted,
+     * updates the profile, evicts the cache entry, and emits a KYC_COMPLETED event.
+     *
+     * @param userId the user identifier
+     */
+    public void completeUserOnboarding(String userId) {
+
+        KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
+        if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
+            userProfileRepository.completeOnboarding(kycCompletedDto.userId());
+            usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.ACTIVE.getValue());
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
+            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED, KafkaHeaders.KEY, String.valueOf(userId)));
+        }
+    }
+
+    /**
+     * Resets onboarding for the specified user and marks a specific requirement as REJECTED.
+     * Updates the profile status, evicts the cache entry, and emits a KYC_REJECTED event.
+     *
+     * @param userId the user identifier
+     * @param requirementId the requirement that was rejected
+     */
+    public void resetUserOnboarding(String userId, Long requirementId) {
+
+        KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
+        userProfileRepository.resetOnboarding(kycCompletedDto.userId());
+        usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.KYC_NOT_COMPLETED.getValue());
+        userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
+        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, String.valueOf(userId)));
+    }
+
+    /**
+     * Updates the logged-in user's state of origin after validating it against the selected country.
+     *
+     * @param request payload containing the state and country identifiers
+     * @return UpdateResponse indicating whether the update succeeded
+     */
+    public UpdateResponse updateStateOfOrigin(StateUpdateRequest request) {
+        AtomicInteger updated = new AtomicInteger();
+        generalRepository.findOneBy(CountryStates.class, Map.of("id", request.stateId(), "countryId", request.countryId()))
+                .ifPresent(countryStates -> updated.set(userProfileRepository.updateState(AppUtil.getLoggedInUserId(), countryStates.getName())));
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
+    }
+
+    /**
+     * Updates the logged-in user's country of origin.
+     *
+     * @param request payload containing the country identifier
+     * @return UpdateResponse indicating whether the update succeeded
+     */
+    public UpdateResponse updateCountryOfOrigin(CountryUpdateRequest request) {
+
+        AtomicInteger updated = new AtomicInteger();
+        generalRepository.findById(Countries.class, request.id()).ifPresent(country -> updated.set(userProfileRepository.updateCountry(AppUtil.getLoggedInUserId(), country.getName())));
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated.get() != 0).message(updated.get() != 0 ? "Successful" : "Failed").build();
+    }
+
+    /**
+     * Sends a password change notification email event for the specified user.
+     *
+     * @param userEmail recipient email address
+     */
+    private void notifyUserAboutPasswordChange(String userEmail) {
+        Long userId = usersRepository.findIdByEmail(userEmail);
+        PasswordChangeDto otpDto = PasswordChangeDto.builder().recipient(new String[]{userEmail})
+                .body("Your password was changed, if you didn't initiate this, click this link.")
+                .subject(MessageSubjects.PASSWORD_RESET).build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).isHtml(true).type(MessageType.PASSWORD_RESET).message(otpDto).classSimpleName(PasswordChangeDto.class.getSimpleName()).build();
+        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SUCCESSFUL_PASSWORD_RESET, KafkaHeaders.KEY, String.valueOf(userId)));
+    }
+
+    /**
+     * Marks an investment instrument as accessed for the current user and evicts the users cache entry.
+     *
+     * @param request payload containing the instrument access identifier
+     * @return UpdateResponse indicating whether the update succeeded
+     */
+    public UpdateResponse updateUserInstrument(UserInstrumentRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("accessed", true);
+        clearUsersCache();
+        return getUpdateResponse(updates, request.instrumentId());
+    }
+
+    /**
+     * Marks an investment option as accessed for the current user and evicts the users cache entry.
+     *
+     * @param request payload containing the option access identifier
+     * @return UpdateResponse indicating whether the update succeeded
+     */
+    public UpdateResponse updateOptionAccessed(OptionAccessedRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("accessed", true);
+        int updated = customRepository.dynamicUpdate(InvestmentOptionsAccessed.class, updates, Map.of("option_id", request.optionId(), "user_id", AppUtil.getLoggedInUserId()));
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    /**
+     * Enables or disables biometric login for the current user and evicts the users cache entry.
+     *
+     * @param request payload indicating whether biometric login should be enabled
+     * @return UpdateResponse indicating whether the update succeeded
+     */
+//    public UpdateResponse updateBiometricOfOrigin(BiometricLoginUpdateRequest request) {
+//
+//        Map<String, Object> updates = new HashMap<>();
+//        updates.put("biometric_enabled", request.biometricLogin());
+//        return getUpdateResponse(updates);
+//    }
+
+
+    public UpdateResponse updateDataSharing(DataSharingRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("data_sharing_allowed", request.dataSharing());
+        clearUsersCache();
+        return getUpdateResponse(updates, request.instrumentId());
+    }
+
+    private UpdateResponse getUpdateResponse(Map<String, Object> updates, Long aLong) {
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("instrument_id", aLong, "user_id", AppUtil.getLoggedInUserId()));
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    private void clearUsersCache() {
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+    }
+
+    public UpdateResponse updateDataSharing() {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("data_sharing_allowed", true);
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    public UpdateResponse interestFree(InterestSharingRequest request) {
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("interest_free_investment", request.wantInterest());
+        clearUsersCache();
+        return getUpdateResponse(updates);
+    }
+
+    private UpdateResponse getUpdateResponse(Map<String, Object> updates) {
+        int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
+        clearUsersCache();
+        return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
+    }
+
+    @Transactional
+    public UpdateResponse verifyPin(VerifyPinRequest request) {
+        Long userId;
+
+        try {
+            userId = AppUtil.getLoggedInUserId();
+            if (isNull(userId)) {
+                userId = request.userId();
+            }
+        } catch (BadRequestException e) {
+            userId = request.userId();
+        }
+
+        Optional<UserPin> userPinOpt = userPinRepository.findByUserId(userId);
+        if (userPinOpt.isEmpty()) {
+            return UpdateResponse.builder().success(false).message("Invalid pin").build();
+        }
+        UserPin userPin = userPinOpt.get();
+
+        if (Objects.equals(userPin.getStatus(), UserPinStatus.LOCKED.getStatus())) {
+            LocalDateTime lockUntil = userPin.getLockUntil();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            return UpdateResponse.builder().success(false).message("Pin is locked, you can retry after %s".formatted(formatter.format(lockUntil))).build();
+        }
+
+        boolean matches = passwordEncoder.matches(request.pin(), userPin.getPin());
+        if (!matches) {
+            int failedAttempts = userPin.getFailedAttempts();
+            userPin.setFailedAttempts(++failedAttempts);
+            userPin.setLastFailedAt(LocalDateTime.now());
+
+            if (Objects.equals(userPin.getFailedAttempts(), AppConstants.MAX_PIN_FAILED_ATTEMPTS_B4_LOCK)) {
+                userPin.setLockUntil(LocalDateTime.now().plusMinutes(AppConstants.PIN_LOCKED_MAX_TIME_IN_MINS));
+                userPin.setStatus(UserPinStatus.LOCKED.getStatus());
+                userPinRepository.save(userPin);
+                LocalDateTime lockUntil = userPin.getLockUntil();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                return UpdateResponse.builder().success(false).message("Pin is locked, you can retry after %s".formatted(formatter.format(lockUntil))).build();
+            }
+
+            userPinRepository.save(userPin);
+            return UpdateResponse.builder().success(false).message("Invalid pin, %d attempts remaining"
+                    .formatted((AppConstants.MAX_PIN_FAILED_ATTEMPTS_B4_LOCK - userPin.getFailedAttempts()))).build();
+        } else {
+            userPin.setFailedAttempts(0);
+            userPinRepository.save(userPin);
+            return UpdateResponse.builder().success(true).message("Pin verified").build();
+        }
+
+    }
+
+    public StageResponse processDetails(String email) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+        BvnQueryResponse bvnQueryResponse = cache.get(email, BvnQueryResponse.class);
+
+        if (bvnQueryResponse == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+
+        if (!bvnQueryResponse.isEmailVerified()) {
+            return new StageResponse(OnboardingStage.EMAIL);
+        }
+        return new StageResponse(OnboardingStage.PASSWORD);
+    }
+
+    public UpdateResponse verifyPassword(VerifyPasswordRequest request) {
+
+        boolean matches = passwordEncoder.matches(request.password(), usersRepository
+                .findPasswordById(AppUtil.getLoggedInUserId()));
+        return UpdateResponse.builder().success(matches).message(matches ? "Password verified" : "Invalid Password").build();
+    }
+
+    @Override
+    public UpdateResponse updateCscs(UpdateCscsRequest request) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("chn_number", request.chnNumber());
+        clearUsersCache();
+        return getUpdateResponse(updates);
+    }
+
+    @Override
+    public UpdateResponse createSpouse(CreateSpouseRequest request) {
+
+        Long userId = AppUtil.getLoggedInUserId();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("marital_status", request.maritalStatus().getNumber());
+        if (request.maritalStatus() == MaritalStatus.MARRIED) {
+            List<String> errors = new ArrayList<>();
+            if (isNull(request.title())) {
+                errors.add("title: Kindly pass the title");
+            }
+            if (isBlank(request.fullName())) {
+                errors.add("fullName: Kindly pass the fullName");
+            }
+            if (isBlank(request.email())) {
+                errors.add("email: Kindly pass the email");
+            }
+            if (nonNull(request.nationalityId())) {
+                errors.add("nationality: Kindly pass the nationality");
+            }
+            boolean countryDoesNotExist = !customRepository.existById(Countries.class, request.nationalityId());
+            if (countryDoesNotExist) {
+                errors.add("nationality: Nationality does not exist");
+            }
+            if (isBlank(request.phoneNumber())) {
+                errors.add("phoneNumber: Kindly pass the phoneNumber");
+            }
+            if (isBlank(request.phoneNumberFormat())) {
+                errors.add("phoneNumberFormat: Kindly pass the phoneNumberFormat");
+            }
+            if (!request.validateData() || countryDoesNotExist) {
+                throw new ContextException("Kindly pass the required values", errors);
+            }
+            Spouse spouse = Spouse.builder()
+                    .title(request.title().getNumber()).email(request.email()).phoneNumber(request.phoneNumber())
+                    .userId(userId).fullName(request.fullName()).nationalityId(request.nationalityId())
+                    .build();
+            customRepository.save(spouse);
+        }
+        clearUsersCache();
+        return getUpdateResponse(updates);
+    }
+}

@@ -6,6 +6,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.beans.TypeMismatchException;
@@ -42,6 +43,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.flywaydb.core.internal.util.StringUtils.hasText;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalControllerAdvice implements MessageSourceAware {
@@ -56,7 +59,8 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     protected ResponseEntity<ErrorDetails> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-        return handleExceptionInternal(ex.getMessage(), HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePassed() + " with '" + ex.getResourceName() + "' not found"));
+        String error = !hasText(ex.getResourcePassed()) || !hasText(ex.getResourceName()) ? "The resource requested was not found" : (ex.getResourceName() + " with '" + ex.getResourcePassed() + "' not found");
+        return handleExceptionInternal(ex.getMessage(), HttpStatus.NOT_FOUND, request, List.of(error));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -160,6 +164,11 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return handleExceptionInternal("Unauthorized request", HttpStatus.FORBIDDEN, request, List.of(ex.getMessage()));
     }
 
+    @ExceptionHandler({ContextException.class})
+    protected ResponseEntity<ErrorDetails> handleContextException(ContextException ex, WebRequest request) {
+        return handleExceptionInternal(ex.getMessage(), HttpStatus.BAD_REQUEST, request, ex.getMessages());
+    }
+
     @ExceptionHandler({HandlerMethodValidationException.class})
     protected ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(HandlerMethodValidationException ex, WebRequest request) {
         Map<String, Object> properties = new HashMap<>();
@@ -173,8 +182,8 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
-        // TODO: DELETE THE LOG STATEMENT
-        log.error(ex.getMessage(), ex);
+
+        log.error("Unhandled exception in request [{}]: {}", request.getDescription(false), ex.getMessage(), ex);
         String errorMessage = """
                 An error occurred while processing the request:
                 Kindly send a mail to help@one-meristem-app.com.

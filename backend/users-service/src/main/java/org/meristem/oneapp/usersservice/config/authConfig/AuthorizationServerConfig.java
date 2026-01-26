@@ -13,15 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.AuthScopes;
-import org.meristem.oneapp.usersservice.repositories.UsersRepository;
-import org.meristem.oneapp.usersservice.services.KafkaSenderService;
-import org.meristem.oneapp.usersservice.services.LoginService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,9 +43,11 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import java.security.interfaces.RSAPrivateKey;
@@ -74,6 +71,12 @@ public class AuthorizationServerConfig {
     @Value("${one-app.mobile-service.name}")
     private String mobileName;
 
+    @Value("${one-app.web-service.secret}")
+    private String webSecret;
+
+    @Value("${one-app.web-service.name}")
+    private String webName;
+
     @Value("${one-app.notification-service.secret}")
     private String notificationSecret;
 
@@ -83,23 +86,27 @@ public class AuthorizationServerConfig {
     @Value("${one-app.trustees-service.secret}")
     private String trusteesSecret;
 
+    @Value("${one-app.wallet-service.secret}")
+    private String walletSecret;
+
     @Value("${one-app.trustees-service.name}")
     private String trusteesName;
 
+    @Value("${one-app.wallet-service.name}")
+    private String walletName;
+
     @Order(1)
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JdbcTemplate jdbcTemplate, JdbcOperations jdbcOperations, RsaKeys rsaKeys,
-                                                   CustomUserDetailsService userDetailsService, UsersRepository usersRepository, KafkaSenderService kafkaSenderService,
-                                                   LoginService loginService, ApplicationEventPublisher publisher, RedisCacheManager cacheManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomPasswordAuthenticationConverter customPasswordAuthenticationConverter, CustomOAuth2RefreshTokenAuthenticationProvider customOAuth2RefreshTokenAuthenticationProvider,
+                                                   CustomCodeGrantAuthenticationProvider customCodeGrantAuthenticationProvider, LoginSuccessAuthenticationHandler loginSuccessAuthenticationHandler) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
         http.securityMatcher(configurer.getEndpointsMatcher())
-                .with(configurer, (customizer) -> {
+                .with(configurer, customizer -> {
 
                         customizer.oidc(Customizer.withDefaults())
-                                .tokenEndpoint(te -> te.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
-                                        .authenticationProvider(new CustomCodeGrantAuthenticationProvider(oAuth2AuthorizationService(jdbcOperations, jdbcTemplate),
-                                                tokenGenerator(jdbcTemplate, rsaKeys), userDetailsService, passwordEncoder(), usersRepository, cacheManager)
-                                        ).accessTokenResponseHandler(new LoginSuccessAuthenticationHandler(kafkaSenderService, loginService, publisher))
+                                .tokenEndpoint(te -> te.accessTokenRequestConverter(customPasswordAuthenticationConverter)
+                                        .authenticationProvider(customCodeGrantAuthenticationProvider).authenticationProvider(customOAuth2RefreshTokenAuthenticationProvider)
+                                        .accessTokenResponseHandler(loginSuccessAuthenticationHandler)
                                 );
                         }
                 );
@@ -207,19 +214,35 @@ public class AuthorizationServerConfig {
                     .clientId("mobile-service")
                     .clientName(mobileName)
                     .clientSecret(passwordEncoder().encode(mobileSecret))
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                     .authorizationGrantType(new AuthorizationGrantType(AppConstants.RE_PASSWORD))
-                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                    .scopes(e -> e.addAll(List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user", "users.get",
-                            "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage")))
+                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                    .scopes(e -> e.addAll(AppConstants.MOBILE_N_WEB_ROLES))
                     .scope(OidcScopes.PROFILE)
-                    .scope(OidcScopes.EMAIL)
                     .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(15))
                             .reuseRefreshTokens(false).accessTokenTimeToLive(Duration.ofMinutes(5)).build())
                     .build();
             clientRepo.save(mobile);
+        }
+
+        if (isNull(clientRepo.findByClientId("web-service"))) {
+
+            RegisteredClient web = RegisteredClient
+                    .withId(UUID.randomUUID().toString())
+                    .clientId("web-service")
+                    .clientName(webName)
+                    .clientSecret(passwordEncoder().encode(webSecret))
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                    .authorizationGrantType(new AuthorizationGrantType(AppConstants.RE_PASSWORD))
+                    .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                    .scopes(e -> e.addAll(AppConstants.MOBILE_N_WEB_ROLES))
+                    .scope(OidcScopes.PROFILE)
+                    .tokenSettings(TokenSettings.builder().refreshTokenTimeToLive(Duration.ofDays(1))
+                            .reuseRefreshTokens(false).accessTokenTimeToLive(Duration.ofMinutes(5)).build())
+                    .build();
+            clientRepo.save(web);
         }
 
         if (isNull(clientRepo.findByClientId("notification-service"))) {
@@ -230,7 +253,6 @@ public class AuthorizationServerConfig {
                     .clientName(notificationName)
                     .clientSecret(passwordEncoder().encode(notificationSecret))
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
@@ -245,9 +267,23 @@ public class AuthorizationServerConfig {
                     .clientName(trusteesName)
                     .clientSecret(passwordEncoder().encode(trusteesSecret))
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                     .scope(AuthScopes.GET_BENEFICIARIES)
+                    .scope(AuthScopes.GET_ROLES)
+                    .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+                    .build();
+            clientRepo.save(trustees);
+        }
+
+        if (isNull(clientRepo.findByClientId("wallet-service"))) {
+            RegisteredClient trustees = RegisteredClient
+                    .withId(UUID.randomUUID().toString())
+                    .clientId("wallet-service")
+                    .clientName(walletName)
+                    .clientSecret(passwordEncoder().encode(walletSecret))
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                    .scopes(s -> s.addAll(List.of(AuthScopes.GET_BENEFICIARIES, AuthScopes.GET_ROLES, AuthScopes.VERIFY_PIN)))
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                     .build();
             clientRepo.save(trustees);

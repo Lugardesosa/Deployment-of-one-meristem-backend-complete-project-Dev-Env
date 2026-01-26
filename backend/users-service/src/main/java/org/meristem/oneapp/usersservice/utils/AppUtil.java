@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.meristem.oneapp.usersservice.domains.enums.Roles;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -60,7 +59,7 @@ public final class AppUtil {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            return jwt.getClaim("email").toString();
+            return jwt.getClaim("sub").toString();
         }
         return "SYSTEM.AUTO";
     }
@@ -171,10 +170,28 @@ public final class AppUtil {
                 .passwordAttempt(rs.getInt("password_attempt"))
                 .interestFreeInvestment(rs.getObject("interest_free_investment", Boolean.class))
                 .interestFreeInvestmentSet(rs.getObject("interest_free_investment", Boolean.class) != null)
+                .cscsNumber(rs.getString("cscs_number"))
+                .chnNumber(rs.getString("chn_number"))
                 .build();
     }
 
-    public String getSmileIdTimestamp() {
+    public static UsersResponse buildUsersResponseMini(ResultSet rs) throws SQLException {
+
+        return UsersResponse.builder()
+                .id(rs.getLong("id"))
+                .firstName(rs.getString("first_name"))
+                .lastName(rs.getString("last_name"))
+                .email(rs.getString("email"))
+                .phoneNumber(rs.getString("phone_number"))
+                .middleName(rs.getString("middle_name"))
+                .status(rs.getInt("status"))
+                .password(rs.getString("password"))
+                .passwordAttempt(rs.getInt("password_attempt"))
+                .build();
+    }
+
+
+    public static String getSmileIdTimestamp() {
 
         LocalDateTime localDateTime = LocalDateTime.now();
 

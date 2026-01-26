@@ -18,6 +18,7 @@ public class BvnQueryResponse implements Serializable {
     private String phoneNumber;
     private String email;
     private String bvn;
+    private String bvnHashed;
     private boolean emailVerified;
     private boolean passwordSet;
 }

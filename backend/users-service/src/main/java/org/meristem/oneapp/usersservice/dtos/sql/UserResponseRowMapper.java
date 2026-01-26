@@ -11,6 +11,6 @@ import java.sql.SQLException;
 public class UserResponseRowMapper implements RowMapper<UsersResponse> {
     @Override
     public UsersResponse mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
-        return AppUtil.buildUsersResponse(rs);
+        return AppUtil.buildUsersResponseMini(rs);
     }
 }

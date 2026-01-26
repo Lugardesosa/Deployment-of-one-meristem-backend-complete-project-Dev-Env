@@ -11,7 +11,7 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.BeneficiaryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
 import org.meristem.oneapp.usersservice.domains.responses.BeneficiaryResponse;
-import org.meristem.oneapp.usersservice.services.BeneficiaryService;
+import org.meristem.oneapp.usersservice.services.IBeneficiaryService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,13 +27,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BeneficiaryController {
 
-    private final BeneficiaryService beneficiaryService;
+    private final IBeneficiaryService beneficiaryService;
 
     @Operation(summary = "Get a beneficiary")
     @ApiResponses(value = {
             @ApiResponse(description = "Returns the details of a beneficiary", responseCode = "200")
     })
-    @PreAuthorize("hasRole('ROLE_users.beneficiary.get') OR hasAuthority('SCOPE_beneficiaries.get')")
+    @PreAuthorize("hasRole('ROLE_1030') OR hasAuthority('SCOPE_beneficiaries.get')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<BeneficiaryResponse>> getBeneficiary(@RequestParam(name = "id")  Long id, @RequestParam(name = "userId", required = false) Long userId) {
         return ApiUtil.buildResponse(beneficiaryService.getBeneficiary(id, userId), HttpStatus.OK.toString(), "Successful");
@@ -43,7 +43,7 @@ public class BeneficiaryController {
     @ApiResponses(value = {
             @ApiResponse(description = "Returns the details of all beneficiaries", responseCode = "200")
     })
-    @PreAuthorize("hasRole('ROLE_users.beneficiary.get') OR hasAuthority('SCOPE_beneficiaries.get')")
+    @PreAuthorize("hasRole('ROLE_1030') OR hasAuthority('SCOPE_beneficiaries.get')")
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<BeneficiaryResponse>>> getBeneficiaries(@RequestParam(name = "userId", required = false) Long userId) {
         return ApiUtil.buildResponse(beneficiaryService.getBeneficiaries(userId), HttpStatus.OK.toString(), "Successful");
@@ -53,7 +53,7 @@ public class BeneficiaryController {
     @ApiResponses(value = {
             @ApiResponse(description = "Create a beneficiary", responseCode = "201")
     })
-    @PreAuthorize("hasRole('ROLE_users.beneficiary.create')")
+    @PreAuthorize("hasRole('ROLE_1031')")
     @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<BeneficiaryResponse>> createBeneficiary(@Valid @RequestBody BeneficiaryRequest request) {
         return ApiUtil.buildResponse(beneficiaryService.createBeneficiary(request), HttpStatus.CREATED.toString(), "Successful");

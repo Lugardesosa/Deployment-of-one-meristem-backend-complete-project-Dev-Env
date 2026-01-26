@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.reportservice.dtos.events.RequestAndResponseLogEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +39,13 @@ public class LoggingEventHandler {
             String requestMap = new String(event.getRequestBody(), StandardCharsets.UTF_8).trim();
             requestMap = requestMap.isBlank() ? "{}" : requestMap;
             String responseMap = new String(event.getResponseBody(), StandardCharsets.UTF_8);
+            responseMap = responseMap.isBlank() ? "{}" : responseMap;
 
-            HashMap<String, Object> bodyRequest = objectMapper.readValue(requestMap, new TypeReference<>() {
-            });
-            HashMap<String, Object> bodyResponse = objectMapper.readValue(responseMap, new TypeReference<>() {
-            });
+            boolean isJson = MediaType.APPLICATION_JSON_VALUE == event.getHeaders().get("content-type");
+            HashMap<String, Object> bodyRequest = isJson ? objectMapper.readValue(requestMap, new TypeReference<>() {
+            }) : new HashMap<>();
+            HashMap<String, Object> bodyResponse = isJson ? objectMapper.readValue(responseMap, new TypeReference<>() {
+            }) : new HashMap<>();
 
             log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
                     event.getStatus(),

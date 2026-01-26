@@ -20,3 +20,5 @@ spring:
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
+
+

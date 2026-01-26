@@ -29,6 +29,7 @@ import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
@@ -39,8 +40,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.util.Objects.nonNull;
+
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RestClientConfig {
 
     public static final String REDACTED = "[REDACTED]";
@@ -65,7 +68,7 @@ public class RestClientConfig {
                 .build();
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        requestFactory.setConnectTimeout(Duration.ofSeconds(3));
+        requestFactory.setConnectionRequestTimeout(Duration.ofSeconds(3));
         requestFactory.setReadTimeout(Duration.ofSeconds(12));
         return requestFactory;
     }
@@ -137,8 +140,20 @@ public class RestClientConfig {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            HashMap<String, Object> bodyRequest = requestBody.isBlank() ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
-            HashMap<String, Object> bodyResponse = responseBody.isBlank() || status == HttpStatus.NOT_FOUND.value() ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
+            HashMap<String, Object> bodyRequest = requestBody.isBlank() || !requestHeaders.containsValue(Collections.singletonList(MediaType.APPLICATION_JSON_VALUE)) ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
+            HashMap<String, Object> bodyResponse = responseBody.isBlank() || !requestHeaders.containsValue(Collections.singletonList(MediaType.APPLICATION_JSON_VALUE)) ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
+
+            MediaType requestHeadersContentType = requestHeaders.getContentType();
+            MediaType responseHeadersContentType = responseHeaders.getContentType();
+            if (nonNull(requestHeadersContentType) && requestHeadersContentType.toString().contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                bodyRequest = parseUrlEncoded(requestBody);
+            }
+            if (nonNull(responseHeadersContentType) && responseHeadersContentType.toString().contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                bodyResponse = parseUrlEncoded(responseBody);
+            }
+            boolean requestContentTypeIsText = nonNull(requestHeadersContentType) && requestHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
+            boolean responseContentTypeIsText = nonNull(responseHeadersContentType) && responseHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
+
             sanitizeBody(bodyRequest, bodyResponse);
 
             HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);
@@ -149,8 +164,8 @@ public class RestClientConfig {
                     method,
                     url,
                     objectMapper.writeValueAsString(requestHeaders1),
-                    objectMapper.writeValueAsString(bodyRequest),
-                    objectMapper.writeValueAsString(bodyResponse),
+                    requestContentTypeIsText ? requestBody : objectMapper.writeValueAsString(bodyRequest),
+                    responseContentTypeIsText ? responseBody : objectMapper.writeValueAsString(bodyResponse),
                     duration,
                     objectMapper.writeValueAsString(responseHeaders1)
             );
@@ -185,5 +200,23 @@ public class RestClientConfig {
                 }
             });
         });
+    }
+
+
+    public static HashMap<String, Object> parseUrlEncoded(String input) {
+        HashMap<String, Object> result = new HashMap<>();
+
+        for (String pair : input.split("&")) {
+            String[] parts = pair.split("=", 2);
+
+            String key = URLDecoder.decode(parts[0], StandardCharsets.UTF_8);
+            String value = parts.length > 1
+                    ? URLDecoder.decode(parts[1], StandardCharsets.UTF_8)
+                    : "";
+
+            result.computeIfAbsent(key, k -> value);
+        }
+
+        return result;
     }
 }
