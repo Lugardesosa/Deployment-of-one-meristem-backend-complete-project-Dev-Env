@@ -10,7 +10,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=AHjsoie67&8*
     volumes:
-      - ./data/redis:/data   #persistent host path
+      - ./data/redis:/data   #persistent host path.
     networks:
       - meristem-network
     restart: unless-stopped
