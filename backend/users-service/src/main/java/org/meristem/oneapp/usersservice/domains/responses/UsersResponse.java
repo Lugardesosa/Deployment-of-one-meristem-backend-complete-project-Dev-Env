@@ -50,10 +50,6 @@ public record UsersResponse(
         @Schema(description = "Storage URL of the user's profile image.", example = "www.huaweicloud.com/images/profiles/abc123.png", nullable = true)
         String image,
 
-        @JsonIgnore
-        @Schema(hidden = true, description = "Sensitive. Not exposed in API.")
-        String pin,
-
         @Schema(description = "User gender.", allowableValues = {"MALE", "FEMALE", "OTHER"}, example = "FEMALE", oneOf = Gender.class)
         String gender,
 
@@ -107,13 +103,13 @@ public record UsersResponse(
                          String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared,
                          Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet,
                          String cscsNumber, String chnNumber) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, "", gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet,
+        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet,
                 interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber);
     }
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber, String password, Integer passwordAttempt) {
         this(status, id, email, firstName, lastName, middleName, password, phoneNumber,
-                passwordAttempt, null, "", null, null, null, null, null, null, null,
+                passwordAttempt, null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null);
     }
 

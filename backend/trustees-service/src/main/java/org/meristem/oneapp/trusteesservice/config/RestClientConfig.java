@@ -5,11 +5,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.util.TimeValue;
 import org.jspecify.annotations.NonNull;
+import org.meristem.oneapp.trusteesservice.constants.AppConstants;
 import org.meristem.oneapp.trusteesservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.trusteesservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.trusteesservice.exception.exceptions.UpstreamServiceException;
@@ -27,15 +30,13 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URLDecoder;
+import java.io.InterruptedIOException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,6 +66,7 @@ public class RestClientConfig {
 
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
                 .evictIdleConnections(TimeValue.of(Duration.ofSeconds(30)))
+                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(AppConstants.MAX_RETRY_ATTEMPTS, TimeValue.ofMilliseconds(AppConstants.HTTP_RETRY_DELAY)))
                 .build();
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);

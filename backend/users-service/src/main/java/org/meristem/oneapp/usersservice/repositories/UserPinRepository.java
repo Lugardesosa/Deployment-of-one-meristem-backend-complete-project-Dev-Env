@@ -13,4 +13,6 @@ public interface UserPinRepository extends BaseRepository<UserPin, Long> {
     List<UserPin> findAllByLockUntilBefore(LocalDateTime lockUntilBefore, Limit limit);
 
     List<UserPin> findAllByStatusAndLockUntilBefore(Integer status, LocalDateTime lockUntilBefore, Limit limit);
+
+    boolean existsByUserId(Long userId);
 }
