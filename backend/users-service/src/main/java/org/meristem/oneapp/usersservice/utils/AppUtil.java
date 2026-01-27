@@ -163,8 +163,6 @@ public final class AppUtil {
                 .image(rs.getString("image_key"))
                 .gender(rs.getString("gender"))
                 .dateOfBirth(rs.getObject("date_of_birth", LocalDate.class))
-                .pin(rs.getString("pin"))
-                .pinSet(rs.getString("pin") != null)
                 .password(rs.getString("password"))
                 .biometricEnabled(rs.getBoolean("biometric_enabled"))
                 .passwordAttempt(rs.getInt("password_attempt"))

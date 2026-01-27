@@ -210,10 +210,11 @@ public class UsersService implements IUsersService {
                     .type(SignedUrlType.IMAGE).build());
             signedUrl = signedUrlResponse.signedUrl();
         }
+        boolean pinSet = userPinRepository.existsByUserId(response.id());
         boolean allDataShared = response.userInstrumentResponses().stream().allMatch(i -> i.dataSharingAllowed() == true);
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
                 response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(),
-                response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), response.pinSet(),
+                response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), pinSet,
                 response.interestFreeInvestment(), response.interestFreeInvestmentSet(), response.cscsNumber(), response.chnNumber());
     }
 
