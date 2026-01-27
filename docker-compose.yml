@@ -213,6 +213,7 @@ services:
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WEB_SECRET=${WEB_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -295,6 +296,7 @@ services:
       - HOLLA_TAGS_FROM=maijamaa190
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -363,6 +365,7 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=report-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -437,6 +440,7 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wallet-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -505,6 +509,7 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=trustees-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
