@@ -211,6 +211,17 @@ jobs:
           fi
           echo "================================================"
 
+          # --- FORCE UPDATE SPECIFIC FILES (Always sync these with remote) ---
+          echo "================================================"
+          echo "Force updating docker-compose.yml, .env, and workflow files..."
+          git checkout origin/dev_env -- docker-compose.yml
+          git checkout origin/dev_env -- .github/workflows/
+          git checkout origin/dev_env -- .env || echo "No .env in repo root"
+          git checkout origin/dev_env -- backend/.env || echo "No backend/.env in repo"
+
+          echo "docker-compose.yml, .env, and workflows synced with remote!"
+          echo "================================================"
+
           # Show final commit state
           echo "================================================"
           echo "Final repository state check..."
