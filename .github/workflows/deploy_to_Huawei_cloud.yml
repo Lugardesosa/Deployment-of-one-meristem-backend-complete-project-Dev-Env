@@ -11,7 +11,7 @@ on:
       - dev_env
     paths:
       - 'backend/**'               # app src  
-      #- 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file.
+      - 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file.
       - 'docker-compose.yml' 
 
 # Global environment variables
@@ -30,6 +30,7 @@ jobs:
 
     outputs:
       changed_services: ${{ steps.check_change.outputs.changed_services }}
+      compose_changed: ${{ steps.check_change.outputs.compose_changed }}
 
     steps:
       # Checkout code
@@ -48,7 +49,22 @@ jobs:
         id: check_change
         run: |
           git pull origin dev_env
-          CHANGED=$(git diff --name-only HEAD^ HEAD \
+
+          # Get all changed files
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Check if docker-compose.yml changed
+          if echo "$CHANGED_FILES" | grep -q "^docker-compose.yml$"; then
+            echo "docker-compose.yml has changed!"
+            echo "compose_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "compose_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+                        
+          # Check for changed services in backend/
+          CHANGED=$(echo "$CHANGED_FILES" \
             | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|observability|meriapp-config|platform)/" \
             | cut -d'/' -f2 | sort -u | xargs || true)
           echo "Changed services: $CHANGED"
@@ -77,6 +93,7 @@ jobs:
       - name: Log Changed Services
         run: |
           echo "Services to build: ${{ needs.build.outputs.changed_services }}"
+          echo "Services to deploy: ${{ needs.build.outputs.compose_changed }}"
           
       # Start SSH agent with ECS private key
       - name: Start SSH Agent
@@ -90,6 +107,7 @@ jobs:
           REPO_NAME: ${{ env.REPO_NAME }}  
           GH_PAT: ${{ secrets.GH_PAT }}
           CHANGED_SERVICES: ${{ needs.build.outputs.changed_services }}
+          COMPOSE_CHANGED: ${{ needs.build.outputs.compose_changed }}
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} bash -s <<ENDSSH
           set -e
@@ -100,6 +118,7 @@ jobs:
           
           REPO_NAME="${REPO_NAME:-mit-meristem/one_meristem_app}"
           CHANGED_SERVICES="${CHANGED_SERVICES}"
+          COMPOSE_CHANGED="${COMPOSE_CHANGED}"
           GH_PAT="${GH_PAT}"
 
           export GH_PAT="${GH_PAT}"
@@ -108,6 +127,7 @@ jobs:
           echo "================================================"
           echo "Repository: $REPO_NAME"
           echo "Changed Services: $CHANGED_SERVICES"
+          echo "Docker-compose Changed: $COMPOSE_CHANGED"
           echo "================================================"
           
           # -----------------------------
@@ -246,37 +266,41 @@ jobs:
           # SECTION 5: Build Changed Microservices
           # ============================================================
 
-          if ! command -v pack &> /dev/null; then
-            echo "pack CLI not found. Installing..."
-            curl -sSL "https://github.com/buildpacks/pack/releases/latest/download/pack-v0.31.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+          if [ "$CHANGED_SERVICES" != "none" ]; then
+            echo "Building changed microservices..."
+
+            if ! command -v pack &> /dev/null; then
+              echo "pack CLI not found. Installing..."
+              curl -sSL "https://github.com/buildpacks/pack/releases/latest/download/pack-v0.31.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+            fi
+
+            # Function to build a service
+            build_service() {
+              cd "\$1" || { echo "Missing directory: \$1"; exit 1; }
+              echo "Building \$1..."
+              sudo pack build "\$1" --builder paketobuildpacks/builder-jammy-base --path .
+              cd ..
+            }
+
+            for svc in $CHANGED_SERVICES; do
+              case \$svc in
+                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trustees-service)
+                  if [ -d "\$svc" ]; then
+                    build_service "\$svc"
+                  else
+                    echo "Directory \$svc not found!"
+                  fi
+                  ;;
+                *)
+                  echo "Skipping untracked service: \$svc"
+                  ;;
+              esac
+            done
+          else
+            echo "No service code changes detected. Skipping build step."
           fi
-
-          echo "Building changed microservices..."
-    
-          # Function to build a service
-          build_service() {
-            cd "\$1" || { echo "Missing directory: \$1"; exit 1; }
-            echo "Building \$1..."
-            sudo pack build "\$1" --builder paketobuildpacks/builder-jammy-base --path .
-            cd ..
-          }
-
-          for svc in ${{ needs.build.outputs.changed_services }}; do
-            case \$svc in
-              cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trustees-service)
-                if [ -d "\$svc" ]; then
-                  build_service "\$svc"
-                else
-                  echo "Directory \$svc not found!"
-                fi
-                ;;
-              *)
-                echo "Skipping untracked service: \$svc"
-                ;;
-            esac
-          done
-
-          
+         
+         
           # ============================================================
           # SECTION 6: Return to Project Root
           # ============================================================
@@ -287,24 +311,52 @@ jobs:
           # ============================================================
           # SECTION 7: Deploy Services with Rollback
           # ============================================================
-          echo "Restarting application services only..."
-
-          set +e
-          # Bring down only app-layer services
-          sudo docker-compose -f docker-compose.yml stop \
-            config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
-
-          # Remove only containers for app-layer services (keeps infra running)
-          sudo docker-compose -f docker-compose.yml rm -f \
-            config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
-
-          # Rebuild and start only app-layer services
-          sudo docker-compose -f docker-compose.yml up -d --build \
-            config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
           
-          DEPLOY_STATUS=$?
-          set -e
+          set +e
 
+          # If docker-compose.yml changed OR services changed, restart containers
+          if [ "$COMPOSE_CHANGED" = "true" ] || [ "$CHANGED_SERVICES" != "none" ]; then
+            
+            if [ "$COMPOSE_CHANGED" = "true" ] && [ "$CHANGED_SERVICES" = "none" ]; then
+              # Only docker-compose.yml changed - restart all containers without rebuild
+              echo "================================================"
+              echo "Docker-compose.yml changed. Restarting all app services..."
+              echo "================================================"
+              
+              sudo docker-compose -f docker-compose.yml stop \
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+
+              sudo docker-compose -f docker-compose.yml rm -f \
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+
+              sudo docker-compose -f docker-compose.yml up -d \
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+            else
+              # Service code changed - rebuild and restart
+              echo "================================================"
+              echo "Service code changed. Rebuilding and restarting app services..."
+              echo "================================================"
+              
+              sudo docker-compose -f docker-compose.yml stop \
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+
+              sudo docker-compose -f docker-compose.yml rm -f \
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+
+              sudo docker-compose -f docker-compose.yml up -d --build \
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+            fi
+            
+            DEPLOY_STATUS=$?
+          else
+            echo "================================================"
+            echo "No changes to deploy. Skipping restart."
+            echo "================================================"
+            DEPLOY_STATUS=0
+          fi
+          
+          set -e
+ 
           # ============================================================
           # SECTION 8: Check Deployment Status and Rollback if Needed
           # ============================================================
