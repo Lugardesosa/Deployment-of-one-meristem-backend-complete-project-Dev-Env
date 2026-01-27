@@ -35,7 +35,7 @@ build/
 
 ## Logs
 /logs/
-/src/main/resources/keys/
+/src/main/resources/keys
 /qodana.yaml
 mvnw
 mvnw.cmd
