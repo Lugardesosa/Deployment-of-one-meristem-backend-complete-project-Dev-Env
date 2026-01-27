@@ -5,11 +5,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
 import org.jspecify.annotations.NonNull;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
@@ -65,6 +67,7 @@ public class RestClientConfig {
 
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
                 .evictIdleConnections(TimeValue.of(Duration.ofSeconds(30)))
+                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(AppConstants.MAX_RETRY_ATTEMPTS, TimeValue.ofMilliseconds(AppConstants.HTTP_RETRY_DELAY)))
                 .build();
 
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);

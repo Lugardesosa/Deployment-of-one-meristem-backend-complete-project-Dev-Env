@@ -34,6 +34,7 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -154,8 +155,13 @@ public class GlobalControllerAdvice implements MessageSourceAware {
         return handleExceptionInternal("Bad gateway", HttpStatus.SERVICE_UNAVAILABLE, request, List.of("Request could not be processed"));
     }
 
-    @ExceptionHandler({AuthorizationDeniedException.class, OAuth2AuthorizationException.class})
+    @ExceptionHandler({AuthorizationDeniedException.class})
     protected ResponseEntity<ErrorDetails> handleAuthorizationDeniedException(AuthorizationDeniedException ex, WebRequest request) {
+        return handleExceptionInternal("Unauthorized request", HttpStatus.UNAUTHORIZED, request, List.of("Your are not authorized to make this call"));
+    }
+
+    @ExceptionHandler({OAuth2AuthorizationException.class})
+    protected ResponseEntity<ErrorDetails> handleOAuth2AuthorizationException(OAuth2AuthorizationException ex, WebRequest request) {
         return handleExceptionInternal("Unauthorized request", HttpStatus.UNAUTHORIZED, request, List.of("Your are not authorized to make this call"));
     }
 
@@ -167,6 +173,11 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     @ExceptionHandler({ContextException.class})
     protected ResponseEntity<ErrorDetails> handleContextException(ContextException ex, WebRequest request) {
         return handleExceptionInternal(ex.getMessage(), HttpStatus.BAD_REQUEST, request, ex.getMessages());
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    protected ResponseEntity<ErrorDetails> handleResourceAccessException(ResourceAccessException ex, WebRequest request) {
+        return handleExceptionInternal("Connection could not be completed", HttpStatus.SERVICE_UNAVAILABLE, request, List.of());
     }
 
     @ExceptionHandler({HandlerMethodValidationException.class})

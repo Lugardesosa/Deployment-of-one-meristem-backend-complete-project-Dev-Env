@@ -39,15 +39,6 @@ public final class AppUtil {
         throw new BadRequestException("User is not logged in");
     }
 
-    public static String getLoggedInUserEmail() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof JwtAuthenticationToken authenticationToken) {
-            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            return jwt.getClaim("email").toString();
-        }
-        return "SYSTEM.AUTO";
-    }
-
     public static String generateTransactionReference(Long walletVirtualId) {
 
         final int RANDOM_LENGTH = 6;
