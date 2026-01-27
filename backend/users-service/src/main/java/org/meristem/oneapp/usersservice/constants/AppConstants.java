@@ -8,6 +8,8 @@ import java.util.List;
 @UtilityClass
 public final class AppConstants {
 
+    public static final Integer MAX_RETRY_ATTEMPTS = 3;
+    public static final long HTTP_RETRY_DELAY = 800L;
     public static final int ADDRESS_APPROVAL_TIME_IN_HOURS = 24;
     public static final int OTP_EXPIRES_AT_MINUTES = 5;
     public static final int PASSWORD_ATTEMPTS = 3;
