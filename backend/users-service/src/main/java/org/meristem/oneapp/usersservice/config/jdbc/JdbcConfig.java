@@ -46,8 +46,8 @@ public class JdbcConfig {
     @Bean
     public JdbcCustomConversions jdbcCustomConversionsLocal() {
         final List<Converter<?, ?>> converters = new ArrayList<>();
-        converters.add( new EntityWritingConverter(mapper));
-        converters.add(new JsonReadingConverter(mapper));
+        converters.add( new H2EntityWritingConverter(mapper));
+        converters.add(new H2JsonReadingConverter(mapper));
         return new JdbcCustomConversions(converters);
     }
 }
