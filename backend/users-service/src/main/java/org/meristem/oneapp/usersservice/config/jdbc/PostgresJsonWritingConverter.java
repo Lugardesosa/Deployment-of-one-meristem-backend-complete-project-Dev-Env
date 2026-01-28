@@ -17,7 +17,7 @@ import java.sql.SQLException;
 @WritingConverter
 @Getter
 @RequiredArgsConstructor
-public class PostgresEntityWritingConverter implements Converter<JsonNode, PGobject> {
+public class PostgresJsonWritingConverter implements Converter<JsonNode, PGobject> {
 
     private final ObjectMapper objectMapper;
 

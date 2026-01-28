@@ -37,7 +37,7 @@ public class JdbcConfig {
     @Bean
     public JdbcCustomConversions jdbcCustomConversions() {
         final List<Converter<?, ?>> converters = new ArrayList<>();
-        converters.add( new PostgresEntityWritingConverter(mapper));
+        converters.add( new PostgresJsonWritingConverter(mapper));
         converters.add(new PostgresJsonReadingConverter(mapper));
         return new JdbcCustomConversions(converters);
     }
@@ -46,7 +46,7 @@ public class JdbcConfig {
     @Bean
     public JdbcCustomConversions jdbcCustomConversionsLocal() {
         final List<Converter<?, ?>> converters = new ArrayList<>();
-        converters.add( new H2EntityWritingConverter(mapper));
+        converters.add( new H2JsonWritingConverter(mapper));
         converters.add(new H2JsonReadingConverter(mapper));
         return new JdbcCustomConversions(converters);
     }

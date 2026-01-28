@@ -13,7 +13,7 @@ import org.springframework.data.convert.WritingConverter;
 @WritingConverter
 @Getter
 @RequiredArgsConstructor
-public class H2EntityWritingConverter implements Converter<JsonNode, String> {
+public class H2JsonWritingConverter implements Converter<JsonNode, String> {
 
     private final ObjectMapper objectMapper;
 
