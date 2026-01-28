@@ -105,11 +105,12 @@ public class SmileIdService implements ISmileIdService {
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
 
-
+    @Value("${spring.profiles.active}")
+    private String activeProfiles;
 
     public BvnQueryResponse bvnQuery(BvnQueryRequest request) {
 
-        if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn()))) {
+        if ("prod".equalsIgnoreCase(activeProfiles) && idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn()))) {
             throw new BadRequestException("Bvn already exists.");
         }
         SmileIdEnhancedKycRequest.PartnerParams  partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
