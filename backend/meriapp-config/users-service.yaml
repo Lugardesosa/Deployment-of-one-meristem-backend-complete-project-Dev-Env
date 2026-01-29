@@ -63,8 +63,11 @@ one-app:
     secret: ${TRUSTEES_SECRET}
     name: TrusteesService
   wallet-service:
-    secret: ${WEALTH_CLIENT_SECRET}
+    secret: ${WALLET_SECRET}
     name: WalletService
+  wealth-service:
+    secret: ${WEALTH_SECRET}
+    name: WealthService
 
 
 logging:

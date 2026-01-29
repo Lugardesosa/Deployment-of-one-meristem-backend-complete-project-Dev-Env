@@ -13,8 +13,8 @@ spring:
         fail-fast: true
         catalogServicesWatch:
           enabled: false
-        hostname: ${WALLET_SERVICE_HOSTNAME}
-        port: ${WALLET_SERVICE_PORT}
+        hostname: ${WEALTH_SERVICE_HOSTNAME}
+        port: ${WEALTH_SERVICE_PORT}
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
         health-check-interval: 60s
       host: ${CONSUL_HOST}
