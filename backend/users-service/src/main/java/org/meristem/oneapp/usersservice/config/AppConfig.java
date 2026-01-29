@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
+import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,16 +43,7 @@ public class AppConfig {
 
     @Bean
     public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        JavaTimeModule module = new JavaTimeModule();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
-        mapper.registerModule(module);
-        return mapper;
+        return AppUtil.getMapper();
     }
 
     @Bean
