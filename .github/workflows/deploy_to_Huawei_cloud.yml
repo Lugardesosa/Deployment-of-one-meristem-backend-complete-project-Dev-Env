@@ -65,7 +65,7 @@ jobs:
                         
           # Check for changed services in backend/
           CHANGED=$(echo "$CHANGED_FILES" \
-            | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|observability|meriapp-config|platform)/" \
+            | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|wealth-services|report-service|observability|meriapp-config|platform)/" \
             | cut -d'/' -f2 | sort -u | xargs || true)
           echo "Changed services: $CHANGED"
 
@@ -295,7 +295,7 @@ jobs:
 
             for svc in $CHANGED_SERVICES; do
               case \$svc in
-                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|trustees-service)
+                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|wealth-services|trustees-service)
                   if [ -d "\$svc" ]; then
                     build_service "\$svc"
                   else
@@ -335,13 +335,13 @@ jobs:
               echo "================================================"
               
               sudo docker-compose -f docker-compose.yml stop \
-                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+                config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis 
 
               sudo docker-compose -f docker-compose.yml rm -f \
-                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service redis 
 
               sudo docker-compose -f docker-compose.yml up -d \
-                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service redis 
             else
               # Service code changed - rebuild and restart
               echo "================================================"
@@ -349,13 +349,13 @@ jobs:
               echo "================================================"
               
               sudo docker-compose -f docker-compose.yml stop \
-                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service redis 
 
               sudo docker-compose -f docker-compose.yml rm -f \
-                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service redis 
 
               sudo docker-compose -f docker-compose.yml up -d --build \
-                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway redis 
+                config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service redis 
             fi
             
             DEPLOY_STATUS=$?
@@ -376,9 +376,9 @@ jobs:
             echo "Deployment failed. Rolling back..."
             set +e
             sudo docker-compose -f docker-compose.yml stop \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service
             sudo docker-compose -f docker-compose.backup.yml up -d \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway || {
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service || {
                 echo "Rollback failed. Manual intervention required."
                 exit 1
             }

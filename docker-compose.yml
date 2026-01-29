@@ -311,7 +311,7 @@ services:
     restart: unless-stopped
 
 
-   # ======================
+  # ======================
   # REPORT SERVICE (Internal only)
   # ======================
   report-service:
@@ -453,7 +453,78 @@ services:
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
-    
+  
+  # ======================
+  # WEALTH SERVICE (Internal Only)
+  # ======================
+  wealth-service:
+    image: wealth-services
+    container_name: wealth-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+      - users-service
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - WEALTH_DB_NAME=${DB_NAME_WEALTH_SERVICE}
+      - WEALTH_DB_PASSWORD=${DB_WEALTH_PASSWORD}
+      - WEALTH_DB_USERNAME=${DB_WEALTH_USERNAME}
+      - WEALTH_CLIENT_ID=wealth-service
+      - WEALTH_CLIENT_SECRET=${WEALTH_CLIENT_SECRET}
+      - WEALTH_SERVICE_HOSTNAME=wealth-service
+      - WEALTH_SERVICE_PORT=20070
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD} 
+      - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - USER_SERVICE_HOSTNAME=users-service
+      - WEALTH_SERVICE_URI=${WEALTH_SERVICE_URI}
+      - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
+      - ENC_SALT=${ENC_SALT}
+      - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - WEALTH_SECRET=${WEALTH_SECRET}
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=wealth-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=wealth-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+
+  
   # ======================
   # TRUSTEES SERVICE (Internal Only)
   # ======================
@@ -568,6 +639,7 @@ services:
       - TRUSTEES_SERVICE_URI=${TRUSTEES_SERVICE_URI}
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI} 
+      - WEALTH_SERVICE_URI=${WEALTH_SERVICE_URI}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
         #- SSL_KEY_ALIAS=one-meristem-app
