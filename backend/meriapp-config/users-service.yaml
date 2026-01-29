@@ -36,6 +36,11 @@ one-app:
       is-single-use: true
       expires-at: 2 # in days
       client-name: SmileID
+    pastel:
+      url: ${PASTEL_BASE_URL}
+      api-key: ${PASTEL_API_KEY}
+      secret: ${PASTEL_API_SECRET}
+      client-name: Pastel
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
     logo-url: ${GREEN_LOGO_URL}
