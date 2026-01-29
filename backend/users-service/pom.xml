@@ -44,10 +44,6 @@
 <!--        INTEGRATION-->
 
 <!--        DEV TOOLS-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
         <!-- Source: https://mvnrepository.com/artifact/net.javacrumbs.shedlock/shedlock-spring -->
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
