@@ -299,23 +299,4 @@ public class AuthorizationServerConfig {
         }
         return clientRepo;
     }
-
-
-//    @Profile({"local"})
-//    @Bean
-//    public @NonNull JdbcCustomConversions jdbcCustomConversions(ObjectMapper mapper) {
-//        final List<Converter<?, ?>> converters = new ArrayList<>();
-//        converters.add( new H2JsonWritingConverter(mapper));
-//        converters.add(new H2JsonReadingConverter(mapper));
-//        return new JdbcCustomConversions(converters);
-//    }
-
-//    @Profile({"dev", "prod"})
-//    @Bean
-//    public @NonNull JdbcCustomConversions jdbcCustomConversionsDev(ObjectMapper mapper) {
-//        final List<Converter<?, ?>> converters = new ArrayList<>();
-//        converters.add( new PostgresJsonWritingConverter(mapper));
-//        converters.add(new PostgresJsonReadingConverter(mapper));
-//        return new JdbcCustomConversions(converters);
-//    }
 }
