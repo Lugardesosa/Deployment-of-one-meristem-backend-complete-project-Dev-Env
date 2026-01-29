@@ -10,21 +10,13 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
-import org.meristem.oneapp.usersservice.config.jdbc.H2JsonReadingConverter;
-import org.meristem.oneapp.usersservice.config.jdbc.H2JsonWritingConverter;
-import org.meristem.oneapp.usersservice.config.jdbc.PostgresJsonReadingConverter;
-import org.meristem.oneapp.usersservice.config.jdbc.PostgresJsonWritingConverter;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.AuthScopes;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.jdbc.core.convert.JdbcCustomConversions;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,17 +43,14 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -98,11 +87,17 @@ public class AuthorizationServerConfig {
     @Value("${one-app.wallet-service.secret}")
     private String walletSecret;
 
+    @Value("${one-app.wealth-service.secret}")
+    private String wealthSecret;
+
     @Value("${one-app.trustees-service.name}")
     private String trusteesName;
 
     @Value("${one-app.wallet-service.name}")
     private String walletName;
+
+    @Value("${one-app.wealth-service.name}")
+    private String wealthName;
 
     @Order(1)
     @Bean
@@ -110,14 +105,11 @@ public class AuthorizationServerConfig {
                                                    CustomCodeGrantAuthenticationProvider customCodeGrantAuthenticationProvider, LoginSuccessAuthenticationHandler loginSuccessAuthenticationHandler) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
         http.securityMatcher(configurer.getEndpointsMatcher())
-                .with(configurer, customizer -> {
-
-                        customizer.oidc(Customizer.withDefaults())
-                                .tokenEndpoint(te -> te.accessTokenRequestConverter(customPasswordAuthenticationConverter)
-                                        .authenticationProvider(customCodeGrantAuthenticationProvider).authenticationProvider(customOAuth2RefreshTokenAuthenticationProvider)
-                                        .accessTokenResponseHandler(loginSuccessAuthenticationHandler)
-                                );
-                        }
+                .with(configurer, customizer -> customizer.oidc(Customizer.withDefaults())
+                        .tokenEndpoint(te -> te.accessTokenRequestConverter(customPasswordAuthenticationConverter)
+                                .authenticationProvider(customCodeGrantAuthenticationProvider).authenticationProvider(customOAuth2RefreshTokenAuthenticationProvider)
+                                .accessTokenResponseHandler(loginSuccessAuthenticationHandler)
+                        )
                 );
         return http.build();
     }
@@ -292,7 +284,21 @@ public class AuthorizationServerConfig {
                     .clientSecret(passwordEncoder().encode(walletSecret))
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                    .scopes(s -> s.addAll(List.of(AuthScopes.GET_BENEFICIARIES, AuthScopes.GET_ROLES, AuthScopes.VERIFY_PIN)))
+                    .scopes(s -> s.add(AuthScopes.VERIFY_PIN))
+                    .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+                    .build();
+            clientRepo.save(trustees);
+        }
+
+        if (isNull(clientRepo.findByClientId("wealth-service"))) {
+            RegisteredClient trustees = RegisteredClient
+                    .withId(UUID.randomUUID().toString())
+                    .clientId("wealth-service")
+                    .clientName(wealthName)
+                    .clientSecret(passwordEncoder().encode(wealthSecret))
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                    .scopes(s -> s.add(AuthScopes.VERIFY_PIN))
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                     .build();
             clientRepo.save(trustees);
