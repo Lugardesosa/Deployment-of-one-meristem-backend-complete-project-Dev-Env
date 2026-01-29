@@ -20,7 +20,7 @@ spring:
       host: ${CONSUL_HOST}
 
 server:
-  port: 20040
+  port: ${WEALTH_SERVICE_PORT}
   servlet:
     context-path: ${one-app.wealth-service.context-path}
 
