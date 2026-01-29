@@ -16,3 +16,5 @@ management:
   health:
     mail:
       enabled: false
+
+springdoc.api-docs.path: /api-docs
