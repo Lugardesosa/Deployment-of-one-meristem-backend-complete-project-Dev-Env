@@ -67,6 +67,11 @@ spring:
               predicates:
                 - Path=${one-app.wallet-service.context-path}/**
 
+            - id: ${one-app.wealth-service.application-name}
+              uri: lb://${one-app.wealth-service.application-name}
+              predicates:
+                - Path=${one-app.wealth-service.context-path}/**
+
             - id: ${one-app.report-service.application-name}
               uri: lb://${one-app.report-service.application-name}
               predicates:

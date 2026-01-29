@@ -10,13 +10,21 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
+import org.meristem.oneapp.usersservice.config.jdbc.H2JsonReadingConverter;
+import org.meristem.oneapp.usersservice.config.jdbc.H2JsonWritingConverter;
+import org.meristem.oneapp.usersservice.config.jdbc.PostgresJsonReadingConverter;
+import org.meristem.oneapp.usersservice.config.jdbc.PostgresJsonWritingConverter;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.AuthScopes;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.jdbc.core.convert.JdbcCustomConversions;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,6 +61,7 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -290,4 +299,23 @@ public class AuthorizationServerConfig {
         }
         return clientRepo;
     }
+
+
+//    @Profile({"local"})
+//    @Bean
+//    public @NonNull JdbcCustomConversions jdbcCustomConversions(ObjectMapper mapper) {
+//        final List<Converter<?, ?>> converters = new ArrayList<>();
+//        converters.add( new H2JsonWritingConverter(mapper));
+//        converters.add(new H2JsonReadingConverter(mapper));
+//        return new JdbcCustomConversions(converters);
+//    }
+
+//    @Profile({"dev", "prod"})
+//    @Bean
+//    public @NonNull JdbcCustomConversions jdbcCustomConversionsDev(ObjectMapper mapper) {
+//        final List<Converter<?, ?>> converters = new ArrayList<>();
+//        converters.add( new PostgresJsonWritingConverter(mapper));
+//        converters.add(new PostgresJsonReadingConverter(mapper));
+//        return new JdbcCustomConversions(converters);
+//    }
 }

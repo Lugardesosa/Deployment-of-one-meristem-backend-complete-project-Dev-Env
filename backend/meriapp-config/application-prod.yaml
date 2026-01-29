@@ -1,6 +1,12 @@
 spring:
   flyway:
     locations: classpath:db/migration/postgres
+  datasource:
+    hikari:
+      connection-timeout: 2000
+      maximum-pool-size: 10
+      max-lifetime: 1800000
+      keepalive-time: 300000
 
 management:
   endpoints:
@@ -17,3 +23,10 @@ management:
     mail:
       enabled: false
 
+
+springdoc:
+  swagger-ui:
+    enabled: false
+
+  api-docs:
+    enabled: false

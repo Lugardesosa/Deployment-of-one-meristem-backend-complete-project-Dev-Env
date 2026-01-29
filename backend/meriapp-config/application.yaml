@@ -62,6 +62,15 @@ spring:
             provider: users-service
             scope:
               - verify.pin
+
+          wealth-service:
+            client-id: ${WEALTH_CLIENT_ID}
+            client-secret: ${WEALTH_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            provider: users-service
+            scope:
+              - verify.pin
         provider:
           users-service:
             token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
@@ -92,6 +101,11 @@ one-app:
     context-path: /api/wallets
     application-name: wallet-service
 
+  #  WEALTH SERVICE
+  wealth-service:
+    context-path: /api/wealths
+    application-name: wealth-service
+
   #  REPORT SERVICE
   report-service:
     context-path: /api/reports
@@ -115,6 +129,7 @@ one-app:
     # APP NAMES
   services-url:
     wallet-service: http://${one-app.wallet-service.application-name}${one-app.wallet-service.context-path}
+    wealth-service: http://${one-app.wealth-service.application-name}${one-app.wealth-service.context-path}
     trustees-service: http://${one-app.trustees-service.application-name}${one-app.trustees-service.context-path}
     report-service: http://${one-app.report-service.application-name}${one-app.report-service.context-path}
     users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
@@ -132,9 +147,6 @@ logging:
   pattern:
     console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx'
     file: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx'
-
-springdoc.api-docs.path: /api-docs
-
 
 management:
   endpoints:

@@ -33,7 +33,7 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Allows admins to update a next of kin")
     })
     @PreAuthorize("hasRole('ROLE_2000')")
-    @PutMapping(value = "/users/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/users/next-of-kin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<NextOfKinResponse>> createNextOfKin(@RequestBody @Valid CreateNextOfKinRequest request) {
         return ApiUtil.buildResponse(adminService.updateNextOfKin(request), HttpStatus.OK.toString(), "Successful");
     }
@@ -104,7 +104,7 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Add permissions ")
     })
     @PreAuthorize("hasRole('ROLE_3004')")
-    @PutMapping(value = "/add-permission", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/add-permission", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> addPermission(@RequestBody @Valid AddPermissionRequest request) {
         return ApiUtil.buildResponse(adminService.addPermission(request), HttpStatus.CREATED.toString(), "Successful");
     }
@@ -114,7 +114,7 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Add permissions to role ")
     })
     @PreAuthorize("hasRole('ROLE_3004')")
-    @PutMapping(value = "/add-permission-role", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/add-permission-role", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> addPermission(@RequestBody @Valid AddPermissionToRoleRequest request) {
         return ApiUtil.buildResponse(adminService.addPermissionToRole(request), HttpStatus.CREATED.toString(), "Successful");
     }
