@@ -92,6 +92,11 @@ one-app:
     context-path: /api/wallets
     application-name: wallet-service
 
+  #  WEALTH SERVICE
+  wealth-service:
+    context-path: /api/wealths
+    application-name: wealth-service
+
   #  REPORT SERVICE
   report-service:
     context-path: /api/reports

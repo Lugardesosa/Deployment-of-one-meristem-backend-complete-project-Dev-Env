@@ -1,0 +1,26 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-wealth-service
+
+  cloud:
+    consul:
+      discovery:
+        metadata:
+          contextPath: ${one-app.wealth-service.context-path}
+        health-check-path: ${one-app.wealth-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${WALLET_SERVICE_HOSTNAME}
+        port: ${WALLET_SERVICE_PORT}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+server:
+  port: 20040
+  servlet:
+    context-path: ${one-app.wealth-service.context-path}
+
