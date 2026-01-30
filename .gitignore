@@ -1,6 +1,11 @@
+# =====================================================
+# Git Ignore File for One Meristem App
+# =====================================================
 
-#Ignore the following files and directories
+# OS files
 .DS_Store
+
+# Temporary files
 *.log
 *.tmp
 *.bak
@@ -8,16 +13,50 @@
 *.old
 *.orig
 *.rej
+
+# Compiled files
 *.class
 *.pyc
 *.pyo
 *.exe
 *.dll
 *.so
-*.sh
-.DS_Store
-=======
-#to ignore the github workflows for test_env
-.github/workflows/*
-.env
 
+# Environment files
+.env.local
+
+# GitHub workflows (ignore test_env workflows)
+# .github/workflows/*
+
+# =====================================================
+# Server-specific folders (NOT tracked in Git)
+# =====================================================
+gcme/
+certs/
+data/
+html/
+logs_collector/
+monitoring/
+onemeristemdev.meristemng.com/
+user-service/
+vhost/
+
+# =====================================================
+# Security keys (server-specific, never commit!)
+# =====================================================
+backend/users-service/src/main/resources/keys/
+backend/notification-service/src/main/resources/keys/
+backend/wallet-service/src/main/resources/keys/
+backend/trustees-service/src/main/resources/keys/
+backend/wealth-services/src/main/resources/keys/
+backend/report-service/src/main/resources/keys/
+backend/cloud-gateway/src/main/resources/keys/
+backend/config-server/src/main/resources/keys/
+
+# Generic key patterns
+*.pem
+*.key
+*.crt
+*.jks
+*.p12
+*.keystore
