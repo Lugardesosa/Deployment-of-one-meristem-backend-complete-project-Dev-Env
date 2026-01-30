@@ -40,6 +40,7 @@ monitoring/
 onemeristemdev.meristemng.com/
 user-service/
 vhost/
+acme/
 
 # =====================================================
 # Security keys (server-specific, never commit!)
