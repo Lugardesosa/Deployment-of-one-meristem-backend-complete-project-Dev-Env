@@ -653,6 +653,7 @@ services:
       - VIRTUAL_PORT=20010
       - LETSENCRYPT_HOST=onemeristemdev.meristemng.com
       - LETSENCRYPT_EMAIL=esosamumen@meristemng.com
+      - SPRING_SERVER_SSL_ENABLED=false #to force ssl enabled on the app
       - GATEWAY_REPLENISH_RATE=10
       - GATEWAY_BURST_CAPACITY=20
       - GATEWAY_REQUESTED_TOKENS=2
