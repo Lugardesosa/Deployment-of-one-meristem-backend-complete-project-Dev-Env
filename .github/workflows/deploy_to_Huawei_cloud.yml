@@ -48,7 +48,6 @@ jobs:
       - name: Detect Changed Microservices
         id: check_change
         run: |
-
           # Get all changed files
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
           echo "Changed files:"
@@ -64,7 +63,7 @@ jobs:
                         
           # Check for changed services in backend/
           CHANGED=$(echo "$CHANGED_FILES" \
-            | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|wealth-services|report-service|observability|meriapp-config|platform)/" \
+            | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|wealth-service|report-service|observability|meriapp-config|platform)/" \
             | cut -d'/' -f2 | sort -u | xargs || true)
           echo "Changed services: $CHANGED"
 
@@ -211,7 +210,7 @@ jobs:
           # Clean any old backups on project root
           rm -f ../docker-compose.backup.*.yml || true
           
-           # Save validated config as last-known-good in project root
+          # Save validated config as last-known-good in project root
           sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.backup.yml || {
             echo "Failed to create rollback config. Aborting deployment."
             exit 1
@@ -229,25 +228,69 @@ jobs:
 
             if ! command -v pack &> /dev/null; then
               echo "pack CLI not found. Installing..."
-              curl -sSL "https://github.com/buildpacks/pack/releases/latest/download/pack-v0.31.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+              curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.35.0/pack-v0.35.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
             fi
+
+            # Function to get builder and Java version for each service
+            get_build_config() {
+              local service="\$1"
+              
+              # Services requiring Java 25 (noble builder)
+              case "\$service" in
+                wealth-service)
+                  echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
+                  ;;
+                # Add future Java 25+ services here:
+                # another-service)
+                #   echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
+                #   ;;
+                
+                # Default: Java 21 (jammy builder)
+                *)
+                  echo "paketobuildpacks/builder-jammy-base 21"
+                  ;;
+              esac
+            }
 
             # Function to build a service
             build_service() {
-              cd "\$1" || { echo "Missing directory: \$1"; exit 1; }
-              echo "Building \$1..."
-              sudo pack build "\$1" --builder paketobuildpacks/builder-jammy-base --path .
+              local svc="\$1"
+              cd "\$svc" || { echo "Missing directory: \$svc"; return 1; }
+              
+              # Get builder and Java version for this service
+              local config=\$(get_build_config "\$svc")
+              local builder=\$(echo "\$config" | awk '{print \$1}')
+              local java_version=\$(echo "\$config" | awk '{print \$2}')
+              
+              echo "============================================"
+              echo "Building \$svc"
+              echo "  Builder: \$builder"
+              echo "  Java Version: \$java_version"
+              echo "============================================"
+              
+              sudo pack build "\$svc" \
+                --builder "\$builder" \
+                --env BP_JVM_VERSION="\$java_version" \
+                --path .
+              
+              local status=\$?
               cd ..
+              return \$status
             }
 
             BUILT_SERVICES=""
 
             for svc in \$CHANGED_SERVICES; do
               case \$svc in
-                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|wealth-services|trustees-service)
+                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|wealth-service|trustees-service)
                   if [ -d "\$svc" ]; then
-                    build_service "\$svc"
-                    BUILT_SERVICES="\$BUILT_SERVICES \$svc"
+                    if build_service "\$svc"; then
+                      echo "Build successful: \$svc"
+                      BUILT_SERVICES="\$BUILT_SERVICES \$svc"
+                    else
+                      echo "Build failed: \$svc"
+                      exit 1
+                    fi
                   else
                     echo "Directory \$svc not found!"
                   fi
@@ -257,7 +300,8 @@ jobs:
                   ;;
               esac
             done
-            BUILT_SERVICES="\$(echo "\$BUILT_SERVICES" | xargs)"
+            
+            BUILT_SERVICES=\$(echo "\$BUILT_SERVICES" | xargs)
             echo "Built services: \$BUILT_SERVICES"
           else
             echo "No service code changes detected. Skipping build step."
@@ -278,7 +322,7 @@ jobs:
           
           set +e
 
-          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-services cloud-gateway redis"
+          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis"
 
           #When Docker Compose File Changes
           if [ "\$COMPOSE_CHANGED" = "true" ]; then
@@ -357,9 +401,9 @@ jobs:
             echo "Deployment failed. Rolling back..."
             set +e
             sudo docker-compose -f docker-compose.yml stop \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-services
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service
             sudo docker-compose -f ../docker-compose.backup.yml up -d \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-services || {
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service || {
                 echo "Rollback failed. Manual intervention required."
                 exit 1
             }
