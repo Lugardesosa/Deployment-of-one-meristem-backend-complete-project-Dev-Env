@@ -461,7 +461,7 @@ services:
   # WEALTH SERVICE (Internal Only)
   # ======================
   wealth-service:
-    image: wealth-services
+    image: wealth-service
     container_name: wealth-service
     networks:
       - meristem-network
