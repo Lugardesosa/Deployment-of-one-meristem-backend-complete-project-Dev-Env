@@ -283,7 +283,7 @@ public class UsersController {
             @ApiResponse(responseCode = "200", description = "Verifies users pin")
     })
     @PreAuthorize("hasAuthority('SCOPE_verify.pin') OR hasRole('ROLE_1043')")
-    @PostMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/verify-pin", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPinRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPin(request), HttpStatus.OK.toString(), "Successful");
     }
@@ -293,7 +293,7 @@ public class UsersController {
             @ApiResponse(responseCode = "200", description = "Verifies users password")
     })
     @PreAuthorize("hasRole('ROLE_1044')")
-    @PostMapping(value = "/verify-password", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/verify-password", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> verifyPin(@Valid @RequestBody VerifyPasswordRequest request) {
         return ApiUtil.buildResponse(usersService.verifyPassword(request), HttpStatus.OK.toString(), "Successful");
     }

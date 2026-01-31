@@ -1,0 +1,230 @@
+package org.meristem.oneapp.wealthservice.config;
+
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.observation.ObservationRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+import org.jspecify.annotations.NonNull;
+import org.meristem.oneapp.wealthservice.constants.AppConstants;
+import org.meristem.oneapp.wealthservice.dtos.configs.BufferingClientHttpResponseWrapper;
+import org.meristem.oneapp.wealthservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.wealthservice.exception.exceptions.UpstreamServiceException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
+@Slf4j
+@Configuration(proxyBeanMethods = false)
+public class RestClientConfig {
+
+    public static final String REDACTED = "[REDACTED]";
+    @Value("${what-to-sanitize}")
+    private List<String> bodyToSanitize;
+
+    @Bean
+    @Primary
+    public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
+        return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
+                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+    }
+
+    private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.of(1, TimeUnit.SECONDS)) // Recommended
+                .build();
+
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(200);
+        connectionManager.setDefaultMaxPerRoute(5);
+        connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
+                .evictIdleConnections(TimeValue.of(Duration.ofSeconds(30)))
+                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(AppConstants.MAX_RETRY_ATTEMPTS, TimeValue.ofMilliseconds(AppConstants.HTTP_RETRY_DELAY)))
+                .build();
+
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(Duration.ofSeconds(12));
+        return requestFactory;
+    }
+
+    @Bean("restClientBuilderInternal")
+    @LoadBalanced
+    public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
+        HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
+        return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
+                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+    }
+
+
+    ResponseErrorHandler errorHandler() {
+        return new ResponseErrorHandler() {
+
+            @Override
+            public boolean hasError(@NonNull ClientHttpResponse response) throws IOException {
+                return response.getStatusCode().isError();
+            }
+
+            @Override
+            public void handleError(@NonNull URI url, @NonNull HttpMethod method, @NonNull ClientHttpResponse response) throws IOException {
+                HttpStatusCode status = response.getStatusCode();
+
+                if (status.is4xxClientError()) {
+                    throw new BadRequestException("Check your request body. Response message: " + response.getStatusText());
+                } else if (status.is5xxServerError()) {
+                    throw new UpstreamServiceException("Upstream Server error. Response message: " + response.getStatusText());
+                } else {
+                    throw new RuntimeException("Unexpected error. Response message: " + response.getStatusText());
+                }
+            }
+        };
+    }
+
+    ClientHttpRequestInterceptor requestInterceptor() {
+        return new ClientHttpRequestInterceptor() {
+
+            @NonNull
+            @Override
+            public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull [] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
+
+                long startTime = System.nanoTime() / 1_000_000L;
+                ClientHttpResponse response = execution.execute(request, body);
+                long endTime = System.nanoTime() / 1_000_000L;
+
+                byte[] responseBodyBytes = StreamUtils.copyToByteArray(response.getBody());
+
+                long duration = endTime - startTime;
+                int statusCode = response.getStatusCode().value();
+                String requestBody = new String(body);
+                String responseBody = new String(responseBodyBytes, StandardCharsets.UTF_8);
+                String method = request.getMethod().name();
+                String url = request.getURI().toString();
+                HttpHeaders requestHeaders = request.getHeaders();
+                HttpHeaders responseHeaders = response.getHeaders();
+
+                ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+                CompletableFuture.runAsync(() -> logRequestResponse(duration, statusCode, requestBody, responseBody, method, url, requestHeaders, responseHeaders), executor);
+
+                return new BufferingClientHttpResponseWrapper(response, responseBodyBytes);
+            }
+        };
+    }
+
+    private void logRequestResponse(long duration, int status, String requestBody, String responseBody, String method, String url, HttpHeaders requestHeaders, HttpHeaders responseHeaders) {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            String firstContentType = requestHeaders.getFirst("Content-Type");
+            HashMap<String, Object> bodyRequest = requestBody.isBlank() || isNull(firstContentType) || !firstContentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
+            HashMap<String, Object> bodyResponse = responseBody.isBlank() || isNull(firstContentType) || !firstContentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
+
+            MediaType requestHeadersContentType = requestHeaders.getContentType();
+            MediaType responseHeadersContentType = responseHeaders.getContentType();
+            if (nonNull(requestHeadersContentType) && requestHeadersContentType.toString().contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                bodyRequest = parseUrlEncoded(requestBody);
+            }
+            if (nonNull(responseHeadersContentType) && responseHeadersContentType.toString().contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                bodyResponse = parseUrlEncoded(responseBody);
+            }
+            boolean requestContentTypeIsText = nonNull(requestHeadersContentType) && requestHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
+            boolean responseContentTypeIsText = nonNull(responseHeadersContentType) && responseHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
+
+            sanitizeBody(bodyRequest, bodyResponse);
+
+            sanitizeBody(bodyRequest, bodyResponse);
+
+            HashMap<String, String> requestHeaders1 = new HashMap<>(requestHeaders.toSingleValueMap());
+            HashMap<String, String> responseHeaders1 = new HashMap<>(responseHeaders.toSingleValueMap());
+            sanitizeHeaders(requestHeaders1, responseHeaders1);
+            log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"requestHeaders\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"responseHeaders\": {}}",
+                    status,
+                    method,
+                    url,
+                    objectMapper.writeValueAsString(requestHeaders1),
+                    requestContentTypeIsText ? requestBody : objectMapper.writeValueAsString(bodyRequest),
+                    responseContentTypeIsText ? responseBody : objectMapper.writeValueAsString(bodyResponse),
+                    duration,
+                    objectMapper.writeValueAsString(responseHeaders1)
+            );
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void sanitizeBody(HashMap<String, Object> bodyRequest, HashMap<String, Object> bodyResponse) {
+        bodyToSanitize.forEach(k -> {
+            if (bodyRequest.containsKey(k)) {
+                bodyRequest.put(k, REDACTED);
+            }
+            if (bodyResponse.containsKey(k)) {
+                bodyResponse.put(k, REDACTED);
+            }
+        });
+    }
+
+    private void sanitizeHeaders(Map<String, String> requestHeaders, Map<String, String> responseHeaders) {
+
+        bodyToSanitize.forEach(k -> {
+            if (requestHeaders.containsKey(k)) {
+                requestHeaders.put(k, REDACTED);
+            }
+
+            if (responseHeaders.containsKey(k)) {
+                responseHeaders.put(k, REDACTED);
+            }
+        });
+    }
+
+    public static HashMap<String, Object> parseUrlEncoded(String input) {
+        HashMap<String, Object> result = new HashMap<>();
+
+        for (String pair : input.split("&")) {
+            String[] parts = pair.split("=", 2);
+
+            String key = URLDecoder.decode(parts[0], StandardCharsets.UTF_8);
+            String value = parts.length > 1
+                    ? URLDecoder.decode(parts[1], StandardCharsets.UTF_8)
+                    : "";
+
+            result.computeIfAbsent(key, k -> value);
+        }
+
+        return result;
+    }
+}

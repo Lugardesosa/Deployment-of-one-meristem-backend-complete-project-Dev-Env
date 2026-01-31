@@ -43,11 +43,9 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import java.security.interfaces.RSAPrivateKey;
@@ -89,11 +87,17 @@ public class AuthorizationServerConfig {
     @Value("${one-app.wallet-service.secret}")
     private String walletSecret;
 
+    @Value("${one-app.wealth-service.secret}")
+    private String wealthSecret;
+
     @Value("${one-app.trustees-service.name}")
     private String trusteesName;
 
     @Value("${one-app.wallet-service.name}")
     private String walletName;
+
+    @Value("${one-app.wealth-service.name}")
+    private String wealthName;
 
     @Order(1)
     @Bean
@@ -101,14 +105,11 @@ public class AuthorizationServerConfig {
                                                    CustomCodeGrantAuthenticationProvider customCodeGrantAuthenticationProvider, LoginSuccessAuthenticationHandler loginSuccessAuthenticationHandler) throws Exception {
         OAuth2AuthorizationServerConfigurer configurer = new OAuth2AuthorizationServerConfigurer();
         http.securityMatcher(configurer.getEndpointsMatcher())
-                .with(configurer, customizer -> {
-
-                        customizer.oidc(Customizer.withDefaults())
-                                .tokenEndpoint(te -> te.accessTokenRequestConverter(customPasswordAuthenticationConverter)
-                                        .authenticationProvider(customCodeGrantAuthenticationProvider).authenticationProvider(customOAuth2RefreshTokenAuthenticationProvider)
-                                        .accessTokenResponseHandler(loginSuccessAuthenticationHandler)
-                                );
-                        }
+                .with(configurer, customizer -> customizer.oidc(Customizer.withDefaults())
+                        .tokenEndpoint(te -> te.accessTokenRequestConverter(customPasswordAuthenticationConverter)
+                                .authenticationProvider(customCodeGrantAuthenticationProvider).authenticationProvider(customOAuth2RefreshTokenAuthenticationProvider)
+                                .accessTokenResponseHandler(loginSuccessAuthenticationHandler)
+                        )
                 );
         return http.build();
     }
@@ -283,7 +284,21 @@ public class AuthorizationServerConfig {
                     .clientSecret(passwordEncoder().encode(walletSecret))
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                    .scopes(s -> s.addAll(List.of(AuthScopes.GET_BENEFICIARIES, AuthScopes.GET_ROLES, AuthScopes.VERIFY_PIN)))
+                    .scopes(s -> s.add(AuthScopes.VERIFY_PIN))
+                    .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
+                    .build();
+            clientRepo.save(trustees);
+        }
+
+        if (isNull(clientRepo.findByClientId("wealth-service"))) {
+            RegisteredClient trustees = RegisteredClient
+                    .withId(UUID.randomUUID().toString())
+                    .clientId("wealth-service")
+                    .clientName(wealthName)
+                    .clientSecret(passwordEncoder().encode(wealthSecret))
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                    .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                    .scopes(s -> s.add(AuthScopes.VERIFY_PIN))
                     .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofDays(1)).build())
                     .build();
             clientRepo.save(trustees);

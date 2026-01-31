@@ -28,7 +28,7 @@
     <scm>
         <connection/>
         <developerConnection/>
-        <tag>report-service</tag>
+        <tag>trustees-service</tag>
         <url>https://github.com/Meristem-Innovation-Team/one_meristem_app</url>
     </scm>
     <properties>

@@ -1,63 +1,17 @@
-# =====================================================
-# Git Ignore File for One Meristem App
-# =====================================================
+# GitHub workflows
+.github/
 
-# OS files
-.DS_Store
+# Local environment
+.env
+docker-compose.yml
 
-# Temporary files
-*.log
-*.tmp
-*.bak
-*.swp
-*.old
-*.orig
-*.rej
-
-# Compiled files
-*.class
-*.pyc
-*.pyo
-*.exe
-*.dll
-*.so
-
-# Environment files
-.env.local
-
-# GitHub workflows (ignore test_env workflows)
-# .github/workflows/*
-
-# =====================================================
-# Server-specific folders (NOT tracked in Git)
-# =====================================================
-gcme/
-certs/
+# Data & backups
+postgres/
 data/
-html/
 logs_collector/
 monitoring/
-onemeristemdev.meristemng.com/
-user-service/
-vhost/
-acme/
+docker-compose.backup.yml
 
-# =====================================================
-# Security keys (server-specific, never commit!)
-# =====================================================
-backend/users-service/src/main/resources/keys/
-backend/notification-service/src/main/resources/keys/
-backend/wallet-service/src/main/resources/keys/
-backend/trustees-service/src/main/resources/keys/
-backend/wealth-services/src/main/resources/keys/
-backend/report-service/src/main/resources/keys/
-backend/cloud-gateway/src/main/resources/keys/
-backend/config-server/src/main/resources/keys/
-
-# Generic key patterns
-*.pem
-*.key
-*.crt
-*.jks
-*.p12
-*.keystore
+# Misc
+README.md
+curl-format.txt

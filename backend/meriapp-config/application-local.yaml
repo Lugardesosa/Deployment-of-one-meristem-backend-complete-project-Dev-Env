@@ -29,6 +29,8 @@ management:
     mail:
       enabled: false
 
+springdoc.api-docs.path: /api-docs
+
 #logging:
 #  level:
 #    root: WARN
