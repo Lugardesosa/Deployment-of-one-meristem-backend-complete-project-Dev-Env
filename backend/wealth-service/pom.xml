@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.meristem.oneapp</groupId>
-    <artifactId>wealth-services</artifactId>
+    <artifactId>wealth-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>wealth-services</name>
-    <description>wealth-services</description>
+    <name>wealth-service</name>
+    <description>wealth-service</description>
     <url>https://onemeristem.meristemng.com/</url>
     <licenses>
         <license/>
