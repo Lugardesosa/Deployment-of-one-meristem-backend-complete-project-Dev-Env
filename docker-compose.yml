@@ -214,6 +214,9 @@ services:
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WEB_SECRET=${WEB_SECRET}
       - WALLET_SECRET=${WALLET_SECRET}
+      - WEALTH_CLIENT_ID=wealth-service
+      - WEALTH_CLIENT_SECRET=${WEALTH_CLIENT_SECRET}
+      - WEALTH_SECRET=${WEALTH_SECRET}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
