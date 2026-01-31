@@ -1,6 +1,18 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
+required_vars=(
+  DB_NAME_WEALTH_SERVICE
+  DB_WEALTH_USERNAME
+  DB_WEALTH_PASSWORD
+)
+
+for v in "${required_vars[@]}"; do
+  if [ -z "${!v:-}" ]; then
+    echo "Missing required env var: $v"
+    exit 1
+  fi
+done
 POSTGRES_USER="${POSTGRES_USER:-admin}"
 
 # =============================
