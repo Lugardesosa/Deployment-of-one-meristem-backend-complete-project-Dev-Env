@@ -1,11 +1,11 @@
-package org.meristem.oneapp.trusteesservice.events;
+package org.meristem.oneapp.wealthservice.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.trusteesservice.dtos.events.RequestAndResponseLogEvent;
+import org.meristem.oneapp.wealthservice.dtos.events.RequestAndResponseLogEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
@@ -26,8 +26,6 @@ import static java.util.Objects.isNull;
 public class LoggingEventHandler {
 
     public static final String REDACTED = "[REDACTED]";
-    @Value("${server.servlet.context-path}")
-    private String contextPath;
 
     @Value("${what-to-sanitize}")
     private final List<String> whatToSanitize;
@@ -66,7 +64,6 @@ public class LoggingEventHandler {
             log.error(e.getMessage());
         }
     }
-
 
     private String sanitise(Map<String, Object> requestHeaders) {
         StringBuilder headers = new StringBuilder();

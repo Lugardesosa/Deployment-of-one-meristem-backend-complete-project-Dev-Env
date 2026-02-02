@@ -1,3 +1,31 @@
 
 server:
   port: 20010
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 30s
+            pool:
+              type: fixed
+              max-connections: 500     # adjust based on load
+              acquire-timeout: 60
+              max-idle-time: 30s
+              max-life-time: 5m
+            compression: true
+          default-filters:
+#            TODO: REMOVE
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+#                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+#                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+#                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback

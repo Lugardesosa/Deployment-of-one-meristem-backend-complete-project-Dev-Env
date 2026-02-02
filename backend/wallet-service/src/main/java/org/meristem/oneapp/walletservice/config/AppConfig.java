@@ -88,7 +88,7 @@ public class AppConfig {
                                 .bearerFormat("JWT")
                                 .description("This API uses OAuth 2 with the implicit grant flow.")
                                 .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
-                                                .concat("/oauth2/token")).scopes(new Scopes().addString("openid", "openid")))
+                                                .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
                                         .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
                                                 .concat("/oauth2/token"))))
                         )
