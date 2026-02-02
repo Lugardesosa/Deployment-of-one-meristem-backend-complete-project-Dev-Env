@@ -16,6 +16,9 @@ spring:
         initial-interval: 3000
         max-interval: 3500
 
+  jackson:
+    default-property-inclusion: non_null
+
   profiles:
     active: ${spring.cloud.config.profile}
 

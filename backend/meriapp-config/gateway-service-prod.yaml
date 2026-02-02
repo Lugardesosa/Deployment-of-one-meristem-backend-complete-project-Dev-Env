@@ -7,6 +7,17 @@ spring:
     gateway:
       server:
         webflux:
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 30s
+            pool:
+              type: fixed
+              max-connections: 500     # adjust based on load
+              acquire-timeout: 60
+              max-idle-time: 30s
+              max-life-time: 5m
+            compression: true
+
           default-filters:
             - name: RequestRateLimiter
               args:
