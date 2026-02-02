@@ -64,7 +64,7 @@ public class AppConfig {
         server.description("Trustees API Documentation");
 
         Contact contact = new Contact().url(serverUrl).email(email).name(serverAppName);
-        Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with users' wallets.");
+        Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with the trustees service.");
 
         final String securitySchemeName = "OAuth2 Security";
         return new OpenAPI().info(info).servers(List.of(server))
@@ -75,7 +75,7 @@ public class AppConfig {
                                 .bearerFormat("JWT")
                                 .description("This API uses OAuth 2 with the implicit grant flow.")
                                 .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
-                                                .concat("/oauth2/token")).scopes(new Scopes().addString("openid", "openid")))
+                                                .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
                                         .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
                                                 .concat("/oauth2/token"))))
                         )
