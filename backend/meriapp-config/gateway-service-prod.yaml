@@ -2,15 +2,20 @@
 server:
   port: 20010
 
-#spring:
-#  cloud:
-#    gateway:
-#      server:
-#        webflux:
-#          default-filters:
-#            - name: RequestRateLimiter
-#              args:
-#                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
-#                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
-#                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
-#                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback
