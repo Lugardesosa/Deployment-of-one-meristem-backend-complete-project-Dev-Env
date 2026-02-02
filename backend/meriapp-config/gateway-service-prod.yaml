@@ -1,9 +1,32 @@
 
 server:
   port: 20010
-  ssl:
-    key-store: classpath:keys/one-meristem-app.com-keystore.pkcs12
-    key-store-password: ${KEY_STORE_PASSWORD}
-    key-store-type: JKS
-    key-alias: ${SSL_KEY_ALIAS}
-    enabled: true
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 30s
+            pool:
+              type: fixed
+              max-connections: 500     # adjust based on load
+              acquire-timeout: 60
+              max-idle-time: 30s
+              max-life-time: 5m
+            compression: true
+
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback

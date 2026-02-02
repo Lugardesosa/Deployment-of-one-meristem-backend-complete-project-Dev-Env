@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class LoggingEventHandler {
             String responseMap = new String(event.getResponseBody(), StandardCharsets.UTF_8);
             responseMap = responseMap.isBlank() ? "{}" : responseMap;
 
-            boolean isJson = MediaType.APPLICATION_JSON_VALUE == event.getHeaders().get("content-type");
+            boolean isJson = MediaType.APPLICATION_JSON_VALUE.equals(event.getHeaders().get("content-type")) || isNull(event.getHeaders().get("content-type"));
             HashMap<String, Object> bodyRequest = isJson ? objectMapper.readValue(requestMap, new TypeReference<>() {
             }) : new HashMap<>();
             HashMap<String, Object> bodyResponse = isJson ? objectMapper.readValue(responseMap, new TypeReference<>() {

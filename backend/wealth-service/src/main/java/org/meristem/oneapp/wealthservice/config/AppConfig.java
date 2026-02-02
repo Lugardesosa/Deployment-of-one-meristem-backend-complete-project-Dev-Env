@@ -1,6 +1,5 @@
 package org.meristem.oneapp.wealthservice.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -37,7 +36,6 @@ public class AppConfig {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer(
@@ -61,10 +59,10 @@ public class AppConfig {
     ) {
         Server server = new Server();
         server.setUrl(serverUrl.concat(contextPath));
-        server.description("Trustees API Documentation");
+        server.description("Wealth API Documentation");
 
         Contact contact = new Contact().url(serverUrl).email(email).name(serverAppName);
-        Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with users' wallets.");
+        Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with wealth service.");
 
         final String securitySchemeName = "OAuth2 Security";
         return new OpenAPI().info(info).servers(List.of(server))
@@ -75,7 +73,7 @@ public class AppConfig {
                                 .bearerFormat("JWT")
                                 .description("This API uses OAuth 2 with the implicit grant flow.")
                                 .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
-                                                .concat("/oauth2/token")).scopes(new Scopes().addString("openid", "openid")))
+                                                .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
                                         .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
                                                 .concat("/oauth2/token"))))
                         )
