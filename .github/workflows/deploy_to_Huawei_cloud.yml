@@ -188,11 +188,12 @@ jobs:
           # ============================================================
           # SECTION 2: Grant Database Permissions
           # ============================================================
-          echo "Granting Database host file permissions to persist data on host..."
-          mkdir -p ./data/postgres ./data/redis ./data/kafka
-          chown -R 70:70 ./data/postgres/ || true
-          chown -R 777 ./data/redis/ || true
-          chown -R 1000:1000 ./data/kafka/ || true
+          ## Run once on new server (as root)
+          #echo "Granting Database host file permissions to persist data on host..."
+          #mkdir -p ./data/postgres ./data/redis ./data/kafka
+          #chown -R 70:70 ./data/postgres/ || true
+          #chmod -R 777 ./data/redis/ || true
+          #chown -R 1000:1000 ./data/kafka/ || true
 
           # ============================================================
           # SECTION 3: Enter Backend Directory
