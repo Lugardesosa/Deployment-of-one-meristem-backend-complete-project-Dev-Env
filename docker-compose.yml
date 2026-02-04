@@ -166,7 +166,7 @@ services:
       - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com/v1/
       - SMILE_ID_PROD_WHITELIST_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
       - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141
-      - SMILE_ID_DEV_CALLBACK_URL=https://www.onemerristem.merristem.com/api/users/onboard/smile-id/webhook
+      - SMILE_ID_DEV_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
