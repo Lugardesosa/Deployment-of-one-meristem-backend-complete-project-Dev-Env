@@ -62,11 +62,7 @@ public class AmlService implements IAmlService {
         String fullname = kycCompletedDto.firstName() + " " + kycCompletedDto.lastName();
         PastelAmlRequest request = PastelAmlRequest.builder().name(fullname).threshold(pastelProperties.threshold())
                 .limit(pastelProperties.limit()).callbackUrl(pastelProperties.callbackUrl()).build();
-//        PastelAmlResponse response = pastelClient.amlRiskMonitoring(request);
-
-        // TODO: DELETE
-        PastelAmlResponse response = new PastelAmlResponse("99ce37ca-06dd-44ac-a6fc-c858387e56d9");
-
+        PastelAmlResponse response = pastelClient.amlRiskMonitoring(request);
         amlSearchRepository.save(AmlSearch.builder().clientSearchId(response.checkId()).entityId(kycCompletedDto.userId()).build());
         log.info("Pastel request successfully completed {}", response);
     }
@@ -207,7 +203,8 @@ public class AmlService implements IAmlService {
         List<AmlResult> results = amlResultRepository.findAmlResultsByEntityIdAndSearchIdAndStatus(request.userId(), request.searchId(), AmlResultStatus.UNUSED.getValue());
         if (results.isEmpty()) {
             throw new BadRequestException("Aml details not found");
-        };
+        }
+        ;
         String decisionGroupId = UUID.randomUUID().toString();
 
         AmlDecision pep = AmlDecision.builder().decision(request.pep().amlDecision().getName())
