@@ -88,6 +88,10 @@ public class UsersService implements IUsersService {
 
         String bvn = encryptionUtil.encrypt(request.bvn());
 
+        if (idCardRepository.existsByIdValueHashed(request.bvn())) {
+            throw new BadRequestException("Bvn already exists.");
+        }
+
         BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
                 .email(request.email()).firstName(request.firstName()).lastName(request.lastName())
                 .phoneNumber(request.phoneNumber()).bvn(bvn)

@@ -44,4 +44,5 @@ public final class AppConstants {
             "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage");
     public static final Integer MAX_PIN_FAILED_ATTEMPTS_B4_LOCK = 5;
     public static final long PIN_LOCKED_MAX_TIME_IN_MINS = 20;
+    public static final String PASTEL = "PASTEL";
 }

@@ -41,6 +41,9 @@ one-app:
       api-key: ${PASTEL_API_KEY}
       secret: ${PASTEL_API_SECRET}
       client-name: Pastel
+      threshold: 80
+      limit: 10
+      callback-url: ${PASTEL_CALLBACK_URL}
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
     logo-url: ${GREEN_LOGO_URL}

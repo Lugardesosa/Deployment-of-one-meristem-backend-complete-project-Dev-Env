@@ -122,7 +122,7 @@ public class AuthorizationServerConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/oauth/token", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**", "/ws/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "/base/password-reset", "/onboard/smile-id/webhook", "/onboard/okhi/webhook").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "/base/password-reset", "/callback/**").permitAll()
                         .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/admin/**")).hasAnyRole("ADMIN", "SYSTEM_ADMIN", "AUDITOR", "COMPLIANCE_OFFICER")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> {

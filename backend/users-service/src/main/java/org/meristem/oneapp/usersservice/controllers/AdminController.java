@@ -12,6 +12,7 @@ import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.IAdminService;
+import org.meristem.oneapp.usersservice.services.implementations.AmlService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final IAdminService adminService;
+    private final AmlService amlService;
 
     @Operation(summary = "Update next of kin")
     @ApiResponses(value = {
@@ -160,4 +162,34 @@ public class AdminController {
         return ApiUtil.buildResponse(adminService.updateAdmin(request), HttpStatus.CREATED.toString(), "Successful");
     }
 
+    @Operation(summary = "Get user's aml results ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get user's aml results ")
+    })
+    @PreAuthorize("hasRole('ROLE_4004')")
+    @GetMapping(value = "/aml-results", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AmlResponse>> getAmlResults(@RequestParam("userId") Long userId) {
+        return ApiUtil.buildResponse(amlService.getAmlResults(userId), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+
+    @Operation(summary = "Get user's aml results ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Approve user's aml results ")
+    })
+    @PreAuthorize("hasRole('ROLE_4004')")
+    @PostMapping(value = "/aml-approval", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<AmlApprovalResponse>> approveAmlResults(@RequestBody @Valid AmlApprovalRequest request) {
+        return ApiUtil.buildResponse(amlService.approveAmlResults(request), HttpStatus.CREATED.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get user's aml results ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get user's Approve aml results ")
+    })
+    @PreAuthorize("hasRole('ROLE_4004')")
+    @GetMapping(value = "/aml-approval", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<GetAmlResponse>> getAmlApprovalResults(@RequestParam("userId") Long userId) {
+        return ApiUtil.buildResponse(amlService.getAmlApprovalResults(userId), HttpStatus.CREATED.toString(), "Successful");
+    }
 }

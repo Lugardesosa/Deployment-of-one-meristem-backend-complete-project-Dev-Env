@@ -10,9 +10,6 @@ import org.springframework.web.service.annotation.PostExchange;
 @HttpExchange(contentType = MediaType.APPLICATION_JSON_VALUE)
 public interface PastelClient {
 
-    @PostExchange("/aml/pep/instant")
-    PastelAmlResponse searchPepInstant(@RequestBody PastelAmlRequest request);
-
-    @PostExchange("/aml/sanction/instant")
-    PastelAmlResponse searchSanctionInstant(@RequestBody PastelAmlRequest request);
+    @PostExchange("/aml/risk-monitoring")
+    PastelAmlResponse amlRiskMonitoring(@RequestBody PastelAmlRequest request);
 }

@@ -26,7 +26,7 @@ public interface IOnboardingService {
      * @param request the webhook payload received from OkHi
      * @return a response indicating the processing outcome
      */
-    OkHiWebhookResponse handleOkhiWebhook(OkHiWebhookRequest request);
+    WebhookResponse handleOkhiWebhook(OkHiWebhookRequest request);
 
     /**
      * Retrieves a paginated list of supported countries.
