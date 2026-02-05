@@ -1,4 +1,7 @@
 package org.meristem.oneapp.usersservice.integrations.requests;
 
-public record PastelAmlRequest(String name, Integer threshold, String country) {
+import lombok.Builder;
+
+@Builder
+public record PastelAmlRequest(String name, Integer threshold, Integer limit, String callbackUrl) {
 }

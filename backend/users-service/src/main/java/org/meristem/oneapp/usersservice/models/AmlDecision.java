@@ -16,31 +16,36 @@ import java.util.Objects;
 @Table("aml_decision")
 public class AmlDecision extends BaseModel<String> {
 
-    private Long searchId;
-    private Long resultId;
+    private Long entityId;
     private String decision;
+    private String amlType;
     private String decidedBy;
+    private LocalDateTime decidedDate;
     private String reason;
+    private String decisionGroupId;
 
     @Builder
-    public AmlDecision(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long searchId, Long resultId, String decision, String decidedBy, String reason) {
+    public AmlDecision(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
+                       Long entityId, String decision, String decidedBy, LocalDateTime decidedDate, String reason, String decisionGroupId, String amlType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-        this.searchId = searchId;
-        this.resultId = resultId;
+        this.entityId = entityId;
         this.decision = decision;
         this.decidedBy = decidedBy;
+        this.decidedDate = decidedDate;
         this.reason = reason;
+        this.decisionGroupId = decisionGroupId;
+        this.amlType = amlType;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         AmlDecision that = (AmlDecision) o;
-        return Objects.equals(getSearchId(), that.getSearchId()) && Objects.equals(getResultId(), that.getResultId());
+        return Objects.equals(getDecisionGroupId(), that.getDecisionGroupId()) && Objects.equals(getEntityId(), that.getEntityId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSearchId(), getResultId());
+        return Objects.hash(getDecisionGroupId(), getEntityId());
     }
 }

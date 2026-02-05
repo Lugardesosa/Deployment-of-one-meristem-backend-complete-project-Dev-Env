@@ -13,23 +13,23 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table("aml_search")
-public class AmlSearch extends BaseModel<String> {
+@Table("aml_vendor")
+public class AmlVendor extends BaseModel<String> {
 
-    private Long entityId;
-    private String clientSearchId;
+    private String vendorName;
+    private String vendorCode;
 
     @Builder
-    public AmlSearch(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long entityId, String clientSearchId) {
+    public AmlVendor(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String vendorName, String vendorCode) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-        this.entityId = entityId;
-        this.clientSearchId = clientSearchId;
+        this.vendorName = vendorName;
+        this.vendorCode = vendorCode;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        AmlSearch amlVendor = (AmlSearch) o;
+        AmlVendor amlVendor = (AmlVendor) o;
         return Objects.equals(getId(), amlVendor.getId());
     }
 

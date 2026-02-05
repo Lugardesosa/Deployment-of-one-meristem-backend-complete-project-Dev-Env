@@ -71,7 +71,7 @@ public class OnboardingService implements IOnboardingService {
      * @throws BadRequestException if the event type is unknown or the referenced user cannot be found
      */
     @Transactional
-    public OkHiWebhookResponse handleOkhiWebhook(OkHiWebhookRequest request) {
+    public WebhookResponse handleOkhiWebhook(OkHiWebhookRequest request) {
 
         if (nonNull(httpServletRequest.getHeader("X-MERISTEM-KEY")) && !httpServletRequest.getHeader("X-MERISTEM-KEY").equals(okhiHeaderId)) {
             throw new BadRequestException("Invalid API key");
@@ -152,7 +152,7 @@ public class OnboardingService implements IOnboardingService {
             }
             default -> throw new BadRequestException("Unknown event type");
         }
-        return OkHiWebhookResponse.builder().message("Success").success(true).build();
+        return WebhookResponse.builder().message("Success").success(true).build();
     }
 
     /**

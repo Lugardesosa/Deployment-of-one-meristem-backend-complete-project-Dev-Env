@@ -17,71 +17,38 @@ public class AmlResult extends BaseModel<String> {
 
     private Long searchId;
 
-    private String vendorId;
+    private Long vendorId;
 
-    private String name;
-
-    private String dobs;
-
-    private String gender;
-
-    // comma separated
     private String entityType;
-
-    // comma separated
-    private String countries;
-
-    // comma separated
-    private String aliases;
-
-    private Boolean pep;
-
-    private Boolean sanctioned;
-
-    private String photo;
-
-    // comma separated
-    private String politicalParty;
-
-    private JsonNode education;
-
-    private JsonNode position;
-
-
-    private Integer confidenceScore;
+    private Long entityId;
 
     private JsonNode vendorDataset;
 
+    private String resultType;
+    private String vendorReference;
+
     @Builder
-    public AmlResult(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long searchId, String vendorId, String name, String dobs, String gender, String entityType, String countries, String aliases, Boolean pep, Boolean sanctioned, String photo, String politicalParty, JsonNode education, JsonNode position, Integer confidenceScore, JsonNode vendorDataset) {
+    public AmlResult(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long vendorId, Long searchId,
+                     String entityType, Long entityId, JsonNode vendorDataset, String vendorReference, String resultType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-        this.searchId = searchId;
         this.vendorId = vendorId;
-        this.name = name;
-        this.dobs = dobs;
-        this.gender = gender;
+        this.searchId = searchId;
         this.entityType = entityType;
-        this.countries = countries;
-        this.aliases = aliases;
-        this.pep = pep;
-        this.sanctioned = sanctioned;
-        this.photo = photo;
-        this.politicalParty = politicalParty;
-        this.education = education;
-        this.position = position;
-        this.confidenceScore = confidenceScore;
+        this.entityId = entityId;
         this.vendorDataset = vendorDataset;
+        this.vendorReference = vendorReference;
+        this.resultType = resultType;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         AmlResult amlResult = (AmlResult) o;
-        return Objects.equals(getSearchId(), amlResult.getSearchId()) && Objects.equals(getVendorId(), amlResult.getVendorId());
+        return Objects.equals(getId(), amlResult.getId()) && Objects.equals(getVendorId(), amlResult.getVendorId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSearchId(), getVendorId());
+        return Objects.hash(getId(), getVendorId());
     }
 }
