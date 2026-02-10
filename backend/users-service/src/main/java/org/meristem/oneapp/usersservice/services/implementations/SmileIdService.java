@@ -299,7 +299,7 @@ public class SmileIdService implements ISmileIdService {
 
 
         if (AppUtil.nonIsNull(notification.getIdNumber(), notification.getIdType())) {
-            idCardRepository.findByIdCardTypeAndIdValue(IdCardType.fromName(notification.getIdType()).getName(), notification.getIdNumber())
+            idCardRepository.findByIdCardTypeAndIdValueHashed(IdCardType.fromName(notification.getIdType()).getName(), hashingUtil.hmacWithSha256(idHashKey, notification.getIdNumber()))
                     .ifPresentOrElse(id -> {
                     }, () -> idCardRepository.save(IdCard.builder().idValue(encryptionUtil.encrypt(notification.getIdNumber()))
                             .idCardType(notification.getIdType())

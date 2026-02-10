@@ -93,7 +93,7 @@ public class HuaweiService implements IHuaweiService {
     }
 
     @Override
-    public boolean uploadFile(ByteArrayInputStream inputStream, FileType fileType, String objectKey) {
+    public boolean uploadFile(ByteArrayInputStream inputStream, FileType fileType, String objectKey, ObjectMetadata objectMetadata) {
 
         try (ObsClient obsClient = new ObsClient(huaweiConfigProperties.accessKeyId(), huaweiConfigProperties.accessSecretId(), huaweiConfigProperties.obsEndpoint())) {
             PutObjectRequest putObjectRequest = new PutObjectRequest();
@@ -101,6 +101,7 @@ public class HuaweiService implements IHuaweiService {
             putObjectRequest.setBucketName(bucketName);
             putObjectRequest.setObjectKey(objectKey);
             putObjectRequest.setInput(inputStream);
+            putObjectRequest.setMetadata(objectMetadata);
 
             PutObjectResult putObjectResult = obsClient.putObject(putObjectRequest);
             return putObjectResult.getStatusCode() == HttpURLConnection.HTTP_OK;
