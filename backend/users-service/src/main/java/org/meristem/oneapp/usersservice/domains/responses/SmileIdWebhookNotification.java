@@ -1,139 +1,150 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
+import org.meristem.oneapp.usersservice.integrations.responses.SmileIdEnhancedKycResponse;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public record SmileIdWebhookNotification(
+@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class SmileIdWebhookNotification implements Serializable {
 
         @JsonProperty("Actions")
-        Map<String, String> actions,
+        private Map<String, String> actions;
 
         @JsonProperty("ConfidenceValue")
-        String confidenceValue,
+        private String confidenceValue;
 
         @JsonProperty("PartnerParams")
-        PartnerParams partnerParams,
+        private PartnerParams partnerParams;
 
         @JsonProperty("ImageLinks")
-        ImageLinks imageLinks,
+        private ImageLinks imageLinks;
 
         @JsonProperty("ResultCode")
-        String resultCode,
+        private String resultCode;
 
         @JsonProperty("ResultText")
-        String resultText,
+        private String resultText;
 
         @JsonProperty("SmileJobID")
-        String smileJobId,
+        private String smileJobId;
 
         @JsonProperty("Source")
-        String source,
+        private String source;
 
         @JsonProperty("timestamp")
-        String timestamp,
+        private String timestamp;
 
         @JsonProperty("signature")
-        String signature,
+        private String signature;
 
         @JsonProperty("Country")
-        String country,
+        private String country;
 
         @JsonProperty("DOB")
-        String dob,
+        private String dateOfBirth;
 
         @JsonProperty("ExpirationDate")
-        String expirationDate,
+        private String expirationDate;
 
         @JsonProperty("FullName")
-        String fullName,
+        private String fullName;
 
         @JsonProperty("IDNumber")
-        String idNumber,
+        private String idNumber;
 
         @JsonProperty("IDType")
-        String idType,
+        private String idType;
 
         @JsonProperty("Photo")
-        String photo,
+        private String photo;
 
         @JsonProperty("Document")
-        String document,
+        private String document;
 
         @JsonProperty("Gender")
-        String gender,
+        private String gender;
 
         @JsonProperty("IssuanceDate")
-        String issuanceDate,
+        private String issuanceDate;
 
         @JsonProperty("KYCReceipt")
-        String kycReceipt,
+        private String kycReceipt;
 
         @JsonProperty("PhoneNumber2")
-        String phoneNumber2,
+        private String phoneNumber2;
 
         @JsonProperty("SecondaryIDNumber")
-        String secondaryIdNumber,
+        private String secondaryIdNumber;
 
         @JsonProperty("Address")
-        String address,
+        private String address;
 
         @JsonProperty("CountryOfBirth")
-        String countryOfBirth,
+        private String countryOfBirth;
 
         @JsonProperty("DateOfDeath")
-        String dateOfDeath,
+        private String dateOfDeath;
 
         @JsonProperty("Email")
-        String email,
+        private String email;
 
         @JsonProperty("FirstName")
-        String firstName,
+        private String firstName;
 
         @JsonProperty("IDNumberPreviouslyRegistered")
-        boolean idNumberPreviouslyRegistered,
+        private boolean idNumberPreviouslyRegistered;
 
         @JsonProperty("IDStatus")
-        String idStatus,
+        private String idStatus;
 
         @JsonProperty("IsAlive")
-        boolean isAlive,
+        private boolean isAlive;
 
         @JsonProperty("LastName")
-        String lastName,
+        private String lastName;
 
         @JsonProperty("LocalAreaOfOrigin")
-        String localAreaOfOrigin,
+        private String localAreaOfOrigin;
 
         @JsonProperty("Nationality")
-        String nationality,
+        private String nationality;
 
         @JsonProperty("Occupation")
-        String occupation,
+        private String occupation;
 
         @JsonProperty("OtherNames")
-        String otherNames,
+        private String middleName;
 
         @JsonProperty("PhoneNumber")
-        String phoneNumber,
+        private String phoneNumber;
 
         @JsonProperty("PlaceOfBirth")
-        String placeOfBirth,
+        private String placeOfBirth;
 
         @JsonProperty("PlaceOfIssuance")
-        String placeOfIssuance,
+        private String placeOfIssuance;
 
         @JsonProperty("RegionOfOrigin")
-        String regionOfOrigin,
+        private String regionOfOrigin;
 
         @JsonProperty("Title")
-        String title,
+        private String title;
 
         @JsonProperty("UserIDsOfPreviousRegistrants")
-        List<String> userIdsOfPreviousRegistrants
+        private List<String> userIdsOfPreviousRegistrants;
 
-) {
+        private String nin;
+        private String ninHashed;
+        private boolean emailVerified;
+        private boolean passwordSet;
 
     public record PartnerParams(
             @JsonProperty("job_id")
@@ -145,7 +156,7 @@ public record SmileIdWebhookNotification(
             // user email
             @JsonProperty("user_id")
             String userId
-    ) {}
+    ) implements Serializable{}
 
     public record ImageLinks(
         @JsonProperty("id_card_back")
@@ -156,5 +167,5 @@ public record SmileIdWebhookNotification(
 
         @JsonProperty("selfie_image")
         String selfieImage
-    ) {}
+    ) implements Serializable {}
 }

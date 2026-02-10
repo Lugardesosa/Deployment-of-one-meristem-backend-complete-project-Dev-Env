@@ -10,8 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.BvnQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
+import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
@@ -102,8 +101,8 @@ public class OnboardingController {
     })
     @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_1004')")
     @PostMapping(value = "/id-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<BvnQueryResponse>> bvnQuery(@RequestBody @Valid BvnQueryRequest request) {
-        return ApiUtil.buildResponse(smileIdService.bvnQuery(request), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<NinQueryResponse>> bvnQuery(@RequestBody @Valid IdQueryRequest request) {
+        return ApiUtil.buildResponse(smileIdService.idQuery(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get customer's id number")

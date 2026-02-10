@@ -14,8 +14,8 @@ import org.meristem.oneapp.usersservice.domains.enums.MessageSubject;
 import org.meristem.oneapp.usersservice.domains.enums.MessageType;
 import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
-import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
+import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
@@ -153,13 +153,13 @@ public class OtpService implements IOtpService {
 
         if (request.otpType().equals(MessageSubject.EMAIL_VERIFICATION.getCode())) {
             Cache cache = Objects.requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-            BvnQueryResponse bvnQueryResponse = cache.get(otpVerification.getUserId(), BvnQueryResponse.class);
-            if (bvnQueryResponse == null) {
+            SmileIdWebhookNotification ninQueryResponse = cache.get(otpVerification.getUserId(), SmileIdWebhookNotification.class);
+            if (ninQueryResponse == null) {
                 throw new AccessDeniedException("Initial sign up details not found.");
             }
-            bvnQueryResponse.setEmailVerified(true);
-            cache.put(otpVerification.getUserId(), bvnQueryResponse);
-            otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), bvnQueryResponse.getEmail(), bvnQueryResponse.getPhoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
+            ninQueryResponse.setEmailVerified(true);
+            cache.put(otpVerification.getUserId(), ninQueryResponse);
+            otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), ninQueryResponse.getEmail(), ninQueryResponse.getPhoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
             kafkaSenderService.send(new OtpVerifiedDto(otpVerification.getUserId()), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, otpVerification.getUserId()));
         }
 

@@ -5,10 +5,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
-import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.CountriesResponse;
-import org.meristem.oneapp.usersservice.domains.responses.StatesResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.models.Countries;
 import org.meristem.oneapp.usersservice.models.CountryStates;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -27,5 +24,5 @@ public interface UsersMapping {
 
     List<StatesResponse> countryStatesToStatesResponseResponse(List<CountryStates> content);
 
-    Users bvnQueryResponseToUsers(BvnQueryResponse bvnQueryResponse);
+    Users ninQueryResponseToUsers(SmileIdWebhookNotification ninQueryResponse);
 }

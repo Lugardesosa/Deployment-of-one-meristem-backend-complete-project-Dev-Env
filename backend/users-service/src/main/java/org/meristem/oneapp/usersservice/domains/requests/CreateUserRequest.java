@@ -2,9 +2,7 @@ package org.meristem.oneapp.usersservice.domains.requests;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import org.meristem.oneapp.usersservice.validations.constraints.Email;
 import org.meristem.oneapp.usersservice.validations.constraints.Name;
@@ -19,7 +17,7 @@ public record CreateUserRequest(@Schema(example = "johndoe@gmail.com", descripti
                                 @Schema(example = "Obus", description = "Users middle name") @Name(message = "alphabets allowed") @Size(max = 150, message = "cannot be more than 150") String middleName,
                                 @Schema(example = "+2349098989876", description = "Pass the user's phone number. can be 08123456545, 2348123456545, +2348123456545") @NotBlank(message = "cannot be null") @PhoneNumberNG @Size(min = 11, max = 14, message = "cannot be less than 1 and more than 14") String phoneNumber,
                                 @Schema(example = "MW-ABISOLAZ52", description = "Enter the user referral code of the user that referred you.") @Pattern(regexp = "^MW-\\w{0,14}$") String referralCode,
-                                @Schema(description = "Enter the bvn details returned earlier.") @NotBlank(message = "Kindly pass this value returned earlier") String bvn) {
+                                @Schema(description = "Enter the nin details returned earlier.") @NotBlank(message = "Kindly pass this value returned earlier") @Pattern(regexp = "[0-9]{11}") String nin) {
     @Override
     public String phoneNumber() {
         return phoneNumber.replace("+", "");
@@ -40,7 +38,7 @@ public record CreateUserRequest(@Schema(example = "johndoe@gmail.com", descripti
     }
 
     @Override
-    public String bvn() {
-        return bvn.trim();
+    public String nin() {
+        return nin.trim();
     }
 }
