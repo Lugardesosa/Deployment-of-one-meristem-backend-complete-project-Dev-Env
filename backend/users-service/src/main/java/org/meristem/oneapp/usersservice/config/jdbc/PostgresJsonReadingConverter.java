@@ -19,8 +19,10 @@ public class PostgresJsonReadingConverter implements Converter<PGobject, JsonNod
     @Override
     public @Nullable JsonNode convert(@NonNull PGobject source) {
         try {
-            String json = source.getValue();
-            return mapper.valueToTree(json);
+            if (source.getValue() == null) {
+                return null;
+            }
+            return mapper.readTree(source.getValue());
         } catch (Exception e) {
             throw new IllegalArgumentException("JSON deserialization failed", e);
         }

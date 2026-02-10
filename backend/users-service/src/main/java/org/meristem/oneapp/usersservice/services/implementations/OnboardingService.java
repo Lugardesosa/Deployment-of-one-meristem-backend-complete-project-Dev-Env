@@ -71,7 +71,7 @@ public class OnboardingService implements IOnboardingService {
      * @throws BadRequestException if the event type is unknown or the referenced user cannot be found
      */
     @Transactional
-    public OkHiWebhookResponse handleOkhiWebhook(OkHiWebhookRequest request) {
+    public WebhookResponse handleOkhiWebhook(OkHiWebhookRequest request) {
 
         if (nonNull(httpServletRequest.getHeader("X-MERISTEM-KEY")) && !httpServletRequest.getHeader("X-MERISTEM-KEY").equals(okhiHeaderId)) {
             throw new BadRequestException("Invalid API key");
@@ -109,9 +109,11 @@ public class OnboardingService implements IOnboardingService {
             case OkhiEventTypes.ADDRESS_VERIFICATION_STARTED -> {
 
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-                addressRepository.findByUserId(users.getId()).ifPresent(address -> {
+                addressRepository.findByUserId(users.getId()).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.PENDING.getValue());
                     addressRepository.save(address);
+                }, () -> {
+                    throw new BadRequestException("Address not found.");
                 });
             }
 
@@ -145,14 +147,16 @@ public class OnboardingService implements IOnboardingService {
 
                 userOnboardingRepository.updateUserOnboardingStatus(userId, requirements.getId(), OnboardingStatus.REJECTED.getValue(), false);
 
-                addressRepository.findByUserId(userId).ifPresent(address -> {
+                addressRepository.findByUserId(userId).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.CANCELLED.getValue());
                     addressRepository.save(address);
+                }, () -> {
+                    throw new BadRequestException("Address not found");
                 });
             }
             default -> throw new BadRequestException("Unknown event type");
         }
-        return OkHiWebhookResponse.builder().message("Success").success(true).build();
+        return WebhookResponse.builder().message("Success").success(true).build();
     }
 
     /**

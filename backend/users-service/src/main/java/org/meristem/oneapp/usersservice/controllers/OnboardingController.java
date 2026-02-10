@@ -10,8 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.BvnQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
+import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
@@ -53,24 +52,6 @@ public class OnboardingController {
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> getSmileIdToken(@RequestBody @Valid SmileIdIdRequest smileRequest) {
         return ApiUtil.buildResponse(smileIdService.saveSmileIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
-    }
-
-    @Operation(summary = "Smile Id webhook")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows Smile Id to send webhook notifications to us")
-    })
-    @PostMapping(value = "/smile-id/webhook", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<SmileIdWebhookResponse>> smileIdWebhook(@RequestBody @Valid SmileIdWebhookNotification request) {
-        return ApiUtil.buildResponse(smileIdService.handleWebhook(request), HttpStatus.OK.toString(), "Request successful");
-    }
-
-    @Operation(summary = "Ok Hi webhook")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Allows OkHi to send webhook notifications to us")
-    })
-    @PostMapping(value = "/okhi/webhook", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<OkHiWebhookResponse>> okhiWebhook(@RequestBody @Valid OkHiWebhookRequest request) {
-        return ApiUtil.buildResponse(onboardingService.handleOkhiWebhook(request), HttpStatus.OK.toString(), "Request successful");
     }
 
     @Hidden
@@ -119,9 +100,9 @@ public class OnboardingController {
             @ApiResponse(responseCode = "200", description = "Query BVN Details")
     })
     @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_1004')")
-    @PostMapping(value = "/bvn-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<BvnQueryResponse>> bvnQuery(@RequestBody @Valid BvnQueryRequest request) {
-        return ApiUtil.buildResponse(smileIdService.bvnQuery(request), HttpStatus.OK.toString(), "Successful");
+    @PostMapping(value = "/id-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<NinQueryResponse>> bvnQuery(@RequestBody @Valid IdQueryRequest request) {
+        return ApiUtil.buildResponse(smileIdService.idQuery(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get customer's id number")

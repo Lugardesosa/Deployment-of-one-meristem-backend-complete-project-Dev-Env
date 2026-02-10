@@ -19,7 +19,7 @@ public class H2JsonReadingConverter implements Converter<String, JsonNode> {
     @Override
     public @Nullable JsonNode convert(@NonNull String source) {
         try {
-            return mapper.readValue(source, JsonNode.class);
+            return mapper.readTree(source);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("JSON deserialization failed", e);
         }

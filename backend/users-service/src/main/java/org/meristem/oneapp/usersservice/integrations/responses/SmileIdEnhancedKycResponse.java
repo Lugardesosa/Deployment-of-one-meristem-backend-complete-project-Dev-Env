@@ -22,7 +22,7 @@ public record SmileIdEnhancedKycResponse(
         String countryOfBirth,
 
         @JsonProperty("DOB")
-        String dob,
+        String dateOfBirth,
 
         @JsonProperty("DateOfDeath")
         String dateOfDeath,

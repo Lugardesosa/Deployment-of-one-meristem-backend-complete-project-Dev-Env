@@ -38,10 +38,12 @@ public final class AppConstants {
     public static final String APPLICATION_JSON_UTF8_VALUE = "application/json;charset=UTF-8";
     public static final String AVATAR_CACHE_NAME = "avatars";
     public static final String SIGN_UP_CACHE_NAME = "sign-ups";
+    public static final String SMILE_ID_ID_QUERY_CACHE_NAME = "smile-id-id-query";
     public static final String SETTINGS_CACHE_NAME = "settings";
     public static final String USER_ROLE = "USER";
     public static final List<String> MOBILE_N_WEB_ROLES = List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user",
             "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage");
     public static final Integer MAX_PIN_FAILED_ATTEMPTS_B4_LOCK = 5;
     public static final long PIN_LOCKED_MAX_TIME_IN_MINS = 20;
+    public static final String PASTEL = "PASTEL";
 }

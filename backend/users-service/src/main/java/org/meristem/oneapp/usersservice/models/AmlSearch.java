@@ -16,28 +16,21 @@ import java.util.Objects;
 @Table("aml_search")
 public class AmlSearch extends BaseModel<String> {
 
-    private String subjectType;
-    private String subjectReference;
-    private String searchType;
-    private String vendor;
-    private LocalDateTime completedDate;
-
+    private Long entityId;
+    private String clientSearchId;
 
     @Builder
-    public AmlSearch(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String subjectType, String subjectReference, String searchType, String vendor, LocalDateTime completedDate) {
+    public AmlSearch(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long entityId, String clientSearchId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
-        this.subjectType = subjectType;
-        this.subjectReference = subjectReference;
-        this.searchType = searchType;
-        this.vendor = vendor;
-        this.completedDate = completedDate;
+        this.entityId = entityId;
+        this.clientSearchId = clientSearchId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        AmlSearch amlSearch = (AmlSearch) o;
-        return Objects.equals(getId(), amlSearch.getId());
+        AmlSearch amlVendor = (AmlSearch) o;
+        return Objects.equals(getId(), amlVendor.getId());
     }
 
     @Override

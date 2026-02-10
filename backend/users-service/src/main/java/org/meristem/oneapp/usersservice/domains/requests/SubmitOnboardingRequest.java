@@ -12,6 +12,6 @@ public record SubmitOnboardingRequest(@Schema(example = "1", description = "Pass
                                       @Schema(example = "http://placeimg.com/640/480", description = "The url where the document linked to this onboarding flow was uploaded to") @URL(message = "provide a valid url", regexp = AppConstants.URL_REGEX_PATTERN) String documentUrl,
                                       @Schema(description = "Pass the user's address if submitting address verification") @Valid AddressRequest addressRequest,
                                       @Schema(description = "Pass the user's id request if submitting id verification") @Valid IdRequest idRequest,
-                                      @Schema(description = "Pass the user's details from their bvn") @Valid BvnUserRequest userBvnRequest) {
+                                      @Schema(description = "Pass the user's details from their nin") @Valid BvnUserRequest userBvnRequest) {
 }
 

@@ -7,9 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
-import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
-import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
-import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -17,9 +14,12 @@ import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
+import org.meristem.oneapp.usersservice.services.IIdDetailsService;
 import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
@@ -56,9 +56,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Transactional
 public class UsersService implements IUsersService {
 
-    @Value("${hashing.id-hash-key}")
-    private String idHashKey;
-
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
     private final OtpVerificationRepository otpVerificationRepository;
@@ -74,10 +71,13 @@ public class UsersService implements IUsersService {
     private final HuaweiService huaweiService;
     private final GeneralRepository generalRepository;
     private final CustomRepository customRepository;
-    private final EncryptionUtil encryptionUtil;
-    private final HashingUtil hashingUtil;
     private final IdCardRepository idCardRepository;
     private final UserPinRepository userPinRepository;
+    private final IIdDetailsService idDetailsService;
+    private final HashingUtil hashingUtil;
+
+    @Value("${hashing.id-hash-key}")
+    private String idHashKey;
 
     public  UpdateResponse create(CreateUserRequest request) {
 
@@ -86,13 +86,20 @@ public class UsersService implements IUsersService {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        String bvn = encryptionUtil.encrypt(request.bvn());
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
-        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
-                .email(request.email()).firstName(request.firstName()).lastName(request.lastName())
-                .phoneNumber(request.phoneNumber()).bvn(bvn)
-                .bvnHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn())).build();
-        requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
+        SmileIdWebhookNotification ninQueryResponse = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.nin()), SmileIdWebhookNotification.class);
+
+        if (ninQueryResponse == null) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Nin", request.nin().substring(0, 3) + "*****" + request.nin().substring(8, 11));
+        }
+
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(request.nin(), IdCardType.NIN.getName())) {
+            throw new BadRequestException("Nin already exists.");
+        }
+
+        cache.evict(ninQueryResponse.getNinHashed());
+        requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), ninQueryResponse);
 
         log.info("First stage of User with email {} created ", request.email());
         return UpdateResponse.builder().success(true).message("Successful").build();
@@ -103,40 +110,41 @@ public class UsersService implements IUsersService {
 
         log.info("User with email {} started stage 2", userRequest.email());
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-        BvnQueryResponse bvnQueryResponse = cache.get(userRequest.email(), BvnQueryResponse.class);
+        SmileIdWebhookNotification ninQueryResponse = cache.get(userRequest.email(), SmileIdWebhookNotification.class);
 
-        if (bvnQueryResponse == null) {
+        if (ninQueryResponse == null) {
             throw new ResourceNotFoundException("Initial sign up details not found.", "Email", userRequest.email());
         }
 
-        if (!bvnQueryResponse.isEmailVerified()) {
+        if (!ninQueryResponse.isEmailVerified()) {
             throw new BadRequestException("Email not verified.");
         }
-        Users user = usersMapper.bvnQueryResponseToUsers(bvnQueryResponse);
+        Users user = usersMapper.ninQueryResponseToUsers(ninQueryResponse);
 
         user.setPassword(passwordEncoder.encode(userRequest.password()));
-        save(user, bvnQueryResponse.getBvn(), bvnQueryResponse.getBvnHashed());
-        log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
+        save(user, ninQueryResponse.getNin(), ninQueryResponse.getNinHashed());
+        idDetailsService.saveIdDetails(ninQueryResponse, user);
         cache.evict(userRequest.email());
+        log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
-    public  UsersResponse save(Users user, String bvn, String bvnHashed) {
+    public  UsersResponse save(Users user, String nin, String ninHashed) {
         log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        if (idCardRepository.existsByIdValueHashed(bvnHashed)) {
-            throw new BadRequestException("Bvn already exists.");
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(ninHashed, IdCardType.NIN.getName())) {
+            throw new BadRequestException("Nin already exists.");
         }
 
         user.setStatus(UserStatus.KYC_NOT_COMPLETED.getValue());
         user = usersRepository.save(user);
 
-        idCardRepository.save(IdCard.builder().idValue(bvn)
-                .idCardType(IdCardType.BVN.getName())
-                .userId(user.getId()).idValueHashed(bvnHashed)
+        idCardRepository.save(IdCard.builder().idValue(nin)
+                .idCardType(IdCardType.NIN.getName())
+                .userId(user.getId()).idValueHashed(ninHashed)
                 .build());
 
         String referralCode;
@@ -175,7 +183,7 @@ public class UsersService implements IUsersService {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
-        BvnQueryResponse response = cache.get(userRequest.oldEmail(), BvnQueryResponse.class);
+        SmileIdWebhookNotification response = cache.get(userRequest.oldEmail(), SmileIdWebhookNotification.class);
 
         if (response == null) {
             throw new AccessDeniedException("Initial sign up details not found.");
@@ -631,13 +639,13 @@ public class UsersService implements IUsersService {
     public StageResponse processDetails(String email) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-        BvnQueryResponse bvnQueryResponse = cache.get(email, BvnQueryResponse.class);
+        SmileIdWebhookNotification ninQueryResponse = cache.get(email, SmileIdWebhookNotification.class);
 
-        if (bvnQueryResponse == null) {
+        if (ninQueryResponse == null) {
             throw new AccessDeniedException("Initial sign up details not found.");
         }
 
-        if (!bvnQueryResponse.isEmailVerified()) {
+        if (!ninQueryResponse.isEmailVerified()) {
             return new StageResponse(OnboardingStage.EMAIL);
         }
         return new StageResponse(OnboardingStage.PASSWORD);

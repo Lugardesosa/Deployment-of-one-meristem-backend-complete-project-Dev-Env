@@ -1,12 +1,12 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
 import com.obs.services.ObsClient;
-import com.obs.services.model.HttpMethodEnum;
-import com.obs.services.model.TemporarySignatureRequest;
-import com.obs.services.model.TemporarySignatureResponse;
+import com.obs.services.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
+import org.apache.tika.Tika;
 import org.meristem.oneapp.usersservice.config.configProperties.HuaweiConfigProperties;
 import org.meristem.oneapp.usersservice.domains.enums.FileType;
 import org.meristem.oneapp.usersservice.domains.enums.SignedUrlType;
@@ -18,7 +18,10 @@ import org.meristem.oneapp.usersservice.services.IHuaweiService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +59,7 @@ public class HuaweiService implements IHuaweiService {
 
         try (ObsClient obsClient = new ObsClient(huaweiConfigProperties.accessKeyId(), huaweiConfigProperties.accessSecretId(), huaweiConfigProperties.obsEndpoint())) {
 
-            String userEmail = (AppUtil.getLoggedInUserEmail().split("@")[0]).replaceAll("[!#$%&'*+-/=?^_`{|}~]", "");
+            String userEmail = sanitiseEmail(AppUtil.getLoggedInUserEmail());
 
             TemporarySignatureRequest request = new TemporarySignatureRequest(signedUrlRequest.method(), huaweiConfigProperties.signedUrlTtlSec());
 
@@ -87,5 +90,38 @@ public class HuaweiService implements IHuaweiService {
             throw new BadRequestException("Signed key url could not be generated");
         }
 
+    }
+
+    @Override
+    public boolean uploadFile(ByteArrayInputStream inputStream, FileType fileType, String objectKey, ObjectMetadata objectMetadata) {
+
+        try (ObsClient obsClient = new ObsClient(huaweiConfigProperties.accessKeyId(), huaweiConfigProperties.accessSecretId(), huaweiConfigProperties.obsEndpoint())) {
+            PutObjectRequest putObjectRequest = new PutObjectRequest();
+            String bucketName = List.of(FileType.IMAGE.getValue(), FileType.PROFILE_PICTURE.getValue()).contains(fileType.getValue()) ? huaweiConfigProperties.imagesBucketName() : huaweiConfigProperties.documentBucketName();
+            putObjectRequest.setBucketName(bucketName);
+            putObjectRequest.setObjectKey(objectKey);
+            putObjectRequest.setInput(inputStream);
+            putObjectRequest.setMetadata(objectMetadata);
+
+            PutObjectResult putObjectResult = obsClient.putObject(putObjectRequest);
+            return putObjectResult.getStatusCode() == HttpURLConnection.HTTP_OK;
+
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public static String detectContentType(InputStream fileBytes) {
+        Tika tika = new Tika();
+        try  {
+            return tika.detect(fileBytes);
+        } catch (Exception e) {
+            log.error("Could not detect content type", e);
+            return "application/octet-stream";
+        }
+    }
+
+    public static String sanitiseEmail(String email) {
+        return StringUtils.isBlank(email)  ? "" : email.split("@")[0].replaceAll("[!#$%&'*+-/=?^_`{|}~]", "");
     }
 }

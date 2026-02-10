@@ -26,4 +26,4 @@ resilience4j:
   timelimiter:
     configs:
       default:
-        timeoutDuration: 30s
+        timeoutDuration: 180s

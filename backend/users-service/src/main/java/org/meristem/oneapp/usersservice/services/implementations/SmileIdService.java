@@ -5,13 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.kafka.dtos.WebSocketDto;
-import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
-import org.meristem.oneapp.usersservice.domains.requests.BvnQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
-import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
+import org.meristem.oneapp.usersservice.domains.responses.NinQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
 import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
@@ -19,14 +18,14 @@ import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
-import org.meristem.oneapp.usersservice.integrations.responses.SmileIdEnhancedKycResponse;
-import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
+import org.meristem.oneapp.usersservice.services.IIdDetailsService;
 import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.ISmileIdService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
@@ -65,6 +64,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class SmileIdService implements ISmileIdService {
 
     public static final String ID_APPROVED_STATUS = "1012";
@@ -91,13 +91,12 @@ public class SmileIdService implements ISmileIdService {
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
     private final IUsersService usersService;
-    private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
-    private final CustomRepository customRepository;
     private final HttpServletRequest httpServletRequest;
     private final IKafkaSenderService kafkaSenderService;
     private final SmileIdClient smileIdClient;
-    private final SmileIdProperties smileIdProperties;
     private final HashingUtil hashingUtil;
+    private final EncryptionUtil encryptionUtil;
+    private final IIdDetailsService  idDetailsService;
 
     List<String> dataStatus = List.of(ID_APPROVED_STATUS, DOCUMENT_APPROVED_STATUS);
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
@@ -108,28 +107,32 @@ public class SmileIdService implements ISmileIdService {
     @Value("${spring.profiles.active}")
     private String activeProfiles;
 
-    public BvnQueryResponse bvnQuery(BvnQueryRequest request) {
+    public NinQueryResponse idQuery(IdQueryRequest request) {
 
-        if ("prod".equalsIgnoreCase(activeProfiles) && idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, request.bvn()))) {
+        if ("prod".equalsIgnoreCase(activeProfiles) && idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.id()), IdCardType.NIN.getName())) {
             throw new BadRequestException("Bvn already exists.");
         }
-        SmileIdEnhancedKycRequest.PartnerParams  partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
+        SmileIdEnhancedKycRequest.PartnerParams partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
                 .job_id(UUID.randomUUID().toString())
                 .job_type(ENHANCED_JOB_TYPE)
                 .user_id(UUID.randomUUID().toString())
                 .build();
         String timestamp = AppUtil.getSmileIdTimestamp();
-        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.bvn(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
+        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.id(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
 
-        SmileIdEnhancedKycResponse response = smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
+        SmileIdWebhookNotification response = smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
 
-        if (ID_APPROVED_STATUS.equals(response.resultCode()) && confirmSignature(response.signature(), response.timestamp())) {
+        if (ID_APPROVED_STATUS.equals(response.getResultCode()) && confirmSignature(response.getSignature(), response.getTimestamp())) {
 
-            return BvnQueryResponse.builder()
-                    .email(response.email()).firstName(response.firstName()).lastName(response.lastName())
-                    .phoneNumber(response.phoneNumber()).build();
-        } else if (errorCodes.contains(response.resultCode())) {
-            throw new BadRequestException("Enter a valid bvn");
+            response.setNin(encryptionUtil.encrypt(request.id()));
+            response.setNinHashed(hashingUtil.hmacWithSha256(idHashKey, request.id()));
+            requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(response.getNinHashed(), response);
+
+            return NinQueryResponse.builder().middleName(response.getMiddleName())
+                    .email(response.getEmail()).firstName(response.getFirstName()).lastName(response.getLastName())
+                    .phoneNumber(response.getPhoneNumber()).build();
+        } else if (errorCodes.contains(response.getResultCode())) {
+            throw new BadRequestException("Enter a valid nin");
         } else {
             throw new BadRequestException("Try again later.");
         }
@@ -140,7 +143,7 @@ public class SmileIdService implements ISmileIdService {
      *
      * @param smileRequest The request containing job ID and requirement id for verification.
      * @return A {@link UpdateResponse} containing a successful message.
-     * @throws BadRequestException If the ID card already exists or the requirement is already completed.
+     * @throws BadRequestException      If the ID card already exists or the requirement is already completed.
      * @throws UpstreamServiceException If the token generation fails.
      */
     @Transactional
@@ -167,27 +170,27 @@ public class SmileIdService implements ISmileIdService {
 
         String smileIdWebhookUrl = "/topic/smile-id/";
         try {
-            SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.partnerParams().jobId());
-            if (!confirmSignature(request.signature(), request.timestamp()) || !smileIps.contains(AppUtil.extractIp(httpServletRequest))) {
+            SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.getPartnerParams().jobId());
+            if (!confirmSignature(request.getSignature(), request.getTimestamp()) || !smileIps.contains(AppUtil.extractIp(httpServletRequest))) {
                 return new SmileIdWebhookResponse("Failed", false);
             }
-            if (rejectionsStatus.contains(request.resultCode())) {
+            if (rejectionsStatus.contains(request.getResultCode())) {
                 handleFailedNotification(request, record);
-            } else if (actionStatus.contains(request.resultCode()) || dataStatus.contains(request.resultCode())) {
+            } else if (actionStatus.contains(request.getResultCode()) || dataStatus.contains(request.getResultCode())) {
                 handleSuccessfulNotification(request, record);
                 response = new SmileIdWebhookResponse("Success", true);
-                WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
+                WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.getPartnerParams().jobId(), response);
                 kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, record.getJobId()));
                 return response;
             }
         } catch (RuntimeException e) {
-            WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
-            kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, request.partnerParams().jobId()));
+            WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.getPartnerParams().jobId(), response);
+            kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, request.getPartnerParams().jobId()));
             log.error(e.getMessage(), e);
             throw new BadRequestException("Bad request: invalid request");
         }
-        WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.partnerParams().jobId(), response);
-        kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, request.partnerParams().jobId()));
+        WebSocketDto responseWebSocketDto = new WebSocketDto(smileIdWebhookUrl + request.getPartnerParams().jobId(), response);
+        kafkaSenderService.send(responseWebSocketDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_SMILE_ID_TOPIC, KafkaHeaders.KEY, request.getPartnerParams().jobId()));
 
         return response;
     }
@@ -195,12 +198,12 @@ public class SmileIdService implements ISmileIdService {
     /**
      * Handles failed webhook notifications by updating the Smile ID record and user onboarding status.
      *
-     * @param notification The webhook notification containing failure details.
+     * @param notification  The webhook notification containing failure details.
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleFailedNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-        smileIdRecord.setMessage(notification.resultText());
+        smileIdRecord.setMessage(notification.getResultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.FAILED.getValue());
         userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.REJECTED.getValue(), false);
         smileIdRecordRepository.save(smileIdRecord);
@@ -209,43 +212,35 @@ public class SmileIdService implements ISmileIdService {
     /**
      * Handles successful webhook notifications by processing the action or data based on the job type.
      *
-     * @param notification The webhook notification containing success details.
+     * @param notification  The webhook notification containing success details.
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleSuccessfulNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
 
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
 
-        if (actionStatus.contains(notification.resultCode())) {
+        if (actionStatus.contains(notification.getResultCode())) {
             handleAction(notification, smileIdRecord);
-        } else if (dataStatus.contains(notification.resultCode()) && DOC_AND_ENHANCED_JOB_TYPES.contains(notification.partnerParams().jobType())) {
-            saveUserIdDetails(notification, smileIdRecord, loggedInUser);
-        } else if (dataStatus.contains(notification.resultCode())){
+        } else if (dataStatus.contains(notification.getResultCode()) && DOC_AND_ENHANCED_JOB_TYPES.contains(notification.getPartnerParams().jobType())) {
+            saveUserIdDetailsAndCompleteOnboarding(notification, smileIdRecord, loggedInUser);
+        } else if (dataStatus.contains(notification.getResultCode())) {
             handleData(notification, smileIdRecord);
         }
     }
 
-    private void saveUserIdDetails(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, Users loggedInUser) {
+    private void saveUserIdDetailsAndCompleteOnboarding(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, Users loggedInUser) {
 
 
-        if (StringUtils.isNotBlank(notification.expirationDate()) && notification.expirationDate().matches(AppConstants.DATE_REGEX)) {
+        // If card has expired, reset the onboarding process
+        if (StringUtils.isNotBlank(notification.getExpirationDate()) && notification.getExpirationDate().matches(AppConstants.DATE_REGEX)) {
 
-            if (LocalDate.parse(notification.expirationDate()).isBefore(LocalDate.now())) {
+            if (LocalDate.parse(notification.getExpirationDate()).isBefore(LocalDate.now())) {
                 usersService.resetUserOnboarding(loggedInUser.getEmail(), smileIdRecord.getRequirementId());
                 return;
             }
         }
 
-        customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.fromName(notification.idType()).getName(), "idNumber", notification.idNumber()))
-                .ifPresentOrElse(u -> {
-                }, () -> {
-                    UserIdDetails userIdDetails = userIdDetailsMapper.smileIdWebhookNotificationToUserIdDetails(notification);
-                    userIdDetails.setIdType(IdCardType.fromName(notification.idType()).getName());
-                    userIdDetails.setGender(Gender.getGender(notification.gender()).getCaps());
-
-                    userIdDetails.setUserId(loggedInUser.getId());
-                    customRepository.save(userIdDetails);
-                });
+        idDetailsService.saveIdDetails(notification, loggedInUser);
 
         completeOnboarding(smileIdRecord, loggedInUser);
     }
@@ -253,17 +248,17 @@ public class SmileIdService implements ISmileIdService {
     /**
      * Processes action-based webhook notifications and completes user onboarding.
      *
-     * @param notification The webhook notification containing action details.
+     * @param notification  The webhook notification containing action details.
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
 
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
 
-        if (DOCUMENT_JOB_TYPE.equals(notification.partnerParams().jobType())) {
-            saveUserIdDetails(notification, smileIdRecord, loggedInUser);
+        if (DOCUMENT_JOB_TYPE.equals(notification.getPartnerParams().jobType())) {
+            saveUserIdDetailsAndCompleteOnboarding(notification, smileIdRecord, loggedInUser);
         }
-        smileIdRecord.setMessage(notification.resultText());
+        smileIdRecord.setMessage(notification.getResultText());
         smileIdRecord.setStatus(SmileIdRecordStatus.APPROVED.getValue());
         smileIdRecordRepository.save(smileIdRecord);
         completeOnboarding(smileIdRecord, loggedInUser);
@@ -272,69 +267,72 @@ public class SmileIdService implements ISmileIdService {
     /**
      * Processes data-based webhook notifications and updates user documents or profiles.
      *
-     * @param notification The webhook notification containing data details.
+     * @param notification  The webhook notification containing data details.
      * @param smileIdRecord The Smile ID record associated with the notification.
      */
     private void handleData(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
         requirementsRepository.findByIdAndStatus(smileIdRecord.getRequirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
-        // Save document url for non bvn requirement
+        // Save document url for non nin requirement
         Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
 
-        userDocumentRepository.findByUserIdAndIdType(loggedInUser.getId(), notification.idType())
+        userDocumentRepository.findByUserIdAndIdType(loggedInUser.getId(), notification.getIdType())
                 .ifPresentOrElse(id -> {
-                    id.setAdditionalUrl(notification.kycReceipt());
-                    if (nonNull(notification.imageLinks())) {
-                        id.setIdCardFront(notification.imageLinks().idCardImage());
-                        id.setIdCardBack(notification.imageLinks().idCardBack());
-                        id.setSelfieImage(notification.imageLinks().selfieImage());
+                    id.setAdditionalUrl(notification.getKycReceipt());
+                    if (nonNull(notification.getImageLinks())) {
+                        id.setIdCardFront(notification.getImageLinks().idCardImage());
+                        id.setIdCardBack(notification.getImageLinks().idCardBack());
+                        id.setSelfieImage(notification.getImageLinks().selfieImage());
                     }
                     userDocumentRepository.save(id);
                 }, () -> {
                     UserDocument document = UserDocument.builder().userId(loggedInUser.getId()).requirementId(smileIdRecord.getRequirementId())
-                            .idType(notification.idType()).additionalUrl(notification.kycReceipt()).build();
-                    if (nonNull(notification.imageLinks())) {
-                        document.setIdCardFront(notification.imageLinks().idCardImage());
-                        document.setIdCardBack(notification.imageLinks().idCardBack());
-                        document.setSelfieImage(notification.imageLinks().selfieImage());
+                            .idType(notification.getIdType()).additionalUrl(notification.getKycReceipt()).build();
+                    if (nonNull(notification.getImageLinks())) {
+                        document.setIdCardFront(notification.getImageLinks().idCardImage());
+                        document.setIdCardBack(notification.getImageLinks().idCardBack());
+                        document.setSelfieImage(notification.getImageLinks().selfieImage());
                     }
                     userDocumentRepository.save(document);
                 });
 
 
-        if (AppUtil.nonIsNull(notification.idNumber(), notification.idType())) {
-            idCardRepository.findByIdCardTypeAndIdValue(IdCardType.fromName(notification.idType()).getName(), notification.idNumber())
+        if (AppUtil.nonIsNull(notification.getIdNumber(), notification.getIdType())) {
+            idCardRepository.findByIdCardTypeAndIdValueHashed(IdCardType.fromName(notification.getIdType()).getName(), hashingUtil.hmacWithSha256(idHashKey, notification.getIdNumber()))
                     .ifPresentOrElse(id -> {
-                    }, () -> idCardRepository.save(IdCard.builder().idValue(notification.idNumber())
-                            .idCardType(notification.idType())
+                    }, () -> idCardRepository.save(IdCard.builder().idValue(encryptionUtil.encrypt(notification.getIdNumber()))
+                            .idCardType(notification.getIdType())
                             // "yyyy-MM-dd"
-                            .expiryDate(StringUtils.isNotBlank(notification.expirationDate()) ? LocalDate.parse(notification.expirationDate()) : null)
-                            .issuedDate(StringUtils.isNotBlank(notification.issuanceDate()) ? LocalDate.parse(notification.issuanceDate()) : null)
+                            .idValueHashed(hashingUtil.hmacWithSha256(idHashKey, notification.getIdNumber()))
+                            .expiryDate(StringUtils.isNotBlank(notification.getExpirationDate()) ? LocalDate.parse(notification.getExpirationDate()) : null)
+                            .issuedDate(StringUtils.isNotBlank(notification.getIssuanceDate()) ? LocalDate.parse(notification.getIssuanceDate()) : null)
                             .userId(loggedInUser.getId())
                             .build()));
         }
 
-        if (OnboardingRequirements.of(notification.idType()) == OnboardingRequirements.BVN) {
+        if (OnboardingRequirements.of(notification.getIdType()) == OnboardingRequirements.BVN) {
 
             UserProfile profile = userProfileRepository.findByUserId(loggedInUser.getId()).orElseThrow(() -> new BadRequestException("User not found"));
 
-            profile.setGender(Gender.getGender(notification.gender()).getCaps());
-            profile.setDateOfBirth(LocalDate.parse(notification.dob()));
+            profile.setGender(Gender.getGender(notification.getGender()).getCaps());
+            profile.setDateOfBirth(LocalDate.parse(notification.getDateOfBirth()));
             profile.setCountryOfOrigin(getCountry(notification));
             profile.setLgOfOrigin(getLgo(notification));
-            profile.setStateOfOrigin(notification.placeOfBirth());
+            profile.setStateOfOrigin(notification.getPlaceOfBirth());
             userProfileRepository.save(profile);
 
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getId());
         }
+
+        idDetailsService.saveIdDetails(notification, loggedInUser);
     }
 
     /**
      * Completes the onboarding process for a user by updating the onboarding status and notifying the user service.
      *
      * @param smileIdRecord The Smile ID record associated with the onboarding process.
-     * @param loggedInUser The user completing the onboarding process.
+     * @param loggedInUser  The user completing the onboarding process.
      */
     private void completeOnboarding(SmileIdRecord smileIdRecord, Users loggedInUser) {
         userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
@@ -366,13 +364,13 @@ public class SmileIdService implements ISmileIdService {
      * @param timestamp The timestamp to include in the MAC initialization.
      * @return The initialized {@link Mac} instance.
      * @throws NoSuchAlgorithmException If the HMAC-SHA256 algorithm is not available.
-     * @throws InvalidKeyException If the provided key is invalid.
+     * @throws InvalidKeyException      If the provided key is invalid.
      */
     private Mac getMac(String timestamp) throws NoSuchAlgorithmException, InvalidKeyException {
-        Mac mac = AppUtil.getHmacSHA256();
-        mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec("3d64d61d-6d64-402d-a5f0-fa288507ec8f".getBytes(), "HmacSHA256"));
         mac.update(timestamp.getBytes(StandardCharsets.UTF_8));
-        mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
+        mac.update("7496".getBytes(StandardCharsets.UTF_8));
         mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
         return mac;
     }
@@ -395,12 +393,12 @@ public class SmileIdService implements ISmileIdService {
      */
     private String getCountry(SmileIdWebhookNotification request) {
 
-        if (StringUtils.isNotBlank(request.nationality())) {
-            return request.nationality();
-        } else if (StringUtils.isNotBlank(request.countryOfBirth())) {
-            return request.countryOfBirth();
+        if (StringUtils.isNotBlank(request.getNationality())) {
+            return request.getNationality();
+        } else if (StringUtils.isNotBlank(request.getCountryOfBirth())) {
+            return request.getCountryOfBirth();
         }
-        return Country.getCountry(request.country()).getCountryName();
+        return Country.getCountry(request.getCountry()).getCountryName();
     }
 
     /**
@@ -410,10 +408,10 @@ public class SmileIdService implements ISmileIdService {
      * @return The local government area of origin as a string.
      */
     private String getLgo(SmileIdWebhookNotification request) {
-        if (StringUtils.isNotBlank(request.localAreaOfOrigin())) {
-            return request.localAreaOfOrigin();
-        }  else  {
-            return request.regionOfOrigin();
+        if (StringUtils.isNotBlank(request.getLocalAreaOfOrigin())) {
+            return request.getLocalAreaOfOrigin();
+        } else {
+            return request.getRegionOfOrigin();
         }
     }
 }
