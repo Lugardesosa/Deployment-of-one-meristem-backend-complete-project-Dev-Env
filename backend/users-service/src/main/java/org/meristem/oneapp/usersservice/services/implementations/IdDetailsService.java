@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
+import com.obs.services.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +53,9 @@ public class IdDetailsService implements IIdDetailsService {
                         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes)) {
                             String objectKey = HuaweiService.sanitiseEmail(loggedInUser.getEmail()).concat(String.valueOf(System.currentTimeMillis())).concat("-").concat(UUID.randomUUID().toString());
                             String contentType = HuaweiService.detectContentType(inputStream);
-                            boolean uploaded = huaweiService.uploadFile(inputStream, FileType.IMAGE, objectKey);
+                            ObjectMetadata objectMetadata = new ObjectMetadata();
+                            objectMetadata.setContentType(contentType);
+                            boolean uploaded = huaweiService.uploadFile(inputStream, FileType.IMAGE, objectKey,  objectMetadata);
 
                             if (uploaded) {
                                 Files files = filesRepository.save(Files.builder().userId(loggedInUser.getId()).fileKey(objectKey).contentType(contentType).fileType(FileType.IMAGE.getValue()).build());

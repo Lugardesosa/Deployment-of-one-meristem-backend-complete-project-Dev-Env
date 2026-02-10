@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.services;
 
+import com.obs.services.model.ObjectMetadata;
 import org.meristem.oneapp.usersservice.domains.enums.FileType;
 import org.meristem.oneapp.usersservice.domains.requests.SignedUrlRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SignedUrlResponse;
@@ -21,5 +22,5 @@ public interface IHuaweiService {
      */
     SignedUrlResponse getSignedUrl(SignedUrlRequest signedUrlRequest);
 
-    boolean uploadFile(ByteArrayInputStream inputStream, FileType fileType, String objectKey);
+    boolean uploadFile(ByteArrayInputStream inputStream, FileType fileType, String objectKey, ObjectMetadata objectMetadata);
 }
