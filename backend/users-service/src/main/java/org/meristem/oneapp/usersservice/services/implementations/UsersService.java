@@ -99,6 +99,8 @@ public class UsersService implements IUsersService {
         }
 
         cache.evict(ninQueryResponse.getNinHashed());
+        ninQueryResponse.setEmail(request.email());
+        ninQueryResponse.setPhoneNumber(request.phoneNumber());
         requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), ninQueryResponse);
 
         log.info("First stage of User with email {} created ", request.email());
