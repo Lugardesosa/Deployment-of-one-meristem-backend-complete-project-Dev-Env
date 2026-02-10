@@ -1,24 +1,22 @@
 package org.meristem.oneapp.usersservice.models;
 
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@ToString
 @NoArgsConstructor
-@Getter
 @Setter
+@Getter
 @Table("user_id_details")
-public class UserIdDetails extends BaseModel<String> {
+public class IdDetails extends BaseModel<String> {
 
     private Long fileId;
-    private String idType;
+    private Long idCardId;
     private Long userId;
 
     private String firstName;
@@ -36,11 +34,10 @@ public class UserIdDetails extends BaseModel<String> {
 
 
     @Builder
-    public UserIdDetails(Long userId, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, String idType, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth) {
+    public IdDetails(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, Long idCardId, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.fileId = fileId;
-        this.userId = userId;
-        this.idType = idType;
+        this.idCardId = idCardId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -58,12 +55,12 @@ public class UserIdDetails extends BaseModel<String> {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        UserIdDetails idDetails = (UserIdDetails) o;
-        return Objects.equals(getIdType(), idDetails.getIdType()) && Objects.equals(getUserId(), idDetails.getUserId());
+        IdDetails idDetails = (IdDetails) o;
+        return Objects.equals(getIdCardId(), idDetails.getIdCardId()) && Objects.equals(getUserId(), idDetails.getUserId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getIdType(), getUserId());
+        return Objects.hash(getIdCardId(), getUserId());
     }
 }

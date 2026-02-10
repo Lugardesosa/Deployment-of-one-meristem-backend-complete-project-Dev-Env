@@ -109,9 +109,11 @@ public class OnboardingService implements IOnboardingService {
             case OkhiEventTypes.ADDRESS_VERIFICATION_STARTED -> {
 
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-                addressRepository.findByUserId(users.getId()).ifPresent(address -> {
+                addressRepository.findByUserId(users.getId()).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.PENDING.getValue());
                     addressRepository.save(address);
+                }, () -> {
+                    throw new BadRequestException("Address not found.");
                 });
             }
 
@@ -145,9 +147,11 @@ public class OnboardingService implements IOnboardingService {
 
                 userOnboardingRepository.updateUserOnboardingStatus(userId, requirements.getId(), OnboardingStatus.REJECTED.getValue(), false);
 
-                addressRepository.findByUserId(userId).ifPresent(address -> {
+                addressRepository.findByUserId(userId).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.CANCELLED.getValue());
                     addressRepository.save(address);
+                }, () -> {
+                    throw new BadRequestException("Address not found");
                 });
             }
             default -> throw new BadRequestException("Unknown event type");

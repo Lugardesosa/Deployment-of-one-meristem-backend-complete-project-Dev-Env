@@ -20,6 +20,7 @@ public enum IdCardType {
     public static IdCardType fromName(String name) {
         return switch (name) {
             case "NIN_SLIP", "NIN", "NIN_V2" -> NIN;
+            case "bvn", "BVN", "Bvn" -> BVN;
             case "DRIVERS_LICENSE" -> DRIVERS_LICENSE;
             case "PASSPORT", "INTERNATIONAL_PASSPORT" -> INTERNATIONAL_PASSPORT;
             case "VOTER_ID", "VOTERS_CARD" -> VOTERS_CARD;

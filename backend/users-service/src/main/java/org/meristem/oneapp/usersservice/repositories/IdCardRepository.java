@@ -18,4 +18,6 @@ public interface IdCardRepository extends BaseRepository<IdCard, Long> {
     boolean existsByIdValueAndIdCardType(String idValue, String idCardType);
 
     boolean existsByIdValueHashed(String idValueHashed);
+
+    boolean existsByIdValueHashedAndIdCardType(String idValueHashed, String idCardType);
 }

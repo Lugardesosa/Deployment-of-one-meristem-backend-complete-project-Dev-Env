@@ -18,10 +18,9 @@ public interface UserIdDetailsMapper {
 
     @Mappings(value = {
             @Mapping(target = "idType", ignore = true),
-            @Mapping(target = "dob", dateFormat = AppConstants.YYYY_MM_DD, conditionExpression = "java(notBlankOrEmpty(smileIdWebhookNotification.dob()))"),
-            @Mapping(target = "dateOfDeath", dateFormat = AppConstants.YYYY_MM_DD, conditionExpression = "java(notBlankOrEmpty(smileIdWebhookNotification.dateOfDeath()))"),
-            @Mapping(target = "expirationDate", dateFormat = AppConstants.YYYY_MM_DD, conditionExpression = "java(notBlankOrEmpty(smileIdWebhookNotification.expirationDate()))"),
-            @Mapping(target = "issuanceDate", dateFormat = AppConstants.YYYY_MM_DD, conditionExpression = "java(notBlankOrEmpty(smileIdWebhookNotification.issuanceDate()))"),
+            @Mapping(target = "fileId", ignore = true),
+            @Mapping(target = "userId", ignore = true),
+            @Mapping(target = "dateOfBirth", dateFormat = AppConstants.YYYY_MM_DD, conditionExpression = "java(notBlankOrEmpty(smileIdWebhookNotification.getDateOfBirth()))"),
             @Mapping(target = "gender", ignore = true),
     })
     UserIdDetails smileIdWebhookNotificationToUserIdDetails(SmileIdWebhookNotification smileIdWebhookNotification);

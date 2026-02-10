@@ -11,14 +11,15 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 @Builder
-public class BvnQueryResponse implements Serializable {
+public class NinQueryResponse implements Serializable {
 
     private String firstName;
     private String lastName;
+    private String middleName;
     private String phoneNumber;
     private String email;
-    private String bvn;
-    private String bvnHashed;
+    private String nin;
+    private String ninHashed;
     private boolean emailVerified;
     private boolean passwordSet;
 }

@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.integrations;
 
+import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdSmileLinkRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.SmileIdEnhancedKycResponse;
@@ -16,5 +17,5 @@ public interface SmileIdClient {
     SmileIdSmileLinkResponse createSmileLink(@RequestBody SmileIdSmileLinkRequest request);
 
     @PostExchange(url = "/id_verification")
-    SmileIdEnhancedKycResponse enhancedBvnQuery(@RequestBody SmileIdEnhancedKycRequest request);
+    SmileIdWebhookNotification enhancedBvnQuery(@RequestBody SmileIdEnhancedKycRequest request);
 }
