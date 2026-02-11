@@ -456,7 +456,7 @@ public class UsersService implements IUsersService {
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
         userProfileRepository.resetOnboarding(kycCompletedDto.userId());
         usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.KYC_NOT_COMPLETED.getValue());
-        userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), false);
+        userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), UserOnboardingNotes.FAILED.note, false);
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
         kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, String.valueOf(userId)));
     }

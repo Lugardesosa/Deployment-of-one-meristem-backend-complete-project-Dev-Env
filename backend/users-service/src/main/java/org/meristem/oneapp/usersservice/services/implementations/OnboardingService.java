@@ -59,7 +59,7 @@ public class OnboardingService implements IOnboardingService {
      * @return a list of user onboarding responses
      */
     public List<UserOnboardingResponse> getOnboardingDetails() {
-        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.DEFAULT.getId());
+        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.USER.getId());
     }
 
     /**
@@ -123,15 +123,15 @@ public class OnboardingService implements IOnboardingService {
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 if ("verified".equals(request.data().addressVerification().status())) {
 
-                    userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), true);
                     addressRepository.findByUserId(users.getId()).ifPresent(address -> {
                         address.setStatus(AddressStatus.APPROVED.getValue());
+                        userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
                         addressRepository.save(address);
                         usersService.completeUserOnboarding(users.getEmail());
                     });
                 } else {
 
-                    userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.REJECTED.getValue(), false);
+                    usersService.resetUserOnboarding(users.getEmail(), requirements.getId());
 
                     addressRepository.findByUserId(users.getId()).ifPresent(address -> {
                         address.setStatus(AddressStatus.FAILED.getValue());
@@ -145,7 +145,7 @@ public class OnboardingService implements IOnboardingService {
                 Requirements requirements = requirementsRepository.findByRequirementNameAndStatus(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), EntityStatus.ACTIVE.getValue());
                 Long userId = usersRepository.findIdByEmail(request.data().metadata().appUserId());
 
-                userOnboardingRepository.updateUserOnboardingStatus(userId, requirements.getId(), OnboardingStatus.REJECTED.getValue(), false);
+                usersService.resetUserOnboarding(request.data().metadata().appUserId(), requirements.getId());
 
                 addressRepository.findByUserId(userId).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.CANCELLED.getValue());

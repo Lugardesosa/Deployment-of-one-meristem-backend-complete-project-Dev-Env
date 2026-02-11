@@ -1,16 +1,13 @@
 package org.meristem.oneapp.usersservice.domains.enums;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum RequirementType {
+public enum UserOnboardingNotes {
+    APPROVED("Requirement completed"),
+    FAILED("Requirement failed");
 
-    USER(1, "USER"),
-    MACHINE(2, "MACHINE");
-
-    private final int id;
-    private final String name;
+    public final String note;
 }
