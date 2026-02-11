@@ -33,10 +33,12 @@ public class UserIdDetails extends BaseModel<String> {
     private String gender;
     private String placeOfBirth;
     private LocalDate dateOfBirth;
+    private Boolean validated;
+    private String note;
 
 
     @Builder
-    public UserIdDetails(Long userId, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, String idType, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth) {
+    public UserIdDetails(Long userId, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, String idType, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth, String note) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.fileId = fileId;
         this.userId = userId;
@@ -53,6 +55,8 @@ public class UserIdDetails extends BaseModel<String> {
         this.gender = gender;
         this.placeOfBirth = placeOfBirth;
         this.dateOfBirth = dateOfBirth;
+        this.validated = false;
+        this.note = note;
     }
 
     @Override

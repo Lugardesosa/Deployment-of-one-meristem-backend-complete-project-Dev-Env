@@ -43,6 +43,11 @@ public class IdDetailsService implements IIdDetailsService {
                     userIdDetails.setGender(Gender.getGender(notification.getGender()).getCaps());
                     userIdDetails.setUserId(loggedInUser.getId());
 
+                    if (IdCardType.BVN.getName().equalsIgnoreCase(userIdDetails.getIdType())) {
+                        userIdDetails.setNote("BVN verified successfully");
+                        userIdDetails.setValidated(true);
+                    }
+
                     if (StringUtils.isNotBlank(notification.getPhoto())) {
                         String base64ImageString = notification.getPhoto();
                         if (base64ImageString.startsWith("data:")) {
