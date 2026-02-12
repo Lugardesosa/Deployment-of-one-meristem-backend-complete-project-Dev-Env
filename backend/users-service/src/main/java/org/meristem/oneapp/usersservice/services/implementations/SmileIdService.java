@@ -309,6 +309,7 @@ public class SmileIdService implements ISmileIdService {
 
         // Validates user; updates onboarding status; notifies user service
         Requirements requirements = requirementsRepository.findRequirementsByRequirementName(OnboardingRequirements.NIN.getName());
+        // Validates user; updates onboarding status; notifies user service
         if (firstNamesMatch(uid, names) && lastNamesMatch(uid, names) && dobMatch(uid, notification) && middleNamesMatch(uid, names)) {
             uid.setValidated(true);
             uid.setNote("NIN verified successfully");
@@ -420,6 +421,9 @@ public class SmileIdService implements ISmileIdService {
         return names.stream().anyMatch(n -> n.equalsIgnoreCase(uid.getMiddleName()));
     }
 
+    /**
+     * Checks if user date of birth matches date of birth sent
+     */
     public boolean dobMatch(UserIdDetails uid, SmileIdWebhookNotification notification) {
 
         return AppUtil.nonIsNull(uid.getDateOfBirth(), notification.getDateOfBirth()) &&
