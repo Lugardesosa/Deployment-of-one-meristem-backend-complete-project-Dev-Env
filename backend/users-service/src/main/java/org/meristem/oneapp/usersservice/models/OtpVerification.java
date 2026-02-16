@@ -50,9 +50,9 @@ public class OtpVerification extends BaseModel<String> {
  * @param otpType           the type of OTP
  */
     @Builder
-    public OtpVerification(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
+    public OtpVerification(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                            Integer version, LocalDateTime expiresAt, String userId, Integer code, Integer otpType) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.expiresAt = expiresAt;
         this.verified = false;
         this.userId = userId;

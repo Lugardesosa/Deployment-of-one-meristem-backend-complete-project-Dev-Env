@@ -38,8 +38,8 @@ public class UserIdDetails extends BaseModel<String> {
 
 
     @Builder
-    public UserIdDetails(Long userId, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, String idType, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth, String note) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public UserIdDetails(Integer status, Long userId, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, String idType, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth, String note) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.fileId = fileId;
         this.userId = userId;
         this.idType = idType;

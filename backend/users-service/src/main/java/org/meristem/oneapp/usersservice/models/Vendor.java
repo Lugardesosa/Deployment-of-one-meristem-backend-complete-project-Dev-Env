@@ -13,24 +13,26 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table("aml_vendor")
-public class AmlVendor extends BaseModel<String> {
+@Table("vendor")
+public class Vendor extends BaseModel<String> {
 
     private String vendorName;
     private String vendorCode;
+    private Boolean isLocked;
 
     @Builder
-    public AmlVendor(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String vendorName, String vendorCode) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public Vendor(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String vendorName, String vendorCode) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.vendorName = vendorName;
         this.vendorCode = vendorCode;
+        this.isLocked = true;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        AmlVendor amlVendor = (AmlVendor) o;
-        return Objects.equals(getId(), amlVendor.getId());
+        Vendor vendor = (Vendor) o;
+        return Objects.equals(getId(), vendor.getId());
     }
 
     @Override

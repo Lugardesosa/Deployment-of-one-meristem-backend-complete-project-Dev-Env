@@ -5,10 +5,12 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum SmileIdRecordStatus {
+public enum KycQueryStatus {
 
-    APPROVED(0),
-    FAILED(0);
+    STARTED(0),
+    COMPLETED(1),
+    PENDING(2),
+    FAILED(4);
 
     private final Integer value;
 }

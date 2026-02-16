@@ -29,8 +29,8 @@ public class InvestmentRequirement extends BaseModel<String> {
     @Column("requirement_id")
     private Long requirementId;
 
-    public InvestmentRequirement(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, Long requirementId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public InvestmentRequirement(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, Long requirementId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.investmentId = investmentId;
         this.requirementId = requirementId;
     }

@@ -25,9 +25,9 @@ public class RiskAppetite extends BaseModel<String> {
     private String riskProfile;
 
     @Builder
-    public RiskAppetite(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String riskType, String riskAppetiteDescription,
+    public RiskAppetite(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String riskType, String riskAppetiteDescription,
                         String riskProfile) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.riskType = riskType;
         this.riskAppetiteDescription = riskAppetiteDescription;

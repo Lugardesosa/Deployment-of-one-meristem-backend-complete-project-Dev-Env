@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 public enum RequirementType {
 
-    USER(1, "USER"),
-    MACHINE(2, "MACHINE");
+    USER(1, "USER"), // USER has to complete the process
+    MACHINE(2, "MACHINE"); // The verification happens in the background
 
     private final int id;
     private final String name;

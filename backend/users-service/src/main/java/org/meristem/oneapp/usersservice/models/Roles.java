@@ -39,8 +39,8 @@ public class Roles extends BaseModel<String> {
      * @param name the name of the role
      */
     @Builder
-    public Roles(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public Roles(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.name = name;
     }
 

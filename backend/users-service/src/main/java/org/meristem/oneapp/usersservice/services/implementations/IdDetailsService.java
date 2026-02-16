@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,48 +29,49 @@ import java.util.UUID;
 @Slf4j
 public class IdDetailsService implements IIdDetailsService {
 
-    private final CustomRepository customRepository;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final HuaweiService huaweiService;
     private final FilesRepository filesRepository;
+    private final CustomRepository customRepository;
 
-    public void saveIdDetails(SmileIdWebhookNotification notification, Users loggedInUser) {
+    public UserIdDetails buildIdDetails(SmileIdWebhookNotification notification, Users loggedInUser) {
 
-        customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.fromName(notification.getIdType()).getName()))
-                .ifPresentOrElse(u -> {
-                }, () -> {
-                    UserIdDetails userIdDetails = userIdDetailsMapper.smileIdWebhookNotificationToUserIdDetails(notification);
-                    userIdDetails.setIdType(IdCardType.fromName(notification.getIdType()).getName());
-                    userIdDetails.setGender(Gender.getGender(notification.getGender()).getCaps());
-                    userIdDetails.setUserId(loggedInUser.getId());
+        Optional<UserIdDetails> userIdDetailsOpt = customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.fromName(notification.getIdType()).getName()));
 
-                    if (IdCardType.BVN.getName().equalsIgnoreCase(userIdDetails.getIdType())) {
-                        userIdDetails.setNote("BVN verified successfully");
-                        userIdDetails.setValidated(true);
-                    }
+        if (userIdDetailsOpt.isPresent()) {
+            return userIdDetailsOpt.get();
+        }
+        UserIdDetails userIdDetails = userIdDetailsMapper.smileIdWebhookNotificationToUserIdDetails(notification);
+        userIdDetails.setIdType(IdCardType.fromName(notification.getIdType()).getName());
+        userIdDetails.setGender(Gender.getGender(notification.getGender()).getCaps());
+        userIdDetails.setUserId(loggedInUser.getId());
 
-                    if (StringUtils.isNotBlank(notification.getPhoto())) {
-                        String base64ImageString = notification.getPhoto();
-                        if (base64ImageString.startsWith("data:")) {
-                            base64ImageString = base64ImageString.split(",")[1];
-                        }
-                        byte[] imageBytes = Base64.getDecoder().decode(base64ImageString);
+        if (IdCardType.BVN.getName().equalsIgnoreCase(userIdDetails.getIdType())) {
+            userIdDetails.setNote("BVN verified successfully");
+            userIdDetails.setValidated(true);
+        }
 
-                        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes)) {
-                            String objectKey = HuaweiService.sanitiseEmail(loggedInUser.getEmail()).concat(String.valueOf(System.currentTimeMillis())).concat("-").concat(UUID.randomUUID().toString());
-                            String contentType = HuaweiService.detectContentType(inputStream);
-                            ObjectMetadata objectMetadata = new ObjectMetadata();
-                            objectMetadata.setContentType(contentType);
-                            boolean uploaded = huaweiService.uploadFile(inputStream, FileType.IMAGE, objectKey,  objectMetadata);
+        if (StringUtils.isNotBlank(notification.getPhoto())) {
+            String base64ImageString = notification.getPhoto();
+            if (base64ImageString.startsWith("data:")) {
+                base64ImageString = base64ImageString.split(",")[1];
+            }
+            byte[] imageBytes = Base64.getDecoder().decode(base64ImageString);
 
-                            if (uploaded) {
-                                Files files = filesRepository.save(Files.builder().userId(loggedInUser.getId()).fileKey(objectKey).contentType(contentType).fileType(FileType.IMAGE.getValue()).build());
-                                userIdDetails.setFileId(files.getId());
-                            }
-                        } catch (IOException ignore) {
-                        }
-                    }
-                    customRepository.save(userIdDetails);
-                });
+            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes)) {
+                String objectKey = HuaweiService.sanitiseEmail(loggedInUser.getEmail()).concat(String.valueOf(System.currentTimeMillis())).concat("-").concat(UUID.randomUUID().toString());
+                String contentType = HuaweiService.detectContentType(inputStream);
+                ObjectMetadata objectMetadata = new ObjectMetadata();
+                objectMetadata.setContentType(contentType);
+                boolean uploaded = huaweiService.uploadFile(inputStream, FileType.IMAGE, objectKey, objectMetadata);
+
+                if (uploaded) {
+                    Files files = filesRepository.save(Files.builder().userId(loggedInUser.getId()).fileKey(objectKey).contentType(contentType).fileType(FileType.IMAGE.getValue()).build());
+                    userIdDetails.setFileId(files.getId());
+                }
+            } catch (IOException ignore) {
+            }
+        }
+        return userIdDetails;
     }
 }

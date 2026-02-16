@@ -32,8 +32,8 @@ public class Files extends BaseModel<String> {
     private Long userId;
 
     @Builder
-    public Files(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String fileKey, String contentType, Integer fileType, Long userId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public Files(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String fileKey, String contentType, Integer fileType, Long userId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.fileKey = fileKey;
         this.contentType = contentType;
         this.fileType = fileType;

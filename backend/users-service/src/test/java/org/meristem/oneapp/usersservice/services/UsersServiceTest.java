@@ -5,7 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.meristem.oneapp.usersservice.domains.responses.NinQueryResponse;
+import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
@@ -100,19 +100,19 @@ class UsersServiceTest {
 
     @Test
     void createUser() {
-        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress()).nin(faker.regexify("[0-9]{11}"))
+        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress()).bvn(faker.regexify("[0-9]{11}"))
                 .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
                 .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
 
-        when(encryptionUtil.encrypt(request.nin())).thenReturn(request.nin());
+        when(encryptionUtil.encrypt(request.bvn())).thenReturn(request.bvn());
         Cache cache = getCache();
 
-        NinQueryResponse ninQueryResponse = NinQueryResponse.builder()
+        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
                 .email(request.email()).firstName(request.firstName()).lastName(request.lastName())
-                .phoneNumber(request.phoneNumber()).nin(request.nin())
+                .phoneNumber(request.phoneNumber()).bvn(request.bvn())
                 .build();
 
-        doNothing().when(cache).put(request.email(), ninQueryResponse);
+        doNothing().when(cache).put(request.email(), bvnQueryResponse);
 
         UpdateResponse response = usersService.create(request);
         assertEquals(true, response.success());
@@ -121,7 +121,7 @@ class UsersServiceTest {
 
     @Test
     void createUserEmailOrPhoneNumberAlreadyExist() {
-        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress()).nin(faker.regexify("[0-9]{11}"))
+        CreateUserRequest request = CreateUserRequest.builder().email(faker.internet().emailAddress()).bvn(faker.regexify("[0-9]{11}"))
                 .firstName(faker.name().firstName()).middleName(faker.name().nameWithMiddle()).lastName(faker.name().lastName())
                 .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).build();
 
@@ -137,18 +137,18 @@ class UsersServiceTest {
         SetPasswordRequest request = SetPasswordRequest.builder().password(password).email(faker.internet().emailAddress())
                 .confirmPassword(password).build();
 
-        NinQueryResponse ninQueryResponse = NinQueryResponse.builder().emailVerified(true)
+        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder().emailVerified(true)
                 .email(request.email()).firstName(faker.name().firstName()).lastName(faker.name().lastName())
-                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).nin(faker.regexify("[0-9]{11}"))
+                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).bvn(faker.regexify("[0-9]{11}"))
                 .build();
 
         Cache cache = getCache();
 
-        when(cache.get(request.email(), NinQueryResponse.class)).thenReturn(ninQueryResponse);
+        when(cache.get(request.email(), BvnQueryResponse.class)).thenReturn(bvnQueryResponse);
 
 
-        Users users = Users.builder().firstName(ninQueryResponse.getFirstName()).lastName(ninQueryResponse.getLastName())
-                .phoneNumber(ninQueryResponse.getPhoneNumber()).id(1L)
+        Users users = Users.builder().firstName(bvnQueryResponse.getFirstName()).lastName(bvnQueryResponse.getLastName())
+                .phoneNumber(bvnQueryResponse.getPhoneNumber()).id(1L)
                 .email(request.email()).password(passwordEncoder.encode(password))
                 .build();
         when(usersRepository.save(any())).thenReturn(users);
@@ -170,7 +170,7 @@ class UsersServiceTest {
         SetPasswordRequest request = SetPasswordRequest.builder().password(password).email(faker.internet().emailAddress())
                 .confirmPassword(password).build();
 
-        when(cache.get(request.email(), NinQueryResponse.class)).thenReturn(null);
+        when(cache.get(request.email(), BvnQueryResponse.class)).thenReturn(null);
 
         assertThrowsExactly(AccessDeniedException.class, () -> usersService.setPassword(request));
     }
@@ -184,12 +184,12 @@ class UsersServiceTest {
         SetPasswordRequest request = SetPasswordRequest.builder().password(password).email(faker.internet().emailAddress())
                 .confirmPassword(password).build();
 
-        NinQueryResponse ninQueryResponse = NinQueryResponse.builder().emailVerified(false)
+        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder().emailVerified(false)
                 .email(request.email()).firstName(faker.name().firstName()).lastName(faker.name().lastName())
-                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).nin(faker.regexify("[0-9]{11}"))
+                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).bvn(faker.regexify("[0-9]{11}"))
                 .build();
 
-        when(cache.get(request.email(), NinQueryResponse.class)).thenReturn(ninQueryResponse);
+        when(cache.get(request.email(), BvnQueryResponse.class)).thenReturn(bvnQueryResponse);
 
         assertThrowsExactly(BadRequestException.class, () -> usersService.setPassword(request));
     }
@@ -202,13 +202,13 @@ class UsersServiceTest {
         Cache cache = getCache();
         UpdateEmailRequest request = UpdateEmailRequest.builder().newEmail(faker.internet().emailAddress()).oldEmail(faker.internet().emailAddress()).build();
 
-        NinQueryResponse ninQueryResponse = NinQueryResponse.builder().emailVerified(true)
+        BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder().emailVerified(true)
                 .email(request.oldEmail()).firstName(faker.name().firstName()).lastName(faker.name().lastName())
-                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).nin(faker.regexify("[0-9]{11}"))
+                .phoneNumber(faker.regexify(AppConstants.PHONE_NG_REGEX_PATTERN)).bvn(faker.regexify("[0-9]{11}"))
                 .build();
-        when(cache.get(request.oldEmail(), NinQueryResponse.class)).thenReturn(ninQueryResponse);
+        when(cache.get(request.oldEmail(), BvnQueryResponse.class)).thenReturn(bvnQueryResponse);
 
-        doNothing().when(cache).put(request.newEmail(), ninQueryResponse);
+        doNothing().when(cache).put(request.newEmail(), bvnQueryResponse);
         doNothing().when(cache).evict(request.oldEmail());
 
         UpdateResponse response = usersService.updateEmail(request);

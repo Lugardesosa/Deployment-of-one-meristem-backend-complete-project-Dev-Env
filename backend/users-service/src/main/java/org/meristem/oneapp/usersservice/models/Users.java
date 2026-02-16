@@ -63,9 +63,9 @@ public class Users extends BaseModel<String> {
      * @param phoneNumber the phone number of the user
      */
     @Builder
-    public Users(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String email,
+    public Users(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String email,
                  String firstName, String lastName, String middleName, String password, String phoneNumber) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;

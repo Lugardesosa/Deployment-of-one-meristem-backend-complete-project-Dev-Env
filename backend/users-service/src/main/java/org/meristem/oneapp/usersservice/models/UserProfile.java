@@ -76,10 +76,10 @@ public class UserProfile extends BaseModel<String> {
      * @param avatarUrl the users profile picture
      */
     @Builder
-    public UserProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
+    public UserProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
                        Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.imageKey = avatarUrl;
         this.dateOfBirth = dateOfBirth;

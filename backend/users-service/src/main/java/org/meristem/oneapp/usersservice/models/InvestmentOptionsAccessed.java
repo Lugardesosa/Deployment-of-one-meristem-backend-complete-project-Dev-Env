@@ -20,8 +20,8 @@ public class InvestmentOptionsAccessed extends BaseModel<String> {
     private Boolean accessed;
 
     @Builder
-    public InvestmentOptionsAccessed(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long optionId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public InvestmentOptionsAccessed(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long optionId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.optionId = optionId;
         this.accessed = false;

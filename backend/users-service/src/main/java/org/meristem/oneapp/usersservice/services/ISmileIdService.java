@@ -1,11 +1,9 @@
 package org.meristem.oneapp.usersservice.services;
 
+import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
-import org.meristem.oneapp.usersservice.domains.responses.NinQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
+import org.meristem.oneapp.usersservice.domains.responses.*;
 
 /**
  * Interface for handling Smile ID-related operations.
@@ -17,9 +15,9 @@ public interface ISmileIdService {
      * Performs a BVN query through Smile ID's enhanced KYC service.
      *
      * @param request the BVN query request
-     * @return a {@link NinQueryResponse} containing user details
+     * @return a {@link BvnQueryResponse} containing user details
      */
-    NinQueryResponse idQuery(IdQueryRequest request);
+    BvnQueryResponse idQuery(IdQueryRequest request);
 
     /**
      * Generates a Smile ID smart link for user verification.
@@ -36,4 +34,6 @@ public interface ISmileIdService {
      * @return a {@link SmileIdWebhookResponse} indicating the success or failure of the operation
      */
     SmileIdWebhookResponse handleWebhook(SmileIdWebhookNotification request);
+
+    NinValidationResponse validateNin(@Valid IdQueryRequest request);
 }

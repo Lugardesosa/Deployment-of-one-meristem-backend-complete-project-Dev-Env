@@ -68,9 +68,9 @@ public class Beneficiaries extends BaseModel<String> {
     String accountNumber;
 
     @Builder
-    public Beneficiaries(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long ownerId, String firstName,
+    public Beneficiaries(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long ownerId, String firstName,
                          String lastName, String beneficiaryRelationship, String gender, String email, String phoneNumber, LocalDate dob, String address, String maritalStatus, String bankName, String accountNumber) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.ownerId = ownerId;
         this.firstName = firstName;
         this.lastName = lastName;
