@@ -177,7 +177,7 @@ public interface IUsersService {
      *
      * @return an {@link UpdateResponse} indicating the operation result
      */
-    UpdateResponse updateDataSharing();
+    UpdateResponse updateDataSharing(ShareAllDataRequest request);
 
     /**
      * Updates interest-free investment preference.

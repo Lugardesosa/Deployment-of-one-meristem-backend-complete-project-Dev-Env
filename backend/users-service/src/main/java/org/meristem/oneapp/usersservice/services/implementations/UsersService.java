@@ -563,11 +563,12 @@ public class UsersService implements IUsersService {
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
     }
 
-    public UpdateResponse updateDataSharing() {
+    public UpdateResponse updateDataSharing(ShareAllDataRequest request) {
 
+        Long userId = usersRepository.findIdByEmail(request.userEmail());
         Map<String, Object> updates = new HashMap<>();
         updates.put("data_sharing_allowed", true);
-        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", AppUtil.getLoggedInUserId()));
+        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", userId));
         clearUsersCache();
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
