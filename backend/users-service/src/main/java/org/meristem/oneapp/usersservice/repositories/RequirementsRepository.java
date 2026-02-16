@@ -18,4 +18,6 @@ public interface RequirementsRepository extends BaseRepository<Requirements, Lon
     Optional<Requirements> findByIdAndStatus(Long id, Integer status);
 
     Requirements findByRequirementNameAndStatus(String requirementName, Integer status);
+
+    Requirements findRequirementsByRequirementName(String requirementName);
 }

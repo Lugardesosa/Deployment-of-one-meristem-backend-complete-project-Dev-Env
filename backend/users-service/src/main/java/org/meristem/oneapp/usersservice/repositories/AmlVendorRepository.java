@@ -1,9 +1,9 @@
 package org.meristem.oneapp.usersservice.repositories;
 
-import org.meristem.oneapp.usersservice.models.AmlVendor;
+import org.meristem.oneapp.usersservice.models.Vendor;
 
-public interface AmlVendorRepository extends BaseRepository<AmlVendor, Long> {
-    AmlVendor findAmlVendorByVendorName(String vendorName);
+public interface AmlVendorRepository extends BaseRepository<Vendor, Long> {
+    Vendor findAmlVendorByVendorName(String vendorName);
 
-    AmlVendor findAmlVendorByVendorCode(String vendorCode);
+    Vendor findAmlVendorByVendorCode(String vendorCode);
 }

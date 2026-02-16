@@ -5,10 +5,9 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum SmileIdRecordStatus {
+public enum UserOnboardingNotes {
+    APPROVED("Requirement completed"),
+    FAILED("Requirement failed");
 
-    APPROVED(0),
-    FAILED(0);
-
-    private final Integer value;
+    public final String note;
 }

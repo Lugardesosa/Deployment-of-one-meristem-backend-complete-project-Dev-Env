@@ -25,9 +25,9 @@ public class AmlDecision extends BaseModel<String> {
     private String decisionGroupId;
 
     @Builder
-    public AmlDecision(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
+    public AmlDecision(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
                        Long entityId, String decision, String decidedBy, LocalDateTime decidedDate, String reason, String decisionGroupId, String amlType) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.entityId = entityId;
         this.decision = decision;
         this.decidedBy = decidedBy;

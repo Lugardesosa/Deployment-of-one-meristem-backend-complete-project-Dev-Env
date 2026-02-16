@@ -41,9 +41,9 @@ public class Requirements extends BaseModel<String> {
     private Integer requirementType;
 
     @Builder
-    public Requirements(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
+    public Requirements(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
                         String displayName, String requirementName, Boolean mandatory, Integer requirementType) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.displayName = displayName;
         this.requirementName = requirementName;
         this.mandatory = mandatory;

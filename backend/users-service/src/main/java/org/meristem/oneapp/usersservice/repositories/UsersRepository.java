@@ -87,8 +87,8 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("SELECT id FROM users WHERE email = :email")
     Long findIdByEmail(String email);
 
-    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, i.id_value, up.date_of_birth FROM users u " +
-            "LEFT JOIN address a ON a.user_id = u.id LEFT JOIN id_card i ON i.user_id = u.id LEFT JOIN user_profile up ON up.user_id = u.id " +
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, up.date_of_birth FROM users u " +
+            "LEFT JOIN address a ON a.user_id = u.id LEFT JOIN user_profile up ON up.user_id = u.id " +
             " WHERE u.email = :userId ")
     KycCompletedDto getUserKyc(String userId);
 

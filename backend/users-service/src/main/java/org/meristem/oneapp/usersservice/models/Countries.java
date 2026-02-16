@@ -31,9 +31,9 @@ public class Countries extends BaseModel<String> {
     private String code;
 
     @Builder
-    public Countries(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name,  String code,
+    public Countries(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name,  String code,
                      String nationality) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.name = name;
         this.code = code;
         this.nationality = nationality;

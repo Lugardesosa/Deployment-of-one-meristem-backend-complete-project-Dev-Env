@@ -27,7 +27,7 @@ import org.meristem.oneapp.usersservice.mappers.AmlMapper;
 import org.meristem.oneapp.usersservice.models.AmlDecision;
 import org.meristem.oneapp.usersservice.models.AmlResult;
 import org.meristem.oneapp.usersservice.models.AmlSearch;
-import org.meristem.oneapp.usersservice.models.AmlVendor;
+import org.meristem.oneapp.usersservice.models.Vendor;
 import org.meristem.oneapp.usersservice.repositories.AmlDecisionRepository;
 import org.meristem.oneapp.usersservice.repositories.AmlResultRepository;
 import org.meristem.oneapp.usersservice.repositories.AmlSearchRepository;
@@ -72,7 +72,7 @@ public class AmlService implements IAmlService {
     public WebhookResponse handleAmlWebhook(PastelAmlWebhookRequest request) {
         try {
 
-            AmlVendor amlVendor = amlVendorRepository.findAmlVendorByVendorCode(AppConstants.PASTEL);
+            Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(AppConstants.VENDOR_PASTEL);
             AmlSearch amlSearch = amlSearchRepository.findAmlSearchByClientSearchId(request.checkId());
 
             List<AmlResult> results = new ArrayList<>();
@@ -81,7 +81,7 @@ public class AmlService implements IAmlService {
                 AdverseMediaDto adverseMediaDto = amlMapper.adverseResultToAdverseDto(adverseResult);
 
                 AmlResult result = AmlResult.builder()
-                        .vendorId(amlVendor.getId())
+                        .vendorId(vendor.getId())
                         .entityType(AmlEntityType.USER.getName())
                         .entityId(amlSearch.getEntityId())
                         .vendorReference(request.checkId())
@@ -112,7 +112,7 @@ public class AmlService implements IAmlService {
                         .deceased(pepResult.deceased())
                         .build();
                 AmlResult result = AmlResult.builder()
-                        .vendorId(amlVendor.getId())
+                        .vendorId(vendor.getId())
                         .entityType(AmlEntityType.USER.getName())
                         .entityId(amlSearch.getEntityId())
                         .vendorReference(request.checkId())
@@ -144,7 +144,7 @@ public class AmlService implements IAmlService {
                         .build();
 
                 AmlResult result = AmlResult.builder()
-                        .vendorId(amlVendor.getId())
+                        .vendorId(vendor.getId())
                         .entityType(AmlEntityType.USER.getName())
                         .entityId(amlSearch.getEntityId())
                         .vendorReference(request.checkId())

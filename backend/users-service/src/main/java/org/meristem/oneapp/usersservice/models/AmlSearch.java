@@ -20,8 +20,8 @@ public class AmlSearch extends BaseModel<String> {
     private String clientSearchId;
 
     @Builder
-    public AmlSearch(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long entityId, String clientSearchId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public AmlSearch(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long entityId, String clientSearchId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.entityId = entityId;
         this.clientSearchId = clientSearchId;
     }

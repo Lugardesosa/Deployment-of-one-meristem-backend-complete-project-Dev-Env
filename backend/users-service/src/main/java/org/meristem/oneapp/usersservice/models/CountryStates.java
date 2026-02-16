@@ -28,8 +28,8 @@ public class CountryStates extends BaseModel<String> {
     private Long countryId;
 
     @Builder
-    public CountryStates(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, Long countryId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public CountryStates(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, Long countryId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.name = name;
         this.countryId = countryId;
     }

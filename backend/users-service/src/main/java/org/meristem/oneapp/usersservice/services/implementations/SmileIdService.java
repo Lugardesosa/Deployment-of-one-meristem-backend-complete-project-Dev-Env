@@ -5,15 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.kafka.dtos.WebSocketDto;
+import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
-import org.meristem.oneapp.usersservice.domains.responses.NinQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
+import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
@@ -30,6 +28,7 @@ import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,12 +38,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 
@@ -68,6 +63,9 @@ import static java.util.Objects.requireNonNull;
 public class SmileIdService implements ISmileIdService {
 
     public static final String ID_APPROVED_STATUS = "1012";
+    private final CustomRepository customRepository;
+    private final SmileIdProperties smileIdProperties;
+    private final AmlVendorRepository amlVendorRepository;
     @Value("${one-app.users-service.smile-id.server-ips}")
     private List<String> smileIps;
 
@@ -78,14 +76,11 @@ public class SmileIdService implements ISmileIdService {
     private String idHashKey;
 
     private static final String DOCUMENT_APPROVED_STATUS = "0810";
-    private static final Integer DOCUMENT_JOB_TYPE = 6;
     private static final Integer ENHANCED_JOB_TYPE = 5;
-    private static final List<Integer> DOC_AND_ENHANCED_JOB_TYPES = List.of(DOCUMENT_JOB_TYPE, ENHANCED_JOB_TYPE);
 
-    private final SmileIdRecordRepository smileIdRecordRepository;
+    private final KycQueryRepository kycQueryRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final RequirementsRepository requirementsRepository;
-    private final UserDocumentRepository userDocumentRepository;
     private final IdCardRepository idCardRepository;
     private final UserProfileRepository userProfileRepository;
     private final UsersRepository usersRepository;
@@ -104,13 +99,32 @@ public class SmileIdService implements ISmileIdService {
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
 
-    @Value("${spring.profiles.active}")
-    private String activeProfiles;
+    public BvnQueryResponse idQuery(IdQueryRequest request) {
 
-    public NinQueryResponse idQuery(IdQueryRequest request) {
+        if (IdCardType.BVN.compareTo(IdCardType.fromName(request.idType())) != 0) {
+            throw new BadRequestException("Only BVN can be validated.");
+        }
 
-        if ("prod".equalsIgnoreCase(activeProfiles) && idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.id()), IdCardType.NIN.getName())) {
-            throw new BadRequestException("Bvn already exists.");
+        SmileIdWebhookNotification response = getSmileIdWebhookNotification(request, IdCardType.BVN);
+        if (ID_APPROVED_STATUS.equals(response.getResultCode()) && confirmSignature(response.getSignature(), response.getTimestamp())) {
+
+            response.setBvn(encryptionUtil.encrypt(request.id()));
+            response.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, request.id()));
+            requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(response.getBvnHashed(), response);
+
+            return BvnQueryResponse.builder().middleName(response.getMiddleName())
+                    .email(response.getEmail()).firstName(response.getFirstName()).lastName(response.getLastName())
+                    .phoneNumber(response.getPhoneNumber()).build();
+        } else if (errorCodes.contains(response.getResultCode())) {
+            throw new BadRequestException("Enter a valid bvn");
+        } else {
+            throw new BadRequestException("Try again later.");
+        }
+    }
+
+    private SmileIdWebhookNotification getSmileIdWebhookNotification(IdQueryRequest request, IdCardType idCardType) {
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.id()), idCardType.getName())) {
+            throw new BadRequestException("BVN already exists.");
         }
         SmileIdEnhancedKycRequest.PartnerParams partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
                 .job_id(UUID.randomUUID().toString())
@@ -120,22 +134,7 @@ public class SmileIdService implements ISmileIdService {
         String timestamp = AppUtil.getSmileIdTimestamp();
         SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.id(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
 
-        SmileIdWebhookNotification response = smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
-
-        if (ID_APPROVED_STATUS.equals(response.getResultCode()) && confirmSignature(response.getSignature(), response.getTimestamp())) {
-
-            response.setNin(encryptionUtil.encrypt(request.id()));
-            response.setNinHashed(hashingUtil.hmacWithSha256(idHashKey, request.id()));
-            requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(response.getNinHashed(), response);
-
-            return NinQueryResponse.builder().middleName(response.getMiddleName())
-                    .email(response.getEmail()).firstName(response.getFirstName()).lastName(response.getLastName())
-                    .phoneNumber(response.getPhoneNumber()).build();
-        } else if (errorCodes.contains(response.getResultCode())) {
-            throw new BadRequestException("Enter a valid nin");
-        } else {
-            throw new BadRequestException("Try again later.");
-        }
+        return smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
     }
 
     /**
@@ -149,11 +148,12 @@ public class SmileIdService implements ISmileIdService {
     @Transactional
     public UpdateResponse saveSmileIdTask(SmileIdIdRequest smileRequest) {
 
+        Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(AppConstants.VENDOR_SMILE_ID);
         Requirements requirements = requirementsRepository.findByIdAndStatus(smileRequest.requirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
-        smileIdRecordRepository.save(SmileIdRecord.builder().jobId(smileRequest.jobId()).requirementId(requirements.getId()).userId(AppUtil.getLoggedInUserEmail())
-                .build());
+        kycQueryRepository.save(KycQuery.builder().jobId(smileRequest.jobId()).requirementId(requirements.getId()).userId(AppUtil.getLoggedInUserEmail())
+                .status(KycQueryStatus.PENDING.getValue()).vendorId(vendor.getId()).build());
         return UpdateResponse.builder().message("Success").success(true).build();
     }
 
@@ -170,7 +170,8 @@ public class SmileIdService implements ISmileIdService {
 
         String smileIdWebhookUrl = "/topic/smile-id/";
         try {
-            SmileIdRecord record = smileIdRecordRepository.findSmileIdRecordByJobId(request.getPartnerParams().jobId());
+            KycQuery record = kycQueryRepository.findKycQueryByJobIdAndStatusIn(request.getPartnerParams().jobId(), List.of(KycQueryStatus.PENDING.getValue(), KycQueryStatus.COMPLETED.getValue()))
+                    .orElseThrow(() -> new BadRequestException("Initial setup not found."));
             if (!confirmSignature(request.getSignature(), request.getTimestamp()) || !smileIps.contains(AppUtil.extractIp(httpServletRequest))) {
                 return new SmileIdWebhookResponse("Failed", false);
             }
@@ -199,104 +200,59 @@ public class SmileIdService implements ISmileIdService {
      * Handles failed webhook notifications by updating the Smile ID record and user onboarding status.
      *
      * @param notification  The webhook notification containing failure details.
-     * @param smileIdRecord The Smile ID record associated with the notification.
+     * @param kycQuery The Smile ID record associated with the notification.
      */
-    private void handleFailedNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-        smileIdRecord.setMessage(notification.getResultText());
-        smileIdRecord.setStatus(SmileIdRecordStatus.FAILED.getValue());
-        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.REJECTED.getValue(), false);
-        smileIdRecordRepository.save(smileIdRecord);
+    private void handleFailedNotification(SmileIdWebhookNotification notification, KycQuery kycQuery) {
+        Users loggedInUser = usersRepository.findOneByEmail(kycQuery.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
+        kycQuery.setMessage(notification.getResultText());
+        kycQuery.setStatus(KycQueryStatus.FAILED.getValue());
+        usersService.resetUserOnboarding(loggedInUser.getEmail(), kycQuery.getRequirementId());
+        kycQueryRepository.save(kycQuery);
     }
 
     /**
      * Handles successful webhook notifications by processing the action or data based on the job type.
      *
      * @param notification  The webhook notification containing success details.
-     * @param smileIdRecord The Smile ID record associated with the notification.
+     * @param kycQuery The Smile ID record associated with the notification.
      */
-    private void handleSuccessfulNotification(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
+    private void handleSuccessfulNotification(SmileIdWebhookNotification notification, KycQuery kycQuery) {
 
         if (actionStatus.contains(notification.getResultCode())) {
-            handleAction(notification, smileIdRecord);
-        } else if (dataStatus.contains(notification.getResultCode()) && DOC_AND_ENHANCED_JOB_TYPES.contains(notification.getPartnerParams().jobType())) {
-            saveUserIdDetailsAndCompleteOnboarding(notification, smileIdRecord, loggedInUser);
+            handleAction(notification, kycQuery);
         } else if (dataStatus.contains(notification.getResultCode())) {
-            handleData(notification, smileIdRecord);
+            handleData(notification, kycQuery);
         }
-    }
-
-    private void saveUserIdDetailsAndCompleteOnboarding(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord, Users loggedInUser) {
-
-
-        // If card has expired, reset the onboarding process
-        if (StringUtils.isNotBlank(notification.getExpirationDate()) && notification.getExpirationDate().matches(AppConstants.DATE_REGEX)) {
-
-            if (LocalDate.parse(notification.getExpirationDate()).isBefore(LocalDate.now())) {
-                usersService.resetUserOnboarding(loggedInUser.getEmail(), smileIdRecord.getRequirementId());
-                return;
-            }
-        }
-
-        idDetailsService.saveIdDetails(notification, loggedInUser);
-
-        completeOnboarding(smileIdRecord, loggedInUser);
     }
 
     /**
      * Processes action-based webhook notifications and completes user onboarding.
      *
      * @param notification  The webhook notification containing action details.
-     * @param smileIdRecord The Smile ID record associated with the notification.
+     * @param kycQuery The Smile ID record associated with the notification.
      */
-    private void handleAction(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
+    private void handleAction(SmileIdWebhookNotification notification, KycQuery kycQuery) {
 
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
+        Users loggedInUser = usersRepository.findOneByEmail(kycQuery.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
 
-        if (DOCUMENT_JOB_TYPE.equals(notification.getPartnerParams().jobType())) {
-            saveUserIdDetailsAndCompleteOnboarding(notification, smileIdRecord, loggedInUser);
-        }
-        smileIdRecord.setMessage(notification.getResultText());
-        smileIdRecord.setStatus(SmileIdRecordStatus.APPROVED.getValue());
-        smileIdRecordRepository.save(smileIdRecord);
-        completeOnboarding(smileIdRecord, loggedInUser);
+        kycQuery.setMessage(notification.getResultText());
+        kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
+        kycQueryRepository.save(kycQuery);
+        completeOnboarding(kycQuery, loggedInUser);
     }
 
     /**
      * Processes data-based webhook notifications and updates user documents or profiles.
      *
      * @param notification  The webhook notification containing data details.
-     * @param smileIdRecord The Smile ID record associated with the notification.
+     * @param kycQuery The Smile ID record associated with the notification.
      */
-    private void handleData(SmileIdWebhookNotification notification, SmileIdRecord smileIdRecord) {
-        requirementsRepository.findByIdAndStatus(smileIdRecord.getRequirementId(), EntityStatus.ACTIVE.getValue())
+    private void handleData(SmileIdWebhookNotification notification, KycQuery kycQuery) {
+        requirementsRepository.findByIdAndStatus(kycQuery.getRequirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
-        // Save document url for non nin requirement
-        Users loggedInUser = usersRepository.findOneByEmail(smileIdRecord.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-
-        userDocumentRepository.findByUserIdAndIdType(loggedInUser.getId(), notification.getIdType())
-                .ifPresentOrElse(id -> {
-                    id.setAdditionalUrl(notification.getKycReceipt());
-                    if (nonNull(notification.getImageLinks())) {
-                        id.setIdCardFront(notification.getImageLinks().idCardImage());
-                        id.setIdCardBack(notification.getImageLinks().idCardBack());
-                        id.setSelfieImage(notification.getImageLinks().selfieImage());
-                    }
-                    userDocumentRepository.save(id);
-                }, () -> {
-                    UserDocument document = UserDocument.builder().userId(loggedInUser.getId()).requirementId(smileIdRecord.getRequirementId())
-                            .idType(notification.getIdType()).additionalUrl(notification.getKycReceipt()).build();
-                    if (nonNull(notification.getImageLinks())) {
-                        document.setIdCardFront(notification.getImageLinks().idCardImage());
-                        document.setIdCardBack(notification.getImageLinks().idCardBack());
-                        document.setSelfieImage(notification.getImageLinks().selfieImage());
-                    }
-                    userDocumentRepository.save(document);
-                });
-
+        // Save document url for non bvn requirement
+        Users loggedInUser = usersRepository.findOneByEmail(kycQuery.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
 
         if (AppUtil.nonIsNull(notification.getIdNumber(), notification.getIdType())) {
             idCardRepository.findByIdCardTypeAndIdValueHashed(IdCardType.fromName(notification.getIdType()).getName(), hashingUtil.hmacWithSha256(idHashKey, notification.getIdNumber()))
@@ -311,6 +267,7 @@ public class SmileIdService implements ISmileIdService {
                             .build()));
         }
 
+        // Updates user profile with BVN data; evicts cache
         if (OnboardingRequirements.of(notification.getIdType()) == OnboardingRequirements.BVN) {
 
             UserProfile profile = userProfileRepository.findByUserId(loggedInUser.getId()).orElseThrow(() -> new BadRequestException("User not found"));
@@ -325,18 +282,70 @@ public class SmileIdService implements ISmileIdService {
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getId());
         }
 
-        idDetailsService.saveIdDetails(notification, loggedInUser);
+        UserIdDetails userIdDetails = idDetailsService.buildIdDetails(notification, loggedInUser);
+        customRepository.save(userIdDetails);
+    }
+
+    /**
+     * Validates NIN data; flags mismatches; completes onboarding if valid
+     */
+    public NinValidationResponse validateNin(IdQueryRequest request) {
+
+        if (IdCardType.NIN.compareTo(IdCardType.fromName(request.idType())) != 0) {
+            throw new BadRequestException("Only NIN can be validated.");
+        }
+
+        SmileIdWebhookNotification notification = getSmileIdWebhookNotification(request, IdCardType.NIN);
+
+        Users loggedInUser = usersRepository.findById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new AuthorizationDeniedException("User is not logged in"));
+        UserIdDetails bvn = customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.BVN.getName())).orElseThrow(() -> new BadRequestException("BVN details could not be found."));
+
+        StringBuilder stringBuilder = new StringBuilder();
+        List<String> names = new ArrayList<>();
+        names.add(bvn.getFirstName());
+        names.add(bvn.getLastName());
+        names.add(bvn.getMiddleName());
+
+        UserIdDetails nin = idDetailsService.buildIdDetails(notification, loggedInUser);
+        if (!firstNamesMatch(nin, names)) {
+            stringBuilder.append("Firstnames on NIN and BVN do not match,");
+        }
+        if (!lastNamesMatch(nin, names)) {
+            stringBuilder.append("Lastnames on NIN and BVN do not match,");
+        }
+        if (!middleNamesMatch(nin, names)) {
+            stringBuilder.append("Middle names on NIN and BVN do not match,");
+        }
+        if (!dobMatch(nin, bvn)) {
+            stringBuilder.append("Date of births on NIN and BVN do not match,");
+        }
+
+        // Validates user; updates onboarding status; notifies user service
+        Requirements requirements = requirementsRepository.findRequirementsByRequirementName(OnboardingRequirements.NIN.getName());
+        // Validates user; updates onboarding status; notifies user service
+        if (firstNamesMatch(nin, names) && lastNamesMatch(nin, names) && dobMatch(nin, bvn) && middleNamesMatch(nin, names)) {
+            nin.setValidated(true);
+            nin.setNote("NIN verified successfully");
+            userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+            usersService.completeUserOnboarding(loggedInUser.getEmail());
+        } else {
+            usersService.resetUserOnboarding(loggedInUser.getEmail(), requirements.getId());
+            nin.setValidated(false);
+            nin.setNote(stringBuilder.isEmpty() ? null : stringBuilder.toString().concat("Please correct the mismatch and come back and revalidate."));
+        }
+
+        customRepository.save(nin);
+        return NinValidationResponse.builder().message(nin.getNote()).success(nin.getValidated()).build();
     }
 
     /**
      * Completes the onboarding process for a user by updating the onboarding status and notifying the user service.
      *
-     * @param smileIdRecord The Smile ID record associated with the onboarding process.
+     * @param kycQuery The Smile ID record associated with the onboarding process.
      * @param loggedInUser  The user completing the onboarding process.
      */
-    private void completeOnboarding(SmileIdRecord smileIdRecord, Users loggedInUser) {
-        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), smileIdRecord.getRequirementId(), OnboardingStatus.APPROVED.getValue(), true);
-        usersService.completeUserOnboarding(loggedInUser.getEmail());
+    private void completeOnboarding(KycQuery kycQuery, Users loggedInUser) {
+        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), kycQuery.getRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
     }
 
     /**
@@ -367,10 +376,10 @@ public class SmileIdService implements ISmileIdService {
      * @throws InvalidKeyException      If the provided key is invalid.
      */
     private Mac getMac(String timestamp) throws NoSuchAlgorithmException, InvalidKeyException {
-        Mac mac = Mac.getInstance("HmacSHA256");
-        mac.init(new SecretKeySpec("3d64d61d-6d64-402d-a5f0-fa288507ec8f".getBytes(), "HmacSHA256"));
+        Mac mac = AppUtil.getHmacSHA256();
+        mac.init(new SecretKeySpec(smileIdProperties.apiKey().getBytes(), "HmacSHA256"));
         mac.update(timestamp.getBytes(StandardCharsets.UTF_8));
-        mac.update("7496".getBytes(StandardCharsets.UTF_8));
+        mac.update(smileIdProperties.partnerId().getBytes(StandardCharsets.UTF_8));
         mac.update("sid_request".getBytes(StandardCharsets.UTF_8));
         return mac;
     }
@@ -413,5 +422,27 @@ public class SmileIdService implements ISmileIdService {
         } else {
             return request.getRegionOfOrigin();
         }
+    }
+
+    public boolean firstNamesMatch(UserIdDetails uid, List<String> names) {
+        return names.stream().anyMatch(n -> n.equalsIgnoreCase(uid.getFirstName()));
+    }
+
+    public boolean lastNamesMatch(UserIdDetails uid, List<String> names) {
+        return names.stream().anyMatch(n -> n.equalsIgnoreCase(uid.getLastName()));
+
+    }
+
+    public boolean middleNamesMatch(UserIdDetails uid, List<String> names) {
+        return names.stream().anyMatch(n -> n.equalsIgnoreCase(uid.getMiddleName()));
+    }
+
+    /**
+     * Checks if user date of birth matches date of birth sent
+     */
+    public boolean dobMatch(UserIdDetails uid, UserIdDetails bvn) {
+
+        return AppUtil.nonIsNull(uid.getDateOfBirth(), bvn.getDateOfBirth()) &&
+                uid.getDateOfBirth().isEqual(bvn.getDateOfBirth());
     }
 }

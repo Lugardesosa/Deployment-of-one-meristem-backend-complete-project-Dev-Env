@@ -28,9 +28,9 @@ public class AmlResult extends BaseModel<String> {
     private String vendorReference;
 
     @Builder
-    public AmlResult(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long vendorId, Long searchId,
+    public AmlResult(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long vendorId, Long searchId,
                      String entityType, Long entityId, JsonNode vendorDataset, String vendorReference, String resultType) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.vendorId = vendorId;
         this.searchId = searchId;
         this.entityType = entityType;
