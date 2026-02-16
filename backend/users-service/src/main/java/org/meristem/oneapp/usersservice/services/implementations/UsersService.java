@@ -140,7 +140,7 @@ public class UsersService implements IUsersService {
             throw new BadRequestException("Nin already exists.");
         }
 
-        user.setStatus(UserStatus.KYC_NOT_COMPLETED.getValue());
+        user.setStatus(UserStatus.DATA_SHARING_NOT_COMPLETED.getValue());
         user = usersRepository.save(user);
 
         idCardRepository.save(IdCard.builder().idValue(nin)
@@ -569,6 +569,7 @@ public class UsersService implements IUsersService {
         Map<String, Object> updates = new HashMap<>();
         updates.put("data_sharing_allowed", true);
         int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", userId));
+        usersRepository.updateUsersStatus(userId, UserStatus.KYC_NOT_COMPLETED.getValue());
         clearUsersCache();
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
