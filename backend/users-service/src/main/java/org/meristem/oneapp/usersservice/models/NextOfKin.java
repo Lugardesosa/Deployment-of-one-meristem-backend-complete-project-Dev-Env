@@ -36,9 +36,9 @@ public class NextOfKin extends BaseModel<String> {
     private Long userId;
 
     @Builder
-    public NextOfKin(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
+    public NextOfKin(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
                      String fullName, String email, String phoneNumber, String relationship, Long userId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.fullName = fullName;
         this.email = email;
         this.phoneNumber = phoneNumber;

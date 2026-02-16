@@ -20,8 +20,8 @@ public class InvestmentOptions extends BaseModel<String> {
     private String name;
 
     @Builder
-    public InvestmentOptions(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, String name) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public InvestmentOptions(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, String name) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.investmentId = investmentId;
         this.name = name;
     }

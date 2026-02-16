@@ -101,7 +101,7 @@ public class OnboardingController {
     })
     @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_1004')")
     @PostMapping(value = "/id-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<NinQueryResponse>> bvnQuery(@RequestBody @Valid IdQueryRequest request) {
+    public ResponseEntity<AppResponse<BvnQueryResponse>> bvnQuery(@RequestBody @Valid IdQueryRequest request) {
         return ApiUtil.buildResponse(smileIdService.idQuery(request), HttpStatus.OK.toString(), "Successful");
     }
 
@@ -113,5 +113,15 @@ public class OnboardingController {
     @GetMapping(value = "/id-number", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetIdNumberResponse>> getIdNumber(@Pattern(regexp = "^BVN|NIN$", message = "Pass a valid id type (BVN or NIN)") @RequestParam String idType) {
         return ApiUtil.buildResponse(onboardingService.getIdNumber(idType), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Validate NIN Details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validate NIN Details")
+    })
+    @PreAuthorize("hasRole('ROLE_1004')")
+    @PostMapping(value = "/validate-nin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<NinValidationResponse>> validateNin(@RequestBody @Valid IdQueryRequest request) {
+        return ApiUtil.buildResponse(smileIdService.validateNin(request), HttpStatus.OK.toString(), "Successful");
     }
 }

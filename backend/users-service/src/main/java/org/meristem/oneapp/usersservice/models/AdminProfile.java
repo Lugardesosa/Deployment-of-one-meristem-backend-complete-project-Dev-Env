@@ -20,8 +20,8 @@ public class AdminProfile extends BaseModel<String> {
     private Long investmentInstrumentId;
 
     @Builder
-    public AdminProfile(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long adminId, Long investmentInstrumentId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public AdminProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long adminId, Long investmentInstrumentId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.adminId = adminId;
         this.investmentInstrumentId = investmentInstrumentId;
     }

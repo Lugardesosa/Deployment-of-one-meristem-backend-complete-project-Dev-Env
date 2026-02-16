@@ -34,8 +34,8 @@ public class IdDetails extends BaseModel<String> {
 
 
     @Builder
-    public IdDetails(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, Long idCardId, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public IdDetails(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long fileId, Long idCardId, String firstName, String lastName, String email, String phoneNumber, String middleName, String address, String city, String state, String country, String gender, String placeOfBirth, LocalDate dateOfBirth) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.fileId = fileId;
         this.idCardId = idCardId;
         this.firstName = firstName;

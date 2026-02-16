@@ -26,8 +26,8 @@ public class InvestmentInstruments extends BaseModel<String> {
     private Integer type;
 
     @Builder
-    public InvestmentInstruments(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, String code, Integer type) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public InvestmentInstruments(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, String code, Integer type) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.name = name;
         this.code = code;
         this.type = type;

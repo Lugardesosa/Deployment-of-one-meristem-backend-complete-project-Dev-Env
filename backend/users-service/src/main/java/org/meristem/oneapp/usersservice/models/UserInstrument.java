@@ -22,8 +22,8 @@ public class UserInstrument extends BaseModel<String> {
 
 
     @Builder
-    public UserInstrument(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long instrumentId, Boolean dataSharingAllowed) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public UserInstrument(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long instrumentId, Boolean dataSharingAllowed) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.instrumentId = instrumentId;
         this.accessed = false;

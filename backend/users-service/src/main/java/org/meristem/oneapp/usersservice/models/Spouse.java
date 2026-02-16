@@ -32,8 +32,8 @@ public class Spouse extends BaseModel<String> {
     private String phoneNumberFormat;
 
     @Builder
-    public Spouse(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Integer title, String fullName, String email, Long nationalityId, String phoneNumber, String phoneNumberFormat) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public Spouse(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Integer title, String fullName, String email, Long nationalityId, String phoneNumber, String phoneNumberFormat) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.title = title;
         this.fullName = fullName;

@@ -31,8 +31,8 @@ public class UserPin extends BaseModel<String> {
     private LocalDateTime lastFailedAt;
 
     @Builder
-    public UserPin(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String pin, Integer failedAttempts, LocalDateTime lockUntil, LocalDateTime lastFailedAt) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public UserPin(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String pin, Integer failedAttempts, LocalDateTime lockUntil, LocalDateTime lastFailedAt) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.pin = pin;
         this.failedAttempts = 0;

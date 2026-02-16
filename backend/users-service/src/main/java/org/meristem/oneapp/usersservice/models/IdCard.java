@@ -43,9 +43,9 @@ public class IdCard extends BaseModel<String> {
     private Long userId;
 
     @Builder
-    public IdCard(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
+    public IdCard(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
                   String idCardType, String idValue, LocalDate issuedDate, LocalDate expiryDate, Long userId, String idValueHashed) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.idCardType = idCardType;
         this.idValue = idValue;
         this.issuedDate = issuedDate;

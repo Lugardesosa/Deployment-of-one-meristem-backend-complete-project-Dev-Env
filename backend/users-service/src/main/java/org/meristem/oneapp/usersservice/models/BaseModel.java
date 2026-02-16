@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Setter
 @Getter
-@AllArgsConstructor
 public class BaseModel<U> {
 
     @Id
@@ -51,13 +50,13 @@ public class BaseModel<U> {
     @NotNull(message = "Cannot be null")
     private Integer status;
 
-    public BaseModel(Long id, LocalDateTime createdDate, U createdBy, LocalDateTime lastModifiedDate, U lastModifiedBy, Integer version) {
+    public BaseModel(Long id, LocalDateTime createdDate, U createdBy, LocalDateTime lastModifiedDate, U lastModifiedBy, Integer version, Integer status) {
         this.id = id;
         this.createdDate = createdDate;
         this.createdBy = createdBy;
         this.lastModifiedDate = lastModifiedDate;
         this.lastModifiedBy = lastModifiedBy;
         this.version = version;
-        this.status = EntityStatus.ACTIVE.getValue();
+        this.status = status == null ? EntityStatus.ACTIVE.getValue() : status;
     }
 }

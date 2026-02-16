@@ -22,8 +22,8 @@ public class DeviceMetadata extends BaseModel<String> {
 
 
     @Builder
-    public DeviceMetadata(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String deviceDetails, String location, LocalDateTime lastLoggedIn) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public DeviceMetadata(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, String deviceDetails, String location, LocalDateTime lastLoggedIn) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.deviceDetails = deviceDetails;
         this.location = location;

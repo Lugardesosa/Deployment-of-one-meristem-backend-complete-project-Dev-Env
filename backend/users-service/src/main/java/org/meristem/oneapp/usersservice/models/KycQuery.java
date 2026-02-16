@@ -15,8 +15,8 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table("smile_id_record")
-public class SmileIdRecord extends BaseModel<String> {
+@Table("kyc_query")
+public class KycQuery extends BaseModel<String> {
 
     /**
      * The unique identifier for the Smile ID job.
@@ -52,6 +52,13 @@ public class SmileIdRecord extends BaseModel<String> {
     @Column("requirement_id")
     private Long requirementId;
 
+    /**
+     * The requirement id associated with the Smile ID job.
+     */
+    @NotNull(message = "vendor_id cannot be null")
+    @Column("vendor_id")
+    private Long vendorId;
+
 
     /**
      * Constructs a new SmileIdRecord instance with the specified details.
@@ -68,12 +75,13 @@ public class SmileIdRecord extends BaseModel<String> {
      */
 
     @Builder
-    public SmileIdRecord(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String jobId, String userId,
-                         Long requirementId) {
-        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
+    public KycQuery(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String jobId, String userId,
+                    Long requirementId, Long vendorId) {
+        super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.jobId = jobId;
         this.userId = userId;
         this.requirementId = requirementId;
+        this.vendorId = vendorId;
     }
 
     /**
@@ -86,7 +94,7 @@ public class SmileIdRecord extends BaseModel<String> {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        SmileIdRecord that = (SmileIdRecord) o;
+        KycQuery that = (KycQuery) o;
         return Objects.equals(getJobId(), that.getJobId());
     }
 

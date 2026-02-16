@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
-import org.meristem.oneapp.usersservice.integrations.responses.SmileIdEnhancedKycResponse;
 
 import java.io.Serializable;
 import java.util.List;
@@ -98,7 +97,6 @@ public class SmileIdWebhookNotification implements Serializable {
     @JsonProperty("Email")
     private String email;
 
-    @NotBlank(message = "Cannot be blank")
     @JsonProperty("FirstName")
     private String firstName;
 
@@ -111,7 +109,6 @@ public class SmileIdWebhookNotification implements Serializable {
     @JsonProperty("IsAlive")
     private boolean isAlive;
 
-    @NotBlank(message = "Cannot be blank")
     @JsonProperty("LastName")
     private String lastName;
 
@@ -145,8 +142,8 @@ public class SmileIdWebhookNotification implements Serializable {
     @JsonProperty("UserIDsOfPreviousRegistrants")
     private List<String> userIdsOfPreviousRegistrants;
 
-    private String nin;
-    private String ninHashed;
+    private String bvn;
+    private String bvnHashed;
     private boolean emailVerified;
     private boolean passwordSet;
 
