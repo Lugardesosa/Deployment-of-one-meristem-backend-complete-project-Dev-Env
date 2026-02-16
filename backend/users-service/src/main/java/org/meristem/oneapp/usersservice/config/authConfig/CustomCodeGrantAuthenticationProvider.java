@@ -74,6 +74,10 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_USERNAME, null));
         }
 
+        if (user.getStatus() == UserStatus.DATA_SHARING_NOT_COMPLETED.getValue()) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.DATA_SHARING_NOT_COMPLETED, null));
+        }
+
         if (user.getStatus() == UserStatus.LOCKED.getValue()) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.ACCOUNT_LOCKED, null));
         }
