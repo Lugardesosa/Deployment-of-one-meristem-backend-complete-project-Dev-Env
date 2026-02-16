@@ -566,6 +566,9 @@ public class UsersService implements IUsersService {
     public UpdateResponse updateDataSharing(ShareAllDataRequest request) {
 
         Long userId = usersRepository.findIdByEmail(request.userEmail());
+        if (isNull(userId)) {
+            throw new BadRequestException("User does not exist.");
+        }
         Map<String, Object> updates = new HashMap<>();
         updates.put("data_sharing_allowed", true);
         int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", userId));
