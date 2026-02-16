@@ -262,10 +262,10 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approve all data sharing")
     })
-    @PreAuthorize("hasRole('ROLE_1013')")
+    @PreAuthorize("hasAuthority('SCOPE_share_all_data')")
     @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing() {
-        return ApiUtil.buildResponse(usersService.updateDataSharing(), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@RequestBody @Valid ShareAllDataRequest request) {
+        return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Approve all data sharing")
