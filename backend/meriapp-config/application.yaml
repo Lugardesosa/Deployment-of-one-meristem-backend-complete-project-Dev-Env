@@ -71,6 +71,7 @@ spring:
             provider: users-service
             scope:
               - verify.pin
+
         provider:
           users-service:
             token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
@@ -135,6 +136,10 @@ one-app:
     users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
     notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
 
+  middle-ware:
+    base-url: ${MIDDLE_WARE_BASE_URL}
+    api-key: ${MIDDLE_WARE_API_KEY}
+    client-name: MiddleWare
 
 logging:
   file:
