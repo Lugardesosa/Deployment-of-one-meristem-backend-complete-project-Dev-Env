@@ -11,4 +11,6 @@ public interface AddressRepository extends BaseRepository<Address, Long> {
     Optional<Address> findByUserId(Long userId);
 
     Optional<Address> findByUserIdAndVerificationMethod(Long userId, Integer verificationMethod);
+
+    Address findAddressByUserIdAndVerificationMethod(Long userId, Integer verificationMethod);
 }

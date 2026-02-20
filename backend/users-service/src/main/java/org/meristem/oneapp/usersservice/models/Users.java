@@ -38,6 +38,9 @@ public class Users extends BaseModel<String> {
     @Size(max = 200, min = 8, message = "Not more than 200 and less than 8")
     private String password;
 
+    @Size(max = 200, message = "Not more than 200 ")
+    private String middlewareCustomerId;
+
     // To be saved without the '08024346767'
     @Size(max = 50, min = 7, message = "Not more than 50 and less than 7")
     @NotBlank(message = "phoneNumber cannot be null")
@@ -73,6 +76,7 @@ public class Users extends BaseModel<String> {
         this.password = password;
         this.phoneNumber = phoneNumber;
         this.passwordAttempt = 0;
+        this.middlewareCustomerId = null;
     }
 
     /**

@@ -2,9 +2,9 @@ package org.meristem.oneapp.usersservice.config;
 
 
 import lombok.RequiredArgsConstructor;
-import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
-import org.meristem.oneapp.usersservice.config.configProperties.PastelProperties;
-import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
+import org.meristem.oneapp.usersservice.config.configProperties.*;
+import org.meristem.oneapp.usersservice.integrations.DojahClient;
+import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.usersservice.integrations.PastelClient;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +25,6 @@ public class IntegrationConfig {
                         .build())).build().createClient(SmileIdClient.class);
     }
 
-
     @Bean
     PastelClient pastelClient(RestClient.Builder restClientBuilder, PastelProperties pastelProperties, OneAppProperties oneAppProperties) {
         return HttpServiceProxyFactory
@@ -36,5 +35,29 @@ public class IntegrationConfig {
                             h.add("apiSecret", pastelProperties.secret());
                         })
                         .build())).build().createClient(PastelClient.class);
+    }
+
+    @Bean
+    MiddleWareClient middleWareClient(RestClient.Builder restClientBuilder, MiddleWareConfigProperties middleWareConfigProperties, OneAppProperties oneAppProperties) {
+
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
+                        .baseUrl(middleWareConfigProperties.baseUrl())
+                        .defaultHeaders(c -> {
+                            c.set(oneAppProperties.defaultHeaderName(), middleWareConfigProperties.clientName());
+                            c.set("X-API-KEY", middleWareConfigProperties.apiKey());
+                        }).build()))
+                .build().createClient(MiddleWareClient.class);
+    }
+
+    @Bean
+    DojahClient dojahClient(RestClient.Builder restClientBuilder, DojahProperties dojahProperties, OneAppProperties oneAppProperties) {
+        return HttpServiceProxyFactory
+                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(dojahProperties.baseUrl())
+                        .defaultHeaders(h -> {
+                            h.set(oneAppProperties.defaultHeaderName(), dojahProperties.clientName());
+                            h.set("AppId", dojahProperties.appId());
+                            h.set("Authorization", dojahProperties.secretKey());
+                        })
+                        .build())).build().createClient(DojahClient.class);
     }
 }

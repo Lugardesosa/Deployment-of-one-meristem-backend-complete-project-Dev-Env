@@ -2,6 +2,8 @@ package org.meristem.oneapp.usersservice.services;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
+import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
+import org.meristem.oneapp.kafka.dtos.UploadImageDto;
 
 /**
  * Interface for handling Kafka message consumption.
@@ -11,4 +13,8 @@ public interface IKafkaListenerService {
     // Currently no methods - placeholder for future Kafka listener methods
 
     void listenKycCompleted(ConsumerRecord<String, KycCompletedDto> record);
+
+    void createCustomer(ConsumerRecord<String, CreateCustomerDto> record);
+
+    void uploadImage(ConsumerRecord<String, UploadImageDto> record);
 }

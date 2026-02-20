@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.usersservice.models.Users;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public interface IUsersService {
      * @param bvn the user's BVN
      * @return a {@link UsersResponse} containing the created user's details
      */
-    UsersResponse save(Users user, String bvn, String bvnHashed);
+    UsersResponse save(Users user, SmileIdWebhookNotification smileIdWebhookNotification);
 
     /**
      * Updates the user's email address.
@@ -214,4 +215,6 @@ public interface IUsersService {
     UpdateResponse updateCscs(@Valid UpdateCscsRequest request);
 
     UpdateResponse createSpouse(@Valid CreateSpouseRequest request);
+
+    void createCustomer(CreateCustomerDto value);
 }
