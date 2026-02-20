@@ -44,6 +44,14 @@ one-app:
       threshold: 80
       limit: 10
       callback-url: ${PASTEL_CALLBACK_URL}
+
+    dojah:
+      app-id: ${DOJAH_APP_ID}
+      secret-key: ${DOJAH_SECRET_KEY}
+      private-key: ${DOJAH_PRIVATE_KEY}
+      base-url: ${DOJAH_BASE_URL}
+      client-name: Dojah
+
     company-name: ${COMPANY_NAME}
     data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
     logo-url: ${GREEN_LOGO_URL}
@@ -81,3 +89,7 @@ logging:
 pin-unlock:
   cron:
     fix-rate: 5
+
+outbox:
+  cron:
+    fix-rate: 2

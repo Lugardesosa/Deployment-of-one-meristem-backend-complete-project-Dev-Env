@@ -102,6 +102,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     boolean existsByEmail(String email);
 
     Optional<Users> findUsersByEmailOrPhoneNumber(String email, String phoneNumber);
+    Users findUsersByEmail(String email);
 
     @Query("""
             SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, u.status, u.created_date, r.display_name, ii.code, r.id AS roleId, ap.investment_instrument_id FROM users u 

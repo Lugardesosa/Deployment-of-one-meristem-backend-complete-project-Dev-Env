@@ -1,6 +1,8 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +15,17 @@ import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
+import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
+import org.meristem.oneapp.usersservice.integrations.requests.CreateIndividualCustomerRequest;
+import org.meristem.oneapp.usersservice.integrations.responses.CreateIndividualCustomerResponse;
+import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareResponse;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
-import org.meristem.oneapp.usersservice.services.IIdDetailsService;
 import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
@@ -73,8 +79,13 @@ public class UsersService implements IUsersService {
     private final CustomRepository customRepository;
     private final IdCardRepository idCardRepository;
     private final UserPinRepository userPinRepository;
-    private final IIdDetailsService idDetailsService;
     private final HashingUtil hashingUtil;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
+    private final MiddleWareClient middleWareClient;
+    private final AddressRepository addressRepository;
+    private final CountriesRepositories countriesRepositories;
+    private final IdDetailsService idDetailsService;
 
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
@@ -124,35 +135,35 @@ public class UsersService implements IUsersService {
         Users user = usersMapper.ninQueryResponseToUsers(bvnQueryResponse);
 
         user.setPassword(passwordEncoder.encode(userRequest.password()));
-        save(user, bvnQueryResponse.getBvn(), bvnQueryResponse.getBvnHashed());
+        save(user, bvnQueryResponse);
         cache.evict(userRequest.email());
         log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
-    public  UsersResponse save(Users user, String nin, String ninHashed) {
+    public  UsersResponse save(Users user, SmileIdWebhookNotification bvnQueryResponse) {
         log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        if (idCardRepository.existsByIdValueHashedAndIdCardType(ninHashed, IdCardType.NIN.getName())) {
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(bvnQueryResponse.getBvnHashed(), IdCardType.NIN.getName())) {
             throw new BadRequestException("Nin already exists.");
         }
 
         user.setStatus(UserStatus.DATA_SHARING_NOT_COMPLETED.getValue());
         user = usersRepository.save(user);
 
-        idCardRepository.save(IdCard.builder().idValue(nin)
+        idCardRepository.save(IdCard.builder().idValue(bvnQueryResponse.getBvn())
                 .idCardType(IdCardType.BVN.getName())
-                .userId(user.getId()).idValueHashed(ninHashed)
+                .userId(user.getId()).idValueHashed(bvnQueryResponse.getBvnHashed())
                 .build());
 
         String referralCode;
         do {
             referralCode = AppUtil.generateReferralCode(user.getFirstName());
         } while (userProfileRepository.existsByReferralCode(referralCode));
-        UserProfile profile = UserProfile.builder().userId(user.getId()).referralCode(referralCode).build();
+        UserProfile profile = UserProfile.builder().userId(user.getId()).gender(Gender.getGender(bvnQueryResponse.getGender()).getCaps()).referralCode(referralCode).build();
 
         profileRepository.save(profile);
         Long userId = user.getId();
@@ -167,8 +178,71 @@ public class UsersService implements IUsersService {
         customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
+
+        CreateCustomerDto createCustomerDto = CreateCustomerDto.builder()
+                .email(user.getEmail()).gender(profile.getGender())
+                .middleName(user.getMiddleName())
+                .lastName(user.getLastName()).userId(userId)
+                .firstName(user.getFirstName())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
+
+        if (nonNull(bvnQueryResponse.getCountry()) && nonNull(bvnQueryResponse.getAddress())) {
+
+            Users finalUser = user;
+            countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality()).ifPresent(c -> {
+
+                String[] addressSplit = bvnQueryResponse.getAddress().split(",");
+                Address address = Address.builder()
+                        .userId(finalUser.getId())
+                        .street(bvnQueryResponse.getAddress())
+                        .city(org.apache.commons.lang3.StringUtils.isBlank(bvnQueryResponse.getLocalAreaOfOrigin()) ? (addressSplit.length > 0 ? addressSplit[addressSplit.length - 1] : "") : bvnQueryResponse.getLocalAreaOfOrigin())
+                        .countryId(c.getId())
+                        .status(AddressStatus.APPROVED.getValue())
+                        .houseAddress(bvnQueryResponse.getAddress())
+                        .verificationMethod(AddressVerificationMethod.BVN.getValue())
+                        .build();
+                addressRepository.save(address);
+
+            });
+        }
+
+        try {
+            OutboxEvent customer = OutboxEvent.builder()
+                    .aggregateId(user.getId()).aggregateType(AggregateType.USER.getValue())
+                    .eventType(KafkaTopics.KAFKA_KYC_CUSTOMER_CREATE_TOPIC)
+                    .outboxStatus(OutboxStatus.PENDING.getValue())
+                    .eventClass(CreateCustomerDto.class.getName())
+                    .eventKey(user.getId().toString())
+                    .payload(objectMapper.writeValueAsString(createCustomerDto)).build();
+            outboxEventRepository.save(customer);
+
+            idDetailsService.buildAndSaveIdDetails(bvnQueryResponse, user);
+
+        } catch (JsonProcessingException e) {
+            log.error("Error creating customer for user with id {} to outbox", user.getId(), e);
+        }
         log.info("User with email {} onboarding completion finished ", user.getEmail());
         return usersMapper.usersToUserResponse(user);
+    }
+
+    @Override
+    public void createCustomer(CreateCustomerDto value) {
+
+        Address address = addressRepository.findAddressByUserIdAndVerificationMethod(value.userId(), AddressVerificationMethod.BVN.getValue());
+        String countryCodeLong = countriesRepositories.getCodeLongById(address.getCountryId());
+        CreateIndividualCustomerRequest request = CreateIndividualCustomerRequest.builder()
+                .primaryEmailAddress(value.email()).firstName(value.firstName()).lastName(value.lastName()).otherNames(value.middleName())
+                .mobilePhoneNo(value.phoneNumber()).genderCd(Gender.getGender(value.gender()).getAbbreviation())
+                .addressStreet(address.getHouseAddress()).addressCity(address.getCity())
+                .addressCountryCd(countryCodeLong).build();
+        MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createIndividualCustomer(request);
+        if ("success".equalsIgnoreCase(response.status())) {
+            CreateIndividualCustomerResponse data = response.data();
+            Users users = usersRepository.findUsersByEmail(value.email());
+            users.setMiddlewareCustomerId(data.customerId());
+            usersRepository.save(users);
+        }
     }
 
     /**

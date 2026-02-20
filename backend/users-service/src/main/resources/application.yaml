@@ -20,3 +20,16 @@ spring:
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      smileId:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10

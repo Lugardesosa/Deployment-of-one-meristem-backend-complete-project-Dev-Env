@@ -26,6 +26,6 @@ public record CustomUserDetailsService(UsersRepository usersRepository, RolesRep
         List<String> rolesPermissions = permissionsRepository.findAllCodesByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new AuthenticatedUser(user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt());
+        return new AuthenticatedUser(user.middlewareCustomerId(), user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt());
     }
 }

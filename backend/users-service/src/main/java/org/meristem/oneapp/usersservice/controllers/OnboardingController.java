@@ -11,10 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
+import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
-import org.meristem.oneapp.usersservice.services.ISmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ import java.util.List;
 public class OnboardingController {
 
     private final IOnboardingService onboardingService;
-    private final ISmileIdService smileIdService;
+    private final IKycDelegatingService kycDelegatingService;
 
 
     @Operation(summary = "Get the onboarding flow")
@@ -50,8 +50,8 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_1037')")
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> getSmileIdToken(@RequestBody @Valid SmileIdIdRequest smileRequest) {
-        return ApiUtil.buildResponse(smileIdService.saveSmileIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
+    public ResponseEntity<AppResponse<UpdateResponse>> saveIdTask(@RequestBody @Valid IdVerificationRequest smileRequest) {
+        return ApiUtil.buildResponse(kycDelegatingService.saveIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
     }
 
     @Hidden
@@ -102,7 +102,7 @@ public class OnboardingController {
     @PreAuthorize("hasAuthority('SCOPE_id.query') OR hasRole('ROLE_1004')")
     @PostMapping(value = "/id-query", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<BvnQueryResponse>> bvnQuery(@RequestBody @Valid IdQueryRequest request) {
-        return ApiUtil.buildResponse(smileIdService.idQuery(request), HttpStatus.OK.toString(), "Successful");
+        return ApiUtil.buildResponse(kycDelegatingService.bvnQuery(request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get customer's id number")
@@ -110,7 +110,7 @@ public class OnboardingController {
             @ApiResponse(responseCode = "200", description = "Get customer's BVN")
     })
     @PreAuthorize("hasRole('ROLE_1004')")
-    @GetMapping(value = "/id-number", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/id-number", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<GetIdNumberResponse>> getIdNumber(@Pattern(regexp = "^BVN|NIN$", message = "Pass a valid id type (BVN or NIN)") @RequestParam String idType) {
         return ApiUtil.buildResponse(onboardingService.getIdNumber(idType), HttpStatus.OK.toString(), "Successful");
     }
@@ -122,6 +122,6 @@ public class OnboardingController {
     @PreAuthorize("hasRole('ROLE_1004')")
     @PostMapping(value = "/validate-nin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<NinValidationResponse>> validateNin(@RequestBody @Valid IdQueryRequest request) {
-        return ApiUtil.buildResponse(smileIdService.validateNin(request), HttpStatus.OK.toString(), "Successful");
+        return ApiUtil.buildResponse(kycDelegatingService.validateNin(request), HttpStatus.OK.toString(), "Successful");
     }
 }

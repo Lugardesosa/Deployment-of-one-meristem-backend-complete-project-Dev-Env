@@ -71,6 +71,7 @@ spring:
             provider: users-service
             scope:
               - verify.pin
+
         provider:
           users-service:
             token-uri: ${USER_SERVICE_URI}/${one-app.users-service.context-path}/oauth2/token
@@ -135,6 +136,10 @@ one-app:
     users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
     notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
 
+  middle-ware:
+    base-url: ${MIDDLE_WARE_BASE_URL}
+    api-key: ${MIDDLE_WARE_API_KEY}
+    client-name: MiddleWare
 
 logging:
   file:
@@ -166,8 +171,8 @@ call:
   smile-id: true
 
 # TODO: KEEP UPDATED
-# THESE VALUES REPLACED WITH [REDACTED] IN LOGS
-what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword,pass,PASS"
+# THESE VALUES ARE REPLACED WITH [REDACTED] IN LOGS
+what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword,pass,PASS,national_id,bank_bvn_no,bank_account_no,id_number,idNumber"
 headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type,X-PLATFORM"
 
 expo-url: ${EXPO_URL}

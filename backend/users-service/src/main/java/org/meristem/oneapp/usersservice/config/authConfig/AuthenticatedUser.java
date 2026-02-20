@@ -33,11 +33,12 @@ public class AuthenticatedUser implements UserDetails {
     private String middleName;
     private String password;
     private String phoneNumber;
+    private String middlewareCustomerId;
     private int status;
     private List<GrantedAuthority> authorities;
     private int passwordAttempt;
 
-    public AuthenticatedUser(Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status, int passwordAttempt) {
+    public AuthenticatedUser(String middlewareCustomerId, Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status, int passwordAttempt) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;

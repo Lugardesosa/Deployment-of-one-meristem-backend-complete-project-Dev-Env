@@ -46,4 +46,5 @@ public final class AppConstants {
     public static final long PIN_LOCKED_MAX_TIME_IN_MINS = 20;
     public static final String VENDOR_PASTEL = "PASTEL";
     public static final String VENDOR_SMILE_ID = "SMILE_ID";
+    public static final int OUTBOX_MAX_RETRY_COUNT = 3;
 }

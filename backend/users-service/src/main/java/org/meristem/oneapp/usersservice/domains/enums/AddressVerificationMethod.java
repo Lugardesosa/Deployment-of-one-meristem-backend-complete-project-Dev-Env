@@ -8,8 +8,9 @@ import lombok.Getter;
 @Getter
 public enum AddressVerificationMethod {
 
-    AUTO(0),
-    MANUAL(1);
+    AUTO_OKHI(0),
+    MANUAL(1),
+    BVN(2);
 
     private final int value;
 }

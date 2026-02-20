@@ -32,6 +32,7 @@ public class OAuth2AccessTokenCustomizer implements OAuth2TokenCustomizer<JwtEnc
                     claim.put("sub", users.getEmail());
                     claim.put("firstName", users.getFirstName());
                     claim.put("id", users.getId());
+                    claim.put("middlewareCustomerId", users.getMiddlewareCustomerId());
                     claim.put("status", users.getStatus());
                 } else if (principal instanceof String) {
                     RegisteredClient rc = requireNonNull(registeredClientRepository.findByClientId((String) principal), "Client not found");

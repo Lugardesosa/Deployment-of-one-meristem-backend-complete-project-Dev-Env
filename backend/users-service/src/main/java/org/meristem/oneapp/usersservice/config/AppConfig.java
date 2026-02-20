@@ -11,14 +11,22 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.meristem.oneapp.usersservice.config.configProperties.OneAppUsersProperties;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
+import org.springframework.util.backoff.FixedBackOff;
 
 import javax.sql.DataSource;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration(proxyBeanMethods = false)
@@ -74,5 +82,20 @@ public class AppConfig {
                             .clientCredentials(new OAuthFlow().tokenUrl(url)))
                 )
             ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
+    }
+
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
+        var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
+        DefaultErrorHandler handler = new DefaultErrorHandler(
+                recoverer,
+                new FixedBackOff(2000L, 3)
+        );
+
+        handler.setClassifications(Map.of(IllegalArgumentException.class,  false, MappingException.class, false, NullPointerException.class , false, BadRequestException.class, false), true);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
+            log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex);
+        });
+        return handler;
     }
 }
