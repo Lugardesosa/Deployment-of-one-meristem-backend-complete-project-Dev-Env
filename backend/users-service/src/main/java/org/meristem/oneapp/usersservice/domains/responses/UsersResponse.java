@@ -17,6 +17,11 @@ import java.util.Set;
 @Schema(name = "UsersResponse", description = "User details, profile metadata, and access options returned by the Users service.")
 @Builder
 public record UsersResponse(
+
+        @JsonIgnore
+        @Schema(description = "Middleware id of the user.", example = "kskskms92kl2jms", hidden = true)
+        String middlewareCustomerId,
+
         @Schema(description = "Status code for this user.", example = "1")
         Integer status,
 
@@ -103,12 +108,12 @@ public record UsersResponse(
                          String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared,
                          Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet,
                          String cscsNumber, String chnNumber) {
-        this(status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet,
+        this(null, status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet,
                 interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber);
     }
 
-    public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber, String password, Integer passwordAttempt) {
-        this(status, id, email, firstName, lastName, middleName, password, phoneNumber,
+    public UsersResponse(String middlewareCustomerId, Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber, String password, Integer passwordAttempt) {
+        this(middlewareCustomerId, status, id, email, firstName, lastName, middleName, password, phoneNumber,
                 passwordAttempt, null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null);
     }

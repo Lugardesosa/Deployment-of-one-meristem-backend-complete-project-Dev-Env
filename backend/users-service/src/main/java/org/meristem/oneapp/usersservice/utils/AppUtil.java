@@ -157,6 +157,7 @@ public final class AppUtil {
         return UsersResponse.builder()
                 .id(rs.getLong("id"))
                 .firstName(rs.getString("first_name"))
+                .middlewareCustomerId(rs.getString("middleware_customer_id"))
                 .lastName(rs.getString("last_name"))
                 .email(rs.getString("email"))
                 .phoneNumber(rs.getString("phone_number"))

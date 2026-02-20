@@ -30,14 +30,14 @@ public class Address extends BaseModel<String> {
 
     private String state;
 
-    private String country;
+    private Long countryId;
 
     private String landmark;
 
     @NotNull(message = "Cannot be null")
     private Long userId;
 
-    // 0 for automatic (okhi), 1 for manual
+    // AddressVerificationMethod
     @NotNull(message = "Cannot be null")
     private Integer verificationMethod;
 
@@ -46,7 +46,7 @@ public class Address extends BaseModel<String> {
 
     @Builder
     public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status,
-                   String houseAddress, String city, String street, String number, String state, String country, String landmark, Long userId, Integer verificationMethod,
+                   String houseAddress, String city, String street, String number, String state, Long countryId, String landmark, Long userId, Integer verificationMethod,
                    Integer utilityBillType, String documentKey) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.houseAddress = houseAddress;
@@ -54,7 +54,7 @@ public class Address extends BaseModel<String> {
         this.street = street;
         this.number = number;
         this.state = state;
-        this.country = country;
+        this.countryId = countryId;
         this.landmark = landmark;
         this.userId = userId;
         this.verificationMethod = verificationMethod;

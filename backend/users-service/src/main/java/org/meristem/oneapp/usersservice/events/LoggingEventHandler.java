@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Component
 @Slf4j
@@ -49,55 +50,48 @@ public class LoggingEventHandler {
             HashMap<String, Object> bodyResponse = isJson ? objectMapper.readValue(responseMap, new TypeReference<>() {
             }) : new HashMap<>();
 
-            log.info("{\"status\": {}, \"method\": \"{}\", \"uri\": \"{}\", \"headers\": {}, \"request\": {}, \"response\": {}, \"duration\": \"{}\", \"parameters\": {}}",
-                    event.getStatus(),
-                    event.getMethod(),
-                    event.getRequestURI(),
-                    sanitise(event.getHeaders()),
-                    sanitise(bodyRequest),
-                    sanitise(bodyResponse),
-                    event.getDuration(),
-                    getRequestParameters(event.getParameters())
-            );
+            Map<String, Object> logInfo = new HashMap<>();
+            logInfo.put("status", event.getStatus());
+            logInfo.put("method", event.getMethod());
+            logInfo.put("uri", event.getRequestURI());
+            logInfo.put("headers", sanitise(event.getHeaders()));
+            logInfo.put("request", sanitise(bodyRequest));
+            logInfo.put("response", sanitise(bodyResponse));
+            logInfo.put("duration", event.getDuration());
+            logInfo.put("params", getRequestParameters(event.getParameters()));
+            log.info("{}", objectMapper.writeValueAsString(logInfo));
 
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
         }
     }
 
-    private String sanitise(Map<String, Object> requestHeaders) {
-        StringBuilder headers = new StringBuilder();
-        headers.append("{");
+    private Map<String, Object> sanitise(Map<String, Object> requestHeaders) {
+        Map<String, Object> response = new HashMap<>();
 
         for (Map.Entry<String, Object> entry : requestHeaders.entrySet()) {
+            // Recursively sanitizes values except when key matches
             if (whatToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
-                headers.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
-                continue;
+                response.put(entry.getKey(), REDACTED);
+            } else if (nonNull(entry.getValue()) && "LinkedHashMap".equalsIgnoreCase(entry.getValue().getClass().getSimpleName())) {
+                response.put(entry.getKey(), sanitise((HashMap<String, Object>) entry.getValue()));
+            } else {
+                response.put(entry.getKey(), entry.getValue());
             }
-            headers.append("\"").append(entry.getKey()).append("\": ").append("\"").append(entry.getValue()).append("\",");
         }
-        if (headers.charAt(headers.length() - 1) == ',') {
-            headers.deleteCharAt(headers.length() - 1);
-        }
-        headers.append("}");
-        return headers.toString();
+        return response;
     }
 
-    private String getRequestParameters(Map<String, String[]> parameterMap) {
-        StringBuilder parameters = new StringBuilder();
-        parameters.append("{");
+    private Map<String, Object> getRequestParameters(Map<String, String[]> parameterMap) {
+        Map<String, Object> response = new HashMap<>();
 
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
             if (whatToSanitize.stream().anyMatch(entry.getKey()::equalsIgnoreCase)) {
-                parameters.append("\"").append(entry.getKey()).append("\": ").append("\"").append(REDACTED).append("\",");
-                continue;
+                response.put(entry.getKey(), REDACTED);
+            } else {
+                response.put(entry.getKey(), Arrays.toString(entry.getValue()));
             }
-            parameters.append("\"").append(entry.getKey()).append("\": ").append("\"").append(Arrays.toString(entry.getValue())).append("\",");
         }
-        if (parameters.charAt(parameters.length() - 1) == ',') {
-            parameters.deleteCharAt(parameters.length() - 1);
-        }
-        parameters.append("}");
-        return parameters.toString();
+        return response;
     }
 }

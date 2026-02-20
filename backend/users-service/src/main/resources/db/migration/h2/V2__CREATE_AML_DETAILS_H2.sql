@@ -93,4 +93,5 @@ CREATE INDEX idx_aml_decision_entity_id ON aml_decision (entity_id);
 
 INSERT INTO vendor(created_by, last_modified_by, vendor_name, vendor_code)
 VALUES ('SYSTEM', 'SYSTEM', 'Pastel', 'PASTEL'),
-       ('SYSTEM', 'SYSTEM', 'Smile ID', 'SMILE_ID');
+       ('SYSTEM', 'SYSTEM', 'Smile ID', 'SMILE_ID'),
+       ('SYSTEM', 'SYSTEM', 'Dojah', 'DOJAH');

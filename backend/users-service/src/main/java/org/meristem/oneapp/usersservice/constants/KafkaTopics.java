@@ -16,4 +16,6 @@ public final class KafkaTopics {
     public static final String KAFKA_KYC_COMPLETED = "kyc.completed.topic";
     public static final String KAFKA_KYC_REJECTED = "kyc.rejected.topic";
 
+    public static final String KAFKA_KYC_IMAGE_UPLOAD_TOPIC = "kyc.image.upload.topic";
+    public static final String KAFKA_KYC_CUSTOMER_CREATE_TOPIC = "kyc.customer.create.topic";
 }

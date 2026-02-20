@@ -9,8 +9,9 @@ import org.meristem.oneapp.usersservice.config.configProperties.SmileIdPropertie
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SmileIdIdRequest;
+import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
@@ -18,10 +19,7 @@ import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
-import org.meristem.oneapp.usersservice.services.IIdDetailsService;
-import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
-import org.meristem.oneapp.usersservice.services.ISmileIdService;
-import org.meristem.oneapp.usersservice.services.IUsersService;
+import org.meristem.oneapp.usersservice.services.*;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
@@ -58,9 +56,9 @@ import static java.util.Objects.requireNonNull;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service
+@Service("SMILE_ID")
 @Transactional
-public class SmileIdService implements ISmileIdService {
+public class SmileIdService implements IKycService {
 
     public static final String ID_APPROVED_STATUS = "1012";
     private final CustomRepository customRepository;
@@ -99,7 +97,7 @@ public class SmileIdService implements ISmileIdService {
 
     List<String> rejectionsStatus = List.of("1211", "1212", "1213", "0911", "0912", "0811", "0813", "0811", "0812", "1014");
 
-    public BvnQueryResponse idQuery(IdQueryRequest request) {
+    public BvnQueryResponse bvnQuery(IdQueryRequest request) {
 
         if (IdCardType.BVN.compareTo(IdCardType.fromName(request.idType())) != 0) {
             throw new BadRequestException("Only BVN can be validated.");
@@ -108,8 +106,8 @@ public class SmileIdService implements ISmileIdService {
         SmileIdWebhookNotification response = getSmileIdWebhookNotification(request, IdCardType.BVN);
         if (ID_APPROVED_STATUS.equals(response.getResultCode()) && confirmSignature(response.getSignature(), response.getTimestamp())) {
 
-            response.setBvn(encryptionUtil.encrypt(request.id()));
-            response.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, request.id()));
+            response.setBvn(encryptionUtil.encrypt(request.idNumber()));
+            response.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()));
             requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(response.getBvnHashed(), response);
 
             return BvnQueryResponse.builder().middleName(response.getMiddleName())
@@ -123,7 +121,7 @@ public class SmileIdService implements ISmileIdService {
     }
 
     private SmileIdWebhookNotification getSmileIdWebhookNotification(IdQueryRequest request, IdCardType idCardType) {
-        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.id()), idCardType.getName())) {
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), idCardType.getName())) {
             throw new BadRequestException("BVN already exists.");
         }
         SmileIdEnhancedKycRequest.PartnerParams partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
@@ -132,7 +130,7 @@ public class SmileIdService implements ISmileIdService {
                 .user_id(UUID.randomUUID().toString())
                 .build();
         String timestamp = AppUtil.getSmileIdTimestamp();
-        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.id(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
+        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.idNumber(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
 
         return smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
     }
@@ -146,9 +144,9 @@ public class SmileIdService implements ISmileIdService {
      * @throws UpstreamServiceException If the token generation fails.
      */
     @Transactional
-    public UpdateResponse saveSmileIdTask(SmileIdIdRequest smileRequest) {
+    public UpdateResponse saveIdTask(IdVerificationRequest smileRequest) {
 
-        Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(AppConstants.VENDOR_SMILE_ID);
+        org.meristem.oneapp.usersservice.models.Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(Vendor.SMILE_ID.getValue());
         Requirements requirements = requirementsRepository.findByIdAndStatus(smileRequest.requirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
@@ -282,8 +280,7 @@ public class SmileIdService implements ISmileIdService {
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(loggedInUser.getId());
         }
 
-        UserIdDetails userIdDetails = idDetailsService.buildIdDetails(notification, loggedInUser);
-        customRepository.save(userIdDetails);
+        idDetailsService.buildAndSaveIdDetails(notification, loggedInUser);
     }
 
     /**
@@ -306,7 +303,7 @@ public class SmileIdService implements ISmileIdService {
         names.add(bvn.getLastName());
         names.add(bvn.getMiddleName());
 
-        UserIdDetails nin = idDetailsService.buildIdDetails(notification, loggedInUser);
+        UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(notification, loggedInUser);
         if (!firstNamesMatch(nin, names)) {
             stringBuilder.append("Firstnames on NIN and BVN do not match,");
         }

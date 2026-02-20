@@ -49,6 +49,7 @@ public class OnboardingService implements IOnboardingService {
     private final FilesRepository filesRepository;
     private final IdCardRepository idCardRepository;
     private final EncryptionUtil encryptionUtil;
+    private final CountriesRepositories countriesRepositories;
 
     @Value("${one-app.users-service.okhi.header-value}")
     private String okhiHeaderId;
@@ -81,9 +82,11 @@ public class OnboardingService implements IOnboardingService {
 
             case OkhiEventTypes.ADDRESS_COLLECTED -> {
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-                addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO.getValue()).ifPresentOrElse(address -> {
+                addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO_OKHI.getValue()).ifPresentOrElse(address -> {
+                            Countries countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(request.data().location().country(), request.data().location().country(), request.data().location().country()).orElseThrow(() -> new BadRequestException("Invalid country passed"));
+
                             address.setCity(request.data().location().city());
-                            address.setCountry(request.data().location().country());
+                            address.setCountryId(countries.getId());
                             address.setState(request.data().location().state());
                             address.setHouseAddress(request.data().location().formattedAddress());
                             address.setNumber(request.data().location().propertyNumber());
@@ -91,16 +94,18 @@ public class OnboardingService implements IOnboardingService {
                             addressRepository.save(address);
                         },
                         () -> {
+
+                            Countries countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(request.data().location().country(), request.data().location().country(), request.data().location().country()).orElseThrow(() -> new BadRequestException("Invalid country passed"));
                             Address address = Address.builder()
                                     .userId(users.getId())
                                     .street(request.data().location().streetName())
                                     .city(request.data().location().city())
-                                    .country(request.data().location().country())
+                                    .countryId(countries.getId())
                                     .state(request.data().location().state())
                                     .number(request.data().location().propertyNumber())
                                     .status(AddressStatus.PENDING.getValue())
                                     .houseAddress(request.data().location().formattedAddress())
-                                    .verificationMethod(AddressVerificationMethod.AUTO.getValue())
+                                    .verificationMethod(AddressVerificationMethod.AUTO_OKHI.getValue())
                                     .build();
                             addressRepository.save(address);
                         });
@@ -109,7 +114,7 @@ public class OnboardingService implements IOnboardingService {
             case OkhiEventTypes.ADDRESS_VERIFICATION_STARTED -> {
 
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
-                addressRepository.findByUserId(users.getId()).ifPresentOrElse(address -> {
+                addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO_OKHI.getValue()).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.PENDING.getValue());
                     addressRepository.save(address);
                 }, () -> {
@@ -123,7 +128,7 @@ public class OnboardingService implements IOnboardingService {
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 if ("verified".equals(request.data().addressVerification().status())) {
 
-                    addressRepository.findByUserId(users.getId()).ifPresent(address -> {
+                    addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO_OKHI.getValue()).ifPresent(address -> {
                         address.setStatus(AddressStatus.APPROVED.getValue());
                         userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
                         addressRepository.save(address);
@@ -133,7 +138,7 @@ public class OnboardingService implements IOnboardingService {
 
                     usersService.resetUserOnboarding(users.getEmail(), requirements.getId());
 
-                    addressRepository.findByUserId(users.getId()).ifPresent(address -> {
+                    addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO_OKHI.getValue()).ifPresent(address -> {
                         address.setStatus(AddressStatus.FAILED.getValue());
                         addressRepository.save(address);
                     });
@@ -147,7 +152,7 @@ public class OnboardingService implements IOnboardingService {
 
                 usersService.resetUserOnboarding(request.data().metadata().appUserId(), requirements.getId());
 
-                addressRepository.findByUserId(userId).ifPresentOrElse(address -> {
+                addressRepository.findByUserIdAndVerificationMethod(userId, AddressVerificationMethod.AUTO_OKHI.getValue()).ifPresentOrElse(address -> {
                     address.setStatus(AddressStatus.CANCELLED.getValue());
                     addressRepository.save(address);
                 }, () -> {
