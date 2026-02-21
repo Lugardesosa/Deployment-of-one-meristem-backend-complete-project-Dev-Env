@@ -17,6 +17,7 @@ import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.models.OtpVerification;
@@ -136,6 +137,7 @@ public class OtpService implements IOtpService {
      * @return a {@link VerifyOtpResponse} indicating the verification status
      * @throws ResourceNotFoundException if the OTP is not found
      */
+    @Transactional
     public VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest request) {
 
         OtpVerification otpVerification = otpVerificationRepository.findByOtpTypeAndCodeAndUserId(request.otpType(), request.otp(), request.recipient())
@@ -153,7 +155,7 @@ public class OtpService implements IOtpService {
 
         if (request.otpType().equals(MessageSubject.EMAIL_VERIFICATION.getCode())) {
             Cache cache = Objects.requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-            SmileIdWebhookNotification ninQueryResponse = cache.get(otpVerification.getUserId(), SmileIdWebhookNotification.class);
+            IdQueryDetailsDto ninQueryResponse = cache.get(otpVerification.getUserId(), IdQueryDetailsDto.class);
             if (ninQueryResponse == null) {
                 throw new AccessDeniedException("Initial sign up details not found.");
             }

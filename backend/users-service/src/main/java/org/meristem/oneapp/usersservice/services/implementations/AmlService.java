@@ -63,7 +63,7 @@ public class AmlService implements IAmlService {
         PastelAmlRequest request = PastelAmlRequest.builder().name(fullname).threshold(pastelProperties.threshold())
                 .limit(pastelProperties.limit()).callbackUrl(pastelProperties.callbackUrl()).build();
         PastelAmlResponse response = pastelClient.amlRiskMonitoring(request);
-        amlSearchRepository.save(AmlSearch.builder().clientSearchId(response.checkId()).entityId(kycCompletedDto.userId()).build());
+        amlSearchRepository.save(AmlSearch.builder().clientSearchId(response.data().checkId()).entityId(kycCompletedDto.userId()).build());
         log.info("Pastel request successfully completed {}", response);
     }
 

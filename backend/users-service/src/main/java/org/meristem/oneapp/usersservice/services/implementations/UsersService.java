@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
@@ -15,7 +16,7 @@ import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
@@ -83,14 +84,13 @@ public class UsersService implements IUsersService {
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
     private final MiddleWareClient middleWareClient;
-    private final AddressRepository addressRepository;
     private final CountriesRepositories countriesRepositories;
     private final IdDetailsService idDetailsService;
 
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
 
-    public  UpdateResponse create(CreateUserRequest request) {
+    public UpdateResponse create(CreateUserRequest request) {
 
         log.info("First stage of User with email creation started {}", request.email());
         if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
@@ -99,7 +99,7 @@ public class UsersService implements IUsersService {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
-        SmileIdWebhookNotification bvnQueryResponse = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.bvn()), SmileIdWebhookNotification.class);
+        IdQueryDetailsDto bvnQueryResponse = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.bvn()), IdQueryDetailsDto.class);
 
         if (bvnQueryResponse == null) {
             throw new ResourceNotFoundException("Initial sign up details not found.", "Bvn", request.bvn().substring(0, 3) + "*****" + request.bvn().substring(8, 11));
@@ -123,7 +123,7 @@ public class UsersService implements IUsersService {
 
         log.info("User with email {} started stage 2", userRequest.email());
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-        SmileIdWebhookNotification bvnQueryResponse = cache.get(userRequest.email(), SmileIdWebhookNotification.class);
+        IdQueryDetailsDto bvnQueryResponse = cache.get(userRequest.email(), IdQueryDetailsDto.class);
 
         if (bvnQueryResponse == null) {
             throw new ResourceNotFoundException("Initial sign up details not found.", "Email", userRequest.email());
@@ -141,7 +141,7 @@ public class UsersService implements IUsersService {
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
-    public  UsersResponse save(Users user, SmileIdWebhookNotification bvnQueryResponse) {
+    public UsersResponse save(Users user, IdQueryDetailsDto bvnQueryResponse) {
         log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
@@ -179,33 +179,29 @@ public class UsersService implements IUsersService {
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
 
+        String address, city, countryCode;
+
+        Optional<Countries> countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality());
+        if (nonNull(bvnQueryResponse.getCountry()) && nonNull(bvnQueryResponse.getAddress()) && countries.isPresent()) {
+
+            String[] addressSplit = bvnQueryResponse.getAddress().split(",");
+            address = bvnQueryResponse.getAddress();
+            city = org.apache.commons.lang3.StringUtils.isBlank(bvnQueryResponse.getLocalAreaOfOrigin()) ? (addressSplit.length > 0 ? addressSplit[addressSplit.length - 1] : "TEMPORARY") : bvnQueryResponse.getLocalAreaOfOrigin();
+            countryCode = countries.get().getCodeLong();
+        } else {
+            address = "TEMPORARY";
+            city = "TEMPORARY";
+            countryCode = "NGA";
+        }
+
         CreateCustomerDto createCustomerDto = CreateCustomerDto.builder()
                 .email(user.getEmail()).gender(profile.getGender())
                 .middleName(user.getMiddleName())
                 .lastName(user.getLastName()).userId(userId)
                 .firstName(user.getFirstName())
                 .phoneNumber(user.getPhoneNumber())
-                .build();
-
-        if (nonNull(bvnQueryResponse.getCountry()) && nonNull(bvnQueryResponse.getAddress())) {
-
-            Users finalUser = user;
-            countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality()).ifPresent(c -> {
-
-                String[] addressSplit = bvnQueryResponse.getAddress().split(",");
-                Address address = Address.builder()
-                        .userId(finalUser.getId())
-                        .street(bvnQueryResponse.getAddress())
-                        .city(org.apache.commons.lang3.StringUtils.isBlank(bvnQueryResponse.getLocalAreaOfOrigin()) ? (addressSplit.length > 0 ? addressSplit[addressSplit.length - 1] : "") : bvnQueryResponse.getLocalAreaOfOrigin())
-                        .countryId(c.getId())
-                        .status(AddressStatus.APPROVED.getValue())
-                        .houseAddress(bvnQueryResponse.getAddress())
-                        .verificationMethod(AddressVerificationMethod.BVN.getValue())
-                        .build();
-                addressRepository.save(address);
-
-            });
-        }
+                .addressStreet(address).addressCity(city)
+                .addressCountryCd(countryCode).build();
 
         try {
             OutboxEvent customer = OutboxEvent.builder()
@@ -229,13 +225,11 @@ public class UsersService implements IUsersService {
     @Override
     public void createCustomer(CreateCustomerDto value) {
 
-        Address address = addressRepository.findAddressByUserIdAndVerificationMethod(value.userId(), AddressVerificationMethod.BVN.getValue());
-        String countryCodeLong = countriesRepositories.getCodeLongById(address.getCountryId());
         CreateIndividualCustomerRequest request = CreateIndividualCustomerRequest.builder()
                 .primaryEmailAddress(value.email()).firstName(value.firstName()).lastName(value.lastName()).otherNames(value.middleName())
                 .mobilePhoneNo(value.phoneNumber()).genderCd(Gender.getGender(value.gender()).getAbbreviation())
-                .addressStreet(address.getHouseAddress()).addressCity(address.getCity())
-                .addressCountryCd(countryCodeLong).build();
+                .addressStreet(value.addressStreet()).addressCity(value.addressCity())
+                .addressCountryCd(value.addressCountryCd()).build();
         MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createIndividualCustomer(request);
         if ("success".equalsIgnoreCase(response.status())) {
             CreateIndividualCustomerResponse data = response.data();
@@ -258,7 +252,7 @@ public class UsersService implements IUsersService {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
-        SmileIdWebhookNotification response = cache.get(userRequest.oldEmail(), SmileIdWebhookNotification.class);
+        IdQueryDetailsDto response = cache.get(userRequest.oldEmail(), IdQueryDetailsDto.class);
 
         if (response == null) {
             throw new AccessDeniedException("Initial sign up details not found.");
@@ -286,7 +280,7 @@ public class UsersService implements IUsersService {
      * @throws BadRequestException if the user is not found
      */
     public UsersResponse getUser() {
-        UsersResponse response =  usersRepository.findUserDetailsById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new BadRequestException("User not found."));
+        UsersResponse response = usersRepository.findUserDetailsById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new BadRequestException("User not found."));
         String signedUrl = null;
         if (StringUtils.hasText(response.image())) {
             SignedUrlResponse signedUrlResponse = huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(response.image())
@@ -509,7 +503,7 @@ public class UsersService implements IUsersService {
     public void completeUserOnboarding(String userId) {
 
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
-        if (userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
+        if (nonNull(kycCompletedDto) && userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId())) {
             userProfileRepository.completeOnboarding(kycCompletedDto.userId());
             usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.ACTIVE.getValue());
             requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
@@ -521,7 +515,7 @@ public class UsersService implements IUsersService {
      * Resets onboarding for the specified user and marks a specific requirement as REJECTED.
      * Updates the profile status, evicts the cache entry, and emits a KYC_REJECTED event.
      *
-     * @param userId the user identifier
+     * @param userId        the user identifier
      * @param requirementId the requirement that was rejected
      */
     public void resetUserOnboarding(String userId, Long requirementId) {
@@ -617,8 +611,6 @@ public class UsersService implements IUsersService {
 //        updates.put("biometric_enabled", request.biometricLogin());
 //        return getUpdateResponse(updates);
 //    }
-
-
     public UpdateResponse updateDataSharing(DataSharingRequest request) {
 
         Map<String, Object> updates = new HashMap<>();
@@ -719,7 +711,7 @@ public class UsersService implements IUsersService {
     public StageResponse processDetails(String email) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-        SmileIdWebhookNotification ninQueryResponse = cache.get(email, SmileIdWebhookNotification.class);
+        IdQueryDetailsDto ninQueryResponse = cache.get(email, IdQueryDetailsDto.class);
 
         if (ninQueryResponse == null) {
             throw new AccessDeniedException("Initial sign up details not found.");

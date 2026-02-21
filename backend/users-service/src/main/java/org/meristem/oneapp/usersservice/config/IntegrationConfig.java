@@ -56,7 +56,7 @@ public class IntegrationConfig {
                         .defaultHeaders(h -> {
                             h.set(oneAppProperties.defaultHeaderName(), dojahProperties.clientName());
                             h.set("AppId", dojahProperties.appId());
-                            h.set("Authorization", dojahProperties.secretKey());
+                            h.set("Authorization", dojahProperties.privateKey());
                         })
                         .build())).build().createClient(DojahClient.class);
     }

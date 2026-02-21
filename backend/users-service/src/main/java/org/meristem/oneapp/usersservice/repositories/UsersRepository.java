@@ -89,7 +89,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, up.date_of_birth FROM users u " +
             "LEFT JOIN address a ON a.user_id = u.id LEFT JOIN user_profile up ON up.user_id = u.id " +
-            " WHERE u.email = :userId ")
+            " WHERE u.email = :userId AND (a.verification_method = 0 OR a.verification_method = 1) ")
     KycCompletedDto getUserKyc(String userId);
 
     Optional<Users> findOneByEmailAndPasswordIsNull(String email);

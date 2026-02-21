@@ -2,8 +2,8 @@ package org.meristem.oneapp.usersservice.services;
 
 import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
+import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
 
 /**
  * Interface for handling Dojah related operations.
@@ -19,13 +19,6 @@ public interface IKycDelegatingService {
      */
     BvnQueryResponse bvnQuery(IdQueryRequest request);
 
-    /**
-     * Generates a Smile ID smart link for user verification.
-     *
-     * @param smileRequest the request containing job ID and requirement id for verification
-     * @return an {@link UpdateResponse} containing a successful message
-     */
-    UpdateResponse saveIdTask(IdVerificationRequest smileRequest);
 
     NinValidationResponse validateNin(@Valid IdQueryRequest request);
 }
