@@ -2,12 +2,10 @@ package org.meristem.oneapp.usersservice.services.implementations;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IKycService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,18 +46,11 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     public BvnQueryResponse dojahBvnQuery(IdQueryRequest request, Throwable throwable) {
-        return dojahService.bvnQuery(request);
-    }
 
-    @Override
-    public UpdateResponse saveIdTask(IdVerificationRequest idVerificationRequest) {
-        if (Vendor.SMILE_ID.compareTo(idVerificationRequest.vendor()) == 0) {
-            return this.smileIdService.saveIdTask(idVerificationRequest);
-        } else if (Vendor.DOJAH.compareTo(idVerificationRequest.vendor()) == 0) {
-            return this.dojahService.saveIdTask(idVerificationRequest);
-        } else {
-            return UpdateResponse.builder().success(false).message("Wrong vendor passed").build();
+        if (throwable instanceof ResourceNotFoundException ex) {
+            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
         }
+        return dojahService.bvnQuery(request);
     }
 
     @Override
@@ -69,6 +60,9 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     public NinValidationResponse dojahValidateNin(IdQueryRequest request, Throwable throwable) {
+        if (throwable instanceof ResourceNotFoundException ex) {
+            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
+        }
         return this.dojahService.validateNin(request);
     }
 }

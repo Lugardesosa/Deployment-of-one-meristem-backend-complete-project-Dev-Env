@@ -1,6 +1,10 @@
 package org.meristem.oneapp.usersservice.integrations.responses;
 
 public record PastelAmlResponse(
-        String checkId
+        Data data
 ) {
+    public record Data(
+            String checkId
+    ) {
+    }
 }

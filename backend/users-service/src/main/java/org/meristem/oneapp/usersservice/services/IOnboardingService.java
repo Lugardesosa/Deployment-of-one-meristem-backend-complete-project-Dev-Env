@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.services;
 
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
+import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationStartedRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.springframework.data.domain.Page;
@@ -64,4 +65,6 @@ public interface IOnboardingService {
      * @return a {@link GetIdNumberResponse} containing the ID number
      */
     GetIdNumberResponse getIdNumber(String idType);
+
+    UpdateResponse addressVerificationStarted(AddressVerificationStartedRequest smileRequest);
 }

@@ -15,5 +15,8 @@ public record CreateCustomerDto(
         String address,
         String employerName,
         String gender,
-        String occupation) {
+        String occupation,
+        String addressStreet,
+        String addressCity,
+        String addressCountryCd) {
 }

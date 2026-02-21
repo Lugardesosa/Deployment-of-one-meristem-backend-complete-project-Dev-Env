@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 
-public record DojahLookUpResponse(Entity entity) {
+public record DojahBvnLookUpResponse(Entity entity) {
 
     public record Entity(
             String bvn,

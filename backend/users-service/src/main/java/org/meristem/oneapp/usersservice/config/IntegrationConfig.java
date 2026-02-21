@@ -20,7 +20,7 @@ public class IntegrationConfig {
     @Bean
     SmileIdClient smileIdClient(RestClient.Builder restClientBuilder, SmileIdProperties smileIdProperties, OneAppProperties oneAppProperties) {
         return HttpServiceProxyFactory
-                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(smileIdProperties.url())
+                .builderFor(RestClientAdapter.create(restClientBuilder.clone().baseUrl(smileIdProperties.url())
                         .defaultHeader(oneAppProperties.defaultHeaderName(), smileIdProperties.clientName())
                         .build())).build().createClient(SmileIdClient.class);
     }
@@ -28,7 +28,7 @@ public class IntegrationConfig {
     @Bean
     PastelClient pastelClient(RestClient.Builder restClientBuilder, PastelProperties pastelProperties, OneAppProperties oneAppProperties) {
         return HttpServiceProxyFactory
-                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(pastelProperties.url())
+                .builderFor(RestClientAdapter.create(restClientBuilder.clone().baseUrl(pastelProperties.url())
                         .defaultHeader(oneAppProperties.defaultHeaderName(), pastelProperties.clientName())
                         .defaultHeaders(h -> {
                             h.add("apiKey", pastelProperties.apiKey());
@@ -40,7 +40,7 @@ public class IntegrationConfig {
     @Bean
     MiddleWareClient middleWareClient(RestClient.Builder restClientBuilder, MiddleWareConfigProperties middleWareConfigProperties, OneAppProperties oneAppProperties) {
 
-        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder.clone()
                         .baseUrl(middleWareConfigProperties.baseUrl())
                         .defaultHeaders(c -> {
                             c.set(oneAppProperties.defaultHeaderName(), middleWareConfigProperties.clientName());
@@ -52,11 +52,11 @@ public class IntegrationConfig {
     @Bean
     DojahClient dojahClient(RestClient.Builder restClientBuilder, DojahProperties dojahProperties, OneAppProperties oneAppProperties) {
         return HttpServiceProxyFactory
-                .builderFor(RestClientAdapter.create(restClientBuilder.baseUrl(dojahProperties.baseUrl())
+                .builderFor(RestClientAdapter.create(restClientBuilder.clone().baseUrl(dojahProperties.baseUrl())
                         .defaultHeaders(h -> {
                             h.set(oneAppProperties.defaultHeaderName(), dojahProperties.clientName());
                             h.set("AppId", dojahProperties.appId());
-                            h.set("Authorization", dojahProperties.secretKey());
+                            h.set("Authorization", dojahProperties.privateKey());
                         })
                         .build())).build().createClient(DojahClient.class);
     }

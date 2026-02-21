@@ -17,6 +17,7 @@ import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -110,8 +111,10 @@ public class RestClientConfig {
             public void handleError(@NonNull URI url, @NonNull HttpMethod method, @NonNull ClientHttpResponse response) throws IOException {
                 HttpStatusCode status = response.getStatusCode();
 
-                if (status.is4xxClientError()) {
-                    throw new BadRequestException("Check your request body. Response message: " + response.getStatusText());
+                if (status.value() == 404) {
+                    throw new ResourceNotFoundException("Check your request. Response message: " + response.getStatusText(), "", "");
+                } else if (status.is4xxClientError()) {
+                    throw new BadRequestException("Check your request. Response message: " + response.getStatusText());
                 } else if (status.is5xxServerError()) {
                     throw new UpstreamServiceException("Upstream Server error. Response message: " + response.getStatusText());
                 } else {
