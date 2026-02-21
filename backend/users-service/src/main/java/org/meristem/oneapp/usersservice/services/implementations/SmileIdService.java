@@ -15,6 +15,7 @@ import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
@@ -118,7 +119,7 @@ public class SmileIdService implements IKycService {
             IdQueryDetailsDto dto = userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(response);
             return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
         } else if (errorCodes.contains(response.getResultCode())) {
-            throw new BadRequestException("Enter a valid bvn");
+            throw new ResourceNotFoundException("Enter a valid bvn", request.idType(), request.idNumber());
         } else {
             throw new BadRequestException("Try again later.");
         }
@@ -126,7 +127,7 @@ public class SmileIdService implements IKycService {
 
     private SmileIdWebhookNotification getSmileIdWebhookNotification(IdQueryRequest request, IdCardType idCardType) {
         if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), idCardType.getName())) {
-            throw new BadRequestException("BVN already exists.");
+            throw new BadRequestException(idCardType.getName() + " already exists.");
         }
         SmileIdEnhancedKycRequest.PartnerParams partnerParams = SmileIdEnhancedKycRequest.PartnerParams.builder()
                 .job_id(UUID.randomUUID().toString())
@@ -284,6 +285,9 @@ public class SmileIdService implements IKycService {
 
         SmileIdWebhookNotification notification = getSmileIdWebhookNotification(request, IdCardType.NIN);
 
+        if (errorCodes.contains(notification.getResultCode())) {
+            throw new ResourceNotFoundException("Invalid NIN", request.idType(), request.idNumber());
+        }
         Users loggedInUser = usersRepository.findById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new AuthorizationDeniedException("User is not logged in"));
         UserIdDetails bvn = customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.BVN.getName())).orElseThrow(() -> new BadRequestException("BVN details could not be found."));
 

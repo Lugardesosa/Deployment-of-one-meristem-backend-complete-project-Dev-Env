@@ -14,10 +14,7 @@ import org.meristem.oneapp.usersservice.integrations.responses.DojahNinLookUpRes
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.UserIdDetails;
 import org.meristem.oneapp.usersservice.models.Users;
-import org.meristem.oneapp.usersservice.repositories.CustomRepository;
-import org.meristem.oneapp.usersservice.repositories.RequirementsRepository;
-import org.meristem.oneapp.usersservice.repositories.UserOnboardingRepository;
-import org.meristem.oneapp.usersservice.repositories.UsersRepository;
+import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IIdDetailsService;
 import org.meristem.oneapp.usersservice.services.IKycService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
@@ -62,6 +59,7 @@ public class DojahService implements IKycService {
     private final RequirementsRepository requirementsRepository;
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
+    private final IdCardRepository idCardRepository;
     private final IUsersService usersService;
     private final HashingUtil hashingUtil;
     private final EncryptionUtil encryptionUtil;
@@ -74,6 +72,9 @@ public class DojahService implements IKycService {
             throw new BadRequestException("Only BVN can be validated.");
         }
 
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.BVN.getName())) {
+            throw new BadRequestException("BVN already exists.");
+        }
         DojahBvnLookUpResponse response = dojahClient.dojahBvnLookUp(request.idNumber());
 
         IdQueryDetailsDto dto = userIdDetailsMapper.dojahBvnLookupResponseToIdQueryDetailsDto(response.entity());
@@ -89,6 +90,10 @@ public class DojahService implements IKycService {
 
         if (IdCardType.NIN.compareTo(IdCardType.fromName(request.idType())) != 0) {
             throw new BadRequestException("Only NIN can be validated.");
+        }
+
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.NIN.getName())) {
+            throw new BadRequestException("NIN already exists.");
         }
 
         DojahNinLookUpResponse response = dojahClient.dojahNinLookUpAdvance(request.idNumber());
