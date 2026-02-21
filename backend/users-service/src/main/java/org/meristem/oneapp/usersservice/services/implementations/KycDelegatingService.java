@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
+import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IKycService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +46,10 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     public BvnQueryResponse dojahBvnQuery(IdQueryRequest request, Throwable throwable) {
+
+        if (throwable instanceof ResourceNotFoundException ex) {
+            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
+        }
         return dojahService.bvnQuery(request);
     }
 
@@ -55,6 +60,9 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     public NinValidationResponse dojahValidateNin(IdQueryRequest request, Throwable throwable) {
+        if (throwable instanceof ResourceNotFoundException ex) {
+            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
+        }
         return this.dojahService.validateNin(request);
     }
 }
