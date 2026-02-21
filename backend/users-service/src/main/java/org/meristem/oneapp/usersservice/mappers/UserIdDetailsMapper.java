@@ -8,6 +8,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
+import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnLookUpResponse;
+import org.meristem.oneapp.usersservice.integrations.responses.DojahNinLookUpResponse;
 import org.meristem.oneapp.usersservice.models.UserIdDetails;
 import org.springframework.util.StringUtils;
 
@@ -23,7 +26,20 @@ public interface UserIdDetailsMapper {
             @Mapping(target = "dateOfBirth", dateFormat = AppConstants.YYYY_MM_DD, conditionExpression = "java(notBlankOrEmpty(smileIdWebhookNotification.getDateOfBirth()))"),
             @Mapping(target = "gender", ignore = true),
     })
-    UserIdDetails smileIdWebhookNotificationToUserIdDetails(SmileIdWebhookNotification smileIdWebhookNotification);
+    UserIdDetails smileIdWebhookNotificationToUserIdDetails(IdQueryDetailsDto smileIdWebhookNotification);
+
+
+    @Mappings(value = {
+            @Mapping(source = "image", target = "photo"),
+            @Mapping(source = "residentialAddress", target = "address"),
+            @Mapping(source = "lgaOfOrigin", target = "localAreaOfOrigin"),
+            @Mapping(source = "phoneNumber1", target = "phoneNumber"),
+    })
+    IdQueryDetailsDto dojahBvnLookupResponseToIdQueryDetailsDto(DojahBvnLookUpResponse.Entity response);
+
+    IdQueryDetailsDto dojahNinLookupResponseToIdQueryDetailsDto(DojahNinLookUpResponse.Entity response);
+
+    IdQueryDetailsDto smileIdBvnLookupResponseToIdQueryDetailsDto(SmileIdWebhookNotification response);
 
     default boolean notBlankOrEmpty(String value) {
         return StringUtils.hasText(value) && value.matches(AppConstants.DATE_REGEX);

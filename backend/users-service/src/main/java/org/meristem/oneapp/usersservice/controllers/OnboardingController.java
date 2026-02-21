@@ -10,11 +10,13 @@ import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
+import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationStartedRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
+import org.meristem.oneapp.usersservice.services.implementations.SmileIdService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,7 @@ public class OnboardingController {
 
     private final IOnboardingService onboardingService;
     private final IKycDelegatingService kycDelegatingService;
+    private final SmileIdService smileIdService;
 
 
     @Operation(summary = "Get the onboarding flow")
@@ -51,7 +54,17 @@ public class OnboardingController {
     @PreAuthorize("hasRole('ROLE_1037')")
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> saveIdTask(@RequestBody @Valid IdVerificationRequest smileRequest) {
-        return ApiUtil.buildResponse(kycDelegatingService.saveIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
+        return ApiUtil.buildResponse(smileIdService.saveIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
+    }
+
+    @Operation(summary = "Mark address verification as started.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Mark address verification as started.")
+    })
+    @PreAuthorize("hasRole('ROLE_1037')")
+    @PostMapping(value = "/verify-address-started", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> addressVerificationStarted(@RequestBody @Valid AddressVerificationStartedRequest smileRequest) {
+        return ApiUtil.buildResponse(onboardingService.addressVerificationStarted(smileRequest), HttpStatus.OK.toString(), "Request successful");
     }
 
     @Hidden

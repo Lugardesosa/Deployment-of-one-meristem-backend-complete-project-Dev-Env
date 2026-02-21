@@ -737,7 +737,7 @@ CREATE UNIQUE INDEX idx_onbaording_user_requirement_id ON user_onboarding (user_
 
 CREATE UNIQUE INDEX idx_country_states_name_country_id ON country_states (name, country_id);
 
-CREATE UNIQUE INDEX idx_countries_name_code ON countries (name, code);
+CREATE UNIQUE INDEX idx_countries_name_code ON countries (name, code_long, code_short);
 CREATE INDEX idx_admin_instrument_admin_id_instrument_id ON admin_instrument(admin_id, instrument_id);
 
 

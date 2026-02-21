@@ -10,6 +10,7 @@ import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.kafka.dtos.UploadImageDto;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.Files;
 import org.meristem.oneapp.usersservice.models.OutboxEvent;
@@ -41,7 +42,7 @@ public class IdDetailsService implements IIdDetailsService {
     private final ObjectMapper objectMapper;
     private final OutboxEventRepository outboxEventRepository;
 
-    public UserIdDetails buildAndSaveIdDetails(SmileIdWebhookNotification notification, Users loggedInUser) {
+    public UserIdDetails buildAndSaveIdDetails(IdQueryDetailsDto notification, Users loggedInUser) {
 
         Optional<UserIdDetails> userIdDetailsOpt = customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.fromName(notification.getIdType()).getName()));
 

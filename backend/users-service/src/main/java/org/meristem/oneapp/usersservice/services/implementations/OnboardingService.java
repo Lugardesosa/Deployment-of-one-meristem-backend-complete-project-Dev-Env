@@ -3,10 +3,10 @@ package org.meristem.oneapp.usersservice.services.implementations;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
+import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationStartedRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -16,6 +16,7 @@ import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -61,6 +62,16 @@ public class OnboardingService implements IOnboardingService {
      */
     public List<UserOnboardingResponse> getOnboardingDetails() {
         return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.USER.getId());
+    }
+
+    @Transactional
+    public UpdateResponse addressVerificationStarted(AddressVerificationStartedRequest smileRequest) {
+
+        Requirements requirements = requirementsRepository.findByIdAndStatus(smileRequest.requirementId(), EntityStatus.ACTIVE.getValue())
+                .orElseThrow(() -> new BadRequestException("Requirement not found"));
+        userOnboardingRepository.updateUserOnboardingStatus(AppUtil.getLoggedInUserId(), requirements.getId(), OnboardingStatus.PENDING.getValue(), UserOnboardingNotes.APPROVED.note, false);
+
+        return UpdateResponse.builder().message("Success").success(true).build();
     }
 
     /**

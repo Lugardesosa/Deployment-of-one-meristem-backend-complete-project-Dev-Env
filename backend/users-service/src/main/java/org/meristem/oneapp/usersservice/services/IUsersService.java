@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.models.Users;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public interface IUsersService {
      * @param bvn the user's BVN
      * @return a {@link UsersResponse} containing the created user's details
      */
-    UsersResponse save(Users user, SmileIdWebhookNotification smileIdWebhookNotification);
+    UsersResponse save(Users user, IdQueryDetailsDto IdQueryDetailsDto);
 
     /**
      * Updates the user's email address.
