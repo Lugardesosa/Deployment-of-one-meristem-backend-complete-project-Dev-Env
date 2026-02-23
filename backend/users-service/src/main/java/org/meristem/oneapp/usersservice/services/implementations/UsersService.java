@@ -112,6 +112,9 @@ public class UsersService implements IUsersService {
         cache.evict(bvnQueryResponse.getBvnHashed());
         bvnQueryResponse.setEmail(request.email());
         bvnQueryResponse.setPhoneNumber(request.phoneNumber());
+        bvnQueryResponse.setOccupation(request.occupation());
+        bvnQueryResponse.setSourceOfIncome(request.sourceOfIncome());
+        bvnQueryResponse.setEmployerName(request.employerName());
         requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
 
         log.info("First stage of User with email {} created ", request.email());
@@ -164,6 +167,9 @@ public class UsersService implements IUsersService {
             referralCode = AppUtil.generateReferralCode(user.getFirstName());
         } while (userProfileRepository.existsByReferralCode(referralCode));
         UserProfile profile = UserProfile.builder().userId(user.getId()).gender(Gender.getGender(bvnQueryResponse.getGender()).getCaps()).referralCode(referralCode).build();
+        profile.setOccupation(bvnQueryResponse.getOccupation());
+        profile.setSourceOfIncome(bvnQueryResponse.getSourceOfIncome());
+        profile.setEmployerName(bvnQueryResponse.getEmployerName());
 
         profileRepository.save(profile);
         Long userId = user.getId();
@@ -521,11 +527,13 @@ public class UsersService implements IUsersService {
     public void resetUserOnboarding(String userId, Long requirementId) {
 
         KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
-        userProfileRepository.resetOnboarding(kycCompletedDto.userId());
-        usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.KYC_NOT_COMPLETED.getValue());
-        userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), UserOnboardingNotes.FAILED.note, false);
-        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
-        kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, String.valueOf(userId)));
+        if (nonNull(kycCompletedDto)) {
+            userProfileRepository.resetOnboarding(kycCompletedDto.userId());
+            usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.KYC_NOT_COMPLETED.getValue());
+            userOnboardingRepository.updateUserOnboardingStatus(kycCompletedDto.userId(), requirementId, OnboardingStatus.REJECTED.getValue(), UserOnboardingNotes.FAILED.note, false);
+            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
+            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_REJECTED, KafkaHeaders.KEY, String.valueOf(userId)));
+        }
     }
 
     /**

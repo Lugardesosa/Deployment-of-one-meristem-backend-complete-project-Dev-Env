@@ -33,6 +33,7 @@ public class Address extends BaseModel<String> {
     private Long countryId;
 
     private String landmark;
+    private String zipOrPostalCode;
 
     @NotNull(message = "Cannot be null")
     private Long userId;
@@ -47,7 +48,7 @@ public class Address extends BaseModel<String> {
     @Builder
     public Address(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status,
                    String houseAddress, String city, String street, String number, String state, Long countryId, String landmark, Long userId, Integer verificationMethod,
-                   Integer utilityBillType, String documentKey) {
+                   Integer utilityBillType, String documentKey, String zipOrPostalCode) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.houseAddress = houseAddress;
         this.city = city;
@@ -60,6 +61,7 @@ public class Address extends BaseModel<String> {
         this.verificationMethod = verificationMethod;
         this.utilityBillType = utilityBillType;
         this.documentKey = documentKey;
+        this.zipOrPostalCode = zipOrPostalCode;
     }
 
     @Override

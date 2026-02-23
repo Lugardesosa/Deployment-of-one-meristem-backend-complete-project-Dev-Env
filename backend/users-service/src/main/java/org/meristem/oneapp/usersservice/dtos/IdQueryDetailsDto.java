@@ -1,6 +1,8 @@
 package org.meristem.oneapp.usersservice.dtos;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,6 +62,9 @@ public class IdQueryDetailsDto implements Serializable {
     private String bvnHashed;
     private boolean emailVerified;
     private boolean passwordSet;
+
+    private String employerName;
+    private String sourceOfIncome;
 
     public String getMiddleName() {
         return StringUtils.isBlank(this.middleName) ? null : this.middleName.trim();

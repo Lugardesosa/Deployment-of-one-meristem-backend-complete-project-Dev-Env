@@ -51,6 +51,8 @@ public class OnboardingService implements IOnboardingService {
     private final IdCardRepository idCardRepository;
     private final EncryptionUtil encryptionUtil;
     private final CountriesRepositories countriesRepositories;
+    private final OccupationRepository occupationRepository;
+    private final SourceOfIncomeRepository sourceOfIncomeRepository;
 
     @Value("${one-app.users-service.okhi.header-value}")
     private String okhiHeaderId;
@@ -235,15 +237,19 @@ public class OnboardingService implements IOnboardingService {
 
         filesRepository.save(Files.builder().userId(AppUtil.getLoggedInUserId()).fileKey(request.fileKey()).contentType(request.contentType()).fileType(FileType.DOCUMENT.getValue()).build());
 
+        Countries countries = countriesRepositories.findById(request.countryId()).orElseThrow(() -> new BadRequestException("Invalid country passed"));
+
         addressRepository.findByUserIdAndVerificationMethod(AppUtil.getLoggedInUserId(), AddressVerificationMethod.MANUAL.getValue()).ifPresentOrElse(address -> {
 
             address.setCity(request.city());
             address.setState(request.state());
             address.setHouseAddress(request.houseAddress());
             address.setLandmark(request.landMark());
+            address.setZipOrPostalCode(request.zipOrPostalCode());
             address.setUtilityBillType(request.utilityBillType().getValue());
             address.setDocumentKey(request.fileKey());
             address.setStatus(AddressStatus.PENDING.getValue());
+            address.setCountryId(countries.getId());
             addressRepository.save(address);
         }, () -> addressRepository.save(Address.builder()
                 .verificationMethod(AddressVerificationMethod.MANUAL.getValue())
@@ -251,10 +257,12 @@ public class OnboardingService implements IOnboardingService {
                 .userId(AppUtil.getLoggedInUserId())
                 .state(request.state())
                 .city(request.city())
+                .zipOrPostalCode(request.zipOrPostalCode())
                 .landmark(request.landMark())
                 .utilityBillType(request.utilityBillType().getValue())
                 .status(AddressStatus.PENDING.getValue())
                 .documentKey(request.fileKey())
+                .countryId(countries.getId())
                 .build()));
         return AddressVerificationResponse.builder().message("Successful").status(true).build();
     }
@@ -262,5 +270,15 @@ public class OnboardingService implements IOnboardingService {
     public GetIdNumberResponse getIdNumber(String idType) {
         String idNumber = idCardRepository.findIdCardValueByUserId(AppUtil.getLoggedInUserId(), idType);
         return new GetIdNumberResponse(encryptionUtil.decrypt(idNumber));
+    }
+
+    @Override
+    public OccupationResponse getOccupations() {
+        return new OccupationResponse(occupationRepository.findAllOccupations());
+    }
+
+    @Override
+    public SourceOfIncomeResponse getsourceOfIncome() {
+        return new SourceOfIncomeResponse(sourceOfIncomeRepository.findAllSourceOfIncome());
     }
 }

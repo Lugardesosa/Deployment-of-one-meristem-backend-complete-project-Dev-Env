@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
+import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.AdminAccountDto;
@@ -7,16 +8,15 @@ import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
-import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
-import org.meristem.oneapp.usersservice.domains.enums.MessageType;
-import org.meristem.oneapp.usersservice.domains.enums.PermissionsEnum;
-import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
+import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
+import org.meristem.oneapp.usersservice.models.Roles;
+import org.meristem.oneapp.usersservice.models.SourceOfIncome;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IAdminService;
 import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
@@ -27,8 +27,10 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.Optional;
 
 import static java.util.Objects.nonNull;
 
@@ -58,6 +60,11 @@ public class AdminService implements IAdminService {
     private final PermissionsRepository permissionsRepository;
     private final AdminProfileRepository adminProfileRepository;
     private final InvestmentInstrumentsRepository investmentInstrumentsRepository;
+    private final OccupationRepository occupationRepository;
+    private final SourceOfIncomeRepository sourceOfIncomeRepository;
+    private final AddressRepository addressRepository;
+    private final HuaweiService huaweiService;
+    private final FilesRepository filesRepository;
 
     /**
      * Updates the next-of-kin details for a user.
@@ -262,5 +269,32 @@ public class AdminService implements IAdminService {
         rolesRepository.deleteUserRole(request.adminId());
         int updatedRole = rolesRepository.updateUserRole(request.adminId(), request.roleId());
         return UpdateResponse.builder().success(updated > 0 || updatedRole > 0).message(updatedRole + " role and " + updated + " subsidiary successfully updated").build();
+    }
+
+    @Override
+    public UpdateResponse addOccupations(AddOccupationRequest request) {
+
+        occupationRepository.save(Occupation.builder().name(request.name()).build());
+        return UpdateResponse.builder().message("successful").success(true).build();
+    }
+
+    @Override
+    public UpdateResponse addSourceOfIncome(AddSourceOfIncomeRequest request) {
+        sourceOfIncomeRepository.save(SourceOfIncome.builder().name(request.name()).build());
+        return UpdateResponse.builder().message("successful").success(true).build();
+    }
+
+    @Override
+    public UserAddressResponse getAddress(Long userId) {
+
+        UserAddressResponse addressResponse = addressRepository.findAddressByUserId(userId);
+
+        if (StringUtils.hasText(addressResponse.getDocumentKey())) {
+
+            SignedUrlResponse signedUrlResponse = huaweiService.getSignedUrl(SignedUrlRequest.builder().method(HttpMethodEnum.GET).fileName(addressResponse.getDocumentKey())
+                    .type(SignedUrlType.DOCUMENT).build());
+            addressResponse.setDocumentKey(signedUrlResponse.signedUrl());
+        }
+        return addressResponse;
     }
 }
