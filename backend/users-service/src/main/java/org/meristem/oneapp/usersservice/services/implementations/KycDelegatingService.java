@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
@@ -9,6 +10,7 @@ import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundExc
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IKycService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,9 @@ public class KycDelegatingService implements IKycDelegatingService {
     private final IKycService smileIdService;
     private final IKycService dojahService;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     public KycDelegatingService(@Qualifier("SMILE_ID") IKycService smileIdService, @Qualifier("DOJAH") IKycService dojahService) {
         this.smileIdService = smileIdService;
         this.dojahService = dojahService;
@@ -47,7 +52,7 @@ public class KycDelegatingService implements IKycDelegatingService {
 
     public BvnQueryResponse dojahBvnQuery(IdQueryRequest request, Throwable throwable) {
 
-        if (throwable instanceof ResourceNotFoundException ex) {
+        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
             throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
         }
         return dojahService.bvnQuery(request);
@@ -60,7 +65,7 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     public NinValidationResponse dojahValidateNin(IdQueryRequest request, Throwable throwable) {
-        if (throwable instanceof ResourceNotFoundException ex) {
+        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
             throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
         }
         return this.dojahService.validateNin(request);

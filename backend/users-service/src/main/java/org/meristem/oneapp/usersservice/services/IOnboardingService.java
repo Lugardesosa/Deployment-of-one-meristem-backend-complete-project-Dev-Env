@@ -67,4 +67,8 @@ public interface IOnboardingService {
     GetIdNumberResponse getIdNumber(String idType);
 
     UpdateResponse addressVerificationStarted(AddressVerificationStartedRequest smileRequest);
+
+    OccupationResponse getOccupations();
+
+    SourceOfIncomeResponse getsourceOfIncome();
 }
