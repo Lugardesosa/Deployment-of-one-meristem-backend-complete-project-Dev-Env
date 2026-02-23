@@ -17,4 +17,6 @@ public interface FilesRepository extends BaseRepository<Files, Long> {
     Optional<Files> findByFileKeyAndFileType(String fileKey, Integer fileType);
 
     Optional<Files> findByFileTypeAndUserId(Integer fileType, Long userId);
+
+    Files findFilesByFileKey(String fileKey);
 }

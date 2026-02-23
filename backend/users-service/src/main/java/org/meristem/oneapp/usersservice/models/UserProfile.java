@@ -63,6 +63,11 @@ public class UserProfile extends BaseModel<String> {
     @Column("interest_free_investment")
     private Boolean interestFreeInvestment;
 
+    private String taxId;
+    private String sourceOfIncome;
+    private String occupation;
+    private String employerName;
+
     /**
      * Constructs a new UserOnboarding instance.
      *
@@ -78,7 +83,7 @@ public class UserProfile extends BaseModel<String> {
     @Builder
     public UserProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
-                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus) {
+                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -91,6 +96,10 @@ public class UserProfile extends BaseModel<String> {
         this.chnNumber = chnNumber;
         this.cscsNumber = cscsNumber;
         this.maritalStatus = maritalStatus;
+        this.taxId = taxId;
+        this.occupation = occupation;
+        this.sourceOfIncome = sourceOfIncome;
+        this.employerName = employerName;
     }
 
     /**

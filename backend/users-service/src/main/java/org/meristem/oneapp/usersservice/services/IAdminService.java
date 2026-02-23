@@ -115,4 +115,10 @@ public interface IAdminService {
      * @return an {@link UpdateResponse} indicating the operation result
      */
     UpdateResponse updateAdmin(UpdateAdminRequest request);
+
+    UpdateResponse addOccupations(AddOccupationRequest request);
+
+    UpdateResponse addSourceOfIncome(AddSourceOfIncomeRequest request);
+
+    UserAddressResponse getAddress(Long userId);
 }

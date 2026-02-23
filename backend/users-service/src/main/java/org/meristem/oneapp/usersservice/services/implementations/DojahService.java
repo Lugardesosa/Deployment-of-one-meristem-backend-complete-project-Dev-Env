@@ -13,6 +13,7 @@ import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnLookUpRes
 import org.meristem.oneapp.usersservice.integrations.responses.DojahNinLookUpResponse;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.UserIdDetails;
+import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IIdDetailsService;
@@ -52,6 +53,7 @@ public class DojahService implements IKycService {
 
     private final CustomRepository customRepository;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
+    private final UserProfileRepository userProfileRepository;
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
 
@@ -101,6 +103,10 @@ public class DojahService implements IKycService {
         IdQueryDetailsDto dto = userIdDetailsMapper.dojahNinLookupResponseToIdQueryDetailsDto(response.entity());
         dto.setIdType(IdCardType.NIN.getName());
         Users loggedInUser = usersRepository.findById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new AuthorizationDeniedException("User is not logged in"));
+        UserProfile userProfile = userProfileRepository.findByUserId(loggedInUser.getId()).orElseThrow(() -> new BadRequestException("Invalid user."));
+
+        userProfile.setTaxId(response.entity().taxId());
+        userProfileRepository.save(userProfile);
         UserIdDetails bvn = customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.BVN.getName())).orElseThrow(() -> new BadRequestException("BVN details could not be found."));
 
         List<String> names = buildNames(bvn);

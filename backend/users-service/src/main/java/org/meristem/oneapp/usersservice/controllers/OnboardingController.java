@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.controllers;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -120,11 +121,11 @@ public class OnboardingController {
 
     @Operation(summary = "Get customer's id number")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Get customer's BVN")
+            @ApiResponse(responseCode = "200", description = "Get customer's BVN or NIN")
     })
     @PreAuthorize("hasRole('ROLE_1004')")
     @GetMapping(value = "/id-number", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<GetIdNumberResponse>> getIdNumber(@Pattern(regexp = "^BVN|NIN$", message = "Pass a valid id type (BVN or NIN)") @RequestParam String idType) {
+    public ResponseEntity<AppResponse<GetIdNumberResponse>> getIdNumber(@Parameter(example = "BVN", description = "Pass a valid id type (BVN or NIN)") @Pattern(regexp = "^BVN|NIN$", message = "Pass a valid id type (BVN or NIN)") @RequestParam String idType) {
         return ApiUtil.buildResponse(onboardingService.getIdNumber(idType), HttpStatus.OK.toString(), "Successful");
     }
 
@@ -136,5 +137,25 @@ public class OnboardingController {
     @PostMapping(value = "/validate-nin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<NinValidationResponse>> validateNin(@RequestBody @Valid IdQueryRequest request) {
         return ApiUtil.buildResponse(kycDelegatingService.validateNin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get occupations")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "get occupations")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_get.occupation')")
+    @GetMapping(value = "/occupations", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<OccupationResponse>> occupations() {
+        return ApiUtil.buildResponse(onboardingService.getOccupations(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get source of income")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "get source of income")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_get.source_of_income')")
+    @GetMapping(value = "/source_of_income", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<SourceOfIncomeResponse>> sourceOfIncome() {
+        return ApiUtil.buildResponse(onboardingService.getsourceOfIncome(), HttpStatus.OK.toString(), "Successful");
     }
 }

@@ -192,4 +192,34 @@ public class AdminController {
     public ResponseEntity<AppResponse<GetAmlResponse>> getAmlApprovalResults(@RequestParam("userId") Long userId) {
         return ApiUtil.buildResponse(amlService.getAmlApprovalResults(userId), HttpStatus.CREATED.toString(), "Successful");
     }
+
+    @Operation(summary = "Save an occupation")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "")
+    })
+    @PreAuthorize("hasAuthority('ROLE_3008')")
+    @PostMapping(value = "/occupations", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> occupations(@Valid @RequestBody AddOccupationRequest request) {
+        return ApiUtil.buildResponse(adminService.addOccupations(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Save a source of income")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Save a source of income")
+    })
+    @PreAuthorize("hasAuthority('ROLE_3008')")
+    @PostMapping(value = "/source_of_income", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> sourceOfIncome(@Valid @RequestBody AddSourceOfIncomeRequest request) {
+        return ApiUtil.buildResponse(adminService.addSourceOfIncome(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "get user address")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "get user address")
+    })
+    @PreAuthorize("hasAuthority('ROLE_3014')")
+    @GetMapping(value = "/get-address", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UserAddressResponse>> getAddress(@RequestParam Long userId) {
+        return ApiUtil.buildResponse(adminService.getAddress(userId), HttpStatus.OK.toString(), "Successful");
+    }
 }
