@@ -114,6 +114,6 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
             """)
     List<AdminsResponse.Admin> findAllAdminsByIds(List<Long> adminIds);
 
-    @Query("SELECT middleware_customer_id from users u WHERE u.email = :email")
+    @Query("SELECT u.middleware_customer_id from users u WHERE u.email = :email")
     String findCustomerIdByEmail(String email);
 }
