@@ -68,7 +68,6 @@ public class OnboardingController {
         return ApiUtil.buildResponse(onboardingService.addressVerificationStarted(smileRequest), HttpStatus.OK.toString(), "Request successful");
     }
 
-    @Hidden
     @Operation(summary = "Get Countries")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows Users to get all countries")
