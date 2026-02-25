@@ -16,7 +16,7 @@ import java.util.List;
 public interface MiddleWareClient {
 
     @PostExchange("/customers/customers/individual")
-    CreateIndividualCustomerResponse createIndividualCustomer(@RequestBody CreateIndividualCustomerRequest request);
+    MiddlewareResponse<CreateIndividualCustomerResponse> createIndividualCustomer(@RequestBody CreateIndividualCustomerRequest request);
 
     @PostExchange("/customers/customers/corporate")
     CreateIndividualCustomerResponse createCorporateCustomer(@RequestBody CreateCorporateCustomerRequest request);
@@ -113,7 +113,7 @@ public interface MiddleWareClient {
     MiddlewareBaseApiResponse updateIndividualCustomerIdn(@RequestBody UpdateIdnRequest request);
 
     @PostExchange("/customers/customers/update/address")
-    MiddlewareBaseApiResponse updateIndividualCustomerAddress(@RequestBody UpdateAddressRequest request);
+    MiddlewareResponse<MiddlewareBaseApiResponse> updateIndividualCustomerAddress(@RequestBody UpdateAddressRequest request);
 
     @PostExchange("/customers/customers/update/email")
     MiddlewareBaseApiResponse updateIndividualCustomerEmail(@RequestBody UpdateEmailRequest request);

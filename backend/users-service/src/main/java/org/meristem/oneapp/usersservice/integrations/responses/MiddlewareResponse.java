@@ -9,5 +9,5 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 @Builder
-public record MiddlewareResponse<T> (ZonedDateTime timestamp, String status, String message, T data) implements Serializable {
+public record MiddlewareResponse<T> (ZonedDateTime timestamp, String status, String message, T data) {
 }

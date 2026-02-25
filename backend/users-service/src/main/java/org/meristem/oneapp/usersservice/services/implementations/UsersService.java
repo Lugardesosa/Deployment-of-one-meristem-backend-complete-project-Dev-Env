@@ -22,6 +22,7 @@ import org.meristem.oneapp.usersservice.integrations.requests.CreateIndividualCu
 import org.meristem.oneapp.usersservice.integrations.requests.UpdateAddressRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.CreateIndividualCustomerResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareBaseApiResponse;
+import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareResponse;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -238,10 +239,10 @@ public class UsersService implements IUsersService {
                 .mobilePhoneNo(value.phoneNumber()).genderCd(Gender.getGender(value.gender()).getAbbreviation())
                 .addressStreet(value.addressStreet()).addressCity(value.addressCity())
                 .addressCountryCd(value.addressCountryCd()).build();
-        CreateIndividualCustomerResponse response = middleWareClient.createIndividualCustomer(request);
-        if ("Active".equalsIgnoreCase(response.status())) {
+        MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createIndividualCustomer(request);
+        if ("success".equalsIgnoreCase(response.status())) {
             Users users = usersRepository.findUsersByEmail(value.email());
-            users.setMiddlewareCustomerId(response.customerId());
+            users.setMiddlewareCustomerId(response.data().customerId());
             usersRepository.save(users);
         } else {
             throw new BadRequestException("Could not create customer");
@@ -252,7 +253,7 @@ public class UsersService implements IUsersService {
     public void addressVerified(CustomerAddressVerifiedDto value) {
 
         UpdateAddressRequest request = usersMapper.customerAddressVerifiedDtoToUpdateAddressRequest(value);
-        MiddlewareBaseApiResponse response = middleWareClient.updateIndividualCustomerAddress(request);
+        MiddlewareResponse<MiddlewareBaseApiResponse> response = middleWareClient.updateIndividualCustomerAddress(request);
         if ("success".equalsIgnoreCase(response.status())) {
             log.info("Customer {} address updated", request.customerId());
         } else {
