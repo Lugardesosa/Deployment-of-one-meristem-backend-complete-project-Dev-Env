@@ -219,7 +219,7 @@ services:
       - WEALTH_CLIENT_ID=wealth-service
       - WEALTH_CLIENT_SECRET=${WEALTH_CLIENT_SECRET}
       - WEALTH_SECRET=${WEALTH_SECRET}
-      - MIDDLE_WARE_BASE_URL='https://onemeristemmiddlewaredev.meristemng.com/api'
+      - MIDDLE_WARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
       - MIDDLE_WARE_API_KEY=${MIDDLE_WARE_API_KEY}
       - DOJAH_BASE_URL='https://sandbox.dojah.io'
       - DOJAH_APP_ID='69982bc9cab03cc55e59ba33'
@@ -312,7 +312,7 @@ services:
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WALLET_SECRET=${WALLET_SECRET}
-      - MIDDLE_WARE_BASE_URL='https://onemeristemmiddlewaredev.meristemng.com/api'
+      - MIDDLE_WARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
       - MIDDLE_WARE_API_KEY=${MIDDLE_WARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
@@ -383,7 +383,7 @@ services:
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WALLET_SECRET=${WALLET_SECRET}
-      - MIDDLE_WARE_BASE_URL='https://onemeristemmiddlewaredev.meristemng.com/api'
+      - MIDDLE_WARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
       - MIDDLE_WARE_API_KEY=${MIDDLE_WARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=report-service
@@ -460,7 +460,7 @@ services:
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WALLET_SECRET=${WALLET_SECRET}
-      - MIDDLE_WARE_BASE_URL='https://onemeristemmiddlewaredev.meristemng.com/api'
+      - MIDDLE_WARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
       - MIDDLE_WARE_API_KEY=${MIDDLE_WARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wallet-service
@@ -532,7 +532,7 @@ services:
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WALLET_SECRET=${WALLET_SECRET}
       - WEALTH_SECRET=${WEALTH_SECRET}
-      - MIDDLE_WARE_BASE_URL='https://onemeristemmiddlewaredev.meristemng.com/api'
+      - MIDDLE_WARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
       - MIDDLE_WARE_API_KEY=${MIDDLE_WARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wealth-service
@@ -604,7 +604,7 @@ services:
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
       - WALLET_SECRET=${WALLET_SECRET}
-      - MIDDLE_WARE_BASE_URL='https://onemeristemmiddlewaredev.meristemng.com/api'
+      - MIDDLE_WARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
       - MIDDLE_WARE_API_KEY=${MIDDLE_WARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=trustees-service
