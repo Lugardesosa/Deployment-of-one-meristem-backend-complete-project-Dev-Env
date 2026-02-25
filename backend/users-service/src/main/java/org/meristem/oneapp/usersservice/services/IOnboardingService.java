@@ -41,7 +41,7 @@ public interface IOnboardingService {
      *
      * @return a page of state/province responses
      */
-    Page<StatesResponse> getStates();
+    Page<StatesResponse> getStates(Long countryId);
 
     /**
      * Retrieves all available investment instruments.

@@ -4,6 +4,7 @@ package org.meristem.oneapp.usersservice.services.implementations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
 import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
@@ -36,6 +37,13 @@ public class KafkaListenerService implements IKafkaListenerService {
     public void createCustomer(ConsumerRecord<String, CreateCustomerDto> record) {
         log.info("Received CreateCustomerDto event: {}", record.value());
         usersService.createCustomer(record.value());
+    }
+
+    @KafkaListener(topicPattern = KafkaTopics.KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC)
+    @Override
+    public void addressVerified(ConsumerRecord<String, CustomerAddressVerifiedDto> record) {
+        log.info("Received addressVerified event: {}", record.value());
+        usersService.addressVerified(record.value());
     }
 
     @KafkaListener(topicPattern = KafkaTopics.KAFKA_KYC_IMAGE_UPLOAD_TOPIC)

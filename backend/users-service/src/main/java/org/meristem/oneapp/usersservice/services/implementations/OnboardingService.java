@@ -1,8 +1,13 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
+import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
@@ -53,6 +58,9 @@ public class OnboardingService implements IOnboardingService {
     private final CountriesRepositories countriesRepositories;
     private final OccupationRepository occupationRepository;
     private final SourceOfIncomeRepository sourceOfIncomeRepository;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
+    private final CountryStatesRepository countryStatesRepository;
 
     @Value("${one-app.users-service.okhi.header-value}")
     private String okhiHeaderId;
@@ -98,6 +106,7 @@ public class OnboardingService implements IOnboardingService {
                 addressRepository.findByUserIdAndVerificationMethod(users.getId(), AddressVerificationMethod.AUTO_OKHI.getValue()).ifPresentOrElse(address -> {
                             Countries countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(request.data().location().country(), request.data().location().country(), request.data().location().country()).orElseThrow(() -> new BadRequestException("Invalid country passed"));
 
+                            address.setStreet(request.data().location().streetName());
                             address.setCity(request.data().location().city());
                             address.setCountryId(countries.getId());
                             address.setState(request.data().location().state());
@@ -146,6 +155,33 @@ public class OnboardingService implements IOnboardingService {
                         userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
                         addressRepository.save(address);
                         usersService.completeUserOnboarding(users.getEmail());
+
+                        Countries countries = countriesRepositories.findById(address.getCountryId()).orElseThrow(() -> new BadRequestException("Invalid country"));
+
+                        CountryStates states = countryStatesRepository.findCountryStatesByCodeOrNameIgnoreCase(address.getState(), address.getState());
+                        CustomerAddressVerifiedDto dto = CustomerAddressVerifiedDto.builder()
+                                .primaryStreet(address.getHouseAddress())
+                                .primaryCity(address.getCity())
+                                .primaryStateCd(states.getCode())
+                                .primaryCountryCd(countries.getCodeLong())
+                                .postalAddress(address.getZipOrPostalCode())
+                                .customerId(users.getMiddlewareCustomerId())
+                                .build();
+
+                        try {
+                            OutboxEvent addressOutbox = OutboxEvent.builder()
+                                    .aggregateId(users.getId())
+                                    .aggregateType(AggregateType.USER.getValue())
+                                    .eventType(KafkaTopics.KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC)
+                                    .outboxStatus(OutboxStatus.PENDING.getValue())
+                                    .eventClass(CustomerAddressVerifiedDto.class.getName())
+                                    .eventKey(users.getId().toString())
+                                    .payload(objectMapper.writeValueAsString(dto))
+                                    .build();
+                            outboxEventRepository.save(addressOutbox);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
                     });
                 } else {
 
@@ -198,11 +234,10 @@ public class OnboardingService implements IOnboardingService {
      * @return a page of state/province responses
      * @throws BadRequestException if the default country cannot be found
      */
-    public Page<StatesResponse> getStates() {
+    public Page<StatesResponse> getStates(Long countryId) {
 
         PageRequest pageRequest = getCountryAndStatePageRequest();
-        Countries country = generalRepository.findOneBy(Countries.class, Map.of("code", "NG")).orElseThrow(() -> new BadRequestException("Country not found"));
-        Page<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", country.getId()), pageRequest);
+        Page<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", countryId), pageRequest);
 
         List<StatesResponse> statesResponses = usersMapping.countryStatesToStatesResponseResponse(countryStates.getContent());
         return new PageImpl<>(statesResponses, pageRequest, countryStates.getTotalElements());
