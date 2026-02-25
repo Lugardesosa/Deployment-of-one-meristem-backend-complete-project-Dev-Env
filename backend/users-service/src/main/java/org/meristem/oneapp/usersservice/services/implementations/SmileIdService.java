@@ -241,7 +241,9 @@ public class SmileIdService implements IKycService {
         kycQuery.setMessage(notification.getResultText());
         kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
         kycQueryRepository.save(kycQuery);
-        completeOnboarding(kycQuery, loggedInUser);
+        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), kycQuery.getRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+        usersService.completeUserOnboarding(loggedInUser.getEmail());
+
     }
 
     /**
@@ -296,16 +298,6 @@ public class SmileIdService implements IKycService {
         UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(notification), loggedInUser);
         return compareNinAndBvnDetailsSaveAndReturn(nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository);
 
-    }
-
-    /**
-     * Completes the onboarding process for a user by updating the onboarding status and notifying the user service.
-     *
-     * @param kycQuery The Smile ID record associated with the onboarding process.
-     * @param loggedInUser  The user completing the onboarding process.
-     */
-    private void completeOnboarding(KycQuery kycQuery, Users loggedInUser) {
-        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), kycQuery.getRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
     }
 
     /**

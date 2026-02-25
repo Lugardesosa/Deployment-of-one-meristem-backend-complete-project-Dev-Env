@@ -23,14 +23,19 @@ public class CountryStates extends BaseModel<String> {
     @Column("name")
     private String name;
 
+    @NotBlank(message = "Cannot be blank")
+    @Column("code")
+    private String code;
+
     @NotNull(message = "Cannot be null")
     @Column("country_id")
     private Long countryId;
 
     @Builder
-    public CountryStates(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, Long countryId) {
+    public CountryStates(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String name, Long countryId, String code) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.name = name;
+        this.code = code;
         this.countryId = countryId;
     }
 
@@ -38,11 +43,11 @@ public class CountryStates extends BaseModel<String> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CountryStates that = (CountryStates) o;
-        return Objects.equals(getName(), that.getName()) && Objects.equals(getCountryId(), that.getCountryId());
+        return Objects.equals(getCode(), that.getCode()) && Objects.equals(getCountryId(), that.getCountryId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getName(), getCountryId());
+        return Objects.hash(getCode(), getCountryId());
     }
 }

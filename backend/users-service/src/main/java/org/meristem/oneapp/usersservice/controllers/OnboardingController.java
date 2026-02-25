@@ -85,8 +85,8 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_1018')")
     @GetMapping(value = "/states", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates() {
-        return ApiUtil.buildResponse(onboardingService.getStates(), HttpStatus.OK.toString(), "Request successful");
+    public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates(@RequestParam Long countryId) {
+        return ApiUtil.buildResponse(onboardingService.getStates(countryId), HttpStatus.OK.toString(), "Request successful");
     }
 
     @Operation(summary = "Get Instruments")
