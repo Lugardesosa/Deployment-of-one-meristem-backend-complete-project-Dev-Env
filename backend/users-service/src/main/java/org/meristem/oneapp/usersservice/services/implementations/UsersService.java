@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
-import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
-import org.meristem.oneapp.kafka.dtos.MessageDto;
-import org.meristem.oneapp.kafka.dtos.PasswordChangeDto;
+import org.meristem.oneapp.kafka.dtos.*;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -22,8 +19,9 @@ import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.usersservice.integrations.requests.CreateIndividualCustomerRequest;
+import org.meristem.oneapp.usersservice.integrations.requests.UpdateAddressRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.CreateIndividualCustomerResponse;
-import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareResponse;
+import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareBaseApiResponse;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -236,12 +234,25 @@ public class UsersService implements IUsersService {
                 .mobilePhoneNo(value.phoneNumber()).genderCd(Gender.getGender(value.gender()).getAbbreviation())
                 .addressStreet(value.addressStreet()).addressCity(value.addressCity())
                 .addressCountryCd(value.addressCountryCd()).build();
-        MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createIndividualCustomer(request);
-        if ("success".equalsIgnoreCase(response.status())) {
-            CreateIndividualCustomerResponse data = response.data();
+        CreateIndividualCustomerResponse response = middleWareClient.createIndividualCustomer(request);
+        if ("Active".equalsIgnoreCase(response.status())) {
             Users users = usersRepository.findUsersByEmail(value.email());
-            users.setMiddlewareCustomerId(data.customerId());
+            users.setMiddlewareCustomerId(response.customerId());
             usersRepository.save(users);
+        } else {
+            throw new BadRequestException("Could not create customer");
+        }
+    }
+
+    @Override
+    public void addressVerified(CustomerAddressVerifiedDto value) {
+
+        UpdateAddressRequest request = usersMapper.customerAddressVerifiedDtoToUpdateAddressRequest(value);
+        MiddlewareBaseApiResponse response = middleWareClient.updateIndividualCustomerAddress(request);
+        if ("success".equalsIgnoreCase(response.status())) {
+            log.info("Customer {} address updated", request.customerId());
+        } else {
+            throw new BadRequestException("Could not create customer");
         }
     }
 

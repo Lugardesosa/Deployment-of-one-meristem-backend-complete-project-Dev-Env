@@ -1,9 +1,9 @@
-package org.meristem.oneapp.usersservice.integrations.requests;
+package org.meristem.oneapp.kafka.dtos;
 
 import lombok.Builder;
 
 @Builder
-public record UpdateAddressRequest(
+public record CustomerAddressVerifiedDto(
         String customerId,
         String primaryStreet,
         String primaryCity,

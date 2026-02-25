@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.services;
 
 import jakarta.validation.Valid;
+import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
@@ -41,6 +42,8 @@ public interface IUsersService {
      * @return a {@link UsersResponse} containing the created user's details
      */
     UsersResponse save(Users user, IdQueryDetailsDto IdQueryDetailsDto);
+
+    void addressVerified(CustomerAddressVerifiedDto value);
 
     /**
      * Updates the user's email address.
