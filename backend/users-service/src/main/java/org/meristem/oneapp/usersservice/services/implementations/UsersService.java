@@ -229,6 +229,10 @@ public class UsersService implements IUsersService {
     @Override
     public void createCustomer(CreateCustomerDto value) {
 
+        String customerId = usersRepository.findCustomerIdByEmail(value.email());
+        if (nonNull(customerId)) {
+            return;
+        }
         CreateIndividualCustomerRequest request = CreateIndividualCustomerRequest.builder()
                 .primaryEmailAddress(value.email()).firstName(value.firstName()).lastName(value.lastName()).otherNames(value.middleName())
                 .mobilePhoneNo(value.phoneNumber()).genderCd(Gender.getGender(value.gender()).getAbbreviation())
