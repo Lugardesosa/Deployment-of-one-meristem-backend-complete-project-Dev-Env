@@ -48,5 +48,5 @@ public final class AppConstants {
     public static final String VENDOR_PASTEL = "PASTEL";
     public static final String VENDOR_SMILE_ID = "SMILE_ID";
     public static final int OUTBOX_MAX_RETRY_COUNT = 3;
-    public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 30;
+    public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 5;
 }
