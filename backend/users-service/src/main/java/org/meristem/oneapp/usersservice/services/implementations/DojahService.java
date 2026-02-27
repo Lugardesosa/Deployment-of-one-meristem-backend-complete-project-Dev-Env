@@ -2,19 +2,22 @@ package org.meristem.oneapp.usersservice.services.implementations;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.usersservice.domains.enums.IdCardType;
+import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
+import org.meristem.oneapp.usersservice.domains.responses.GetIdNumberResponse;
+import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.integrations.DojahClient;
+import org.meristem.oneapp.usersservice.integrations.requests.DojahBvnVerificationRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnLookUpResponse;
+import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnVerificationResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.DojahNinLookUpResponse;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
-import org.meristem.oneapp.usersservice.models.UserIdDetails;
-import org.meristem.oneapp.usersservice.models.UserProfile;
-import org.meristem.oneapp.usersservice.models.Users;
+import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IIdDetailsService;
 import org.meristem.oneapp.usersservice.services.IKycService;
@@ -23,13 +26,24 @@ import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 
 /**
@@ -54,6 +68,8 @@ public class DojahService implements IKycService {
     private final CustomRepository customRepository;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final UserProfileRepository userProfileRepository;
+    private final KycQueryRepository kycQueryRepository;
+    private final AmlVendorRepository amlVendorRepository;
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
 
@@ -68,6 +84,8 @@ public class DojahService implements IKycService {
     private final IIdDetailsService idDetailsService;
 
     private final DojahClient dojahClient;
+
+    @Override
     public BvnQueryResponse bvnQuery(IdQueryRequest request) {
 
         if (IdCardType.BVN.compareTo(IdCardType.fromName(request.idType())) != 0) {
@@ -85,10 +103,65 @@ public class DojahService implements IKycService {
         return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
     }
 
+    @Override
+    @Transactional
+    public IdValidationResponse bvnValidation(MultipartFile file) {
+
+        Cache cache = cacheManager.getCache(AppConstants.ID_VERIFICATION_CACHE_NAME);
+
+        String loggedInUserEmail = AppUtil.getLoggedInUserEmail();
+        assert cache != null;
+        LocalDateTime expireIn = cache.get(loggedInUserEmail.concat(OnboardingRequirements.BVN.getName()), LocalDateTime.class);
+
+        if (isNull(expireIn)) {
+            expireIn = LocalDateTime.now().plusMinutes(AppConstants.ID_VERIFICATION_CACHE_EXPIRES_IN);
+            cache.put(loggedInUserEmail.concat(OnboardingRequirements.BVN.getName()), expireIn);
+        } else if (expireIn.isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Try again at " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(expireIn));
+        }
+
+        Long loggedInUserId = AppUtil.getLoggedInUserId();
+
+        org.meristem.oneapp.usersservice.models.Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(Vendor.SMILE_ID.getValue());
+        Long requirementId = requirementsRepository.findIdByRequirementName(OnboardingRequirements.BVN.getName());
+        String jobId = UUID.randomUUID().toString();
+        KycQuery kycQuery = kycQueryRepository.save(KycQuery.builder().jobId(jobId).requirementId(requirementId).userId(loggedInUserEmail)
+                .status(KycQueryStatus.PENDING.getValue()).vendorId(vendor.getId()).build());
+        try {
+
+            byte[] imageBytes = file.getBytes();
+            String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+
+            String idNumber = idCardRepository.findIdCardValueByUserId(loggedInUserId, IdCardType.BVN.getName());
+            String bvn = encryptionUtil.decrypt(idNumber);
+
+            DojahBvnVerificationResponse response = dojahClient.dojahBvnVerify(DojahBvnVerificationRequest.builder().bvn(bvn).selfieImage(imageBase64).build());
+            if (response.entity().selfieVerification().match()) {
+
+                kycQuery.setMessage("Successful");
+                kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
+                kycQueryRepository.save(kycQuery);
+                userOnboardingRepository.updateUserOnboardingStatus(loggedInUserId, kycQuery.getRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+                usersService.completeUserOnboarding(loggedInUserEmail);
+                cache.evict(loggedInUserEmail.concat(OnboardingRequirements.BVN.getName()));
+                return IdValidationResponse.builder().message("Successful").success(true).build();
+            } else {
+                kycQuery.setMessage("Failed");
+                kycQuery.setStatus(KycQueryStatus.FAILED.getValue());
+                kycQueryRepository.save(kycQuery);
+                return IdValidationResponse.builder().message("Failed").success(false).build();
+            }
+        } catch (IOException e) {
+            throw new BadRequestException("Could not complete bvn verification");
+        }
+    }
+
     /**
      * Validates NIN data; flags mismatches; completes onboarding if valid
      */
-    public NinValidationResponse validateNin(IdQueryRequest request) {
+    @Override
+    public IdValidationResponse validateNin(IdQueryRequest request) {
+        Cache cache = getIdQueryCache(cacheManager);
 
         if (IdCardType.NIN.compareTo(IdCardType.fromName(request.idType())) != 0) {
             throw new BadRequestException("Only NIN can be validated.");
@@ -112,6 +185,6 @@ public class DojahService implements IKycService {
         List<String> names = buildNames(bvn);
 
         UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(dto, loggedInUser);
-        return compareNinAndBvnDetailsSaveAndReturn(nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository);
+        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()));
     }
 }

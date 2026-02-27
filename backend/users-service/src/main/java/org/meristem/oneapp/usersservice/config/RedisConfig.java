@@ -17,11 +17,11 @@ public class RedisConfig {
 
                 .withCacheConfiguration(AppConstants.USERS_CACHE_NAME, defaultCacheConfiguration())
                 .withCacheConfiguration(AppConstants.AVATAR_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(50)))
+                .withCacheConfiguration(AppConstants.ID_VERIFICATION_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30)))
                 .withCacheConfiguration(AppConstants.SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
                 .withCacheConfiguration(AppConstants.SETTINGS_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
-
-
+    
     @Bean
     public RedisCacheConfiguration defaultCacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()

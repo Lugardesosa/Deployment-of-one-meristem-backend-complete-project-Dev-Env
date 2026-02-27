@@ -38,6 +38,7 @@ public final class AppConstants {
     public static final String APPLICATION_JSON_UTF8_VALUE = "application/json;charset=UTF-8";
     public static final String AVATAR_CACHE_NAME = "avatars";
     public static final String SIGN_UP_CACHE_NAME = "sign-ups";
+    public static final String ID_VERIFICATION_CACHE_NAME = "id-verification";
     public static final String SETTINGS_CACHE_NAME = "settings";
     public static final String USER_ROLE = "USER";
     public static final List<String> MOBILE_N_WEB_ROLES = List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user",
@@ -47,4 +48,5 @@ public final class AppConstants {
     public static final String VENDOR_PASTEL = "PASTEL";
     public static final String VENDOR_SMILE_ID = "SMILE_ID";
     public static final int OUTBOX_MAX_RETRY_COUNT = 3;
+    public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 30;
 }
