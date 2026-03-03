@@ -9,6 +9,7 @@ import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.models.Users;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -241,6 +242,7 @@ public interface IUsersService {
 
     UpdateResponse setJointPasswordSecondary(@Valid SetPasswordRequest request);
 
+    @Transactional
     default UpdateResponse setPasswordInternal(SetPasswordRequest userRequest) {
         return switch (userRequest.passwordSetType()) {
             case INDIVIDUAL -> setPassword(userRequest);

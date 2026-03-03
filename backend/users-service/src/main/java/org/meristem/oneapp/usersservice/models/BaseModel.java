@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 public class BaseModel<U> {
 
     @Id
-    @NotNull(message = "id cannot be null")
     private Long id;
 
     @CreatedDate
