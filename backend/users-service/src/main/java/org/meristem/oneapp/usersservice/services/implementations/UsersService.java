@@ -13,7 +13,9 @@ import org.meristem.oneapp.usersservice.constants.MessageSubjects;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
+import org.meristem.oneapp.usersservice.dtos.CreateJointAccountDtos;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
+import org.meristem.oneapp.usersservice.dtos.OtpVerificationDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
@@ -23,12 +25,14 @@ import org.meristem.oneapp.usersservice.integrations.requests.UpdateAddressReque
 import org.meristem.oneapp.usersservice.integrations.responses.CreateIndividualCustomerResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareBaseApiResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareResponse;
+import org.meristem.oneapp.usersservice.mappers.MiddlewareMapper;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
+import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
@@ -64,7 +68,7 @@ public class UsersService implements IUsersService {
 
     private final UsersRepository usersRepository;
     private final UsersMapping usersMapper = UsersMapping.INSTANCE;
-    private final OtpVerificationRepository otpVerificationRepository;
+    private final MiddlewareMapper middlewareMapper = MiddlewareMapper.INSTANCE;
     private final PasswordEncoder passwordEncoder;
     private final IKafkaSenderService kafkaSenderService;
     private final UserProfileRepository userProfileRepository;
@@ -85,17 +89,17 @@ public class UsersService implements IUsersService {
     private final MiddleWareClient middleWareClient;
     private final CountriesRepositories countriesRepositories;
     private final IdDetailsService idDetailsService;
+    private final OtpService otpService;
+    private final EncryptionUtil encryptionUtil;
+    private final JointAccountRepository jointAccountRepository;
+    private final InvestmentInstrumentsRepository investmentInstrumentsRepository;
 
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
 
     public UpdateResponse create(CreateUserRequest request) {
 
-        log.info("First stage of User with email creation started {}", request.email());
-        if (usersRepository.existsByEmailOrPhoneNumber(request.email(), request.phoneNumber())) {
-            throw new BadRequestException("Email or Phone number already exists.");
-        }
-
+        checkEmailOrPhoneDoesNotExist(request.email(), request.phoneNumber());
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
         IdQueryDetailsDto bvnQueryResponse = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.bvn()), IdQueryDetailsDto.class);
@@ -114,10 +118,84 @@ public class UsersService implements IUsersService {
         bvnQueryResponse.setOccupation(request.occupation());
         bvnQueryResponse.setSourceOfIncome(request.sourceOfIncome());
         bvnQueryResponse.setEmployerName(request.employerName());
-        requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(request.email(), bvnQueryResponse);
+        cache.put(request.email(), bvnQueryResponse);
 
         log.info("First stage of User with email {} created ", request.email());
         return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    @Override
+    public UpdateResponse createJoint(CreateJointUserRequest request) {
+
+        checkEmailOrPhoneDoesNotExist(request.primary().email(), request.primary().phoneNumber());
+        checkEmailOrPhoneDoesNotExist(request.secondary().email(), request.secondary().phoneNumber());
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+
+        IdQueryDetailsDto primary = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.primary().bvn()), IdQueryDetailsDto.class);
+        IdQueryDetailsDto secondary = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.secondary().bvn()), IdQueryDetailsDto.class);
+
+        if (primary == null) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Bvn", request.primary().bvn().substring(0, 3) + "*****" + request.primary().bvn().substring(8, 11));
+        }
+        if (secondary == null) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Bvn", request.secondary().bvn().substring(0, 3) + "*****" + request.secondary().bvn().substring(8, 11));
+        }
+
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(request.primary().bvn(), IdCardType.BVN.getName())) {
+            throw new BadRequestException("Bvn already exists " + request.primary().bvn().substring(0, 3) + "*****" + request.primary().bvn().substring(8, 11));
+        }
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(request.secondary().bvn(), IdCardType.BVN.getName())) {
+            throw new BadRequestException("Bvn already exists " + request.secondary().bvn().substring(0, 3) + "*****" + request.secondary().bvn().substring(8, 11));
+        }
+
+        cache.evict(primary.getBvnHashed());
+        primary.setEmail(request.primary().email());
+        primary.setPhoneNumber(request.primary().phoneNumber());
+        primary.setOccupation(request.primary().occupation());
+        primary.setSourceOfIncome(request.primary().sourceOfIncome());
+        primary.setEmployerName(request.primary().employerName());
+
+        cache.evict(secondary.getBvnHashed());
+        secondary.setEmail(request.secondary().email());
+        secondary.setPhoneNumber(request.secondary().phoneNumber());
+        secondary.setOccupation(request.secondary().occupation());
+        secondary.setSourceOfIncome(request.secondary().sourceOfIncome());
+        secondary.setEmployerName(request.secondary().employerName());
+
+        requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME)).put(request.primary().email(),
+                CreateJointAccountDtos.builder().accountName(request.accountName()).mandateType(request.mandateType())
+                        .operationType(request.operationType()).primary(primary).secondary(secondary).build());
+
+        log.info("First stage of joint User with email {} created ", request.primary().email());
+        return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    @Transactional
+    @Override
+    public UpdateResponse verifyEmail(VerifyOtpRequest request) {
+
+        if (!List.of(MessageSubject.EMAIL_VERIFICATION.getCode(), MessageSubject.JOINT_EMAIL_VERIFICATION.getCode(), MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode()).contains(request.otpType())) {
+            throw new BadRequestException("Only email can be verified");
+        }
+        VerifyOtpResponse response = otpService.verifyOtp(request);
+
+        if (response.status()) {
+            if (request.otpType().equals(MessageSubject.EMAIL_VERIFICATION.getCode())) {
+                validateAndMarkEmailAsVerified(request.recipient());
+            } else if (request.otpType().equals(MessageSubject.JOINT_EMAIL_VERIFICATION.getCode())) {
+                validateAndMarkEmailAsVerifiedJoint(request.recipient());
+            } else if (request.otpType().equals(MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode())) {
+                Long userId = usersRepository.findIdByEmailOrPhoneNumber(request.recipient(), request.recipient());
+                userProfileRepository.updateEmailVerified(userId, true);
+            } else {
+                throw new BadRequestException("Only one of these codes are allowed " +
+                        List.of(MessageSubject.EMAIL_VERIFICATION.getCode(), MessageSubject.JOINT_EMAIL_VERIFICATION.getCode(), MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode()));
+            }
+            return UpdateResponse.builder().success(true).message("Email verified").build();
+        } else {
+            return UpdateResponse.builder().success(false).message("OTP not verified").build();
+        }
     }
 
     @Transactional
@@ -137,20 +215,91 @@ public class UsersService implements IUsersService {
         Users user = usersMapper.ninQueryResponseToUsers(bvnQueryResponse);
 
         user.setPassword(passwordEncoder.encode(userRequest.password()));
-        save(user, bvnQueryResponse);
+        user.setAccountType(AccountType.INDIVIDUAL.getValue());
+        UserProfile profile = save(user, bvnQueryResponse, true);
+        saveToOutbox(user, bvnQueryResponse, profile, user.getId());
         cache.evict(userRequest.email());
         log.info("User with email {} completed stage 2 of onboarding process", userRequest.email());
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
-    public UsersResponse save(Users user, IdQueryDetailsDto bvnQueryResponse) {
+    @Transactional
+    @Override
+    public UpdateResponse setJointPassword(SetPasswordRequest userRequest) {
+
+        log.info("Joint User with email {} started stage 2", userRequest.email());
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME));
+        CreateJointAccountDtos bvnQueryResponse = cache.get(userRequest.email(), CreateJointAccountDtos.class);
+
+        if (bvnQueryResponse == null) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Email", userRequest.email());
+        }
+
+        if (!bvnQueryResponse.getPrimary().isEmailVerified()) {
+            throw new BadRequestException("Email not verified.");
+        }
+        Users primary = usersMapper.ninQueryResponseToUsers(bvnQueryResponse.getPrimary());
+        Users secondary = usersMapper.ninQueryResponseToUsers(bvnQueryResponse.getSecondary());
+
+        primary.setPassword(passwordEncoder.encode(userRequest.password()));
+        primary.setAccountType(AccountType.JOINT.getValue());
+
+        secondary.setAccountType(AccountType.JOINT.getValue());
+        UserProfile primaryProfile = save(primary, bvnQueryResponse.getPrimary(), true);
+        UserProfile secondaryProfile = save(secondary, bvnQueryResponse.getSecondary(), false);
+
+        String accountId = UUID.randomUUID().toString();
+        JointAccount jointAccountPrimary = JointAccount.builder()
+                .accountName(bvnQueryResponse.getAccountName())
+                .userId(primary.getId())
+                .accountId(accountId)
+                .role(JointAccountType.PRIMARY.getValue())
+                .mandateType(bvnQueryResponse.getMandateType().getValue())
+                .operationMode(bvnQueryResponse.getOperationType().getValue())
+                .build();
+
+        JointAccount jointAccountSecondary = JointAccount.builder()
+                .accountName(bvnQueryResponse.getAccountName())
+                .userId(secondary.getId())
+                .accountId(accountId)
+                .role(JointAccountType.SECONDARY.getValue())
+                .mandateType(bvnQueryResponse.getMandateType().getValue())
+                .operationMode(bvnQueryResponse.getOperationType().getValue())
+                .build();
+
+        jointAccountRepository.save(jointAccountPrimary);
+        jointAccountRepository.save(jointAccountSecondary);
+
+        saveJointToOutbox(primary, secondary, bvnQueryResponse, primaryProfile, secondaryProfile, accountId);
+
+        cache.evict(userRequest.email());
+        log.info("Joint User with email {} completed stage 2 of onboarding process", userRequest.email());
+        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+    }
+
+    @Override
+    public List<JointAccountDetailsResponse> getJointAccountDetails() {
+
+        if (Long.valueOf(AccountType.INDIVIDUAL.getValue()).equals(AppUtil.getLoggedInUserAccountType())) {
+            return List.of();
+        }
+        return jointAccountRepository.findAccountPartiesByUserId(AppUtil.getLoggedInUserId());
+    }
+
+    // TODO
+    @Override
+    public UsersResponse getInvestmentInstrument() {
+        return investmentInstrumentsRepository.findUserInstrumentsById(AppUtil.getLoggedInUserId());
+    }
+
+    public UserProfile save(Users user, IdQueryDetailsDto bvnQueryResponse, Boolean emailVerified) {
         log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
             throw new BadRequestException("Email or Phone number already exists.");
         }
 
-        if (idCardRepository.existsByIdValueHashedAndIdCardType(bvnQueryResponse.getBvnHashed(), IdCardType.NIN.getName())) {
-            throw new BadRequestException("Nin already exists.");
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(bvnQueryResponse.getBvnHashed(), IdCardType.BVN.getName())) {
+            throw new BadRequestException("BVN already exists.");
         }
 
         user.setStatus(UserStatus.DATA_SHARING_NOT_COMPLETED.getValue());
@@ -169,6 +318,7 @@ public class UsersService implements IUsersService {
         profile.setOccupation(bvnQueryResponse.getOccupation());
         profile.setSourceOfIncome(bvnQueryResponse.getSourceOfIncome());
         profile.setEmployerName(bvnQueryResponse.getEmployerName());
+        profile.setEmailVerified(emailVerified);
 
         profileRepository.save(profile);
         Long userId = user.getId();
@@ -184,6 +334,11 @@ public class UsersService implements IUsersService {
                 .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
         usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
 
+        log.info("User with email {} onboarding completion finished ", user.getEmail());
+        return profile;
+    }
+
+    private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, Long userId) {
         String address, city, countryCode;
 
         Optional<Countries> countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality());
@@ -191,7 +346,7 @@ public class UsersService implements IUsersService {
 
             String[] addressSplit = bvnQueryResponse.getAddress().split(",");
             address = bvnQueryResponse.getAddress();
-            city = org.apache.commons.lang3.StringUtils.isBlank(bvnQueryResponse.getLocalAreaOfOrigin()) ? (addressSplit.length > 0 ? addressSplit[addressSplit.length - 1] : "TEMPORARY") : bvnQueryResponse.getLocalAreaOfOrigin();
+            city = isBlank(bvnQueryResponse.getLocalAreaOfOrigin()) ? (addressSplit.length > 0 ? addressSplit[addressSplit.length - 1] : "TEMPORARY") : bvnQueryResponse.getLocalAreaOfOrigin();
             countryCode = countries.get().getCodeLong();
         } else {
             address = "TEMPORARY";
@@ -211,7 +366,7 @@ public class UsersService implements IUsersService {
         try {
             OutboxEvent customer = OutboxEvent.builder()
                     .aggregateId(user.getId()).aggregateType(AggregateType.USER.getValue())
-                    .eventType(KafkaTopics.KAFKA_KYC_CUSTOMER_CREATE_TOPIC)
+                    .eventType(KafkaTopics.KAFKA_CUSTOMER_CREATE_TOPIC)
                     .outboxStatus(OutboxStatus.PENDING.getValue())
                     .eventClass(CreateCustomerDto.class.getName())
                     .eventKey(user.getId().toString())
@@ -223,10 +378,85 @@ public class UsersService implements IUsersService {
         } catch (JsonProcessingException e) {
             log.error("Error creating customer for user with id {} to outbox", user.getId(), e);
         }
-        log.info("User with email {} onboarding completion finished ", user.getEmail());
-        return usersMapper.usersToUserResponse(user);
     }
 
+    private void saveJointToOutbox(Users primary, Users secondary, CreateJointAccountDtos jointAccountDtos, UserProfile primaryProfile, UserProfile secondaryProfile, String accountId) {
+        String address1, city1, countryCode1;
+
+        Optional<Countries> countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(jointAccountDtos.getPrimary().getNationality(), jointAccountDtos.getPrimary().getNationality(), jointAccountDtos.getPrimary().getNationality());
+        if (nonNull(jointAccountDtos.getPrimary().getCountry()) && nonNull(jointAccountDtos.getPrimary().getAddress()) && countries.isPresent()) {
+
+            String[] addressSplit = jointAccountDtos.getPrimary().getAddress().split(",");
+            address1 = jointAccountDtos.getPrimary().getAddress();
+            city1 = isBlank(jointAccountDtos.getPrimary().getLocalAreaOfOrigin()) ? (addressSplit.length > 0 ? addressSplit[addressSplit.length - 1] : "TEMPORARY") : jointAccountDtos.getPrimary().getLocalAreaOfOrigin();
+            countryCode1 = countries.get().getCodeLong();
+        } else {
+            address1 = "TEMPORARY";
+            city1 = "TEMPORARY";
+            countryCode1 = "NGA";
+        }
+
+        String address2, city2, countryCode2;
+        Optional<Countries> countries2 = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(jointAccountDtos.getSecondary().getNationality(), jointAccountDtos.getSecondary().getNationality(), jointAccountDtos.getSecondary().getNationality());
+        if (nonNull(jointAccountDtos.getSecondary().getCountry()) && nonNull(jointAccountDtos.getSecondary().getAddress()) && countries2.isPresent()) {
+
+            String[] addressSplit2 = jointAccountDtos.getSecondary().getAddress().split(",");
+            address2 = jointAccountDtos.getSecondary().getAddress();
+            city2 = isBlank(jointAccountDtos.getSecondary().getLocalAreaOfOrigin()) ? (addressSplit2.length > 0 ? addressSplit2[addressSplit2.length - 1] : "TEMPORARY") : jointAccountDtos.getSecondary().getLocalAreaOfOrigin();
+            countryCode2 = countries2.get().getCodeLong();
+        } else {
+            address2 = "TEMPORARY";
+            city2 = "TEMPORARY";
+            countryCode2 = "NGA";
+        }
+
+        CreateJointCustomerDto createCustomerDto = CreateJointCustomerDto.builder()
+                .accountName(jointAccountDtos.getAccountName())
+
+                .person1FirstName(primary.getFirstName())
+                .person1LastName(primary.getLastName())
+                .person1OtherNames(primary.getMiddleName())
+                .person1MobilePhone(primary.getPhoneNumber())
+                .person1EmailAddress(primary.getEmail())
+                .person1AddressStreet(address1)
+                .person1AddressCity(city1)
+                .person1AddressCountryCd(countryCode1)
+                .person1BvnNumber(encryptionUtil.decrypt(jointAccountDtos.getPrimary().getBvn()))
+                .person1GenderCd(primaryProfile.getGender())
+
+                .person2FirstName(secondary.getFirstName())
+                .person2LastName(secondary.getLastName())
+                .person2OtherNames(secondary.getMiddleName())
+                .person2MobilePhone(secondary.getPhoneNumber())
+                .person2EmailAddress(secondary.getEmail())
+                .person2AddressStreet(address2)
+                .person2AddressCity(city2)
+                .person2AddressCountryCd(countryCode2)
+                .person2GenderCd(secondaryProfile.getGender())
+
+                .accountId(accountId)
+                .build();
+
+        try {
+            OutboxEvent customer = OutboxEvent.builder()
+                    .aggregateId(primary.getId()).aggregateType(AggregateType.USER.getValue())
+                    .eventType(KafkaTopics.KAFKA_JOINT_CUSTOMER_CREATE_TOPIC)
+                    .outboxStatus(OutboxStatus.PENDING.getValue())
+                    .eventClass(CreateJointCustomerDto.class.getName())
+                    .eventKey(primary.getId().toString())
+                    .payload(objectMapper.writeValueAsString(createCustomerDto)).build();
+            outboxEventRepository.save(customer);
+
+            idDetailsService.buildAndSaveIdDetails(jointAccountDtos.getPrimary(), primary);
+            idDetailsService.buildAndSaveIdDetails(jointAccountDtos.getSecondary(), secondary);
+
+        } catch (JsonProcessingException e) {
+            log.error("Error creating customer for user with id {} to outbox", primary.getId(), e);
+            throw new RuntimeException("Please try again later");
+        }
+    }
+
+    @Transactional
     @Override
     public void createCustomer(CreateCustomerDto value) {
 
@@ -247,6 +477,31 @@ public class UsersService implements IUsersService {
         } else {
             throw new BadRequestException("Could not create customer");
         }
+    }
+
+    // TODO
+    @Transactional
+    @Override
+    public void createJointCustomer(CreateJointCustomerDto value) {
+
+//        String accountId = accountPartyRepository.findAccountPartyByAccountId(value.accountId());
+//        if (nonNull(accountId)) {
+//            return;
+//        }
+//
+//        CreateJointCustomerRequest request = middlewareMapper.createJointCustomerDtoToCreateJointCustomerRequest(value);
+//        MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createJointCustomer(request);
+//        if ("success".equalsIgnoreCase(response.status())) {
+//
+//            usersRepository.updateAllCustomerId(response.data().customerId(), List.of(value.person1EmailAddress(), value.person2EmailAddress()));
+//            accountPartyRepository.updateAllCustomerId(response.data().customerId(), value.accountId());
+//
+//            Cache cache = requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME), "could not be completed");
+//            List<Long> userIds = usersRepository.findIdsByEmail(List.of(value.person1EmailAddress(), value.person2EmailAddress()));
+//            userIds.forEach(cache::evict);
+//        } else {
+//            throw new BadRequestException("Could not create customer");
+//        }
     }
 
     @Override
@@ -279,6 +534,9 @@ public class UsersService implements IUsersService {
         if (response == null) {
             throw new AccessDeniedException("Initial sign up details not found.");
         }
+        if (response.isEmailVerified()) {
+            throw new BadRequestException("Email has already been verified.");
+        }
         if (userRequest.newEmail().equals(userRequest.oldEmail())) {
             throw new BadRequestException("Email cannot be the same as your current email.");
         }
@@ -291,6 +549,39 @@ public class UsersService implements IUsersService {
         cache.put(response.getEmail(), response);
         cache.evict(userRequest.oldEmail());
         log.info("User with email {} email update completed", userRequest.newEmail());
+        return UpdateResponse.builder().success(true).message("Email successfully updated").build();
+    }
+
+    @Override
+    public UpdateResponse updateJointPrimaryEmail(UpdateEmailRequest userRequest) {
+        log.info("User with joint primary email {} email update started", userRequest.oldEmail());
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME));
+        CreateJointAccountDtos dtos = cache.get(userRequest.oldEmail(), CreateJointAccountDtos.class);
+        if (dtos == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+        IdQueryDetailsDto response = dtos.getPrimary();
+
+        if (isNull(response)) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+        if (response.isEmailVerified()) {
+            throw new BadRequestException("Primary email has already been verified.");
+        }
+        if (userRequest.newEmail().equals(userRequest.oldEmail())) {
+            throw new BadRequestException("Email cannot be the same as your current email.");
+        }
+
+        if (usersRepository.existsByEmail(userRequest.newEmail())) {
+            throw new BadRequestException("Email already in use.");
+        }
+
+        response.setEmail(userRequest.newEmail());
+        dtos.setPrimary(response);
+        cache.put(response.getEmail(), dtos);
+        cache.evict(userRequest.oldEmail());
+        log.info("User with email {} email update completed for joint account", userRequest.newEmail());
         return UpdateResponse.builder().success(true).message("Email successfully updated").build();
     }
 
@@ -314,7 +605,7 @@ public class UsersService implements IUsersService {
         return UsersResponse.newResponse(response.status(), response.id(), response.email(), response.firstName(), response.lastName(), response.middleName(),
                 response.phoneNumber(), signedUrl, response.gender(), response.dateOfBirth(), response.referralCode(),
                 response.onboardingCompleted(), response.userInstrumentResponses(), allDataShared, response.userOptionResponses(), response.biometricEnabled(), pinSet,
-                response.interestFreeInvestment(), response.interestFreeInvestmentSet(), response.cscsNumber(), response.chnNumber());
+                response.interestFreeInvestment(), response.interestFreeInvestmentSet(), response.cscsNumber(), response.chnNumber(), response.emailVerified(), response.accountType());
     }
 
     /**
@@ -329,7 +620,16 @@ public class UsersService implements IUsersService {
 
         log.info("Password reset started for user {}", request.recipient());
         // Ensure otp exists and not expired
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), request.recipient(), request.recipient(), true, LocalDateTime.now())) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error getting otp");
+        String cacheKey = request.recipient().concat(String.valueOf(MessageSubject.PASSWORD_RESET.getCode()));
+        OtpVerificationDto otpVerificationDto = cache.get(cacheKey, OtpVerificationDto.class);
+
+        if (isNull(otpVerificationDto)) {
+            throw new BadRequestException("OTP not verified or expired.");
+        }
+
+        if (!otpVerificationDto.getVerified()) {
             throw new BadRequestException("OTP not verified or expired.");
         }
 
@@ -342,8 +642,6 @@ public class UsersService implements IUsersService {
         // Update the password and expire otp
         usersRepository.updateUsersPassword(users.getEmail(), passwordEncoder.encode(request.password()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(users.getId());
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), request.recipient(), request.recipient(), MessageSubject.PASSWORD_RESET.getCode());
-
         // Notify the user about the password rest via mail
         notifyUserAboutPasswordChange(users.getEmail());
         log.info("Password reset completed for user {}", request.recipient());
@@ -366,7 +664,15 @@ public class UsersService implements IUsersService {
         String userPassword = usersRepository.findPasswordByEmailOrPhoneNumber(userEmail);
 
         // Ensure otp exists and not expired
-        if (!otpVerificationRepository.existsByOtpTypeAndUserIdAndVerifiedAndExpiresAtAfter(MessageSubject.PASSWORD_RESET.getCode(), userEmail, userEmail, true, LocalDateTime.now())) {
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error getting otp");
+        String cacheKey = userEmail.concat(String.valueOf(MessageSubject.PASSWORD_RESET.getCode()));
+        OtpVerificationDto otpVerificationDto = cache.get(cacheKey, OtpVerificationDto.class);
+
+        if (isNull(otpVerificationDto)) {
+            throw new BadRequestException("OTP not verified or expired.");
+        }
+
+        if (!otpVerificationDto.getVerified()) {
             throw new BadRequestException("OTP not verified or expired.");
         }
 
@@ -381,7 +687,6 @@ public class UsersService implements IUsersService {
         // Update password and return
         usersRepository.updateUsersPassword(userEmail, passwordEncoder.encode(request.newPassword()));
         requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
-        otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), userEmail, userEmail, MessageSubject.PASSWORD_RESET.getCode());
 
         // Notify the user about the password rest via mail
         notifyUserAboutPasswordChange(userEmail);
@@ -804,5 +1109,34 @@ public class UsersService implements IUsersService {
         }
         clearUsersCache();
         return getUpdateResponse(updates);
+    }
+
+    private void validateAndMarkEmailAsVerifiedJoint(String userId) {
+        Cache cache = Objects.requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME));
+        CreateJointAccountDtos jointAccountDtos = cache.get(userId, CreateJointAccountDtos.class);
+        if (jointAccountDtos == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+        jointAccountDtos.getPrimary().setEmailVerified(true);
+        cache.put(userId, jointAccountDtos);
+        kafkaSenderService.send(new OtpVerifiedDto(userId), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, userId));
+    }
+
+    private void validateAndMarkEmailAsVerified(String userId) {
+        Cache cache = Objects.requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+        IdQueryDetailsDto ninQueryResponse = cache.get(userId, IdQueryDetailsDto.class);
+        if (ninQueryResponse == null) {
+            throw new AccessDeniedException("Initial sign up details not found.");
+        }
+        ninQueryResponse.setEmailVerified(true);
+        cache.put(userId, ninQueryResponse);
+        kafkaSenderService.send(new OtpVerifiedDto(userId), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, userId));
+    }
+
+    private void checkEmailOrPhoneDoesNotExist(String email, String phoneNumber) {
+        log.info("First stage of User with email creation started {}", email);
+        if (usersRepository.existsByEmailOrPhoneNumber(email, phoneNumber)) {
+            throw new BadRequestException("Email or Phone number already exists " + email + " - " + phoneNumber);
+        }
     }
 }

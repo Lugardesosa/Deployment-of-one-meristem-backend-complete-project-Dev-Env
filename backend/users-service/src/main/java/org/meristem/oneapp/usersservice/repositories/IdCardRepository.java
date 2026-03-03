@@ -4,6 +4,7 @@ import org.meristem.oneapp.usersservice.models.IdCard;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional(readOnly = true)
@@ -22,4 +23,6 @@ public interface IdCardRepository extends BaseRepository<IdCard, Long> {
     boolean existsByIdValueHashedAndIdCardType(String idValueHashed, String idCardType);
 
     Optional<IdCard> findByIdCardTypeAndIdValueHashed(String idCardType, String idValueHashed);
+
+    boolean existsByIdValueHashedInAndIdCardType(List<String> bvns, String name);
 }

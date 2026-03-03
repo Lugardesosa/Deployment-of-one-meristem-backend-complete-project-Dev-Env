@@ -39,6 +39,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
@@ -72,6 +73,11 @@ public class GlobalControllerAdvice implements MessageSourceAware {
     @ExceptionHandler(NoResourceFoundException.class)
     protected ResponseEntity<ErrorDetails> handleNoResourceFoundException(NoResourceFoundException ex, WebRequest request) {
         return handleExceptionInternal(ErrorMessages.NO_RESOURCE_FOUND, HttpStatus.NOT_FOUND, request, List.of(ex.getResourcePath() + " is not found"));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    protected ResponseEntity<ErrorDetails> handleMissingServletRequestPartException(MissingServletRequestPartException ex, WebRequest request) {
+        return handleExceptionInternal(ex.getMessage(), HttpStatus.BAD_REQUEST, request, List.of());
     }
 
     @ExceptionHandler({HttpMediaTypeNotSupportedException.class})

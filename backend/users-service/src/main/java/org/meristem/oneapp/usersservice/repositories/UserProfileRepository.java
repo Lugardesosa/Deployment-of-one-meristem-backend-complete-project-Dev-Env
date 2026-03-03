@@ -62,4 +62,8 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
 
     boolean existsByReferralCode(String referralCode);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET email_verified = :value WHERE user_id = :userId ")
+    void updateEmailVerified(Long userId, boolean value);
 }

@@ -3,7 +3,8 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
+import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Interface for handling Dojah related operations.
@@ -20,5 +21,7 @@ public interface IKycDelegatingService {
     BvnQueryResponse bvnQuery(IdQueryRequest request);
 
 
-    NinValidationResponse validateNin(@Valid IdQueryRequest request);
+    IdValidationResponse validateBvn(MultipartFile file);
+
+    IdValidationResponse validateNin(IdQueryRequest request);
 }

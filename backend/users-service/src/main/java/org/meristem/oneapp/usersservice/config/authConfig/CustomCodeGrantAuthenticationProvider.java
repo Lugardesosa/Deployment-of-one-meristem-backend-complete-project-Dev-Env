@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.ErrorMessages;
 import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
@@ -72,6 +73,14 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
             user = (AuthenticatedUser) userDetailsService.loadUserByUsername(username);
         } catch (UsernameNotFoundException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_USERNAME, null));
+        }
+
+        if (!user.isEmailVerified()) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.EMAIL_NOT_VERIFIED, null));
+        }
+
+        if (StringUtils.isBlank(user.getPassword())) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.PASSWORD_NOT_CREATED, null));
         }
 
         if (user.getStatus() == UserStatus.DATA_SHARING_NOT_COMPLETED.getValue()) {

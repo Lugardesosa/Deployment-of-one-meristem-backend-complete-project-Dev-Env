@@ -37,8 +37,10 @@ public class AuthenticatedUser implements UserDetails {
     private int status;
     private List<GrantedAuthority> authorities;
     private int passwordAttempt;
+    private boolean emailVerified;
+    private Integer accountType;
 
-    public AuthenticatedUser(String middlewareCustomerId, Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status, int passwordAttempt) {
+    public AuthenticatedUser(String middlewareCustomerId, Long id, String email, String firstName, String lastName, String middleName, String password, String phoneNumber, List<GrantedAuthority> authorities, int status, int passwordAttempt, boolean emailVerified, Integer accountType) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -49,6 +51,8 @@ public class AuthenticatedUser implements UserDetails {
         this.authorities = authorities;
         this.status = status;
         this.passwordAttempt = passwordAttempt;
+        this.emailVerified = emailVerified;
+        this.accountType = accountType;
     }
 
 

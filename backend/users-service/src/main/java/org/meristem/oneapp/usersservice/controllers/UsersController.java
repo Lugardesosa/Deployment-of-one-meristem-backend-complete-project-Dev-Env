@@ -18,6 +18,7 @@ import org.meristem.oneapp.usersservice.services.INextOfKinService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.services.implementations.NextOfKinService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +40,45 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created the user.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CreateUserRequest.class))
+                            schema = @Schema(implementation = UpdateResponse.class))
             }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
 
     })
     @PreAuthorize("hasAuthority('SCOPE_create_user')")
-    @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> createUser(@RequestBody @Valid CreateUserRequest userRequest) {
+    @PostMapping(value = "/individual", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createUserIndividual(@RequestBody @Valid CreateUserRequest userRequest) {
          return ApiUtil.buildResponse(usersService.create(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
+    @Operation(summary = "Creates a joint user account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Created a joint user account.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PostMapping(value = "/joint", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createUserJoint(@RequestBody @Valid CreateJointUserRequest userRequest) {
+        return ApiUtil.buildResponse(usersService.createJoint(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
+    @Operation(summary = "Verifies users email.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Verifies users email.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CreateUserRequest.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PutMapping(value = "/verify-email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> verifyEmail(@RequestBody @Valid VerifyOtpRequest request) {
+        return ApiUtil.buildResponse(usersService.verifyEmail(request), HttpStatus.CREATED.toString(), "Updated successfully.");
     }
 
     @Operation(summary = "Set a user's password.")
@@ -64,6 +95,47 @@ public class UsersController {
     public ResponseEntity<AppResponse<UpdateResponse>> setPassword(@RequestBody @Valid SetPasswordRequest request) {
         return ApiUtil.buildResponse(usersService.setPassword(request), HttpStatus.OK.toString(), "Successful.");
     }
+
+    @Operation(summary = "Set a user's password.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set a user's password after account creation.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PutMapping(value = "/set-password-joint", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> setJointPassword(@RequestBody @Valid SetPasswordRequest request) {
+        return ApiUtil.buildResponse(usersService.setJointPassword(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Get a user's joint account details response.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get a user's joint account details response.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = JointAccountDetailsResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1000')")
+    @GetMapping(value = "/joint-account", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<JointAccountDetailsResponse>>> getJointAccountDetails() {
+        return ApiUtil.buildResponse(usersService.getJointAccountDetails(), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Get users investment instrument")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get users investment instrument")
+    })
+    @PreAuthorize("hasRole('ROLE_1000')")
+    @GetMapping(value = "/instrument", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UsersResponse>> getInvestmentInstrument() {
+        return ApiUtil.buildResponse(usersService.getInvestmentInstrument(), HttpStatus.OK.toString(), "Request successful");
+    }
+
 
     @Operation(summary = "Set a user's cscs and chn number.")
     @ApiResponses(value = {
@@ -93,6 +165,21 @@ public class UsersController {
     @PutMapping(value = "/update-email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateEmail(@RequestBody @Valid UpdateEmailRequest request) {
         return ApiUtil.buildResponse(usersService.updateEmail(request), HttpStatus.OK.toString(), "Created successfully.");
+    }
+
+    @Operation(summary = "Set a user's email of the primary account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set a user's email only when it has not been verified of the primary account.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateEmailRequest.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_users.email.update')")
+    @PutMapping(value = "/update-email-joint", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> updateEmailJoint(@RequestBody @Valid UpdateEmailRequest request) {
+        return ApiUtil.buildResponse(usersService.updateJointPrimaryEmail(request), HttpStatus.OK.toString(), "Created successfully.");
     }
 
     @Operation(summary = "Gets users.")

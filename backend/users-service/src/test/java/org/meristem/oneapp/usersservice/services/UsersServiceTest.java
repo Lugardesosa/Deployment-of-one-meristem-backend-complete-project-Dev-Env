@@ -50,8 +50,6 @@ class UsersServiceTest {
     @Mock
     private UsersMapping usersMapper = UsersMapping.INSTANCE;
     @Mock
-    private OtpVerificationRepository otpVerificationRepository;
-    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private KafkaSenderService kafkaSenderService;
@@ -60,7 +58,8 @@ class UsersServiceTest {
     @Mock
     private FilesRepository filesRepository;
 
-    @Mock IdCardRepository idCardRepository;
+    @Mock
+    IdCardRepository idCardRepository;
     @Mock
     private UserProfileRepository profileRepository;
     @Mock
@@ -193,7 +192,6 @@ class UsersServiceTest {
 
         assertThrowsExactly(BadRequestException.class, () -> usersService.setPassword(request));
     }
-
 
 
     @Test

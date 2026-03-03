@@ -1,7 +1,6 @@
 package org.meristem.oneapp.usersservice.controllers;
 
 
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -134,8 +134,18 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_1004')")
     @PostMapping(value = "/validate-nin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<NinValidationResponse>> validateNin(@RequestBody @Valid IdQueryRequest request) {
+    public ResponseEntity<AppResponse<IdValidationResponse>> validateNin(@RequestBody @Valid IdQueryRequest request) {
         return ApiUtil.buildResponse(kycDelegatingService.validateNin(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Validate BVN Details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validate BVN Details")
+    })
+    @PreAuthorize("hasRole('ROLE_1004')")
+    @PostMapping(value = "/validate-bvn", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AppResponse<IdValidationResponse>> validateNin(@RequestParam("photo") MultipartFile file) {
+        return ApiUtil.buildResponse(kycDelegatingService.validateBvn(file), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get occupations")

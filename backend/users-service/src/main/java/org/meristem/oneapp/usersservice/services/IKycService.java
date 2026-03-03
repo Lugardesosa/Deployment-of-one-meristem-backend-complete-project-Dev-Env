@@ -3,28 +3,36 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.domains.enums.IdCardType;
 import org.meristem.oneapp.usersservice.domains.enums.OnboardingRequirements;
 import org.meristem.oneapp.usersservice.domains.enums.OnboardingStatus;
 import org.meristem.oneapp.usersservice.domains.enums.UserOnboardingNotes;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
+import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
-import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnLookUpResponse;
+import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.models.IdCard;
 import org.meristem.oneapp.usersservice.models.Requirements;
 import org.meristem.oneapp.usersservice.models.UserIdDetails;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.CustomRepository;
+import org.meristem.oneapp.usersservice.repositories.IdCardRepository;
 import org.meristem.oneapp.usersservice.repositories.RequirementsRepository;
 import org.meristem.oneapp.usersservice.repositories.UserOnboardingRepository;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -41,7 +49,9 @@ public interface IKycService {
      */
     BvnQueryResponse bvnQuery(IdQueryRequest request);
 
-    NinValidationResponse validateNin(@Valid IdQueryRequest request);
+    IdValidationResponse bvnValidation(MultipartFile file);
+
+    IdValidationResponse validateNin(@Valid IdQueryRequest request);
 
     default BvnQueryResponse getBvnQueryResponse(CacheManager cacheManager, IdQueryRequest request, IdQueryDetailsDto dto,
                                                  EncryptionUtil encryptionUtil, HashingUtil hashingUtil, String idHashKey) {
@@ -62,8 +72,8 @@ public interface IKycService {
         return names;
     }
 
-    default NinValidationResponse compareNinAndBvnDetailsSaveAndReturn(UserIdDetails nin, List<String> names, UserIdDetails bvn, Users loggedInUser, RequirementsRepository requirementsRepository,
-                                                                       UserOnboardingRepository userOnboardingRepository, IUsersService usersService, CustomRepository customRepository) {
+    default IdValidationResponse compareNinAndBvnDetailsSaveAndReturn(Cache cache, UserIdDetails nin, List<String> names, UserIdDetails bvn, Users loggedInUser, RequirementsRepository requirementsRepository,
+                                                                      UserOnboardingRepository userOnboardingRepository, IUsersService usersService, CustomRepository customRepository, IdCardRepository idCardRepository, String ninValue, String ninValueHashed) {
 
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -88,6 +98,12 @@ public interface IKycService {
             nin.setNote("NIN verified successfully");
             userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
             usersService.completeUserOnboarding(loggedInUser.getEmail());
+            idCardRepository.save(IdCard.builder().idValue(ninValue)
+                    .idCardType(IdCardType.NIN.getName())
+                    .userId(nin.getUserId()).idValueHashed(ninValueHashed)
+                    .build());
+            cache.evict(loggedInUser.getEmail().concat(OnboardingRequirements.BVN.getName()));
+
         } else {
             usersService.resetUserOnboarding(loggedInUser.getEmail(), requirements.getId());
             nin.setValidated(false);
@@ -95,7 +111,7 @@ public interface IKycService {
         }
 
         customRepository.save(nin);
-        return NinValidationResponse.builder().message(nin.getNote()).success(nin.getValidated()).build();
+        return IdValidationResponse.builder().message(nin.getNote()).success(nin.getValidated()).build();
     }
 
     default boolean firstNamesMatch(UserIdDetails uid, List<String> names) {
@@ -118,6 +134,22 @@ public interface IKycService {
 
         return AppUtil.nonIsNull(uid.getDateOfBirth(), bvn.getDateOfBirth()) &&
                 uid.getDateOfBirth().isEqual(bvn.getDateOfBirth());
+    }
+
+    default @NonNull Cache getIdQueryCache(CacheManager cacheManager) {
+        Cache cache = cacheManager.getCache(AppConstants.ID_VERIFICATION_CACHE_NAME);
+
+        String loggedInUserEmail = AppUtil.getLoggedInUserEmail();
+        assert cache != null;
+        LocalDateTime expireIn = cache.get(loggedInUserEmail.concat(OnboardingRequirements.NIN.getName()), LocalDateTime.class);
+
+        if (isNull(expireIn)) {
+            expireIn = LocalDateTime.now().plusMinutes(AppConstants.ID_VERIFICATION_CACHE_EXPIRES_IN);
+            cache.put(loggedInUserEmail.concat(OnboardingRequirements.NIN.getName()), expireIn);
+        } else if (expireIn.isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Try again at " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(expireIn));
+        }
+        return cache;
     }
 
 }

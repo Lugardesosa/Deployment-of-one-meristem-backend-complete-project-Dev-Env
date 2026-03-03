@@ -3,12 +3,12 @@ package org.meristem.oneapp.usersservice.domains.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
-public enum AggregateType {
+@Getter
+public enum MandateType {
 
-    USER("USER"),
-    OTP("OTP");
+    SINGLE(1),
+    BOTH(2);
 
-    private final String value;
+    private final Integer value;
 }
