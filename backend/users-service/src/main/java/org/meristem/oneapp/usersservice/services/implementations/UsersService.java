@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.obs.services.model.HttpMethodEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.kafka.dtos.*;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
@@ -24,6 +25,7 @@ import org.meristem.oneapp.usersservice.integrations.requests.CreateIndividualCu
 import org.meristem.oneapp.usersservice.integrations.requests.UpdateAddressRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.CreateIndividualCustomerResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareBaseApiResponse;
+import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareCustomerResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareResponse;
 import org.meristem.oneapp.usersservice.mappers.MiddlewareMapper;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
@@ -175,7 +177,8 @@ public class UsersService implements IUsersService {
     @Override
     public UpdateResponse verifyEmail(VerifyOtpRequest request) {
 
-        if (!List.of(MessageSubject.EMAIL_VERIFICATION.getCode(), MessageSubject.JOINT_EMAIL_VERIFICATION.getCode(), MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode()).contains(request.otpType())) {
+        List<Integer> allowedOtpTypes = List.of(MessageSubject.EMAIL_VERIFICATION.getCode(), MessageSubject.JOINT_EMAIL_VERIFICATION.getCode(), MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode(), MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode());
+        if (!allowedOtpTypes.contains(request.otpType())) {
             throw new BadRequestException("Only email can be verified");
         }
         VerifyOtpResponse response = otpService.verifyOtp(request);
@@ -188,9 +191,11 @@ public class UsersService implements IUsersService {
             } else if (request.otpType().equals(MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode())) {
                 Long userId = usersRepository.findIdByEmailOrPhoneNumber(request.recipient(), request.recipient());
                 userProfileRepository.updateEmailVerified(userId, true);
+            } else if (request.otpType().equals(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode())) {
+                validateAndMarkEmailAsVerifiedExisting(request.recipient());
             } else {
                 throw new BadRequestException("Only one of these codes are allowed " +
-                        List.of(MessageSubject.EMAIL_VERIFICATION.getCode(), MessageSubject.JOINT_EMAIL_VERIFICATION.getCode(), MessageSubject.SECONDARY_EMAIL_VERIFICATION.getCode()));
+                        allowedOtpTypes);
             }
             return UpdateResponse.builder().success(true).message("Email verified").build();
         } else {
@@ -199,6 +204,7 @@ public class UsersService implements IUsersService {
     }
 
     @Transactional
+    @Override
     public UpdateResponse setPassword(SetPasswordRequest userRequest) {
 
         log.info("User with email {} started stage 2", userRequest.email());
@@ -277,6 +283,84 @@ public class UsersService implements IUsersService {
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
+    @Transactional
+    @Override
+    public UpdateResponse setPasswordExisting(SetPasswordRequest request) {
+        log.info("User with existing email {} started stage 2", request.email());
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
+        MiddlewareCustomerResponse.CustomerData bvnQueryResponse = cache.get(request.email(), MiddlewareCustomerResponse.CustomerData.class);
+
+        if (bvnQueryResponse == null) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Email", request.email());
+        }
+
+        if (!bvnQueryResponse.getEmailVerified()) {
+            throw new BadRequestException("Email not verified.");
+        }
+        Users user = usersMapper.coreBvnQueryResponseToUser(bvnQueryResponse);
+
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setAccountType(AccountType.fromString(bvnQueryResponse.getCustomerType()).getValue());
+        saveExisting(user, bvnQueryResponse, true);
+        cache.evict(request.email());
+        log.info("User with existing email {} completed stage 2 of onboarding process", request.email());
+        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+    }
+
+    @Override
+    public UpdateResponse setJointPasswordSecondary(SetPasswordRequest request) {
+        Users user = usersRepository.findUsersByEmail(request.email());
+
+        if (!userProfileRepository.findEmailVerifiedByUserId(user.getId())) {
+            throw new BadRequestException("Email not verified.");
+        }
+        user.setPassword(passwordEncoder.encode(request.password()));
+        usersRepository.save(user);
+        return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    // TODO: DO BVN ID QUERY ON KYC AND SAVE TO USER ID TABLE
+    private void saveExisting(Users user, MiddlewareCustomerResponse.CustomerData bvnQueryResponse, boolean emailVerified) {
+
+        log.info("User with existing email {} onboarding completion started ", user.getEmail());
+
+        user.setStatus(UserStatus.DATA_SHARING_NOT_COMPLETED.getValue());
+        user = usersRepository.save(user);
+
+        idCardRepository.save(IdCard.builder().idValue(encryptionUtil.encrypt(bvnQueryResponse.getBankBvn()))
+                .idCardType(IdCardType.BVN.getName())
+                .userId(user.getId()).idValueHashed(hashingUtil.hmacWithSha256(idHashKey, bvnQueryResponse.getBankBvn()))
+                .build());
+
+        UserProfile profile = configureUserOnboarding(user, bvnQueryResponse.getGenderCode(), emailVerified);
+
+        log.info("User with existing email {} onboarding completion finished ", user.getEmail());
+    }
+
+    private @NonNull UserProfile configureUserOnboarding(Users user, String gender, boolean emailVerified) {
+        String referralCode;
+        do {
+            referralCode = AppUtil.generateReferralCode(user.getFirstName());
+        } while (userProfileRepository.existsByReferralCode(referralCode));
+        UserProfile profile = UserProfile.builder().userId(user.getId()).gender(Gender.getGender(gender).getCaps()).referralCode(referralCode).build();
+        profile.setEmailVerified(emailVerified);
+
+        profileRepository.save(profile);
+        Long userId = user.getId();
+        requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
+                .forEach(rId -> {
+                    UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.NOT_STARTED.getValue())
+                            .completed(false).userId(userId).requirementId(rId).build();
+                    userOnboardingRepository.save(userOnboarding);
+                });
+        customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
+                .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
+        customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
+                .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
+        usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
+        return profile;
+    }
+
     @Override
     public List<JointAccountDetailsResponse> getJointAccountDetails() {
 
@@ -290,6 +374,26 @@ public class UsersService implements IUsersService {
     @Override
     public UsersResponse getInvestmentInstrument() {
         return investmentInstrumentsRepository.findUserInstrumentsById(AppUtil.getLoggedInUserId());
+    }
+
+    @Override
+    public UpdateResponse existingCustomer(ExistingCustomerRequest request) {
+
+        MiddlewareCustomerResponse response = middleWareClient.getCustomerByBvn(request.idNumber()).data();
+        if (!response.data().isEmpty()) {
+            response.data().stream().findFirst().ifPresent(r -> {
+                // TODO: Reconcile existing account on core with one on this platform
+                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
+                    throw new BadRequestException("Email or Phone number already exists.");
+                }
+                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
+                cache.put(r.getEmailAddress(), r);
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(r.getBankBvn())) {
+                    otpService.sendOtp(SendOtpRequest.builder().otpType(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode()).recipient(r.getEmailAddress()).messageMedium(MessageMedium.EMAIL.getValue()).build());
+                }
+            });
+        }
+        return UpdateResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
     }
 
     public UserProfile save(Users user, IdQueryDetailsDto bvnQueryResponse, Boolean emailVerified) {
@@ -310,32 +414,8 @@ public class UsersService implements IUsersService {
                 .userId(user.getId()).idValueHashed(bvnQueryResponse.getBvnHashed())
                 .build());
 
-        String referralCode;
-        do {
-            referralCode = AppUtil.generateReferralCode(user.getFirstName());
-        } while (userProfileRepository.existsByReferralCode(referralCode));
-        UserProfile profile = UserProfile.builder().userId(user.getId()).gender(Gender.getGender(bvnQueryResponse.getGender()).getCaps()).referralCode(referralCode).build();
-        profile.setOccupation(bvnQueryResponse.getOccupation());
-        profile.setSourceOfIncome(bvnQueryResponse.getSourceOfIncome());
-        profile.setEmployerName(bvnQueryResponse.getEmployerName());
-        profile.setEmailVerified(emailVerified);
-
-        profileRepository.save(profile);
-        Long userId = user.getId();
-        requirementsRepository.findAllByStatus(EntityStatus.ACTIVE.getValue())
-                .forEach(rId -> {
-                    UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.NOT_STARTED.getValue())
-                            .completed(false).userId(userId).requirementId(rId).build();
-                    userOnboardingRepository.save(userOnboarding);
-                });
-        customRepository.saveAll(customRepository.findAll(InvestmentInstruments.class)
-                .stream().map(i -> UserInstrument.builder().userId(userId).instrumentId(i.getId()).build()).toList());
-        customRepository.saveAll(customRepository.findAll(InvestmentOptions.class)
-                .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
-        usersRepository.saveRole(userId, rolesRepository.findIdByName(AppConstants.USER_ROLE));
-
         log.info("User with email {} onboarding completion finished ", user.getEmail());
-        return profile;
+        return configureUserOnboarding(user, bvnQueryResponse.getGender(), emailVerified);
     }
 
     private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, Long userId) {
@@ -1131,6 +1211,18 @@ public class UsersService implements IUsersService {
         ninQueryResponse.setEmailVerified(true);
         cache.put(userId, ninQueryResponse);
         kafkaSenderService.send(new OtpVerifiedDto(userId), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, userId));
+    }
+
+    private void validateAndMarkEmailAsVerifiedExisting(String recipient) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
+        MiddlewareCustomerResponse.CustomerData data = cache.get(recipient, MiddlewareCustomerResponse.CustomerData.class);
+        if (data == null) {
+            throw new AccessDeniedException("Process failed.");
+        }
+        data.setEmailVerified(true);
+        cache.put(recipient, data);
+        kafkaSenderService.send(new OtpVerifiedDto(recipient), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, recipient));
     }
 
     private void checkEmailOrPhoneDoesNotExist(String email, String phoneNumber) {

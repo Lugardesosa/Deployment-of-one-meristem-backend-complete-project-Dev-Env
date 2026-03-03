@@ -47,7 +47,7 @@ public class Users extends BaseModel<String> {
     private String phoneNumber;
 
     @NotNull(message = "passwordAttempt cannot be null")
-    private Integer passwordAttempt;
+    private Integer passwordAttempt = 0;
 
     private Integer accountType;
 

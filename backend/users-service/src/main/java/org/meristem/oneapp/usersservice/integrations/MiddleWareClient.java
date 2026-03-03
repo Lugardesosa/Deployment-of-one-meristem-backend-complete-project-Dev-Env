@@ -128,25 +128,25 @@ public interface MiddleWareClient {
     MiddlewareCustomerResponse getCustomerById(@PathVariable String customerId);
 
     @GetExchange("/customers/customers/by-bvn/{bvn}")
-    MiddlewareCustomerResponse getCustomerByBvn(@PathVariable String bvn);
+    MiddlewareResponse<MiddlewareCustomerResponse> getCustomerByBvn(@PathVariable String bvn);
 
     @GetExchange("/customers/customers/by-nin/{nin}")
-    MiddlewareCustomerResponse getCustomerByNin(@PathVariable String nin);
+    MiddlewareResponse<MiddlewareCustomerResponse> getCustomerByNin(@PathVariable String nin);
 
     @GetExchange("/customers/customers/by-email/{email}")
-    MiddlewareCustomerResponse getCustomerByEmail(@PathVariable String email);
+    MiddlewareResponse<MiddlewareCustomerResponse> getCustomerByEmail(@PathVariable String email);
 
     @GetExchange("/customers/customers/by-phone/{phone}")
-    MiddlewareCustomerResponse getCustomerByPhone(@PathVariable String phone);
+    MiddlewareResponse<MiddlewareCustomerResponse> getCustomerByPhone(@PathVariable String phone);
 
     @GetExchange("/customers/customers/minors")
-    List<MiddlewareCustomerResponse> getMinorCustomers();
+    MiddlewareResponse<List<MiddlewareCustomerResponse>> getMinorCustomers();
 
     @GetExchange("/customers/customers/by-name/{customerName}")
-    List<MiddlewareCustomerResponse> getCustomerByName(@PathVariable String customerName);
+    MiddlewareResponse<List<MiddlewareCustomerResponse>> getCustomerByName(@PathVariable String customerName);
 
     @GetExchange("/customers/customers/minors/by-parent/{parentCustomerId}")
-    List<MiddlewareCustomerResponse> getMinorsByParentId(@PathVariable String parentCustomerId);
+    MiddlewareResponse<List<MiddlewareCustomerResponse>> getMinorsByParentId(@PathVariable String parentCustomerId);
 
     @PostExchange("/customers/customers/minors/upgrade")
     MiddlewareBaseApiResponse upgradeMinor(@RequestBody MinorUpgradeRequest request);

@@ -66,4 +66,7 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Transactional
     @Query("UPDATE user_profile SET email_verified = :value WHERE user_id = :userId ")
     void updateEmailVerified(Long userId, boolean value);
+
+    @Query("SELECT email_verified FROM user_profile WHERE user_id = :userId")
+    boolean findEmailVerifiedByUserId(Long userId);
 }

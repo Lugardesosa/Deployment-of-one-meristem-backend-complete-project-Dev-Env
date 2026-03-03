@@ -16,9 +16,7 @@ import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.INextOfKinService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
-import org.meristem.oneapp.usersservice.services.implementations.NextOfKinService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -96,9 +94,9 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.setPassword(request), HttpStatus.OK.toString(), "Successful.");
     }
 
-    @Operation(summary = "Set a user's password.")
+    @Operation(summary = "Set a user's password for primary user.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Set a user's password after account creation.",
+            @ApiResponse(responseCode = "200", description = "Set a user's password after account creation for primary user.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UpdateResponse.class))
                     }),
@@ -109,6 +107,51 @@ public class UsersController {
     @PutMapping(value = "/set-password-joint", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> setJointPassword(@RequestBody @Valid SetPasswordRequest request) {
         return ApiUtil.buildResponse(usersService.setJointPassword(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Set a user's password for secondary user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set a user's password after account creation for secondary user.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PutMapping(value = "/set-password-joint-secondary", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> setJointPasswordSecondary(@RequestBody @Valid SetPasswordRequest request) {
+        return ApiUtil.buildResponse(usersService.setJointPasswordSecondary(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Create existing user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Create existing user.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PostMapping(value = "/existing-customer", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> existingCustomer(@RequestBody @Valid ExistingCustomerRequest request) {
+        return ApiUtil.buildResponse(usersService.existingCustomer(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
+    @Operation(summary = "Set existing user's password.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Set existing user's password after account query.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PutMapping(value = "/set-password-existing", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> setPasswordExisting(@RequestBody @Valid SetPasswordRequest request) {
+        return ApiUtil.buildResponse(usersService.setPasswordExisting(request), HttpStatus.OK.toString(), "Successful.");
     }
 
     @Operation(summary = "Get a user's joint account details response.")

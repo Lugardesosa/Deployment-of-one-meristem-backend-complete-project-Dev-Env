@@ -237,4 +237,10 @@ public interface IUsersService {
     List<JointAccountDetailsResponse> getJointAccountDetails();
 
     UsersResponse getInvestmentInstrument();
+
+    UpdateResponse existingCustomer(@Valid ExistingCustomerRequest request);
+
+    UpdateResponse setPasswordExisting(@Valid SetPasswordRequest request);
+
+    UpdateResponse setJointPasswordSecondary(@Valid SetPasswordRequest request);
 }

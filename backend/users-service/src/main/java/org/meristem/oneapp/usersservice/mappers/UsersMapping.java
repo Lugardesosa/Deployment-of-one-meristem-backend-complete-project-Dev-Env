@@ -1,6 +1,8 @@
 package org.meristem.oneapp.usersservice.mappers;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
@@ -9,6 +11,7 @@ import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.integrations.requests.UpdateAddressRequest;
+import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareCustomerResponse;
 import org.meristem.oneapp.usersservice.models.Countries;
 import org.meristem.oneapp.usersservice.models.CountryStates;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -30,4 +33,12 @@ public interface UsersMapping {
     Users ninQueryResponseToUsers(IdQueryDetailsDto ninQueryResponse);
 
     UpdateAddressRequest customerAddressVerifiedDtoToUpdateAddressRequest(CustomerAddressVerifiedDto value);
+
+    @Mappings(value = {
+            @Mapping(source = "emailAddress", target = "email"),
+            @Mapping(source = "phoneNumbers", target = "phoneNumber"),
+            @Mapping(source = "otherName", target = "middleName"),
+            @Mapping(target = "password", ignore = true)
+    })
+    Users coreBvnQueryResponseToUser(MiddlewareCustomerResponse.CustomerData bvnQueryResponse);
 }
