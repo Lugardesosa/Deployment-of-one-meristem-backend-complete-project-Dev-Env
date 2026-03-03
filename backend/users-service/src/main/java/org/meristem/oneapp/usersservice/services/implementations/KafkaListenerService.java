@@ -4,11 +4,8 @@ package org.meristem.oneapp.usersservice.services.implementations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
-import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
+import org.meristem.oneapp.kafka.dtos.*;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
-import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
-import org.meristem.oneapp.kafka.dtos.UploadImageDto;
 import org.meristem.oneapp.usersservice.services.IAmlService;
 import org.meristem.oneapp.usersservice.services.IKafkaListenerService;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -32,11 +29,18 @@ public class KafkaListenerService implements IKafkaListenerService {
         amlService.performAmlRequest(record.value());
     }
 
-    @KafkaListener(topicPattern = KafkaTopics.KAFKA_KYC_CUSTOMER_CREATE_TOPIC)
+    @KafkaListener(topicPattern = KafkaTopics.KAFKA_CUSTOMER_CREATE_TOPIC)
     @Override
     public void createCustomer(ConsumerRecord<String, CreateCustomerDto> record) {
         log.info("Received CreateCustomerDto event: {}", record.value());
         usersService.createCustomer(record.value());
+    }
+
+    @KafkaListener(topicPattern = KafkaTopics.KAFKA_JOINT_CUSTOMER_CREATE_TOPIC)
+    @Override
+    public void createJointCustomer(ConsumerRecord<String, CreateJointCustomerDto> record) {
+        log.info("Received CreateJointCustomerDto event: {}", record.value());
+        usersService.createJointCustomer(record.value());
     }
 
     @KafkaListener(topicPattern = KafkaTopics.KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC)

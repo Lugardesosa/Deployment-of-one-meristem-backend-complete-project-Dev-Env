@@ -31,6 +31,8 @@ public final class AppConstants {
     public static final Pair<Integer, Integer> sevenNumbersOtp = Pair.of(1000000, 9000000);
 
     public static final String USERS_CACHE_NAME = "users";
+    public static final String INVESTMENT_INSTRUMENT_CACHE_NAME = "investment_instruments";
+    public static final String INVESTMENT_OPTIONS_CACHE_NAME = "investment_options";
     public static final Integer IS_UPDATE_PIN = 1;
     public static final Integer IS_NEW_PIN = 0;
     public static final String RE_PASSWORD = "password";
@@ -38,6 +40,7 @@ public final class AppConstants {
     public static final String APPLICATION_JSON_UTF8_VALUE = "application/json;charset=UTF-8";
     public static final String AVATAR_CACHE_NAME = "avatars";
     public static final String SIGN_UP_CACHE_NAME = "sign-ups";
+    public static final String JOINT_SIGN_UP_CACHE_NAME = "joint-sign-ups";
     public static final String ID_VERIFICATION_CACHE_NAME = "id-verification";
     public static final String SETTINGS_CACHE_NAME = "settings";
     public static final String USER_ROLE = "USER";
@@ -49,4 +52,5 @@ public final class AppConstants {
     public static final String VENDOR_SMILE_ID = "SMILE_ID";
     public static final int OUTBOX_MAX_RETRY_COUNT = 3;
     public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 5;
+    public static final String OTP_CACHE_NAME = "otp-cache-name";
 }

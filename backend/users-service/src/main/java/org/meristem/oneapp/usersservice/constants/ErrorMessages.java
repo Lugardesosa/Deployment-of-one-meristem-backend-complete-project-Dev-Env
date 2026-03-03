@@ -6,6 +6,8 @@ import lombok.experimental.UtilityClass;
 public final class ErrorMessages {
 
     public static final String DATA_SHARING_NOT_COMPLETED = "Data sharing not completed";
+    public static final String PASSWORD_NOT_CREATED = "Password not created";
+    public static final String EMAIL_NOT_VERIFIED = "Email not verified";
     public static final String INVALID_USERNAME = "Invalid username";
     public static final String INVALID_PASSWORD = "Invalid password. %d attempts remaining";
     public static final String ACCOUNT_LOCKED = "Account is locked, kindly use the reset password link to reset your password";

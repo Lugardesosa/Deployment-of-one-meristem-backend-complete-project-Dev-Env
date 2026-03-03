@@ -47,7 +47,7 @@ public class KycDelegatingService implements IKycDelegatingService {
     @Override
     @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdBvnQuery")
     public BvnQueryResponse bvnQuery(IdQueryRequest request) {
-        return dojahService.bvnQuery(request);
+        return smileIdService.bvnQuery(request);
     }
 
     public BvnQueryResponse smileIdBvnQuery(IdQueryRequest request, Throwable throwable) {
@@ -55,22 +55,22 @@ public class KycDelegatingService implements IKycDelegatingService {
         if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
             throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
         }
-        return smileIdService.bvnQuery(request);
+        return dojahService.bvnQuery(request);
     }
 
     @Override
     @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdValidateNin")
     public IdValidationResponse validateNin(IdQueryRequest request) {
-        return this.dojahService.validateNin(request);
+        return this.smileIdService.validateNin(request);
     }
 
     public IdValidationResponse smileIdValidateNin(IdQueryRequest request, Throwable throwable) {
         if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
             throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
         }
-        return this.smileIdService.validateNin(request);
+        return this.dojahService.validateNin(request);
     }
-    
+
     @Override
     public IdValidationResponse validateBvn(MultipartFile file) {
         return dojahService.bvnValidation(file);

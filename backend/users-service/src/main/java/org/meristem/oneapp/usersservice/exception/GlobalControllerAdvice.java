@@ -61,7 +61,6 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     protected ResponseEntity<ErrorDetails> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-        ex.printStackTrace();
         String error = !hasText(ex.getResourcePassed()) || !hasText(ex.getResourceName()) ? "The resource requested was not found" : (ex.getResourceName() + " with '" + ex.getResourcePassed() + "' not found");
         return handleExceptionInternal(ex.getMessage(), HttpStatus.NOT_FOUND, request, List.of(error));
     }

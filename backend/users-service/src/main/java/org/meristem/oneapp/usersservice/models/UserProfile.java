@@ -67,6 +67,7 @@ public class UserProfile extends BaseModel<String> {
     private String sourceOfIncome;
     private String occupation;
     private String employerName;
+    private Boolean emailVerified;
 
     /**
      * Constructs a new UserOnboarding instance.
@@ -83,7 +84,7 @@ public class UserProfile extends BaseModel<String> {
     @Builder
     public UserProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
-                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName) {
+                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName, Boolean emailVerified) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -100,6 +101,7 @@ public class UserProfile extends BaseModel<String> {
         this.occupation = occupation;
         this.sourceOfIncome = sourceOfIncome;
         this.employerName = employerName;
+        this.emailVerified = emailVerified;
     }
 
     /**

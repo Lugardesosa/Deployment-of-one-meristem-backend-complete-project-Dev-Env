@@ -34,11 +34,10 @@ public class Schedulers {
     private final IKafkaSenderService kafkaSenderService;
     private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedRateString = "${outbox.cron.fix-rate}", timeUnit = TimeUnit.MINUTES)
-    @SchedulerLock(name = "OutboxTaskLock", lockAtMostFor = "1m", lockAtLeastFor = "30s")
+    @Scheduled(fixedRateString = "${outbox.cron.fix-rate}", timeUnit = TimeUnit.SECONDS)
+    @SchedulerLock(name = "OutboxTaskLock", lockAtMostFor = "5s", lockAtLeastFor = "4s")
     public void publishOutbox() {
 
-        log.info("publishing outbox");
         List<OutboxEvent> events = outboxEventRepository.findAllByOutboxStatus(OutboxStatus.PENDING.getValue(), Sort.by(Sort.Order.asc("created_date")), Limit.of(100));
 
         do {
@@ -75,7 +74,6 @@ public class Schedulers {
     @SchedulerLock(name = "UnlockTaskLock", lockAtMostFor = "5m", lockAtLeastFor = "1m")
     public void unlockPin() {
 
-        log.info("Unlocking pins");
         int count = 0;
         List<UserPin> userPins = userPinRepository.findAllByStatusAndLockUntilBefore(UserPinStatus.LOCKED.getStatus(), LocalDateTime.now(), Limit.of(100));
 
@@ -89,7 +87,5 @@ public class Schedulers {
             }
             userPins = userPinRepository.findAllByStatusAndLockUntilBefore(UserPinStatus.LOCKED.getStatus(), LocalDateTime.now(), Limit.of(100));
         } while (!userPins.isEmpty());
-
-        log.info("{} pins unlocked", count);
     }
 }

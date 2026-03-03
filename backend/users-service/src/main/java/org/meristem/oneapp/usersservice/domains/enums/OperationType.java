@@ -1,14 +1,15 @@
 package org.meristem.oneapp.usersservice.domains.enums;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
-public enum AggregateType {
+@Getter
+public enum OperationType {
 
-    USER("USER"),
-    OTP("OTP");
+    ONE_TO_SIGN(1),
+    BOTH_TO_SIGN(2);
 
-    private final String value;
+    private final Integer value;
 }

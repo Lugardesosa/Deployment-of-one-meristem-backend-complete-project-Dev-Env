@@ -101,29 +101,40 @@ public record UsersResponse(
 
         String cscsNumber,
 
-        String chnNumber
+        String chnNumber,
+
+        Boolean emailVerified,
+
+        Integer accountType
+
 ) implements Serializable {
 
     public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
                          String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared,
                          Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet,
-                         String cscsNumber, String chnNumber) {
+                         String cscsNumber, String chnNumber, Boolean emailVerified, Integer accountType) {
         this(null, status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet,
-                interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber);
+                interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber, emailVerified, accountType);
     }
 
-    public UsersResponse(String middlewareCustomerId, Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber, String password, Integer passwordAttempt) {
+    public UsersResponse(String middlewareCustomerId, Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber, String password, Integer passwordAttempt, Boolean emailVerified, Integer accountType) {
         this(middlewareCustomerId, status, id, email, firstName, lastName, middleName, password, phoneNumber,
                 passwordAttempt, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, emailVerified, accountType);
     }
 
     public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
                                      String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared,
                                             Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet,
-                                            String cscsNumber, String chnNumber) {
+                                            String cscsNumber, String chnNumber, Boolean  emailVerified, Integer accountType) {
         return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared,
-                userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber);
+                userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber, emailVerified, accountType);
+    }
+
+    public UsersResponse(List<UserInstrumentResponse> userInstrumentResponses, Map<String, Set<UserOptionResponse>> userOptionResponses) {
+        this(null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, userInstrumentResponses, null, userOptionResponses,
+                null, null, null, null, null, null, null, null);
     }
 
     @Schema(name = "UserInstrumentResponse", description = "Instrument access information for the user.")

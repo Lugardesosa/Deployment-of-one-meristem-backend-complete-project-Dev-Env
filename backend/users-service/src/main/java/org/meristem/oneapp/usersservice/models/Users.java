@@ -49,6 +49,8 @@ public class Users extends BaseModel<String> {
     @NotNull(message = "passwordAttempt cannot be null")
     private Integer passwordAttempt;
 
+    private Integer accountType;
+
     /**
      * Constructs a new Users instance.
      *
@@ -67,7 +69,7 @@ public class Users extends BaseModel<String> {
      */
     @Builder
     public Users(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String email,
-                 String firstName, String lastName, String middleName, String password, String phoneNumber) {
+                 String firstName, String lastName, String middleName, String password, String phoneNumber, Integer accountType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.email = email;
         this.firstName = firstName;
@@ -77,6 +79,7 @@ public class Users extends BaseModel<String> {
         this.phoneNumber = phoneNumber;
         this.passwordAttempt = 0;
         this.middlewareCustomerId = null;
+        this.accountType = accountType;
     }
 
     /**
