@@ -16,7 +16,8 @@ public enum MessageSubject {
     ONBOARDING_VERIFICATION (3, "Onboarding Verification OTP received "),
     LOGIN_ALERT (4, "There was a log into your account "),
     JOINT_EMAIL_VERIFICATION (5, "Email verification OTP received "),
-    SECONDARY_EMAIL_VERIFICATION (6, "Email verification OTP received ");
+    SECONDARY_EMAIL_VERIFICATION (6, "Email verification OTP received "),
+    EXISTING_EMAIL_VERIFICATION (7, "Email verification OTP received ");
 
     private final int code;
     private final String message;
