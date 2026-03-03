@@ -20,6 +20,8 @@ public class RedisConfig {
                 .withCacheConfiguration(AppConstants.OTP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES + 1)))
                 .withCacheConfiguration(AppConstants.ID_VERIFICATION_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(AppConstants.ID_VERIFICATION_CACHE_EXPIRES_IN)))
                 .withCacheConfiguration(AppConstants.SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
+                .withCacheConfiguration(AppConstants.JOINT_SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
+                .withCacheConfiguration(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
                 .withCacheConfiguration(AppConstants.SETTINGS_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
 

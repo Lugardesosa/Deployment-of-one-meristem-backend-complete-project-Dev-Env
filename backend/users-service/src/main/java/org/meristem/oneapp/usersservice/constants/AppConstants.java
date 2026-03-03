@@ -41,6 +41,7 @@ public final class AppConstants {
     public static final String AVATAR_CACHE_NAME = "avatars";
     public static final String SIGN_UP_CACHE_NAME = "sign-ups";
     public static final String JOINT_SIGN_UP_CACHE_NAME = "joint-sign-ups";
+    public static final String EXISTING_USER_SIGN_UP_CACHE_NAME = "existing-user-sign-ups";
     public static final String ID_VERIFICATION_CACHE_NAME = "id-verification";
     public static final String SETTINGS_CACHE_NAME = "settings";
     public static final String USER_ROLE = "USER";
