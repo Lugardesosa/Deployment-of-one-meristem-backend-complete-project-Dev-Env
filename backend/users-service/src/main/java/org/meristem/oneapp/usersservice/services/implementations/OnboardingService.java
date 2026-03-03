@@ -218,14 +218,12 @@ public class OnboardingService implements IOnboardingService {
      *
      * @return a page of country responses
      */
-    public Page<CountriesResponse> getCountries() {
+    public List<CountriesResponse> getCountries() {
 
-        PageRequest pageRequest = getCountryAndStatePageRequest();
+        List<Countries> countries = generalRepository.findAllBy(Countries.class, new HashMap<>());
 
-        Page<Countries> countries = generalRepository.findAllBy(Countries.class, new HashMap<>(), pageRequest);
-
-        List<CountriesResponse> countriesResponses = usersMapping.countriesToCountriesResponse(countries.getContent());
-        return new PageImpl<>(countriesResponses, pageRequest, countries.getTotalElements());
+        List<CountriesResponse> countriesResponses = usersMapping.countriesToCountriesResponse(countries);
+        return usersMapping.countriesToCountriesResponse(countries);
     }
 
     /**
@@ -234,13 +232,11 @@ public class OnboardingService implements IOnboardingService {
      * @return a page of state/province responses
      * @throws BadRequestException if the default country cannot be found
      */
-    public Page<StatesResponse> getStates(Long countryId) {
+    public List<StatesResponse> getStates(Long countryId) {
 
-        PageRequest pageRequest = getCountryAndStatePageRequest();
-        Page<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", countryId), pageRequest);
+        List<CountryStates> countryStates = generalRepository.findAllBy(CountryStates.class, Map.of("countryId", countryId));
 
-        List<StatesResponse> statesResponses = usersMapping.countryStatesToStatesResponseResponse(countryStates.getContent());
-        return new PageImpl<>(statesResponses, pageRequest, countryStates.getTotalElements());
+        return usersMapping.countryStatesToStatesResponseResponse(countryStates);
     }
 
     /**
