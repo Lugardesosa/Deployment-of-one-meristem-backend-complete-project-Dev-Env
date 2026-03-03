@@ -92,4 +92,4 @@ pin-unlock:
 
 outbox:
   cron:
-    fix-rate: 2
+    fix-rate: 5

@@ -24,7 +24,7 @@ encrypt:
 resilience4j:
   circuitbreaker:
     instances:
-      smileId:
+      dojah:
         registerHealthIndicator: true
         slidingWindowSize: 10
         minimumNumberOfCalls: 5

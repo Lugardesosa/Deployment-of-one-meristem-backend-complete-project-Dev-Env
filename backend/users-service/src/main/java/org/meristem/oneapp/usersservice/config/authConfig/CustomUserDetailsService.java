@@ -13,7 +13,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Component
 public record CustomUserDetailsService(UsersRepository usersRepository, RolesRepository rolesRepository, PermissionsRepository permissionsRepository) implements UserDetailsService {
@@ -26,6 +30,7 @@ public record CustomUserDetailsService(UsersRepository usersRepository, RolesRep
         List<String> rolesPermissions = permissionsRepository.findAllCodesByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new AuthenticatedUser(user.middlewareCustomerId(), user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt());
+        return new AuthenticatedUser(user.middlewareCustomerId(), user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt(),
+                nonNull(user.emailVerified()) && user.emailVerified(), user.accountType());
     }
 }

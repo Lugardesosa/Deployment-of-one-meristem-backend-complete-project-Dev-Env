@@ -76,6 +76,7 @@ public class IdDetailsService implements IIdDetailsService {
                 outboxEventRepository.save(image);
             } catch (JsonProcessingException e) {
                 log.error("Error uploading image for user with id {} to outbox", loggedInUser.getId(), e);
+                throw new RuntimeException("Please try again later");
             }
         }
         return userIdDetails;

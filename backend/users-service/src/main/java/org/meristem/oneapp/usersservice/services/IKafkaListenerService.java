@@ -1,10 +1,7 @@
 package org.meristem.oneapp.usersservice.services;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
-import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
-import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
-import org.meristem.oneapp.kafka.dtos.UploadImageDto;
+import org.meristem.oneapp.kafka.dtos.*;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.springframework.kafka.annotation.KafkaListener;
 
@@ -18,6 +15,8 @@ public interface IKafkaListenerService {
     void listenKycCompleted(ConsumerRecord<String, KycCompletedDto> record);
 
     void createCustomer(ConsumerRecord<String, CreateCustomerDto> record);
+
+    void createJointCustomer(ConsumerRecord<String, CreateJointCustomerDto> record);
 
     void addressVerified(ConsumerRecord<String, CustomerAddressVerifiedDto> record);
 

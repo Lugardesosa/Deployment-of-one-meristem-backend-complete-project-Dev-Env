@@ -33,16 +33,29 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     void saveRole(Long users_id, Long rolesId);
 
     @Query(value = "SELECT u.* FROM users u WHERE u.email = :email AND u.password IS NOT NULL ", rowMapperClass = UserResponseRowMapper.class)
+    Optional<UsersResponse> findUserDetailsByEmailAndPasswordIsNotNull(String email);
+
+
+    @Query(value = "SELECT u.*, up.email_verified FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.email = :email ", rowMapperClass = UserResponseRowMapper.class)
     Optional<UsersResponse> findUserDetailsByEmail(String email);
 
     // TODO: INCREASE up COLUMNS AS THE TABLE INCREASES
     @Cacheable(value = "users", key = "#a0", unless = "#result == null")
-    @Query(value = "SELECT u.*, up.image_key, up.cscs_number, up.chn_number, up.gender, up.date_of_birth, up.referral_code, up.onboarding_completed, up.biometric_enabled, up.interest_free_investment, ii.code, ii.id AS iiid, ii.name, ia.data_sharing_allowed, ia.accessed, " +
+    @Query(value = "SELECT u.*, up.*, ii.code, ii.id AS iiid, ii.name, ia.data_sharing_allowed, ia.accessed, " +
             "io.id AS o_iiid, io.name AS o_name, ioa.accessed AS o_accessed FROM users u LEFT JOIN user_profile up ON u.id = up.user_id " +
             "LEFT JOIN user_instrument ia ON ia.user_id = u.id LEFT JOIN investment_instruments ii ON ii.id = ia.instrument_id " +
             " LEFT JOIN investment_options io ON io.investment_id = ii.id LEFT JOIN investment_options_accessed ioa ON ioa.option_id = io.id " +
             "WHERE u.id = :id AND u.password IS NOT NULL AND ii.status = 1 ORDER BY ii.id", resultSetExtractorClass = UserResponseResultSetExtractor.class)
     Optional<UsersResponse> findUserDetailsById(Long id);
+
+    @Cacheable(value = "users", key = "#a0", unless = "#result == null")
+    @Query(value = """
+            
+            SELECT u.*, up.* FROM users u
+            LEFT JOIN user_profile up ON u.id = up.user_id
+            WHERE u.id = :id AND u.password IS NOT NULL
+            """)
+    Optional<UsersResponse> findUserDetailById(Long id);
 
     boolean existsByEmailOrPhoneNumber(String email, String phoneNumber);
 
@@ -116,4 +129,19 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @Query("SELECT u.middleware_customer_id from users u WHERE u.email = :email")
     String findCustomerIdByEmail(String email);
+
+
+    @Query("SELECT u.middleware_customer_id from users u WHERE u.email IN :email")
+    String findCustomerIdByEmail(List<String> email);
+
+    @Query("SELECT id FROM users WHERE email = :email OR phone_number = :phoneNumber")
+    Long findIdByEmailOrPhoneNumber(String email, String phoneNumber);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE users SET middleware_customer_id = :customerId WHERE email IN (:email) ")
+    void updateAllCustomerId(String customerId, List<String> email);
+
+    @Query("SELECT id FROM users WHERE email IN (:email)")
+    List<Long> findIdsByEmail(List<String> ids);
 }

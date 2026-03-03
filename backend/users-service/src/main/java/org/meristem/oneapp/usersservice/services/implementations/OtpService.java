@@ -1,42 +1,36 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
 
-import jakarta.validation.Valid;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.OtpDto;
-import org.meristem.oneapp.kafka.dtos.OtpVerifiedDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
-import org.meristem.oneapp.usersservice.domains.enums.MessageMedium;
-import org.meristem.oneapp.usersservice.domains.enums.MessageSubject;
-import org.meristem.oneapp.usersservice.domains.enums.MessageType;
+import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
 import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
-import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
-import org.meristem.oneapp.usersservice.models.OtpVerification;
-import org.meristem.oneapp.usersservice.repositories.OtpVerificationRepository;
+import org.meristem.oneapp.usersservice.dtos.OtpVerificationDto;
+import org.meristem.oneapp.usersservice.models.OutboxEvent;
+import org.meristem.oneapp.usersservice.repositories.OutboxEventRepository;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
-import org.meristem.oneapp.usersservice.services.IKafkaSenderService;
 import org.meristem.oneapp.usersservice.services.IOtpService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.Objects;
+
+import static java.util.Objects.*;
 
 
 /**
@@ -50,10 +44,10 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class OtpService implements IOtpService {
 
-    private final IKafkaSenderService kafkaSenderService;
-    private final OtpVerificationRepository otpVerificationRepository;
     private final UsersRepository usersRepository;
     private final CacheManager cacheManager;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
 
 
     /**
@@ -66,6 +60,8 @@ public class OtpService implements IOtpService {
      */
     @Transactional
     public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error creating otp");
         MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest.messageMedium(), sendOtpRequest.recipient());
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES);
@@ -82,23 +78,40 @@ public class OtpService implements IOtpService {
         int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
 
         // Expire old OTP for this user and the OTP type
-        otpVerificationRepository.expireTimeByCode(LocalDateTime.now().minusMinutes(3), sendOtpRequest.recipient(), sendOtpRequest.otpType());
+        OtpVerificationDto otpVerificationDtoExist = cache.get(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), OtpVerificationDto.class);
+        if (nonNull(otpVerificationDtoExist)) {
+            cache.evict(otpVerificationDtoExist);
+        }
 
-        OtpVerification otpVerification = OtpVerification.builder()
+        OtpVerificationDto otpVerificationDto = OtpVerificationDto.builder()
                 .userId(sendOtpRequest.recipient()).expiresAt(expiresAt)
                 .otpType(sendOtpRequest.otpType()).code(code).build();
 
-        otpVerificationRepository.save(otpVerification);
+        cache.put(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
 
         OtpDto otpDto = OtpDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
-                .code(String.valueOf(otpVerification.getCode()))
+                .code(String.valueOf(otpVerificationDto.getCode()))
                 .subject(MessageSubject.getMessageSubject(sendOtpRequest.otpType())).build();
 
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(otpDto).classSimpleName(OtpDto.class.getSimpleName()).isHtml(messageMedium.equals(MessageMedium.EMAIL)).build();
 
-        kafkaSenderService.send(messageDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_TOPIC, KafkaHeaders.KEY, sendOtpRequest.recipient()));
+        try {
+
+
+        OutboxEvent otpMessage = OutboxEvent.builder()
+                .aggregateId(0L).aggregateType(AggregateType.OTP.getValue())
+                .eventType(KafkaTopics.KAFKA_OTP_TOPIC)
+                .outboxStatus(OutboxStatus.PENDING.getValue())
+                .eventClass(MessageDto.class.getName())
+                .eventKey(sendOtpRequest.recipient())
+                .payload(objectMapper.writeValueAsString(messageDto)).build();
+        outboxEventRepository.save(otpMessage);
+        } catch (JsonProcessingException e) {
+            log.error("Error creating otp for user with email/phone {} to outbox", sendOtpRequest.recipient(), e);
+            throw new RuntimeException("Please try again later");
+        }
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
-                .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerification.getExpiresAt()))
+                .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerificationDto.getExpiresAt()))
                 .build();
     }
 
@@ -138,32 +151,34 @@ public class OtpService implements IOtpService {
      * @throws ResourceNotFoundException if the OTP is not found
      */
     @Transactional
-    public VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest request) {
+    public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
 
-        OtpVerification otpVerification = otpVerificationRepository.findByOtpTypeAndCodeAndUserId(request.otpType(), request.otp(), request.recipient())
-                .orElseThrow(() -> new ResourceNotFoundException("OTP not found", "OTP", request.otp().toString()));
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error getting otp");
+        String cacheKey = request.recipient().concat(request.otpType().toString());
+        OtpVerificationDto otpVerificationDto = cache.get(cacheKey, OtpVerificationDto.class);
 
-        if (otpVerification.getVerified()) {
+        if (isNull(otpVerificationDto)) {
+            throw new ResourceNotFoundException("OTP not found", "OTP", request.otp().toString());
+        }
+
+        if (otpVerificationDto.getVerified()) {
             return VerifyOtpResponse.builder().status(false).message("OTP already used").build();
         }
-        if (otpVerification.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+        if (!otpVerificationDto.getOtpType().equals(request.otpType())) {
+            return VerifyOtpResponse.builder().status(false).message("Invalid otp type").build();
+        }
+
+        if (!otpVerificationDto.getCode().equals(request.otp())) {
+            return VerifyOtpResponse.builder().status(false).message("Invalid code").build();
+        }
+
+        if (otpVerificationDto.getExpiresAt().isBefore(LocalDateTime.now())) {
             return VerifyOtpResponse.builder().status(false).message("OTP expired").build();
         }
-        otpVerification.setVerified(true);
-        otpVerificationRepository.save(otpVerification);
+        otpVerificationDto.setVerified(true);
 
-
-        if (request.otpType().equals(MessageSubject.EMAIL_VERIFICATION.getCode())) {
-            Cache cache = Objects.requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-            IdQueryDetailsDto ninQueryResponse = cache.get(otpVerification.getUserId(), IdQueryDetailsDto.class);
-            if (ninQueryResponse == null) {
-                throw new AccessDeniedException("Initial sign up details not found.");
-            }
-            ninQueryResponse.setEmailVerified(true);
-            cache.put(otpVerification.getUserId(), ninQueryResponse);
-            otpVerificationRepository.expireTimeByCodeAndEmailOrPhone(LocalDateTime.now(), ninQueryResponse.getEmail(), ninQueryResponse.getPhoneNumber(), MessageSubject.EMAIL_VERIFICATION.getCode());
-            kafkaSenderService.send(new OtpVerifiedDto(otpVerification.getUserId()), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, otpVerification.getUserId()));
-        }
+        cache.put(cacheKey, otpVerificationDto);
 
         return VerifyOtpResponse.builder().status(true).message("OTP verified").build();
     }

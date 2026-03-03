@@ -61,6 +61,15 @@ public final class AppUtil {
         throw new BadRequestException("User is not logged in");
     }
 
+    public static Long getLoggedInUserAccountType() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return jwt.getClaim("accountType");
+        }
+        throw new BadRequestException("User is not logged in");
+    }
+
     public static String getLoggedInUserEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
@@ -192,6 +201,8 @@ public final class AppUtil {
                 .status(rs.getInt("status"))
                 .password(rs.getString("password"))
                 .passwordAttempt(rs.getInt("password_attempt"))
+                .emailVerified(rs.getBoolean("email_verified"))
+                .accountType(rs.getInt("account_type"))
                 .build();
     }
 

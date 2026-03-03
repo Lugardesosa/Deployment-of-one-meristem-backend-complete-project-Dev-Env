@@ -1,11 +1,10 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
-import org.meristem.oneapp.usersservice.domains.responses.NinValidationResponse;
+import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IKycService;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -45,12 +45,12 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     @Override
-    @CircuitBreaker(name = "smileId", fallbackMethod = "dojahBvnQuery")
+    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdBvnQuery")
     public BvnQueryResponse bvnQuery(IdQueryRequest request) {
         return smileIdService.bvnQuery(request);
     }
 
-    public BvnQueryResponse dojahBvnQuery(IdQueryRequest request, Throwable throwable) {
+    public BvnQueryResponse smileIdBvnQuery(IdQueryRequest request, Throwable throwable) {
 
         if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
             throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
@@ -59,15 +59,20 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     @Override
-    @CircuitBreaker(name = "smileId", fallbackMethod = "dojahValidateNin")
-    public NinValidationResponse validateNin(IdQueryRequest request) {
+    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdValidateNin")
+    public IdValidationResponse validateNin(IdQueryRequest request) {
         return this.smileIdService.validateNin(request);
     }
 
-    public NinValidationResponse dojahValidateNin(IdQueryRequest request, Throwable throwable) {
+    public IdValidationResponse smileIdValidateNin(IdQueryRequest request, Throwable throwable) {
         if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
             throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
         }
         return this.dojahService.validateNin(request);
+    }
+
+    @Override
+    public IdValidationResponse validateBvn(MultipartFile file) {
+        return dojahService.bvnValidation(file);
     }
 }

@@ -30,11 +30,13 @@ import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -123,6 +125,11 @@ public class SmileIdService implements IKycService {
         } else {
             throw new BadRequestException("Try again later.");
         }
+    }
+
+    @Override
+    public IdValidationResponse bvnValidation(MultipartFile file) {
+        return null;
     }
 
     private SmileIdWebhookNotification getSmileIdWebhookNotification(IdQueryRequest request, IdCardType idCardType) {
@@ -279,10 +286,16 @@ public class SmileIdService implements IKycService {
     /**
      * Validates NIN data; flags mismatches; completes onboarding if valid
      */
-    public NinValidationResponse validateNin(IdQueryRequest request) {
+    public IdValidationResponse validateNin(IdQueryRequest request) {
+
+        Cache cache = getIdQueryCache(cacheManager);
 
         if (IdCardType.NIN.compareTo(IdCardType.fromName(request.idType())) != 0) {
-            throw new BadRequestException("Only NIN can be validated.");
+            throw new BadRequestException("Only NIN can be validated .");
+        }
+
+        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.NIN.getName())) {
+            throw new BadRequestException("NIN already exists.");
         }
 
         SmileIdWebhookNotification notification = getSmileIdWebhookNotification(request, IdCardType.NIN);
@@ -296,7 +309,7 @@ public class SmileIdService implements IKycService {
         List<String> names = buildNames(bvn);
 
         UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(notification), loggedInUser);
-        return compareNinAndBvnDetailsSaveAndReturn(nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository);
+        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()));
 
     }
 
