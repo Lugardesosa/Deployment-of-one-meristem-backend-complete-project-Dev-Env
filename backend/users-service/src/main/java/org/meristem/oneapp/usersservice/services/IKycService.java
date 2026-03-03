@@ -3,23 +3,23 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
-import org.meristem.oneapp.usersservice.domains.enums.IdCardType;
-import org.meristem.oneapp.usersservice.domains.enums.OnboardingRequirements;
-import org.meristem.oneapp.usersservice.domains.enums.OnboardingStatus;
-import org.meristem.oneapp.usersservice.domains.enums.UserOnboardingNotes;
+import org.meristem.oneapp.usersservice.domains.enums.*;
+import org.meristem.oneapp.usersservice.domains.requests.ExistingCustomerRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
+import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
+import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareCustomerResponse;
 import org.meristem.oneapp.usersservice.models.IdCard;
 import org.meristem.oneapp.usersservice.models.Requirements;
 import org.meristem.oneapp.usersservice.models.UserIdDetails;
 import org.meristem.oneapp.usersservice.models.Users;
-import org.meristem.oneapp.usersservice.repositories.CustomRepository;
-import org.meristem.oneapp.usersservice.repositories.IdCardRepository;
-import org.meristem.oneapp.usersservice.repositories.RequirementsRepository;
-import org.meristem.oneapp.usersservice.repositories.UserOnboardingRepository;
+import org.meristem.oneapp.usersservice.repositories.*;
+import org.meristem.oneapp.usersservice.services.implementations.OtpService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.meristem.oneapp.usersservice.utils.HashingUtil;
@@ -63,6 +63,7 @@ public interface IKycService {
                 .email(dto.getEmail()).firstName(dto.getFirstName()).lastName(dto.getLastName())
                 .phoneNumber(dto.getPhoneNumber()).build();
     }
+
     @NonNull
     default List<String> buildNames(UserIdDetails bvn) {
         List<String> names = new ArrayList<>();
@@ -150,6 +151,29 @@ public interface IKycService {
             throw new BadRequestException("Try again at " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(expireIn));
         }
         return cache;
+    }
+
+    default BvnQueryResponse existingCustomer(IdQueryRequest request, MiddleWareClient middleWareClient, UsersRepository usersRepository, CacheManager cacheManager, OtpService otpService, IdCardRepository idCardRepository, HashingUtil hashingUtil, String idHashKey) {
+
+        MiddlewareCustomerResponse middleWareResponse = middleWareClient.getCustomerByBvn(request.idNumber()).data();
+        if (!middleWareResponse.data().isEmpty()) {
+            middleWareResponse.data().stream().findFirst().ifPresent(r -> {
+                // TODO: Reconcile existing account on core with one on this platform
+                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
+                    throw new BadRequestException("Email or Phone number already exists.");
+                }
+                if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()))) {
+                    throw new BadRequestException("You can't continue with this BVN.");
+                }
+                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
+                cache.put(r.getEmailAddress(), r);
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(r.getBankBvn())) {
+                    otpService.sendOtp(SendOtpRequest.builder().otpType(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode()).recipient(r.getEmailAddress()).messageMedium(MessageMedium.EMAIL.getValue()).build());
+                }
+            });
+            return BvnQueryResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
+        }
+        return BvnQueryResponse.builder().success(false).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
     }
 
 }

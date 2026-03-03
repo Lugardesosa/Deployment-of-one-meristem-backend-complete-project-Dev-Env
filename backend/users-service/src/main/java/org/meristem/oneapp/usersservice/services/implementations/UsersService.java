@@ -376,26 +376,6 @@ public class UsersService implements IUsersService {
         return investmentInstrumentsRepository.findUserInstrumentsById(AppUtil.getLoggedInUserId());
     }
 
-    @Override
-    public UpdateResponse existingCustomer(ExistingCustomerRequest request) {
-
-        MiddlewareCustomerResponse response = middleWareClient.getCustomerByBvn(request.idNumber()).data();
-        if (!response.data().isEmpty()) {
-            response.data().stream().findFirst().ifPresent(r -> {
-                // TODO: Reconcile existing account on core with one on this platform
-                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
-                    throw new BadRequestException("Email or Phone number already exists.");
-                }
-                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
-                cache.put(r.getEmailAddress(), r);
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(r.getBankBvn())) {
-                    otpService.sendOtp(SendOtpRequest.builder().otpType(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode()).recipient(r.getEmailAddress()).messageMedium(MessageMedium.EMAIL.getValue()).build());
-                }
-            });
-        }
-        return UpdateResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
-    }
-
     public UserProfile save(Users user, IdQueryDetailsDto bvnQueryResponse, Boolean emailVerified) {
         log.info("User with email {} onboarding completion started ", user.getEmail());
         if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {

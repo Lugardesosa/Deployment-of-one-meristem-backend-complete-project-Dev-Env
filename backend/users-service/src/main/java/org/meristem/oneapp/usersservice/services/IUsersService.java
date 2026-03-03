@@ -40,7 +40,6 @@ public interface IUsersService {
      * Saves a new user with the provided details.
      *
      * @param user the user entity
-     * @param bvn the user's BVN
      * @return a {@link UsersResponse} containing the created user's details
      */
     UserProfile save(Users user, IdQueryDetailsDto IdQueryDetailsDto, Boolean emailVerified);
@@ -238,9 +237,17 @@ public interface IUsersService {
 
     UsersResponse getInvestmentInstrument();
 
-    UpdateResponse existingCustomer(@Valid ExistingCustomerRequest request);
-
     UpdateResponse setPasswordExisting(@Valid SetPasswordRequest request);
 
     UpdateResponse setJointPasswordSecondary(@Valid SetPasswordRequest request);
+
+    default UpdateResponse setPasswordInternal(SetPasswordRequest userRequest) {
+        return switch (userRequest.passwordSetType()) {
+            case INDIVIDUAL -> setPassword(userRequest);
+            case PRIMARY -> setJointPassword(userRequest);
+            case SECONDARY -> setJointPasswordSecondary(userRequest);
+            case EXISTING -> setPasswordExisting(userRequest);
+        };
+    }
+
 }

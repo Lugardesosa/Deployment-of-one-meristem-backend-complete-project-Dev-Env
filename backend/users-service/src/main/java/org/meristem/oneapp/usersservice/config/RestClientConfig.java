@@ -31,7 +31,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -64,7 +63,7 @@ public class RestClientConfig {
     public RestClient.Builder restClientBuilder(ObservationRegistry observationRegistry) {
         HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
-                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+                .requestInterceptor(requestInterceptor());
     }
 
     private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
@@ -95,34 +94,9 @@ public class RestClientConfig {
     public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
         HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
         return RestClient.builder().requestFactory(requestFactory).observationRegistry(observationRegistry)
-                .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
+                .requestInterceptor(requestInterceptor());
     }
 
-
-    ResponseErrorHandler errorHandler() {
-        return new ResponseErrorHandler() {
-
-            @Override
-            public boolean hasError(@NonNull ClientHttpResponse response) throws IOException {
-                return response.getStatusCode().isError();
-            }
-
-            @Override
-            public void handleError(@NonNull URI url, @NonNull HttpMethod method, @NonNull ClientHttpResponse response) throws IOException {
-                HttpStatusCode status = response.getStatusCode();
-
-                if (status.value() == 404) {
-                    throw new ResourceNotFoundException("Check your request. Response message: " + response.getStatusText(), "", "");
-                } else if (status.is4xxClientError()) {
-                    throw new BadRequestException("Check your request. Response message: " + response.getStatusText());
-                } else if (status.is5xxServerError()) {
-                    throw new UpstreamServiceException("Upstream Server error. Response message: " + response.getStatusText());
-                } else {
-                    throw new RuntimeException("Unexpected error. Response message: " + response.getStatusText());
-                }
-            }
-        };
-    }
 
     ClientHttpRequestInterceptor requestInterceptor() {
         return new ClientHttpRequestInterceptor() {

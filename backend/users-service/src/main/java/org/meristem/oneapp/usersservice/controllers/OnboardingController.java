@@ -74,7 +74,7 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_1017')")
     @GetMapping(value = "/countries", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Page<CountriesResponse>>> getCountries() {
+    public ResponseEntity<AppResponse<List<CountriesResponse>>> getCountries() {
         return ApiUtil.buildResponse(onboardingService.getCountries(), HttpStatus.OK.toString(), "Request successful");
     }
 
@@ -84,7 +84,7 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_1018')")
     @GetMapping(value = "/states", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Page<StatesResponse>>> getStates(@RequestParam Long countryId) {
+    public ResponseEntity<AppResponse<List<StatesResponse>>> getStates(@RequestParam Long countryId) {
         return ApiUtil.buildResponse(onboardingService.getStates(countryId), HttpStatus.OK.toString(), "Request successful");
     }
 

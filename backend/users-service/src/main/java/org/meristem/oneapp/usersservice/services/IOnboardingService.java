@@ -34,14 +34,14 @@ public interface IOnboardingService {
      *
      * @return a page of country responses
      */
-    Page<CountriesResponse> getCountries();
+    List<CountriesResponse> getCountries();
 
     /**
      * Retrieves a paginated list of supported states for the default country.
      *
      * @return a page of state/province responses
      */
-    Page<StatesResponse> getStates(Long countryId);
+    List<StatesResponse> getStates(Long countryId);
 
     /**
      * Retrieves all available investment instruments.
