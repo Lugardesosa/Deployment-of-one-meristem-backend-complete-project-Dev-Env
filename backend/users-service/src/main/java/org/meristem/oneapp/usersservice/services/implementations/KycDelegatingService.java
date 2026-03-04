@@ -45,31 +45,35 @@ public class KycDelegatingService implements IKycDelegatingService {
     }
 
     @Override
-    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdBvnQuery")
+    // TODO: UNCOMMENT TO ENABLE DOJAH
+//    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdBvnQuery")
     public BvnQueryResponse bvnQuery(IdQueryRequest request) {
         return smileIdService.bvnQuery(request);
     }
 
-    public BvnQueryResponse smileIdBvnQuery(IdQueryRequest request, Throwable throwable) {
-
-        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
-            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
-        }
-        return dojahService.bvnQuery(request);
-    }
+    // TODO: UNCOMMENT TO ENABLE DOJAH
+//    public BvnQueryResponse smileIdBvnQuery(IdQueryRequest request, Throwable throwable) {
+//
+//        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
+//            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
+//        }
+//        return dojahService.bvnQuery(request);
+//    }
 
     @Override
-    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdValidateNin")
+    // TODO: UNCOMMENT TO ENABLE DOJAH
+//    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdValidateNin")
     public IdValidationResponse validateNin(IdQueryRequest request) {
         return this.smileIdService.validateNin(request);
     }
 
-    public IdValidationResponse smileIdValidateNin(IdQueryRequest request, Throwable throwable) {
-        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
-            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
-        }
-        return this.dojahService.validateNin(request);
-    }
+    // TODO: UNCOMMENT TO ENABLE DOJAH
+//    public IdValidationResponse smileIdValidateNin(IdQueryRequest request, Throwable throwable) {
+//        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
+//            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
+//        }
+//        return this.dojahService.validateNin(request);
+//    }
 
     @Override
     public IdValidationResponse validateBvn(MultipartFile file) {

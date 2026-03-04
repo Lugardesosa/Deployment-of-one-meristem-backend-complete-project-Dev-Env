@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.OkhiEventTypes;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationStartedRequest;
+import org.meristem.oneapp.usersservice.domains.requests.verificationStartedRequest;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -23,8 +22,6 @@ import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.meristem.oneapp.usersservice.utils.EncryptionUtil;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -75,7 +72,7 @@ public class OnboardingService implements IOnboardingService {
     }
 
     @Transactional
-    public UpdateResponse addressVerificationStarted(AddressVerificationStartedRequest smileRequest) {
+    public UpdateResponse verificationStarted(verificationStartedRequest smileRequest) {
 
         Requirements requirements = requirementsRepository.findByIdAndStatus(smileRequest.requirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));

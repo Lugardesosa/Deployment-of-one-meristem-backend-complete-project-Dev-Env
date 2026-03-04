@@ -54,4 +54,8 @@ public final class AppConstants {
     public static final int OUTBOX_MAX_RETRY_COUNT = 3;
     public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 5;
     public static final String OTP_CACHE_NAME = "otp-cache-name";
+
+    public static final String DEEP_LINK = "meristem://";
+    public static final String DEEP_LINK_SECONDARY = DEEP_LINK.concat("join-secondary");
+    public static final String DEEP_LINK_EXISTING = DEEP_LINK.concat("join-existing");
 }

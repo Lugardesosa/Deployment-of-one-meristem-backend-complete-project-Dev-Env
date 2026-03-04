@@ -75,19 +75,7 @@ public class OtpService implements IOtpService {
             messageMedium = validateAndGetMessageMedium(MessageMedium.SMS.getValue(), sendOtpRequest.recipient());
         }
 
-        int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
-
-        // Expire old OTP for this user and the OTP type
-        OtpVerificationDto otpVerificationDtoExist = cache.get(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), OtpVerificationDto.class);
-        if (nonNull(otpVerificationDtoExist)) {
-            cache.evict(otpVerificationDtoExist);
-        }
-
-        OtpVerificationDto otpVerificationDto = OtpVerificationDto.builder()
-                .userId(sendOtpRequest.recipient()).expiresAt(expiresAt)
-                .otpType(sendOtpRequest.otpType()).code(code).build();
-
-        cache.put(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
+        OtpVerificationDto otpVerificationDto = generateOtpVerificationDto(sendOtpRequest, expiresAt, cache);
 
         OtpDto otpDto = OtpDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
                 .code(String.valueOf(otpVerificationDto.getCode()))
@@ -96,7 +84,6 @@ public class OtpService implements IOtpService {
         MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(otpDto).classSimpleName(OtpDto.class.getSimpleName()).isHtml(messageMedium.equals(MessageMedium.EMAIL)).build();
 
         try {
-
 
         OutboxEvent otpMessage = OutboxEvent.builder()
                 .aggregateId(0L).aggregateType(AggregateType.OTP.getValue())
@@ -181,5 +168,16 @@ public class OtpService implements IOtpService {
         cache.put(cacheKey, otpVerificationDto);
 
         return VerifyOtpResponse.builder().status(true).message("OTP verified").build();
+    }
+
+    public static OtpVerificationDto generateOtpVerificationDto(SendOtpRequest sendOtpRequest, LocalDateTime expiresAt, Cache cache) {
+        int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
+
+        OtpVerificationDto otpVerificationDto = OtpVerificationDto.builder()
+                .userId(sendOtpRequest.recipient()).expiresAt(expiresAt)
+                .otpType(sendOtpRequest.otpType()).code(code).build();
+
+        cache.put(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
+        return otpVerificationDto;
     }
 }

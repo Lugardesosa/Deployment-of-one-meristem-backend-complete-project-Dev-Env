@@ -12,7 +12,8 @@ public enum MessageType {
     NOTIFICATION(3),
     PASSWORD_RESET(4),
     ADMIN_ACCOUNT_CREATED(5),
-    LOGIN_SUCCESSFUL(6);
+    LOGIN_SUCCESSFUL(6),
+    EMAIL_CONFIRMATION(7);
 
     private final int value;
 }
