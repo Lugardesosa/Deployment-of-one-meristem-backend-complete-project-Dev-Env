@@ -1,23 +1,25 @@
 package org.meristem.oneapp.usersservice.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
+import org.meristem.oneapp.kafka.dtos.EmailConfirmationDto;
+import org.meristem.oneapp.kafka.dtos.MessageDto;
+import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
+import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
-import org.meristem.oneapp.usersservice.domains.requests.ExistingCustomerRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
-import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
+import org.meristem.oneapp.usersservice.dtos.OtpVerificationDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareCustomerResponse;
-import org.meristem.oneapp.usersservice.models.IdCard;
-import org.meristem.oneapp.usersservice.models.Requirements;
-import org.meristem.oneapp.usersservice.models.UserIdDetails;
-import org.meristem.oneapp.usersservice.models.Users;
+import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.implementations.OtpService;
 import org.meristem.oneapp.usersservice.utils.AppUtil;
@@ -26,7 +28,9 @@ import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -153,7 +157,7 @@ public interface IKycService {
         return cache;
     }
 
-    default BvnQueryResponse existingCustomer(IdQueryRequest request, MiddleWareClient middleWareClient, UsersRepository usersRepository, CacheManager cacheManager, OtpService otpService, IdCardRepository idCardRepository, HashingUtil hashingUtil, String idHashKey) {
+    default BvnQueryResponse existingCustomer(IdQueryRequest request, MiddleWareClient middleWareClient, UsersRepository usersRepository, CacheManager cacheManager, OtpService otpService, IdCardRepository idCardRepository, HashingUtil hashingUtil, String idHashKey, ObjectMapper objectMapper, OutboxEventRepository outboxEventRepository) {
 
         MiddlewareCustomerResponse middleWareResponse = middleWareClient.getCustomerByBvn(request.idNumber()).data();
         if (!middleWareResponse.data().isEmpty()) {
@@ -168,7 +172,33 @@ public interface IKycService {
                 Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
                 cache.put(r.getEmailAddress(), r);
                 if (org.apache.commons.lang3.StringUtils.isNotBlank(r.getBankBvn())) {
-                    otpService.sendOtp(SendOtpRequest.builder().otpType(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode()).recipient(r.getEmailAddress()).messageMedium(MessageMedium.EMAIL.getValue()).build());
+
+                    LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES);
+                    SendOtpRequest sendOtpRequest = SendOtpRequest.builder().otpType(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode()).recipient(r.getEmailAddress()).messageMedium(MessageMedium.EMAIL.getValue()).build();
+                    OtpVerificationDto otpVerificationDto = OtpService.generateOtpVerificationDto(sendOtpRequest, expiresAt, cache);
+
+                    URI uri = UriComponentsBuilder.fromPath(AppConstants.DEEP_LINK_EXISTING)
+                            .queryParam("email", "").build().toUri();
+                    EmailConfirmationDto otpDto = EmailConfirmationDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
+                            .code(String.valueOf(otpVerificationDto.getCode())).link(uri.toString())
+                            .subject(MessageSubject.getMessageSubject(sendOtpRequest.otpType())).build();
+                    MessageMedium messageMedium = MessageMedium.EMAIL;
+                    MessageDto messageDto = MessageDto.builder().medium(messageMedium).type(MessageType.OTP).message(otpDto).classSimpleName(OtpDto.class.getSimpleName()).isHtml(messageMedium.equals(MessageMedium.EMAIL)).build();
+
+                    try {
+
+                        OutboxEvent otpMessage = OutboxEvent.builder()
+                                .aggregateId(0L).aggregateType(AggregateType.OTP.getValue())
+                                .eventType(KafkaTopics.KAFKA_EMAIL_CONFIRMATION_TOPIC)
+                                .outboxStatus(OutboxStatus.PENDING.getValue())
+                                .eventClass(MessageDto.class.getName())
+                                .eventKey(sendOtpRequest.recipient())
+                                .payload(objectMapper.writeValueAsString(messageDto)).build();
+                        outboxEventRepository.save(otpMessage);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException("Please try again later");
+                    }
+
                 }
             });
             return BvnQueryResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();

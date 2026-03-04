@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 public enum MandateType {
 
-    SINGLE(1),
-    BOTH(2);
+    SINGLE_TO_SIGN(1),
+    BOTH_TO_SIGN(2);
 
     private final Integer value;
 }

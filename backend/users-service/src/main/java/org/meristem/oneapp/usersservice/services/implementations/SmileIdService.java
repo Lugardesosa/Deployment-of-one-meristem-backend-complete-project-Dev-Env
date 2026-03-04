@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,8 @@ import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.enums.Vendor;
-import org.meristem.oneapp.usersservice.domains.requests.ExistingCustomerRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -22,7 +21,6 @@ import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceExce
 import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
-import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareCustomerResponse;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
 import org.meristem.oneapp.usersservice.models.*;
 import org.meristem.oneapp.usersservice.repositories.*;
@@ -82,6 +80,8 @@ public class SmileIdService implements IKycService {
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final MiddleWareClient middleWareClient;
     private final OtpService otpService;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
     @Value("${one-app.users-service.smile-id.server-ips}")
     private List<String> smileIps;
 
@@ -121,7 +121,7 @@ public class SmileIdService implements IKycService {
         }
 
         try {
-            BvnQueryResponse bvnResponse = existingCustomer(request, middleWareClient, usersRepository, cacheManager, otpService, idCardRepository, hashingUtil, idHashKey);
+            BvnQueryResponse bvnResponse = existingCustomer(request, middleWareClient, usersRepository, cacheManager, otpService, idCardRepository, hashingUtil, idHashKey, objectMapper, outboxEventRepository);
             if (bvnResponse != null && bvnResponse.isSuccess()) {
                 return bvnResponse;
             }
