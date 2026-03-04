@@ -685,7 +685,6 @@ CREATE TABLE joint_account
     account_name        VARCHAR(250)                            NOT NULL ,
     role               INTEGER                                 NOT NULL,
     mandate_type       INTEGER                                 NOT NULL,
-    operation_mode     INTEGER                                 NOT NULL,
     CONSTRAINT pk_joint_account PRIMARY KEY (id)
 );
 

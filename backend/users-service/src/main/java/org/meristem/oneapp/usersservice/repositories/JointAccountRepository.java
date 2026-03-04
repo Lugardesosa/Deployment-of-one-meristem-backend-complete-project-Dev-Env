@@ -13,8 +13,11 @@ public interface JointAccountRepository extends BaseRepository<JointAccount, Lon
 
     @Modifying
     @Transactional
-    @Query("UPDATE users SET customer_id = :customerId WHERE account_id IN :accountId ")
+    @Query("UPDATE users SET customer_id = :customerId WHERE account_id = :accountId ")
     void updateAllCustomerId(String customerId, String accountId);
 
     List<JointAccountDetailsResponse> findAccountPartiesByUserId(Long userId);
+
+    @Query("SELECT COUNT(customer_id) FROM joint_account WHERE account_id = :accountId ")
+    Integer findCustomerIdByAccountId(String accountId);
 }

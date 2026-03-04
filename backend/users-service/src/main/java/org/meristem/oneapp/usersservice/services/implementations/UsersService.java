@@ -22,6 +22,7 @@ import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.usersservice.integrations.requests.CreateIndividualCustomerRequest;
+import org.meristem.oneapp.usersservice.integrations.requests.CreateJointCustomerRequest;
 import org.meristem.oneapp.usersservice.integrations.requests.UpdateAddressRequest;
 import org.meristem.oneapp.usersservice.integrations.responses.CreateIndividualCustomerResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.MiddlewareBaseApiResponse;
@@ -166,8 +167,7 @@ public class UsersService implements IUsersService {
         secondary.setEmployerName(request.secondary().employerName());
 
         requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME)).put(request.primary().email(),
-                CreateJointAccountDtos.builder().accountName(request.accountName()).mandateType(request.mandateType())
-                        .operationType(request.operationType()).primary(primary).secondary(secondary).build());
+                CreateJointAccountDtos.builder().mandateType(request.mandateType()).primary(primary).secondary(secondary).build());
 
         log.info("First stage of joint User with email {} created ", request.primary().email());
         return UpdateResponse.builder().success(true).message("Successful").build();
@@ -254,33 +254,33 @@ public class UsersService implements IUsersService {
         UserProfile primaryProfile = save(primary, bvnQueryResponse.getPrimary(), true);
         UserProfile secondaryProfile = save(secondary, bvnQueryResponse.getSecondary(), false);
 
+        String jointAccountName = primary.getFirstName() + " " + primary.getLastName() + " and " + secondary.getFirstName() + " " + secondary.getLastName();
+
         String accountId = UUID.randomUUID().toString();
         JointAccount jointAccountPrimary = JointAccount.builder()
-                .accountName(bvnQueryResponse.getAccountName())
                 .userId(primary.getId())
+                .accountName(jointAccountName)
                 .accountId(accountId)
                 .role(JointAccountType.PRIMARY.getValue())
                 .mandateType(bvnQueryResponse.getMandateType().getValue())
-                .operationMode(bvnQueryResponse.getOperationType().getValue())
                 .build();
 
         JointAccount jointAccountSecondary = JointAccount.builder()
-                .accountName(bvnQueryResponse.getAccountName())
                 .userId(secondary.getId())
+                .accountName(jointAccountName)
                 .accountId(accountId)
                 .role(JointAccountType.SECONDARY.getValue())
                 .mandateType(bvnQueryResponse.getMandateType().getValue())
-                .operationMode(bvnQueryResponse.getOperationType().getValue())
                 .build();
 
         jointAccountRepository.save(jointAccountPrimary);
         jointAccountRepository.save(jointAccountSecondary);
 
-        saveJointToOutbox(primary, secondary, bvnQueryResponse, primaryProfile, secondaryProfile, accountId);
+        saveJointToOutbox(primary, secondary, bvnQueryResponse, primaryProfile, secondaryProfile, accountId, jointAccountName);
 
         cache.evict(userRequest.email());
-        log.info("Joint User with email {} completed stage 2 of onboarding process", userRequest.email());
-        return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+        log.info("Joint User with email ({}) completed stage 2 of onboarding process", userRequest.email());
+        return UpdateResponse.builder().success(true).message("Your joint account %s has been successfully created. Both holders can now access and manage it.\n".formatted(jointAccountName)).build();
     }
 
     @Transactional
@@ -299,12 +299,35 @@ public class UsersService implements IUsersService {
         }
         Users user = usersMapper.coreBvnQueryResponseToUser(bvnQueryResponse);
 
+        user.setMiddlewareCustomerId(bvnQueryResponse.getCustomerId());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setAccountType(AccountType.fromString(bvnQueryResponse.getCustomerType()).getValue());
         saveExisting(user, bvnQueryResponse, true);
+
+        createWalletOutbox(user);
+
         cache.evict(request.email());
         log.info("User with existing email {} completed stage 2 of onboarding process", request.email());
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
+    }
+
+    private void createWalletOutbox(Users user) {
+        try {
+            UserCreatedDto userCreatedDto = new UserCreatedDto(user.getMiddlewareCustomerId());
+            OutboxEvent createWalletOutbox = OutboxEvent.builder()
+                    .aggregateId(user.getId()).aggregateType(AggregateType.USER.getValue())
+                    .eventType(KafkaTopics.KAFKA_WALLET_CREATE_TOPIC)
+                    .outboxStatus(OutboxStatus.PENDING.getValue())
+                    .eventClass(UserCreatedDto.class.getName())
+                    .eventKey(user.getId().toString())
+                    .payload(objectMapper.writeValueAsString(userCreatedDto)).build();
+            outboxEventRepository.save(createWalletOutbox);
+            Cache cacheUser = requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME), "could not be completed");
+            cacheUser.evict(user.getId());
+        } catch (JsonProcessingException e) {
+            log.error("Error creating customer wallet for user with id {} to outbox", user.getId(), e);
+            throw new BadRequestException("Could not create customer");
+        }
     }
 
     @Override
@@ -332,7 +355,7 @@ public class UsersService implements IUsersService {
                 .userId(user.getId()).idValueHashed(hashingUtil.hmacWithSha256(idHashKey, bvnQueryResponse.getBankBvn()))
                 .build());
 
-        UserProfile profile = configureUserOnboarding(user, bvnQueryResponse.getGenderCode(), emailVerified);
+        configureUserOnboarding(user, bvnQueryResponse.getGenderCode(), emailVerified);
 
         log.info("User with existing email {} onboarding completion finished ", user.getEmail());
     }
@@ -440,7 +463,7 @@ public class UsersService implements IUsersService {
         }
     }
 
-    private void saveJointToOutbox(Users primary, Users secondary, CreateJointAccountDtos jointAccountDtos, UserProfile primaryProfile, UserProfile secondaryProfile, String accountId) {
+    private void saveJointToOutbox(Users primary, Users secondary, CreateJointAccountDtos jointAccountDtos, UserProfile primaryProfile, UserProfile secondaryProfile, String accountId, String jointAccountName) {
         String address1, city1, countryCode1;
 
         Optional<Countries> countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(jointAccountDtos.getPrimary().getNationality(), jointAccountDtos.getPrimary().getNationality(), jointAccountDtos.getPrimary().getNationality());
@@ -471,7 +494,7 @@ public class UsersService implements IUsersService {
         }
 
         CreateJointCustomerDto createCustomerDto = CreateJointCustomerDto.builder()
-                .accountName(jointAccountDtos.getAccountName())
+                .accountName(jointAccountName)
 
                 .person1FirstName(primary.getFirstName())
                 .person1LastName(primary.getLastName())
@@ -534,6 +557,7 @@ public class UsersService implements IUsersService {
             Users users = usersRepository.findUsersByEmail(value.email());
             users.setMiddlewareCustomerId(response.data().customerId());
             usersRepository.save(users);
+            createWalletOutbox(users);
         } else {
             throw new BadRequestException("Could not create customer");
         }
@@ -544,24 +568,38 @@ public class UsersService implements IUsersService {
     @Override
     public void createJointCustomer(CreateJointCustomerDto value) {
 
-//        String accountId = accountPartyRepository.findAccountPartyByAccountId(value.accountId());
-//        if (nonNull(accountId)) {
-//            return;
-//        }
-//
-//        CreateJointCustomerRequest request = middlewareMapper.createJointCustomerDtoToCreateJointCustomerRequest(value);
-//        MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createJointCustomer(request);
-//        if ("success".equalsIgnoreCase(response.status())) {
-//
-//            usersRepository.updateAllCustomerId(response.data().customerId(), List.of(value.person1EmailAddress(), value.person2EmailAddress()));
-//            accountPartyRepository.updateAllCustomerId(response.data().customerId(), value.accountId());
-//
-//            Cache cache = requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME), "could not be completed");
-//            List<Long> userIds = usersRepository.findIdsByEmail(List.of(value.person1EmailAddress(), value.person2EmailAddress()));
-//            userIds.forEach(cache::evict);
-//        } else {
-//            throw new BadRequestException("Could not create customer");
-//        }
+        Integer customerId = jointAccountRepository.findCustomerIdByAccountId(value.accountId());
+        if (Integer.valueOf(2).equals(customerId)) {
+            return;
+        }
+
+        CreateJointCustomerRequest request = middlewareMapper.createJointCustomerDtoToCreateJointCustomerRequest(value);
+        MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createJointCustomer(request);
+        if ("success".equalsIgnoreCase(response.status())) {
+
+            usersRepository.updateAllCustomerId(response.data().customerId(), List.of(value.person1EmailAddress(), value.person2EmailAddress()));
+            jointAccountRepository.updateAllCustomerId(response.data().customerId(), value.accountId());
+
+            Cache cache = requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME), "could not be completed");
+            List<Long> userIds = usersRepository.findIdsByEmail(List.of(value.person1EmailAddress(), value.person2EmailAddress()));
+            userIds.forEach(cache::evict);
+            try {
+                UserCreatedDto userCreatedDto = new UserCreatedDto(response.data().customerId());
+                OutboxEvent customer = OutboxEvent.builder()
+                        .aggregateId(userIds.getFirst()).aggregateType(AggregateType.USER.getValue())
+                        .eventType(KafkaTopics.KAFKA_WALLET_CREATE_TOPIC)
+                        .outboxStatus(OutboxStatus.PENDING.getValue())
+                        .eventClass(UserCreatedDto.class.getName())
+                        .eventKey(value.accountId())
+                        .payload(objectMapper.writeValueAsString(userCreatedDto)).build();
+                outboxEventRepository.save(customer);
+            } catch (JsonProcessingException e) {
+                log.error("Error creating customer wallet for user with id {} to outbox", value.accountId(), e);
+                throw new BadRequestException("Could not create customer");
+            }
+        } else {
+            throw new BadRequestException("Could not create customer");
+        }
     }
 
     @Override

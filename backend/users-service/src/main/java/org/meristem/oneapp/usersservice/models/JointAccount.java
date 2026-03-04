@@ -35,20 +35,15 @@ public class JointAccount extends BaseModel<String> {
     @Column("mandate_type")
     private Integer mandateType;
 
-    @NotNull(message = "Cannot be null")
-    @Column("operation_mode")
-    private Integer operationMode;
-
     @Builder
     public JointAccount(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate,
                         String lastModifiedBy, Integer version, Long userId, String customerId, Integer role,
-                        Integer mandateType, Integer operationMode, String accountName, String accountId) {
+                        Integer mandateType, String accountName, String accountId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.customerId = customerId;
         this.role = role;
         this.mandateType = mandateType;
-        this.operationMode = operationMode;
         this.accountName = accountName;
         this.accountId = accountId;
     }

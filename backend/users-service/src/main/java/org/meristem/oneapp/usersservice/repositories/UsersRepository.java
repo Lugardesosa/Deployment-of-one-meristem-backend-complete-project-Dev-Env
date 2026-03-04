@@ -143,6 +143,6 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("UPDATE users SET middleware_customer_id = :customerId WHERE email IN (:email) ")
     void updateAllCustomerId(String customerId, List<String> email);
 
-    @Query("SELECT id FROM users WHERE email IN (:email)")
-    List<Long> findIdsByEmail(List<String> ids);
+    @Query("SELECT id FROM users WHERE email IN (:emails)")
+    List<Long> findIdsByEmail(List<String> emails);
 }

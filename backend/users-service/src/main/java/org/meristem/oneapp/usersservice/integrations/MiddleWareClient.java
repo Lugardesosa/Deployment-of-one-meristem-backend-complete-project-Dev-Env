@@ -22,10 +22,10 @@ public interface MiddleWareClient {
     CreateIndividualCustomerResponse createCorporateCustomer(@RequestBody CreateCorporateCustomerRequest request);
 
     @PostExchange("/customers/customers/joint")
-    CreateIndividualCustomerResponse createJointCustomer(@RequestBody CreateJointCustomerRequest request);
+    MiddlewareResponse<CreateIndividualCustomerResponse> createJointCustomer(@RequestBody CreateJointCustomerRequest request);
 
     @PostExchange("/customers/customers/minor")
-    CreateIndividualCustomerResponse createMinorCustomer(@RequestBody CreateMinorCustomerRequest request);
+    MiddlewareResponse<CreateIndividualCustomerResponse> createMinorCustomer(@RequestBody CreateMinorCustomerRequest request);
 
     @GetExchange("/customers/customers/{customerId}/details")
     MiddlewareCustomerResponse getCustomerDetails(@PathVariable String customerId);
@@ -150,4 +150,7 @@ public interface MiddleWareClient {
 
     @PostExchange("/customers/customers/minors/upgrade")
     MiddlewareBaseApiResponse upgradeMinor(@RequestBody MinorUpgradeRequest request);
+
+    @GetExchange("/{customerId}")
+    MiddlewareAppResponse<MiddlewareWalletAccountResponse> getWallets(@PathVariable String customerId);
 }

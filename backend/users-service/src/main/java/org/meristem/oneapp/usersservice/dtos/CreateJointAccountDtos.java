@@ -14,9 +14,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Data
 public class CreateJointAccountDtos implements Serializable {
-    private String accountName;
     private MandateType mandateType;
-    private OperationType operationType;
     private IdQueryDetailsDto primary;
     private IdQueryDetailsDto secondary;
 }
