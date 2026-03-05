@@ -192,7 +192,8 @@ public class UsersService implements IUsersService {
                 Long userId = usersRepository.findIdByEmailOrPhoneNumber(request.recipient(), request.recipient());
                 userProfileRepository.updateEmailVerified(userId, true);
             } else if (request.otpType().equals(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode())) {
-                validateAndMarkEmailAsVerifiedExisting(request.recipient());
+                String email = validateAndMarkEmailAsVerifiedExisting(request.recipient());
+                return UpdateResponse.builder().success(true).message(email).build();
             } else {
                 throw new BadRequestException("Only one of these codes are allowed " +
                         allowedOtpTypes);
@@ -299,6 +300,7 @@ public class UsersService implements IUsersService {
         }
         Users user = usersMapper.coreBvnQueryResponseToUser(bvnQueryResponse);
 
+        user.setAccountType(AccountType.INDIVIDUAL.getValue());
         user.setMiddlewareCustomerId(bvnQueryResponse.getCustomerId());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setAccountType(AccountType.fromString(bvnQueryResponse.getCustomerType()).getValue());
@@ -340,6 +342,11 @@ public class UsersService implements IUsersService {
         user.setPassword(passwordEncoder.encode(request.password()));
         usersRepository.save(user);
         return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    @Override
+    public UpdateResponse queryExistingUser(QueryExistingUserRequest request) {
+        return existingCustomer(request, middleWareClient, usersRepository, cacheManager, otpService, idCardRepository, hashingUtil, idHashKey);
     }
 
     // TODO: DO BVN ID QUERY ON KYC AND SAVE TO USER ID TABLE
@@ -1231,7 +1238,7 @@ public class UsersService implements IUsersService {
         kafkaSenderService.send(new OtpVerifiedDto(userId), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, userId));
     }
 
-    private void validateAndMarkEmailAsVerifiedExisting(String recipient) {
+    private String validateAndMarkEmailAsVerifiedExisting(String recipient) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
         MiddlewareCustomerResponse.CustomerData data = cache.get(recipient, MiddlewareCustomerResponse.CustomerData.class);
@@ -1239,8 +1246,9 @@ public class UsersService implements IUsersService {
             throw new AccessDeniedException("Process failed.");
         }
         data.setEmailVerified(true);
-        cache.put(recipient, data);
+        cache.put(data.getEmailAddress(), data);
         kafkaSenderService.send(new OtpVerifiedDto(recipient), Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_OTP_VERIFIED_TOPIC, KafkaHeaders.KEY, recipient));
+        return data.getEmailAddress();
     }
 
     private void checkEmailOrPhoneDoesNotExist(String email, String phoneNumber) {
@@ -1248,5 +1256,35 @@ public class UsersService implements IUsersService {
         if (usersRepository.existsByEmailOrPhoneNumber(email, phoneNumber)) {
             throw new BadRequestException("Email or Phone number already exists " + email + " - " + phoneNumber);
         }
+    }
+
+    private static UpdateResponse existingCustomer(QueryExistingUserRequest request, MiddleWareClient middleWareClient, UsersRepository usersRepository, CacheManager cacheManager, OtpService otpService, IdCardRepository idCardRepository, HashingUtil hashingUtil, String idHashKey) {
+
+
+        MiddlewareResponse<MiddlewareCustomerResponse> middleWareResponse = middleWareClient.getCustomerByBvn(request.idNumber());
+        if (nonNull(middleWareResponse.success()) &&  !middleWareResponse.success()) {
+            return UpdateResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
+        }
+        MiddlewareCustomerResponse middleWareResponseData = middleWareResponse.data();
+        if (!middleWareResponseData.data().isEmpty()) {
+            middleWareResponseData.data().stream().findFirst().ifPresent(r -> {
+                // TODO: Reconcile existing account on core with one on this platform
+                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
+                    throw new BadRequestException("Email or Phone number already exists.");
+                }
+                if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()))) {
+                    throw new BadRequestException("You can't continue with this BVN.");
+                }
+                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME));
+                cache.put(r.getBankBvn(), r);
+                if (org.apache.commons.lang3.StringUtils.isNotBlank(r.getBankBvn())) {
+
+                    SendOtpRequest sendOtpRequest = SendOtpRequest.builder().otpType(MessageSubject.EXISTING_EMAIL_VERIFICATION.getCode()).recipient(r.getEmailAddress()).messageMedium(MessageMedium.EMAIL.getValue()).build();
+                    otpService.sendOtp(sendOtpRequest, request.idNumber());
+                }
+            });
+            return UpdateResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
+        }
+        return UpdateResponse.builder().success(true).message("If customer with the bvn exists, you will receive an otp in the email linked to it").build();
     }
 }

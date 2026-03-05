@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.kafka.dtos.MessageDto;
 import org.meristem.oneapp.kafka.dtos.OtpDto;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
@@ -59,7 +60,8 @@ public class OtpService implements IOtpService {
      * @throws BadRequestException if the recipient format is invalid or OTP type is invalid
      */
     @Transactional
-    public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
+    @Override
+    public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest, String cacheKey) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error creating otp");
         MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest.messageMedium(), sendOtpRequest.recipient());
@@ -75,7 +77,7 @@ public class OtpService implements IOtpService {
             messageMedium = validateAndGetMessageMedium(MessageMedium.SMS.getValue(), sendOtpRequest.recipient());
         }
 
-        OtpVerificationDto otpVerificationDto = generateOtpVerificationDto(sendOtpRequest, expiresAt, cache);
+        OtpVerificationDto otpVerificationDto = generateOtpVerificationDto(sendOtpRequest, expiresAt, cache, cacheKey);
 
         OtpDto otpDto = OtpDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
                 .code(String.valueOf(otpVerificationDto.getCode()))
@@ -100,6 +102,12 @@ public class OtpService implements IOtpService {
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
                 .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerificationDto.getExpiresAt()))
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
+        return sendOtp(sendOtpRequest, null);
     }
 
     /**
@@ -138,10 +146,13 @@ public class OtpService implements IOtpService {
      * @throws ResourceNotFoundException if the OTP is not found
      */
     @Transactional
-    public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
+    @Override
+    public VerifyOtpResponse verifyOtp(VerifyOtpRequest request, String cacheKey) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error getting otp");
-        String cacheKey = request.recipient().concat(request.otpType().toString());
+        cacheKey = StringUtils.isNotBlank(cacheKey) ? cacheKey : request.recipient();
+
+        cacheKey = cacheKey.concat(request.otpType().toString());
         OtpVerificationDto otpVerificationDto = cache.get(cacheKey, OtpVerificationDto.class);
 
         if (isNull(otpVerificationDto)) {
@@ -170,14 +181,20 @@ public class OtpService implements IOtpService {
         return VerifyOtpResponse.builder().status(true).message("OTP verified").build();
     }
 
-    public static OtpVerificationDto generateOtpVerificationDto(SendOtpRequest sendOtpRequest, LocalDateTime expiresAt, Cache cache) {
+    @Override
+    public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
+        return verifyOtp(request, null);
+    }
+
+    public static OtpVerificationDto generateOtpVerificationDto(SendOtpRequest sendOtpRequest, LocalDateTime expiresAt, Cache cache, String cacheKey) {
         int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
 
         OtpVerificationDto otpVerificationDto = OtpVerificationDto.builder()
                 .userId(sendOtpRequest.recipient()).expiresAt(expiresAt)
                 .otpType(sendOtpRequest.otpType()).code(code).build();
 
-        cache.put(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
+        cacheKey = StringUtils.isNotBlank(cacheKey) ? cacheKey : sendOtpRequest.recipient();
+        cache.put(cacheKey.concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
         return otpVerificationDto;
     }
 }

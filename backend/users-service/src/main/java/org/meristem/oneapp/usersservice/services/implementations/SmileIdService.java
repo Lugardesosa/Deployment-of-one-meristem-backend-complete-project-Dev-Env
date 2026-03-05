@@ -78,10 +78,6 @@ public class SmileIdService implements IKycService {
     private final SmileIdProperties smileIdProperties;
     private final AmlVendorRepository amlVendorRepository;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
-    private final MiddleWareClient middleWareClient;
-    private final OtpService otpService;
-    private final ObjectMapper objectMapper;
-    private final OutboxEventRepository outboxEventRepository;
     @Value("${one-app.users-service.smile-id.server-ips}")
     private List<String> smileIps;
 
@@ -118,14 +114,6 @@ public class SmileIdService implements IKycService {
     public BvnQueryResponse bvnQuery(IdQueryRequest request) {
         if (IdCardType.BVN.compareTo(IdCardType.fromName(request.idType())) != 0) {
             throw new BadRequestException("Only BVN can be validated.");
-        }
-
-        try {
-            BvnQueryResponse bvnResponse = existingCustomer(request, middleWareClient, usersRepository, cacheManager, otpService, idCardRepository, hashingUtil, idHashKey, objectMapper, outboxEventRepository);
-            if (bvnResponse != null && bvnResponse.isSuccess()) {
-                return bvnResponse;
-            }
-        } catch (RuntimeException ignore) {
         }
 
         SmileIdWebhookNotification response = getSmileIdWebhookNotification(request, IdCardType.BVN);
