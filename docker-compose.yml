@@ -297,12 +297,12 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTEES_CLIENT_ID=trustees-service
       - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
-      - MAIL_SENDER=no-reply@onemeristem.meristemng.com
+      - MAIL_SENDER=hello@wealthbuddy.ng
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - MAIL_SENDER_NAME=One Meristem
-      - MAILER_PORT=2525
+      - MAILER_PORT=587
       - EXPO_URL=https://exp.host/--/api/v2 
       - EXPO_PUSH_TOKEN=${EXPO_PUSH_TOKEN}
       - ENC_SALT=${ENC_SALT}
