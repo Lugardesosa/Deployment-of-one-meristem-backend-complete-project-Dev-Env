@@ -108,6 +108,20 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.getJointAccountDetails(), HttpStatus.OK.toString(), "Successful.");
     }
 
+    @Operation(summary = "Get a user's joint account details response.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get a user's joint account details response.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = JointAccountDetailsResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @PostMapping(value = "/query-existing", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> queryExistingUser(@RequestBody @Valid QueryExistingUserRequest request) {
+        return ApiUtil.buildResponse(usersService.queryExistingUser(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
     @Operation(summary = "Get users investment instrument")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get users investment instrument")
