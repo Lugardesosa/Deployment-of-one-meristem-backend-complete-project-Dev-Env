@@ -57,7 +57,7 @@ public class IntegrationConfig {
 
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder.clone()
                         .baseUrl(middleWareConfigProperties.baseUrl())
-//                        .defaultStatusHandler(errorHandlerMiddleware())
+                        .defaultStatusHandler(errorHandlerMiddleware())
                         .defaultHeaders(c -> {
                             c.set(oneAppProperties.defaultHeaderName(), middleWareConfigProperties.clientName());
                             c.set("X-API-KEY", middleWareConfigProperties.apiKey());
@@ -70,7 +70,7 @@ public class IntegrationConfig {
         return HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClientBuilder.clone()
                         .baseUrl(dojahProperties.baseUrl())
-                                .defaultStatusHandler(errorHandler())
+                        .defaultStatusHandler(errorHandler())
                         .defaultHeaders(h -> {
                             h.set(oneAppProperties.defaultHeaderName(), dojahProperties.clientName());
                             h.set("AppId", dojahProperties.appId());
@@ -93,8 +93,11 @@ public class IntegrationConfig {
 
                 if (status.value() == 404) {
                 } else if (status.is4xxClientError()) {
+                    throw new BadRequestException("Check your request. Response message: " + response.getStatusText());
                 } else if (status.is5xxServerError()) {
+                    throw new UpstreamServiceException("Upstream Server error. Response message: " + response.getStatusText());
                 } else {
+                    throw new RuntimeException("Unexpected error. Response message: " + response.getStatusText());
                 }
             }
         };

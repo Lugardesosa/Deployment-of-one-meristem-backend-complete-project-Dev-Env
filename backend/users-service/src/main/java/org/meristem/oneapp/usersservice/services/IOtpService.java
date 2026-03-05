@@ -20,6 +20,7 @@ public interface IOtpService {
      * @param sendOtpRequest the request containing recipient details and OTP type
      * @return a {@link SendOtpResponse} containing the OTP expiration time and recipient details
      */
+    SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest, String cacheKey);
     SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest);
 
     /**
@@ -28,5 +29,6 @@ public interface IOtpService {
      * @param request the request containing OTP details and recipient information
      * @return a {@link VerifyOtpResponse} indicating the verification status
      */
+    VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest request, String cacheKey);
     VerifyOtpResponse verifyOtp(@Valid VerifyOtpRequest request);
 }

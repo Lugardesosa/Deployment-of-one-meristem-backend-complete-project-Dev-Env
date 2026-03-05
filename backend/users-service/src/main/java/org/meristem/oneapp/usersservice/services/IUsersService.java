@@ -252,4 +252,5 @@ public interface IUsersService {
         };
     }
 
+    UpdateResponse queryExistingUser(@Valid QueryExistingUserRequest request);
 }
