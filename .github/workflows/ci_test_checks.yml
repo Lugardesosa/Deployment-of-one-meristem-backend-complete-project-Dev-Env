@@ -1,6 +1,7 @@
-# =====================================================-------
+# =====================================================
 # GitHub Actions Workflow: CI - Pull Request Check to dev_env
-# =====================================================-------
+# One Meristem Backend Service (Java 21 / Java 25 - Spring Boot)
+# =====================================================
 
 name: CI - PR Check
 
@@ -13,36 +14,136 @@ env:
   REPO_NAME: mit-meristem/one_meristem_app  
   SERVICES_DIR: backend
 
+  # =====================================================
+  # SERVICE JAVA VERSION MAPPING based on Java Versions
+  # =====================================================
+  # Java 21 Services (LTS)
+  JAVA_21_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service"
+  # Java 25 Services (Latest)
+  JAVA_25_SERVICES: "wealth-services"
+
+
 jobs:
-  build:
-    name: Detect and Build Changed Microservices
+  # =====================================================
+  # JOB 1: Detect Changed Services
+  # =====================================================
+  detect_changes:
+    name: Detect Changed Microservices
     runs-on: self-hosted
     outputs:
       changed_services: ${{ steps.check_change.outputs.changed_services }}
+      changed_java21: ${{ steps.check_change.outputs.changed_java21 }}
+      changed_java25: ${{ steps.check_change.outputs.changed_java25 }}
+      has_java21_changes: ${{ steps.check_change.outputs.has_java21_changes }}
+      has_java25_changes: ${{ steps.check_change.outputs.has_java25_changes }}
+      has_changes: ${{ steps.check_change.outputs.has_changes }}
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.1.0
-        with: 
-          fetch-depth: 2
-
       - name: Detect Changed Microservices
         id: check_change
         run: |
           git fetch origin dev_env
-          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|core-service|report-service|meriapp-config|platform|trustees-service|wealth-services)/" | cut -d'/' -f2 | sort -u | xargs)
-          echo "Changed services: $CHANGED"
-          if [ -z "$CHANGED" ]; then
+
+          # Get all changed files
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          echo ""
+
+          # Detect all changed services
+          CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
+            | grep -E "^${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|meriapp-config|platform|trustees-service|wealth-services)/" \
+            | cut -d'/' -f2 | sort -u | xargs || true)
+          echo "All Changed Services: $CHANGED_SERVICES"
+
+          # Java version service lists
+          JAVA_21_SERVICES="${{ env.JAVA_21_SERVICES }}"
+          JAVA_25_SERVICES="${{ env.JAVA_25_SERVICES }}"
+
+          # Separate changed services by Java version
+          CHANGED_JAVA21=""
+          CHANGED_JAVA25=""
+
+          for svc in $CHANGED_SERVICES; do
+            if echo "$JAVA_21_SERVICES" | grep -qw "$svc"; then
+              CHANGED_JAVA21="$CHANGED_JAVA21 $svc"
+            elif echo "$JAVA_25_SERVICES" | grep -qw "$svc"; then
+              CHANGED_JAVA25="$CHANGED_JAVA25 $svc"
+            else
+              # Default to Java 21 if not specified
+              CHANGED_JAVA21="$CHANGED_JAVA21 $svc"
+            fi
+          done
+
+          # Trim whitespace
+          CHANGED_JAVA21=$(echo "$CHANGED_JAVA21" | xargs)
+          CHANGED_JAVA25=$(echo "$CHANGED_JAVA25" | xargs)
+
+          echo "Java 21 Services Changed: $CHANGED_JAVA21"
+          echo "Java 25 Services Changed: $CHANGED_JAVA25"
+
+          # Set outputs for all services
+          if [ -z "$CHANGED_SERVICES" ]; then
             echo "changed_services=none" >> "$GITHUB_OUTPUT"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
-            echo "changed_services=$CHANGED" >> "$GITHUB_OUTPUT"
+            echo "changed_services=$CHANGED_SERVICES" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
-  test:
-    name: Java Static Code Analysis
+          # Set outputs for Java 21
+          if [ -z "$CHANGED_JAVA21" ]; then
+            echo "changed_java21=none" >> "$GITHUB_OUTPUT"
+            echo "has_java21_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_java21=$CHANGED_JAVA21" >> "$GITHUB_OUTPUT"
+            echo "has_java21_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Set outputs for Java 25
+          if [ -z "$CHANGED_JAVA25" ]; then
+            echo "changed_java25=none" >> "$GITHUB_OUTPUT"
+            echo "has_java25_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_java25=$CHANGED_JAVA25" >> "$GITHUB_OUTPUT"
+            echo "has_java25_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ============== Output Job Summary ==============
+      - name: Output Job Summary
+        run: |
+          echo "## Changed Services Detection" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Java 21 Section
+          echo "### Java 21 Services" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_change.outputs.changed_java21 }}" == "none" ]; then
+            echo "No changes detected in Java 21 services." >> $GITHUB_STEP_SUMMARY
+          else
+            for svc in ${{ steps.check_change.outputs.changed_java21 }}; do
+              echo "- \`$svc\`" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Java 25 Section
+          echo "### Java 25 Services" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_change.outputs.changed_java25 }}" == "none" ]; then
+            echo "No changes detected in Java 25 services." >> $GITHUB_STEP_SUMMARY
+          else
+            for svc in ${{ steps.check_change.outputs.changed_java25 }}; do
+              echo "- \`$svc\`" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+
+  # =====================================================
+  # JOB 2: Test Java 21 Services
+  # =====================================================
+  test_java21:
+    name: Test Java 21 Services
     runs-on: self-hosted
-    needs: build
-    if: needs.build.outputs.changed_services != 'none'
+    needs: detect_changes
+    if: needs.detect_changes.outputs.has_java21_changes == 'true'
 
     steps:
       - name: Checkout Code
@@ -53,17 +154,364 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'maven'
 
-      - name: Run Checkstyle
+      - name: Verify Java Installation
         run: |
-          cd ${{ env.SERVICES_DIR }}
-          for svc in ${{ needs.build.outputs.changed_services }}; do
-            echo "Running Checkstyle for $svc"
-            cd "$svc" || continue
-            if [ -f pom.xml ]; then
-              mvn checkstyle:check -B
+          java -version
+          mvn -version
+
+      - name: Build and Test Changed Java 21 Services
+        id: build_test
+        run: |
+          BUILD_RESULTS=""
+          TEST_RESULTS=""
+          CHECKSTYLE_RESULTS=""
+          FAILED_BUILDS=""
+          FAILED_TESTS=""
+          FAILED_CHECKSTYLE=""
+
+          for svc in ${{ needs.detect_changes.outputs.changed_java21 }}; do
+            echo "========================================"
+            echo " Processing Java 21 Service: $svc"
+            echo "========================================"
+            
+            SERVICE_PATH="${{ env.SERVICES_DIR }}/$svc"
+            
+            if [ -d "$SERVICE_PATH" ]; then
+              cd "$SERVICE_PATH"
+              
+              if [ -f "pom.xml" ]; then
+                echo "Found pom.xml in $svc"
+                
+                # -------- BUILD --------
+                echo "Building $svc..."
+                if mvn clean compile -B -q 2>&1; then
+                  echo "Build successful: $svc"
+                  BUILD_RESULTS="${BUILD_RESULTS} $svc|"
+                else
+                  echo " Build failed: $svc"
+                  BUILD_RESULTS="${BUILD_RESULTS} $svc|"
+                  FAILED_BUILDS="$FAILED_BUILDS $svc"
+                fi
+                
+                # -------- UNIT TESTS --------
+                echo " Running tests for $svc..."
+                if mvn test -B -q 2>&1; then
+                  echo " Tests passed: $svc"
+                  TEST_RESULTS="${TEST_RESULTS} $svc|"
+                else
+                  echo " Tests failed: $svc"
+                  TEST_RESULTS="${TEST_RESULTS} $svc|"
+                  FAILED_TESTS="$FAILED_TESTS $svc"
+                fi
+                
+                # -------- CHECKSTYLE --------
+                echo " Running Checkstyle for $svc..."
+                if mvn checkstyle:check -B -q 2>&1; then
+                  echo " Checkstyle passed: $svc"
+                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc|"
+                else
+                  echo " Checkstyle issues: $svc"
+                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc|"
+                  FAILED_CHECKSTYLE="$FAILED_CHECKSTYLE $svc"
+                fi
+                
+              else
+                echo " No pom.xml found in $svc"
+                BUILD_RESULTS="${BUILD_RESULTS} $svc (no pom.xml)|"
+                TEST_RESULTS="${TEST_RESULTS} $svc (no pom.xml)|"
+                CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc (no pom.xml)|"
+              fi
+              
+              cd - > /dev/null
             else
-              echo "No pom.xml found in $svc"
+              echo " Directory not found: $SERVICE_PATH"
             fi
-            cd ..
+            
+            echo ""
           done
+
+          # Set outputs
+          echo "build_results=$BUILD_RESULTS" >> "$GITHUB_OUTPUT"
+          echo "test_results=$TEST_RESULTS" >> "$GITHUB_OUTPUT"
+          echo "checkstyle_results=$CHECKSTYLE_RESULTS" >> "$GITHUB_OUTPUT"
+          echo "failed_builds=$FAILED_BUILDS" >> "$GITHUB_OUTPUT"
+          echo "failed_tests=$FAILED_TESTS" >> "$GITHUB_OUTPUT"
+          echo "failed_checkstyle=$FAILED_CHECKSTYLE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Java 21 Test Summary
+        if: always()
+        run: |
+          echo "## Java 21 Services - Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Changed Services:** \`${{ needs.detect_changes.outputs.changed_java21 }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Build Results Table
+          echo "### Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          IFS='|' read -ra BUILD_ITEMS <<< "${{ steps.build_test.outputs.build_results }}"
+          for item in "${BUILD_ITEMS[@]}"; do
+            if [ -n "$item" ]; then
+              echo "| $item |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Test Results Table
+          echo "### Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          IFS='|' read -ra TEST_ITEMS <<< "${{ steps.build_test.outputs.test_results }}"
+          for item in "${TEST_ITEMS[@]}"; do
+            if [ -n "$item" ]; then
+              echo "| $item |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Checkstyle Results Table
+          echo "### Checkstyle Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          IFS='|' read -ra CHECKSTYLE_ITEMS <<< "${{ steps.build_test.outputs.checkstyle_results }}"
+          for item in "${CHECKSTYLE_ITEMS[@]}"; do
+            if [ -n "$item" ]; then
+              echo "| $item |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          
+          # Failed sections
+          if [ -n "${{ steps.build_test.outputs.failed_builds }}" ]; then
+            echo "### Failed Builds" >> $GITHUB_STEP_SUMMARY
+            echo "Services: \`${{ steps.build_test.outputs.failed_builds }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "${{ steps.build_test.outputs.failed_tests }}" ]; then
+            echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+            echo "Services: \`${{ steps.build_test.outputs.failed_tests }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "${{ steps.build_test.outputs.failed_checkstyle }}" ]; then
+            echo "### Checkstyle Issues" >> $GITHUB_STEP_SUMMARY
+            echo "Services: \`${{ steps.build_test.outputs.failed_checkstyle }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**To fix checkstyle issues locally:**" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "cd backend/<service-name>" >> $GITHUB_STEP_SUMMARY
+            echo "mvn checkstyle:checkstyle" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -z "${{ steps.build_test.outputs.failed_builds }}" ] && [ -z "${{ steps.build_test.outputs.failed_tests }}" ]; then
+            echo "### All Java 21 Checks Passed!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if Build or Test Errors
+        if: steps.build_test.outputs.failed_builds != '' || steps.build_test.outputs.failed_tests != ''
+        run: |
+          echo " CI Failed for Java 21 Services"
+          if [ -n "${{ steps.build_test.outputs.failed_builds }}" ]; then
+            echo "Failed Builds: ${{ steps.build_test.outputs.failed_builds }}"
+          fi
+          if [ -n "${{ steps.build_test.outputs.failed_tests }}" ]; then
+            echo "Failed Tests: ${{ steps.build_test.outputs.failed_tests }}"
+          fi
+          exit 1
+
+  # =====================================================
+  # JOB 3: Test Java 25 Services
+  # =====================================================
+  test_java25:
+    name: Test Java 25 Services
+    runs-on: self-hosted
+    needs: detect_changes
+    if: needs.detect_changes.outputs.has_java25_changes == 'true'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25-ea'
+          cache: 'maven'
+
+      - name: Verify Java Installation
+        run: |
+          java -version
+          mvn -version
+
+      - name: Build and Test Changed Java 25 Services
+        id: build_test
+        run: |
+          BUILD_RESULTS=""
+          TEST_RESULTS=""
+          CHECKSTYLE_RESULTS=""
+          FAILED_BUILDS=""
+          FAILED_TESTS=""
+          FAILED_CHECKSTYLE=""
+
+          for svc in ${{ needs.detect_changes.outputs.changed_java25 }}; do
+            echo "========================================"
+            echo "☕ Processing Java 25 Service: $svc"
+            echo "========================================"
+            
+            SERVICE_PATH="${{ env.SERVICES_DIR }}/$svc"
+            
+            if [ -d "$SERVICE_PATH" ]; then
+              cd "$SERVICE_PATH"
+              
+              if [ -f "pom.xml" ]; then
+                echo "Found pom.xml in $svc"
+                
+                # -------- BUILD --------
+                echo " Building $svc..."
+                if mvn clean compile -B -q 2>&1; then
+                  echo " Build successful: $svc"
+                  BUILD_RESULTS="${BUILD_RESULTS} $svc|"
+                else
+                  echo " Build failed: $svc"
+                  BUILD_RESULTS="${BUILD_RESULTS} $svc|"
+                  FAILED_BUILDS="$FAILED_BUILDS $svc"
+                fi
+                
+                # -------- UNIT TESTS --------
+                echo " Running tests for $svc..."
+                if mvn test -B -q 2>&1; then
+                  echo " Tests passed: $svc"
+                  TEST_RESULTS="${TEST_RESULTS} $svc|"
+                else
+                  echo " Tests failed: $svc"
+                  TEST_RESULTS="${TEST_RESULTS} $svc|"
+                  FAILED_TESTS="$FAILED_TESTS $svc"
+                fi
+                
+                # -------- CHECKSTYLE --------
+                echo " Running Checkstyle for $svc..."
+                if mvn checkstyle:check -B -q 2>&1; then
+                  echo " Checkstyle passed: $svc"
+                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc|"
+                else
+                  echo " Checkstyle issues: $svc"
+                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc|"
+                  FAILED_CHECKSTYLE="$FAILED_CHECKSTYLE $svc"
+                fi
+                
+              else
+                echo " No pom.xml found in $svc"
+                BUILD_RESULTS="${BUILD_RESULTS} $svc (no pom.xml)|"
+                TEST_RESULTS="${TEST_RESULTS} $svc (no pom.xml)|"
+                CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc (no pom.xml)|"
+              fi
+              
+              cd - > /dev/null
+            else
+              echo " Directory not found: $SERVICE_PATH"
+            fi
+            
+            echo ""
+          done
+
+          # Set outputs
+          echo "build_results=$BUILD_RESULTS" >> "$GITHUB_OUTPUT"
+          echo "test_results=$TEST_RESULTS" >> "$GITHUB_OUTPUT"
+          echo "checkstyle_results=$CHECKSTYLE_RESULTS" >> "$GITHUB_OUTPUT"
+          echo "failed_builds=$FAILED_BUILDS" >> "$GITHUB_OUTPUT"
+          echo "failed_tests=$FAILED_TESTS" >> "$GITHUB_OUTPUT"
+          echo "failed_checkstyle=$FAILED_CHECKSTYLE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Java 25 Test Summary
+        if: always()
+        run: |
+          echo "## ☕ Java 25 Services - Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Changed Services:** \`${{ needs.detect_changes.outputs.changed_java25 }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Build Results Table
+          echo "### Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          IFS='|' read -ra BUILD_ITEMS <<< "${{ steps.build_test.outputs.build_results }}"
+          for item in "${BUILD_ITEMS[@]}"; do
+            if [ -n "$item" ]; then
+              echo "| $item |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Test Results Table
+          echo "### Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          IFS='|' read -ra TEST_ITEMS <<< "${{ steps.build_test.outputs.test_results }}"
+          for item in "${TEST_ITEMS[@]}"; do
+            if [ -n "$item" ]; then
+              echo "| $item |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Checkstyle Results Table
+          echo "### Checkstyle Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          IFS='|' read -ra CHECKSTYLE_ITEMS <<< "${{ steps.build_test.outputs.checkstyle_results }}"
+          for item in "${CHECKSTYLE_ITEMS[@]}"; do
+            if [ -n "$item" ]; then
+              echo "| $item |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          
+          # Failed sections
+          if [ -n "${{ steps.build_test.outputs.failed_builds }}" ]; then
+            echo "### Failed Builds" >> $GITHUB_STEP_SUMMARY
+            echo "Services: \`${{ steps.build_test.outputs.failed_builds }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "${{ steps.build_test.outputs.failed_tests }}" ]; then
+            echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+            echo "Services: \`${{ steps.build_test.outputs.failed_tests }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "${{ steps.build_test.outputs.failed_checkstyle }}" ]; then
+            echo "### Checkstyle Issues" >> $GITHUB_STEP_SUMMARY
+            echo "Services: \`${{ steps.build_test.outputs.failed_checkstyle }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**To fix checkstyle issues locally:**" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "cd backend/<service-name>" >> $GITHUB_STEP_SUMMARY
+            echo "mvn checkstyle:checkstyle" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -z "${{ steps.build_test.outputs.failed_builds }}" ] && [ -z "${{ steps.build_test.outputs.failed_tests }}" ]; then
+            echo "### All Java 25 Checks Passed!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if Build or Test Errors
+        if: steps.build_test.outputs.failed_builds != '' || steps.build_test.outputs.failed_tests != ''
+        run: |
+          echo "" CI Failed for Java 25 Services"
+          if [ -n "${{ steps.build_test.outputs.failed_builds }}" ]; then
+            echo "Failed Builds: ${{ steps.build_test.outputs.failed_builds }}"
+          fi
+          if [ -n "${{ steps.build_test.outputs.failed_tests }}" ]; then
+            echo "Failed Tests: ${{ steps.build_test.outputs.failed_tests }}"
+          fi
+          exit 1
