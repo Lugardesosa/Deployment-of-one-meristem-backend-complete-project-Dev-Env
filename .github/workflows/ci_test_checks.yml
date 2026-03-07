@@ -212,26 +212,31 @@ jobs:
                 fi
                 
                 # -------- CHECKSTYLE --------
-                echo " Running Checkstyle for $svc..."
-                if mvn checkstyle:check -B -q 2>&1; then
-                  echo " Checkstyle passed: $svc"
-                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc|"
+                echo "Running Checkstyle for $svc..."
+                if grep -q "maven-checkstyle-plugin" pom.xml 2>/dev/null; then
+                  if mvn checkstyle:check -B -q 2>&1; then
+                    echo "Checkstyle passed: $svc"
+                    CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS}PASSED $svc|"
+                  else
+                    echo "Checkstyle issues: $svc"
+                    CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS}WARNING $svc|"
+                    FAILED_CHECKSTYLE="$FAILED_CHECKSTYLE $svc"
+                  fi
                 else
-                  echo " Checkstyle issues: $svc"
-                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc|"
-                  FAILED_CHECKSTYLE="$FAILED_CHECKSTYLE $svc"
+                  echo "Checkstyle not configured in $svc, skipping..."
+                  CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS}SKIPPED $svc (not configured)|"
                 fi
                 
               else
-                echo " No pom.xml found in $svc"
-                BUILD_RESULTS="${BUILD_RESULTS} $svc (no pom.xml)|"
-                TEST_RESULTS="${TEST_RESULTS} $svc (no pom.xml)|"
-                CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS} $svc (no pom.xml)|"
+                echo "No pom.xml found in $svc"
+                BUILD_RESULTS="${BUILD_RESULTS}SKIPPED $svc (no pom.xml)|"
+                TEST_RESULTS="${TEST_RESULTS}SKIPPED $svc (no pom.xml)|"
+                CHECKSTYLE_RESULTS="${CHECKSTYLE_RESULTS}SKIPPED $svc (no pom.xml)|"
               fi
               
               cd - > /dev/null
             else
-              echo " Directory not found: $SERVICE_PATH"
+              echo "Directory not found: $SERVICE_PATH"
             fi
             
             echo ""
