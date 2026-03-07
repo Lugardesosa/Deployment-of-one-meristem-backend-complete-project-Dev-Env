@@ -57,7 +57,7 @@ jobs:
 
           # Detect all changed services
           CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
-            | grep -E "^${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|meriapp-config|platform|trustees-service|wealth-services)/" \
+            | grep -E "^${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|meriapp-config|platform|wealth-service)/" \
             | cut -d'/' -f2 | sort -u | xargs || true)
           echo "All Changed Services: $CHANGED_SERVICES"
 
