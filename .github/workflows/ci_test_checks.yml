@@ -20,7 +20,7 @@ env:
   # Java 21 Services (LTS)
   JAVA_21_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service"
   # Java 25 Services (Latest)
-  JAVA_25_SERVICES: "wealth-services"
+  JAVA_25_SERVICES: "wealth-service"
 
 
 jobs:
