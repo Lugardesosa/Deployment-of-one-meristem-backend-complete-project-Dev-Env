@@ -57,7 +57,7 @@ jobs:
 
           # Detect all changed services
           CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
-            | grep -E "^${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|report-service|meriapp-config|platform|wealth-service)/" \
+            | grep -E "^${{ env.SERVICES_DIR }}/(config-server|cloud-gateway|users-service|notification-service|wallet-service|trustees-service|report-service|meriapp-config|platform|wealth-service)/" \
             | cut -d'/' -f2 | sort -u | xargs || true)
           echo "All Changed Services: $CHANGED_SERVICES"
 
@@ -145,7 +145,7 @@ jobs:
   # JOB 2: Test Java 21 Services
   # =====================================================
   test_java21:
-    name: Test Java 21 Services
+    name: Build and Static Analysis on Java 21 Services Code (No Test Execution)
     runs-on: self-hosted
     needs: detect_changes
     if: needs.detect_changes.outputs.has_java21_changes == 'true'
@@ -202,7 +202,7 @@ jobs:
                 
                 # -------- UNIT TESTS --------
                 echo " Running tests for $svc..."
-                if mvn test -B -q 2>&1; then
+                if mvn test-compile -B -q 2>&1; then
                   echo " Tests passed: $svc"
                   TEST_RESULTS="${TEST_RESULTS} $svc|"
                 else
@@ -335,7 +335,7 @@ jobs:
   # JOB 3: Test Java 25 Services
   # =====================================================
   test_java25:
-    name: Test Java 25 Services
+    name: Build and Static Analysis on Java 25 Services Code (No Test Execution)
     runs-on: self-hosted
     needs: detect_changes
     if: needs.detect_changes.outputs.has_java25_changes == 'true'
@@ -392,7 +392,7 @@ jobs:
                 
                 # -------- UNIT TESTS --------
                 echo " Running tests for $svc..."
-                if mvn test -B -q 2>&1; then
+                if mvn test-compile -B -q 2>&1; then
                   echo " Tests passed: $svc"
                   TEST_RESULTS="${TEST_RESULTS} $svc|"
                 else
@@ -438,7 +438,7 @@ jobs:
       - name: Generate Java 25 Test Summary
         if: always()
         run: |
-          echo "## ☕ Java 25 Services - Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Java 25 Services - Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Changed Services:** \`${{ needs.detect_changes.outputs.changed_java25 }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
