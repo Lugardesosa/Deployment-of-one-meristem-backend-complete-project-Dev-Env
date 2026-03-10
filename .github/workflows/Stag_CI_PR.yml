@@ -14,45 +14,119 @@ on:
       - "backend/**"
       - "charts/**"
       - "scripts/**"
+      - "argocd/**"
       #- ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
 
 env:
-  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }} #The name of the app namespace
-  ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+  # =====================================================
+  # SERVICE DEFINITIONS
+  # =====================================================
+  SERVICES_DIR: backend
+  JAVA_21_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service"
+  JAVA_25_SERVICES: "wealth-service"
+  ALL_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service wealth-service"
+
+  # =====================================================
+  # GITHUB VARIABLES
+  # =====================================================
+  GIT_REPO_URL: ${{ vars.GIT_REPO_URL }}
   GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+  APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+  ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+  ARGOCD_SERVER: ${{ vars.ARGOCD_SERVER }}
   HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
   HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
-  APP_NAME: ${{ vars.APP_NAME }}
-  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
-  CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
+  VALUES_FILE: ${{ vars.VALUES_FILE }}
+  
+  # ArgoCD App Names
   CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
-  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
-  CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
   NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
   WALLET_SERVICE_APP_NAME: ${{ vars.WALLET_SERVICE_APP_NAME }}
   REPORT_SERVICE_APP_NAME: ${{ vars.REPORT_SERVICE_APP_NAME }}
   USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
   TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
-  VALUES_FILE: ${{ vars.VALUES_FILE }}
+  WEALTH_SERVICE_APP_NAME: ${{ vars.WEALTH_SERVICE_APP_NAME }}
+  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
+  WEB_APP_APP_NAME: ${{ vars.WEB_APP_APP_NAME }}
+  ADMIN_APP_APP_NAME: ${{ vars.ADMIN_APP_APP_NAME }}
+  #CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
+
+  #Others
+  APP_NAME: ${{ vars.APP_NAME }}
+  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
   GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
-  MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
-  ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
-  MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
-  ARGO_ELB_ID: ${{ vars.ARGO_ELB_ID }}
-  MOBILE_ELB_IP: ${{ vars.MOBILE_ELB_IP }}
-  ARGO_ELB_IP: ${{ vars.ARGO_ELB_IP }}
-  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
   ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
   STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
   BRANCH_ENV: ${{ vars.BRANCH_ENV }} #<---- To represent the helm values.yaml used via branch  
   HUAWEI_ENTERPRISE_PROJECT_ID: ${{ vars.HUAWEI_ENTERPRISE_PROJECT_ID }}
-  
-  # Stored Secrets in Github Secrets
+  REPO_NAME: ${{ vars.REPO_NAME }}
+
+
+  # =====================================================
+  # GITHUB SECRETS — SWR & Cluster
+  # =====================================================
   SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
   HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
   HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
   SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
   SWR_REGION: ${{ secrets.SWR_REGION }}
+  CLUSTER_SERVER_URL: ${{ secrets.CLUSTER_SERVER_URL }}
+  ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+
+  # =====================================================
+  # GITHUB SECRETS — Shared Resources Credentials
+  # =====================================================
+  CREDENTIALS_ADMIN_PASSWORD: ${{ secrets.CREDENTIALS_ADMIN_PASSWORD }}
+  CREDENTIALS_ENCRYPTION_KEY: ${{ secrets.CREDENTIALS_ENCRYPTION_KEY }}
+  CREDENTIALS_GITHUB_USERNAME: ${{ secrets.CREDENTIALS_GITHUB_USERNAME }}
+  CREDENTIALS_GITHUB_PASSWORD: ${{ secrets.CREDENTIALS_GITHUB_PASSWORD }}
+  CREDENTIALS_MAILER_USERNAME: ${{ secrets.CREDENTIALS_MAILER_USERNAME }}
+  CREDENTIALS_MAILER_PASSWORD: ${{ secrets.CREDENTIALS_MAILER_PASSWORD }}
+  CREDENTIALS_CREDIT_SWITCH_PUBLIC_KEY: ${{ secrets.CREDENTIALS_CREDIT_SWITCH_PUBLIC_KEY }}
+  CREDENTIALS_CREDIT_SWITCH_PRIVATE_KEY: ${{ secrets.CREDENTIALS_CREDIT_SWITCH_PRIVATE_KEY }}
+  CREDENTIALS_CREDIT_SWITCH_SMS_PASSWORD: ${{ secrets.CREDENTIALS_CREDIT_SWITCH_SMS_PASSWORD }}
+  CREDENTIALS_HUAWEI_CLOUD_ACCESS_KEY_ID: ${{ secrets.CREDENTIALS_HUAWEI_CLOUD_ACCESS_KEY_ID }}
+  CREDENTIALS_HUAWEI_CLOUD_SECRET_ACCESS_KEY: ${{ secrets.CREDENTIALS_HUAWEI_CLOUD_SECRET_ACCESS_KEY }}
+  CREDENTIALS_H2_PASSWORD: ${{ secrets.CREDENTIALS_H2_PASSWORD }}
+  CREDENTIALS_PROVIDUS_API_PUBLIC_KEY: ${{ secrets.CREDENTIALS_PROVIDUS_API_PUBLIC_KEY }}
+  CREDENTIALS_PROVIDUS_API_SECRET_KEY: ${{ secrets.CREDENTIALS_PROVIDUS_API_SECRET_KEY }}
+  CREDENTIALS_TRUSTEES_CLIENT_SECRET: ${{ secrets.CREDENTIALS_TRUSTEES_CLIENT_SECRET }}
+  CREDENTIALS_WEALTH_CLIENT_SECRET: ${{ secrets.CREDENTIALS_WEALTH_CLIENT_SECRET }}
+  CREDENTIALS_ENC_SALT: ${{ secrets.CREDENTIALS_ENC_SALT }}
+  CREDENTIALS_EXPO_TOKEN: ${{ secrets.CREDENTIALS_EXPO_TOKEN }}
+  CREDENTIALS_OKHI_HEADER_VALUE: ${{ secrets.CREDENTIALS_OKHI_HEADER_VALUE }}
+  CREDENTIALS_PAYSTACK_SECRET_KEY: ${{ secrets.CREDENTIALS_PAYSTACK_SECRET_KEY }}
+  CREDENTIALS_SMILE_ID_PROD_API_KEY: ${{ secrets.CREDENTIALS_SMILE_ID_PROD_API_KEY }}
+  CREDENTIALS_SMILE_ID_DEV_API_KEY: ${{ secrets.CREDENTIALS_SMILE_ID_DEV_API_KEY }}
+  CREDENTIALS_MOBILE_SECRET: ${{ secrets.CREDENTIALS_MOBILE_SECRET }}
+  CREDENTIALS_TRUSTEES_SECRET: ${{ secrets.CREDENTIALS_TRUSTEES_SECRET }}
+  CREDENTIALS_NOTIFICATION_SECRET: ${{ secrets.CREDENTIALS_NOTIFICATION_SECRET }}
+  CREDENTIALS_ID_HASHING_SECRET: ${{ secrets.CREDENTIALS_ID_HASHING_SECRET }}
+  CREDENTIALS_WEB_SECRET: ${{ secrets.CREDENTIALS_WEB_SECRET }}
+  CREDENTIALS_WALLET_SECRET: ${{ secrets.CREDENTIALS_WALLET_SECRET }}
+  CREDENTIALS_WEALTH_SECRET: ${{ secrets.CREDENTIALS_WEALTH_SECRET }}
+  CREDENTIALS_MIDDLE_WARE_API_KEY: ${{ secrets.CREDENTIALS_MIDDLE_WARE_API_KEY }}
+  CREDENTIALS_DOJAH_SECRET_KEY: ${{ secrets.CREDENTIALS_DOJAH_SECRET_KEY }}
+  CREDENTIALS_DOJAH_PRIVATE_KEY: ${{ secrets.CREDENTIALS_DOJAH_PRIVATE_KEY }}
+  CREDENTIALS_PASTEL_API_KEY: ${{ secrets.CREDENTIALS_PASTEL_API_KEY }}
+  CREDENTIALS_PASTEL_API_SECRET: ${{ secrets.CREDENTIALS_PASTEL_API_SECRET }}
+
+  # =====================================================
+  # GITHUB SECRETS — OBS, Image Pull, Ingress
+  # =====================================================
+  OBS_ACCESS_KEY_B64: ${{ secrets.OBS_ACCESS_KEY_B64 }}
+  OBS_SECRET_KEY_B64: ${{ secrets.OBS_SECRET_KEY_B64 }}
+  IMAGE_PULL_SECRET_DOCKERCONFIGJSON: ${{ secrets.IMAGE_PULL_SECRET_DOCKERCONFIGJSON }}
+  SHARED_ELB_ID: ${{ secrets.SHARED_ELB_ID }}
+  TLS_CERT_CLOUD_GATEWAY_B64: ${{ secrets.TLS_CERT_CLOUD_GATEWAY_B64 }}
+  TLS_KEY_CLOUD_GATEWAY_B64: ${{ secrets.TLS_KEY_CLOUD_GATEWAY_B64 }}
+  TLS_CERT_WEB_APP_B64: ${{ secrets.TLS_CERT_WEB_APP_B64 }}
+  TLS_KEY_WEB_APP_B64: ${{ secrets.TLS_KEY_WEB_APP_B64 }}
+  TLS_CERT_ADMIN_APP_B64: ${{ secrets.TLS_CERT_ADMIN_APP_B64 }}
+  TLS_KEY_ADMIN_APP_B64: ${{ secrets.TLS_KEY_ADMIN_APP_B64 }}
+
+  # Others
   ELB_IP: ${{ secrets.ELB_IP }}
   ELB_ID: ${{ secrets.ELB_ID }}
   CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
@@ -60,99 +134,224 @@ env:
   USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
   USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
   SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
-  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
   HUAWEI_ACCESS_KEY: ${{ secrets.HUAWEI_ACCESS_KEY }}
   HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
 
-  SERVICES_DIR: ${{ vars.SERVICES_DIR }}
-  REPO_NAME: ${{ vars.REPO_NAME }}
+
+ 
 
 jobs:
-  commit-info:
-    name: Commit Info & Detect Changed Services
+  # =====================================================
+  # JOB 1: Detect Changed Services
+  # =====================================================
+  detect_changes:
+    name: Detect Changed Backend Services
     runs-on: [self-hosted, linux-runner]
-    environment: stag 
+    environment: stag
     outputs:
-      changed_services: ${{ steps.detect_changes.outputs.changed_services }}
-      backend_changed: ${{ steps.detect_changes.outputs.backend_changed }}
-      scripts_changed: ${{ steps.detect_changes.outputs.scripts_changed }}
-      charts_changed: ${{ steps.detect_changes.outputs.charts_changed }}
-    defaults:
-      run:
-        shell: bash
+      changed_java21: ${{ steps.check_changes.outputs.changed_java21 }}
+      changed_java25: ${{ steps.check_changes.outputs.changed_java25 }}
+      has_java21_changes: ${{ steps.check_changes.outputs.has_java21_changes }}
+      has_java25_changes: ${{ steps.check_changes.outputs.has_java25_changes }}
+      has_build_changes: ${{ steps.check_changes.outputs.has_build_changes }}
+      helm_changed_services: ${{ steps.check_changes.outputs.helm_changed_services }}
+      has_helm_only_changes: ${{ steps.check_changes.outputs.has_helm_only_changes }}
+      shared_resources_changed: ${{ steps.check_changes.outputs.shared_resources_changed }}
+      argocd_changed: ${{ steps.check_changes.outputs.argocd_changed }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
         with:
-          fetch-depth: 2   # This is to fetch at least 2 commits
-    #Add git log for commit info & Author that pushed the code
-      - name: Show Commit Info and Who Pushed
+          fetch-depth: 0
+
+      - name: Show Commit Info
         run: |
-          echo "Commit Info:"
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "PR: ${{ github.event.pull_request.title }}"
+          echo ""
           git log -1 --pretty=format:"%h by %an on %ad: %s" --date=short
           echo ""
           echo "Files Changed:"
           git show --name-only --oneline -1
-          echo ""
-          echo "Triggered by GitHub user: ${{ github.actor }}"
-# ----------------------------------------
-# Detect Changed Folders
-# ----------------------------------------
 
-      - name: Detect Changes Services/Files
-        id: detect_changes
+      - name: Detect Changed Services
+        id: check_changes
         run: |
           set -e
-          # Ensure base ref is available
+
           BASE_REF="${{ github.event.pull_request.base.ref }}"
           git fetch origin "${BASE_REF}":"refs/remotes/origin/${BASE_REF}" || true
-          
-          # Get changed files
-          CHANGED_FILES=$(git diff --name-only "origin/${BASE_REF}...HEAD")
-          
-          # Extract services/folders
-          BACKEND_SERVICES=$(echo "$CHANGED_FILES" | grep -E "^backend/(users-service|notification-service|cloud-gateway|config-server|wallet-service|report-service|trustees-service)/" | awk -F/ '{print $1"/"$2}' | sort -u || true)
-          CHARTS_CHANGES=$(echo "$CHANGED_FILES" | grep "^charts/" | awk -F/ '{print $1"/"$2}' | sort -u || true)
-          SCRIPTS_CHANGES=$(echo "$CHANGED_FILES" | grep "^scripts/" | awk -F/ '{print $1"/"$2}' | sort -u || true)
-          
-          # Display results
-          echo "=== Changed Folders ==="
-          echo "Backend: ${BACKEND_SERVICES:-none}"
-          echo "Charts: ${CHARTS_CHANGES:-none}"
-          echo "Scripts: ${SCRIPTS_CHANGES:-none}"
-          echo ""
-          
-          # Combine changes
-          ALL_CHANGES=$(printf "%s\n%s\n%s" "$BACKEND_SERVICES" "$CHARTS_CHANGES" "$SCRIPTS_CHANGES" | sed '/^$/d' | sort -u)
-          
-          # Set outputs
-          if [ -z "$ALL_CHANGES" ]; then
-            echo "changed_services=none" >> "$GITHUB_OUTPUT"
-            echo "backend_changed=false" >> "$GITHUB_OUTPUT"
-            echo "scripts_changed=false" >> "$GITHUB_OUTPUT"
-            echo "charts_changed=false" >> "$GITHUB_OUTPUT"
-          else
-            {
-              echo "changed_services<<EOF"
-              echo "$ALL_CHANGES"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
-            
-            [ -n "$BACKEND_SERVICES" ] && echo "backend_changed=true" >> "$GITHUB_OUTPUT" || echo "backend_changed=false" >> "$GITHUB_OUTPUT"
-            [ -n "$SCRIPTS_CHANGES" ] && echo "scripts_changed=true" >> "$GITHUB_OUTPUT" || echo "scripts_changed=false" >> "$GITHUB_OUTPUT"
-            [ -n "$CHARTS_CHANGES" ] && echo "charts_changed=true" >> "$GITHUB_OUTPUT" || echo "charts_changed=false" >> "$GITHUB_OUTPUT"
-          fi
-          
-          echo "Detection complete "
 
+          echo "Comparing origin/${BASE_REF} → HEAD"
+          CHANGED_FILES=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+
+          echo "=== ALL CHANGED FILES ==="
+          echo "$CHANGED_FILES"
+          echo "========================="
+
+          JAVA_21_SERVICES="${{ env.JAVA_21_SERVICES }}"
+          JAVA_25_SERVICES="${{ env.JAVA_25_SERVICES }}"
+          ALL_SERVICES="${{ env.ALL_SERVICES }}"
+
+          # -------------------------------------------------------
+          # 1. Detect backend source changes (triggers docker build)
+          # -------------------------------------------------------
+          BUILD_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
+            | grep -E "^${{ env.SERVICES_DIR }}/" \
+            | cut -d'/' -f2 \
+            | sort -u \
+            | xargs || true)
+
+          echo "Services with source changes (build): $BUILD_CHANGED_SERVICES"
+
+          CHANGED_JAVA21=""
+          CHANGED_JAVA25=""
+
+          for svc in $BUILD_CHANGED_SERVICES; do
+            if echo "$ALL_SERVICES" | grep -qw "$svc"; then
+              if echo "$JAVA_25_SERVICES" | grep -qw "$svc"; then
+                CHANGED_JAVA25="$CHANGED_JAVA25 $svc"
+              else
+                CHANGED_JAVA21="$CHANGED_JAVA21 $svc"
+              fi
+            fi
+          done
+
+          CHANGED_JAVA21=$(echo "$CHANGED_JAVA21" | xargs)
+          CHANGED_JAVA25=$(echo "$CHANGED_JAVA25" | xargs)
+
+          # -------------------------------------------------------
+          # 2. Detect helm chart changes (helm-only, no docker build)
+          #    Only for services NOT already in build list
+          # -------------------------------------------------------
+          HELM_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
+            | grep -E "^charts/apps/mobile-backend/" \
+            | cut -d'/' -f4 \
+            | sort -u \
+            | xargs || true)
+
+          HELM_ONLY_SERVICES=""
+          for svc in $HELM_CHANGED_SERVICES; do
+            if ! echo "$BUILD_CHANGED_SERVICES" | grep -qw "$svc"; then
+              HELM_ONLY_SERVICES="$HELM_ONLY_SERVICES $svc"
+            fi
+          done
+          HELM_ONLY_SERVICES=$(echo "$HELM_ONLY_SERVICES" | xargs)
+
+          echo "Helm-only changes (no rebuild): $HELM_ONLY_SERVICES"
+
+          # -------------------------------------------------------
+          # 3. Detect shared-resources helm changes
+          # -------------------------------------------------------
+          SHARED_RESOURCES_CHANGED=$(echo "$CHANGED_FILES" \
+            | grep -E "^charts/shared-resources/" \
+            | head -1 || true)
+
+          if [ -n "$SHARED_RESOURCES_CHANGED" ]; then
+            SHARED_CHANGED=true
+          else
+            SHARED_CHANGED=false
+          fi
+
+          echo "Shared resources changed: $SHARED_CHANGED"
+
+          # -------------------------------------------------------
+          # 4. Detect ArgoCD manifest changes
+          # -------------------------------------------------------
+          ARGOCD_CHANGED=$(echo "$CHANGED_FILES" \
+            | grep -E "^argocd/" \
+            | head -1 || true)
+
+          if [ -n "$ARGOCD_CHANGED" ]; then
+            ARGOCD_CHANGE=true
+          else
+            ARGOCD_CHANGE=false
+          fi
+
+          echo "ArgoCD manifests changed: $ARGOCD_CHANGE"
+
+          # -------------------------------------------------------
+          # Set outputs
+          # -------------------------------------------------------
+          if [ -z "$CHANGED_JAVA21" ]; then
+            echo "changed_java21=none" >> "$GITHUB_OUTPUT"
+            echo "has_java21_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_java21=$CHANGED_JAVA21" >> "$GITHUB_OUTPUT"
+            echo "has_java21_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -z "$CHANGED_JAVA25" ]; then
+            echo "changed_java25=none" >> "$GITHUB_OUTPUT"
+            echo "has_java25_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_java25=$CHANGED_JAVA25" >> "$GITHUB_OUTPUT"
+            echo "has_java25_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -z "$BUILD_CHANGED_SERVICES" ]; then
+            echo "has_build_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_build_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -z "$HELM_ONLY_SERVICES" ]; then
+            echo "helm_changed_services=none" >> "$GITHUB_OUTPUT"
+            echo "has_helm_only_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "helm_changed_services=$HELM_ONLY_SERVICES" >> "$GITHUB_OUTPUT"
+            echo "has_helm_only_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "shared_resources_changed=$SHARED_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "argocd_changed=$ARGOCD_CHANGE" >> "$GITHUB_OUTPUT"
+
+      # -------------------------------------------------------
+      # Job Summary
+      # -------------------------------------------------------
+      - name: Output Job Summary
+        run: |
+          echo "## Backend Change Detection — Staging CI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Services Queued for Docker Build" >> $GITHUB_STEP_SUMMARY
+          echo "| Java Version | Services |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+
+          JAVA21="${{ steps.check_changes.outputs.changed_java21 }}"
+          JAVA25="${{ steps.check_changes.outputs.changed_java25 }}"
+          [ "$JAVA21" == "none" ] && JAVA21="—"
+          [ "$JAVA25" == "none" ] && JAVA25="—"
+
+          echo "| Java 21 | \`$JAVA21\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Java 25 | \`$JAVA25\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Helm-Only Updates (no rebuild)" >> $GITHUB_STEP_SUMMARY
+          HELM_ONLY="${{ steps.check_changes.outputs.helm_changed_services }}"
+          [ "$HELM_ONLY" == "none" ] && HELM_ONLY="—"
+          echo "\`$HELM_ONLY\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Infrastructure Changes" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Changed |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| shared-resources | ${{ steps.check_changes.outputs.shared_resources_changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| argocd manifests | ${{ steps.check_changes.outputs.argocd_changed }} |" >> $GITHUB_STEP_SUMMARY
+
+  # =====================================================
+  # JOB 2: Code Quality and Security Checks
+  # =====================================================
   test:
+    name: Code Quality and Security Checks
+    runs-on: self-hosted
+    environment: stag
+    needs: detect_changes
     if: |
       github.actor != 'dependabot[bot]' &&
-      needs.commit-info.outputs.backend_changed == 'true'
-    name: Code Quality and Security Checks
-    runs-on: [self-hosted, linux-runner]
-    environment: stag #to read my secret in this branch
-    needs: commit-info
+      needs.detect_changes.outputs.has_build_changes == 'true'
     permissions:
       contents: read
       security-events: write
@@ -165,9 +364,12 @@ jobs:
     defaults:
       run:
         shell: bash
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 0
 
       - name: Install GitHub CLI and jq (if missing)
         run: |
@@ -178,7 +380,7 @@ jobs:
           else
             echo "gh CLI already installed, skipping."
           fi
-      
+
           if ! command -v jq &> /dev/null; then
             echo "jq not found, installing..."
             sudo apt-get install -y jq
@@ -186,8 +388,9 @@ jobs:
             echo "jq already installed, skipping."
           fi
 
-
-      # Fetch Dependabot Metadata (used to read dependency info)
+      # -------------------------------------------------------
+      # Dependabot checks
+      # -------------------------------------------------------
       - name: Fetch Dependabot Metadata
         id: dependabot
         uses: dependabot/fetch-metadata@v2
@@ -195,7 +398,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Fail the build if Dependabot alert exists
       - name: Check for Open Dependabot Alerts
         if: ${{ github.actor == 'dependabot[bot]' }}
         run: |
@@ -211,34 +413,76 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Unit Tests for all backend modules (ignore all test errors/failures)
+      # -------------------------------------------------------
+      # Resolve which services to scan
+      # Only scan services that actually changed — not all services
+      # -------------------------------------------------------
+      - name: Resolve Changed Services for Scanning
+        id: resolve_services
         run: |
+          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
+          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
+
+          ALL_CHANGED=""
+          [ "$JAVA21" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA21"
+          [ "$JAVA25" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA25"
+          ALL_CHANGED=$(echo "$ALL_CHANGED" | xargs)
+
+          echo "Services to scan: $ALL_CHANGED"
+          echo "services=$ALL_CHANGED" >> "$GITHUB_OUTPUT"
+
+          # Build backend/<service> paths for scanning steps
+          SCAN_PATHS=""
+          for svc in $ALL_CHANGED; do
+            SCAN_PATHS="$SCAN_PATHS backend/$svc"
+          done
+          SCAN_PATHS=$(echo "$SCAN_PATHS" | xargs)
+          echo "scan_paths=$SCAN_PATHS" >> "$GITHUB_OUTPUT"
+
+      # -------------------------------------------------------
+      # Unit Tests — only changed services
+      # -------------------------------------------------------
+      - name: Run Unit Tests for Changed Services
+        run: |
+          SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
+
+          if [ -z "$SCAN_PATHS" ]; then
+            echo "No services to test."
+            exit 0
+          fi
+
           echo "Running Unit Tests but ignoring all errors and failures..."
-          for dir in backend/*; do
+          for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running Maven tests in $dir"
-              mvn -f "$dir/pom.xml" test -Dmaven.test.failure.ignore=true -DfailIfNoTests=false --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V || true
+              mvn -f "$dir/pom.xml" test \
+                -Dmaven.test.failure.ignore=true \
+                -DfailIfNoTests=false \
+                --no-snapshot-updates \
+                -Dmaven.javadoc.skip=true \
+                -B -V || true
+            else
+              echo "Skipping $dir — no pom.xml found"
             fi
           done
 
-    #make sure to set #enforce -Dspotbugs.failOnError=true when scanning so it can stop pipeline progress
+      # -------------------------------------------------------
+      # SpotBugs — only changed services
+      # -------------------------------------------------------
       - name: Run Static Code Analysis (SpotBugs HTML Reports)
         run: |
-          echo "Running SpotBugs for backend modules with POM files..."
-          echo "Deleting Old Scan files..."
-          # Clean old reports to avoid stale data
+          SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
+
+          if [ -z "$SCAN_PATHS" ]; then
+            echo "No services to scan."
+            exit 0
+          fi
+
+          echo "Cleaning old SpotBugs reports..."
           rm -rf reports/spotbugs
           mkdir -p reports/spotbugs
-          modules=(
-            "backend/cloud-gateway"
-            "backend/config-server"
-            "backend/notification-service"
-            "backend/report-service"
-            "backend/trustees-service"
-            "backend/users-service"
-            "backend/wallet-service"
-          )
-          for dir in "${modules[@]}"; do
+
+          for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running SpotBugs in $dir"
               OUT_DIR="$(pwd)/reports/spotbugs/$(basename $dir)"
@@ -246,16 +490,16 @@ jobs:
               mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:4.9.6.0:spotbugs \
                 -Dspotbugs.htmlOutput=true \
                 -Dspotbugs.outputDirectory="$OUT_DIR" \
-                -Dspotbugs.failOnError=false || echo "SpotBugs scan failed for $dir but continuing."
+                -Dspotbugs.failOnError=false \
+                || echo "SpotBugs scan failed for $dir but continuing."
             else
-              echo "Skipping $dir, no pom.xml found"
+              echo "Skipping $dir — no pom.xml found"
             fi
           done
-      
+
           echo "SpotBugs HTML reports generated in reports/spotbugs/"
           ls -R reports/spotbugs || echo "No SpotBugs reports found."
 
-      #Upload the latest bugs report 
       - name: Upload SpotBugs HTML Reports
         uses: actions/upload-artifact@v4
         with:
@@ -263,47 +507,47 @@ jobs:
           path: reports/spotbugs/
           retention-days: 3
 
-          
-    #make sure to set #enforce -DfailOnError=true when scanning so it can stop pipeline progress
-      - name: Run Dependency Vulnerability Scan for backend modules
+      # -------------------------------------------------------
+      # OWASP Dependency Check — only changed services
+      # -------------------------------------------------------
+      - name: Run Dependency Vulnerability Scan for Changed Services
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          echo "Running Dependency Vulnerability Scan for backend modules..."
-          modules=(
-            "backend/cloud-gateway"
-            "backend/config-server"
-            "backend/notification-service"
-            "backend/report-service"
-            "backend/trustees-service"
-            "backend/users-service"
-            "backend/wallet-service"
-          )
-          for dir in "${modules[@]}"; do
+          SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
+
+          if [ -z "$SCAN_PATHS" ]; then
+            echo "No services to scan."
+            exit 0
+          fi
+
+          echo "Running Dependency Vulnerability Scan for changed services..."
+          for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Scanning $dir for vulnerable dependencies..."
-              mvn -f "$dir/pom.xml" org.owasp:dependency-check-maven:check -Dformat=ALL -DfailOnError=false 
+              mvn -f "$dir/pom.xml" org.owasp:dependency-check-maven:check \
+                -Dformat=ALL \
+                -DfailOnError=false
             else
-              echo "Skipping $dir, no pom.xml found"
+              echo "Skipping $dir — no pom.xml found"
             fi
           done
 
       - name: Gather Dependency Check Reports into a single folder
         run: |
           mkdir -p reports
-          for dir in backend/*; do
+          SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
+          for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
               cp "$dir/target/dependency-check-report.html" reports/ || true
             fi
           done
 
-      # Before uploading, remove any existing artifact with the same name
       - name: Delete Previous Dependency Check Artifact
         uses: geekyeggo/delete-artifact@v4
         with:
           name: dependency-check-reports
 
-      # Upload the latest artifact, overwriting old ones
       - name: Upload Dependency Check Report
         uses: actions/upload-artifact@v4
         with:
@@ -313,7 +557,7 @@ jobs:
           retention-days: 3
 
       - name: Parse JSON reports and fail if high severity vulnerabilities exist
-        if: false  # This disables the step for now
+        if: false  # disabled — enable when ready to enforce
         run: |
           found=0
           for f in reports/*/dependency-check-report.json; do
@@ -329,6 +573,27 @@ jobs:
             exit 1
           fi
 
+      # -------------------------------------------------------
+      # Job Summary
+      # -------------------------------------------------------
+      - name: Output Job Summary
+        if: always()
+        run: |
+          echo "## Code Quality & Security Checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services Scanned" >> $GITHUB_STEP_SUMMARY
+          echo "| Service |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|" >> $GITHUB_STEP_SUMMARY
+          for svc in ${{ steps.resolve_services.outputs.services }}; do
+            echo "| \`$svc\` |" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | Run (failures ignored) |" >> $GITHUB_STEP_SUMMARY
+          echo "| SpotBugs | Report uploaded |" >> $GITHUB_STEP_SUMMARY
+          echo "| OWASP Dependency Check | Report uploaded |" >> $GITHUB_STEP_SUMMARY
+          echo "| High Severity Gate | Disabled |" >> $GITHUB_STEP_SUMMARY
 
       # - name: Secret Scanning
       #   uses: github/secret-scanning-action@v1
@@ -341,51 +606,336 @@ jobs:
       # - name: Perform CodeQL Analysis
       #   uses: github/codeql-action/analyze@v3
 
- # -------------------------------
-  # Build the Docker Images for various Microservices
-  # -------------------------------
 
-  build:
+  # test:
+  #   if: |
+  #     github.actor != 'dependabot[bot]' &&
+  #     needs.commit-info.outputs.backend_changed == 'true'
+  #   name: Code Quality and Security Checks
+  #   runs-on: [self-hosted, linux-runner]
+  #   environment: stag #to read my secret in this branch
+  #   needs: commit-info
+  #   permissions:
+  #     contents: read
+  #     security-events: write
+  #     pull-requests: write
+  #     actions: read
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       language: ['java']
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4.1.0
+
+  #     - name: Install GitHub CLI and jq (if missing)
+  #       run: |
+  #         if ! command -v gh &> /dev/null; then
+  #           echo "gh CLI not found, installing..."
+  #           sudo apt-get update
+  #           sudo apt-get install -y gh
+  #         else
+  #           echo "gh CLI already installed, skipping."
+  #         fi
+      
+  #         if ! command -v jq &> /dev/null; then
+  #           echo "jq not found, installing..."
+  #           sudo apt-get install -y jq
+  #         else
+  #           echo "jq already installed, skipping."
+  #         fi
+
+
+  #     # Fetch Dependabot Metadata (used to read dependency info)
+  #     - name: Fetch Dependabot Metadata
+  #       id: dependabot
+  #       uses: dependabot/fetch-metadata@v2
+  #       if: ${{ github.actor == 'dependabot[bot]' }}
+  #       with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  #     # Fail the build if Dependabot alert exists
+  #     - name: Check for Open Dependabot Alerts
+  #       if: ${{ github.actor == 'dependabot[bot]' }}
+  #       run: |
+  #         echo "Checking Dependabot alerts..."
+  #         ALERTS=$(gh api repos/${{ github.repository }}/dependabot/alerts --jq '. | length')
+  #         echo "Found $ALERTS open Dependabot alerts"
+  #         if [ "$ALERTS" -gt 0 ]; then
+  #           echo "Security alerts detected. Failing build until alerts are resolved."
+  #           exit 1
+  #         else
+  #           echo "No Dependabot alerts found. Continuing build."
+  #         fi
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  #     - name: Run Unit Tests for all backend modules (ignore all test errors/failures)
+  #       run: |
+  #         echo "Running Unit Tests but ignoring all errors and failures..."
+  #         for dir in backend/*; do
+  #           if [ -f "$dir/pom.xml" ]; then
+  #             echo "Running Maven tests in $dir"
+  #             mvn -f "$dir/pom.xml" test -Dmaven.test.failure.ignore=true -DfailIfNoTests=false --no-snapshot-updates -Dmaven.javadoc.skip=true -B -V || true
+  #           fi
+  #         done
+
+  #   #make sure to set #enforce -Dspotbugs.failOnError=true when scanning so it can stop pipeline progress
+  #     - name: Run Static Code Analysis (SpotBugs HTML Reports)
+  #       run: |
+  #         echo "Running SpotBugs for backend modules with POM files..."
+  #         echo "Deleting Old Scan files..."
+  #         # Clean old reports to avoid stale data
+  #         rm -rf reports/spotbugs
+  #         mkdir -p reports/spotbugs
+  #         modules=(
+  #           "backend/cloud-gateway"
+  #           "backend/config-server"
+  #           "backend/notification-service"
+  #           "backend/report-service"
+  #           "backend/trustees-service"
+  #           "backend/users-service"
+  #           "backend/wallet-service"
+  #         )
+  #         for dir in "${modules[@]}"; do
+  #           if [ -f "$dir/pom.xml" ]; then
+  #             echo "Running SpotBugs in $dir"
+  #             OUT_DIR="$(pwd)/reports/spotbugs/$(basename $dir)"
+  #             mkdir -p "$OUT_DIR"
+  #             mvn -f "$dir/pom.xml" com.github.spotbugs:spotbugs-maven-plugin:4.9.6.0:spotbugs \
+  #               -Dspotbugs.htmlOutput=true \
+  #               -Dspotbugs.outputDirectory="$OUT_DIR" \
+  #               -Dspotbugs.failOnError=false || echo "SpotBugs scan failed for $dir but continuing."
+  #           else
+  #             echo "Skipping $dir, no pom.xml found"
+  #           fi
+  #         done
+      
+  #         echo "SpotBugs HTML reports generated in reports/spotbugs/"
+  #         ls -R reports/spotbugs || echo "No SpotBugs reports found."
+
+  #     #Upload the latest bugs report 
+  #     - name: Upload SpotBugs HTML Reports
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: spotbugs-html-reports
+  #         path: reports/spotbugs/
+  #         retention-days: 3
+
+          
+  #   #make sure to set #enforce -DfailOnError=true when scanning so it can stop pipeline progress
+  #     - name: Run Dependency Vulnerability Scan for backend modules
+  #       env:
+  #         NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+  #       run: |
+  #         echo "Running Dependency Vulnerability Scan for backend modules..."
+  #         modules=(
+  #           "backend/cloud-gateway"
+  #           "backend/config-server"
+  #           "backend/notification-service"
+  #           "backend/report-service"
+  #           "backend/trustees-service"
+  #           "backend/users-service"
+  #           "backend/wallet-service"
+  #         )
+  #         for dir in "${modules[@]}"; do
+  #           if [ -f "$dir/pom.xml" ]; then
+  #             echo "Scanning $dir for vulnerable dependencies..."
+  #             mvn -f "$dir/pom.xml" org.owasp:dependency-check-maven:check -Dformat=ALL -DfailOnError=false 
+  #           else
+  #             echo "Skipping $dir, no pom.xml found"
+  #           fi
+  #         done
+
+  #     - name: Gather Dependency Check Reports into a single folder
+  #       run: |
+  #         mkdir -p reports
+  #         for dir in backend/*; do
+  #           if [ -f "$dir/pom.xml" ]; then
+  #             cp "$dir/target/dependency-check-report.html" reports/ || true
+  #           fi
+  #         done
+
+  #     # Before uploading, remove any existing artifact with the same name
+  #     - name: Delete Previous Dependency Check Artifact
+  #       uses: geekyeggo/delete-artifact@v4
+  #       with:
+  #         name: dependency-check-reports
+
+  #     # Upload the latest artifact, overwriting old ones
+  #     - name: Upload Dependency Check Report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: dependency-check-reports
+  #         path: reports/
+  #         overwrite: true
+  #         retention-days: 3
+
+  #     - name: Parse JSON reports and fail if high severity vulnerabilities exist
+  #       if: false  # This disables the step for now
+  #       run: |
+  #         found=0
+  #         for f in reports/*/dependency-check-report.json; do
+  #           if [ -f "$f" ]; then
+  #             high=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.cvssScore >= 1)] | length' "$f")
+  #             if [ "$high" -gt 0 ]; then
+  #               echo "Found $high high-severity vulnerabilities in $f"
+  #               found=1
+  #             fi
+  #           fi
+  #         done
+  #         if [ "$found" -eq 1 ]; then
+  #           exit 1
+  #         fi
+
+
+  #     # - name: Secret Scanning
+  #     #   uses: github/secret-scanning-action@v1
+
+  #     # - name: Initialize CodeQL
+  #     #   uses: github/codeql-action/init@v3
+  #     #   with:
+  #     #     languages: ${{ matrix.language }}
+
+  #     # - name: Perform CodeQL Analysis
+  #     #   uses: github/codeql-action/analyze@v3
+
+  # =====================================================
+  # JOB 3: Helm Lint — validate changed charts
+  # Runs in parallel with test job
+  # Catches broken chart syntax before merge
+  # =====================================================
+  helm_lint:
+    name: Helm Lint Changed Charts
+    runs-on: self-hosted
+    needs: detect_changes
     if: |
-      github.actor != 'dependabot[bot]' &&
-      (needs.commit-info.outputs.backend_changed == 'true' || 
-      needs.commit-info.outputs.scripts_changed == 'true')
-    name: Build  Docker Images For Mobile Backend Services
-    runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable
-    permissions:
-      contents: read
-      actions: write
+      needs.detect_changes.outputs.has_build_changes == 'true' ||
+      needs.detect_changes.outputs.has_helm_only_changes == 'true' ||
+      needs.detect_changes.outputs.shared_resources_changed == 'true'
 
-    needs: commit-info
-    env:
-      IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
-    defaults:
-      run:
-        shell: bash
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4.1.0
-        #with:
-          #fetch-depth: 2 (only for changes in microservices)
-      - name: Load changed services into env
-        run: |
-          echo "CHANGED_SERVICES='${{ needs.commit-info.outputs.changed_services }}'" >> $GITHUB_ENV
-          echo "BACKEND_CHANGED='${{ needs.commit-info.outputs.backend_changed }}'" >> $GITHUB_ENV
+        with:
+          fetch-depth: 0
 
-      #Add git log for debugging
-      - name: Show Commit History
-        run: git log --oneline -n 2
-
-      #Adding a secret validate check
-      - name: Validate Required Secrets
+      - name: Ensure Helm is installed
         run: |
-          echo "Validating secrets..."
-          if [ -z "${{ secrets.SWR_REGISTRY_URL }}" ] || [ -z "${{ secrets.HUAWEI_SWR_USERNAME }}" ] || [ -z "${{ secrets.HUAWEI_SWR_PASSWORD }}" ]; then
-            echo "Missing required secrets."
+          if ! command -v helm &>/dev/null; then
+            echo "Installing Helm..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          else
+            echo "Helm already installed: $(helm version --short)"
+          fi
+
+      - name: Lint Changed Service Charts
+        run: |
+          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
+          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
+          HELM_ONLY="${{ needs.detect_changes.outputs.helm_changed_services }}"
+
+          ALL_CHANGED=""
+          [ "$JAVA21" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA21"
+          [ "$JAVA25" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA25"
+          [ "$HELM_ONLY" != "none" ] && ALL_CHANGED="$ALL_CHANGED $HELM_ONLY"
+          ALL_CHANGED=$(echo "$ALL_CHANGED" | xargs)
+
+          FAILED=()
+          for svc in $ALL_CHANGED; do
+            CHART_DIR="charts/apps/mobile-backend/${svc}"
+            if [ -d "$CHART_DIR" ]; then
+              echo "Linting $CHART_DIR..."
+              if helm lint "$CHART_DIR" \
+                -f "$CHART_DIR/values-stag_env.yaml"; then
+                echo "$svc — lint passed"
+              else
+                echo "$svc — lint failed"
+                FAILED+=("$svc")
+              fi
+            else
+              echo "No chart found for $svc — skipping"
+            fi
+          done
+
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo ""
+            echo "Helm lint failed for: ${FAILED[*]}"
             exit 1
           fi
-          echo "All secrets available."
+
+      - name: Lint Shared Resources Chart
+        if: needs.detect_changes.outputs.shared_resources_changed == 'true'
+        run: |
+          echo "Linting charts/shared-resources..."
+          if helm lint charts/shared-resources \
+            -f charts/shared-resources/values.yaml; then
+            echo "shared-resources — lint passed"
+          else
+            echo "shared-resources — lint failed"
+            exit 1
+          fi
+
+      - name: Output Job Summary
+        if: always()
+        run: |
+          echo "## Helm Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Chart | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
+          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
+          HELM_ONLY="${{ needs.detect_changes.outputs.helm_changed_services }}"
+          ALL=""
+          [ "$JAVA21" != "none" ] && ALL="$ALL $JAVA21"
+          [ "$JAVA25" != "none" ] && ALL="$ALL $JAVA25"
+          [ "$HELM_ONLY" != "none" ] && ALL="$ALL $HELM_ONLY"
+          ALL=$(echo "$ALL" | xargs)
+          for svc in $ALL; do
+            echo "| \`$svc\` | checked |" >> $GITHUB_STEP_SUMMARY
+          done
+          SHARED="${{ needs.detect_changes.outputs.shared_resources_changed }}"
+          [ "$SHARED" == "true" ] && echo "| \`shared-resources\` | checked |" >> $GITHUB_STEP_SUMMARY
+  
+  # -------------------------------
+  # Build the Docker Images for various Microservices
+  # -------------------------------
+  # =====================================================
+  # JOB 4: Build and Push to Huawei SWR
+  # Gated by has_build_changes boolean from detect_changes
+  # Actual service list comes from changed_java21 + changed_java25
+  # Script resolves builder + Java version per service internally
+  # =====================================================
+  build_and_push:
+    name: Build & Push to Huawei SWR
+    runs-on: self-hosted
+    needs: [detect_changes, test, helm_lint]
+    environment: stag
+    if: needs.detect_changes.outputs.has_build_changes == 'true'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.image_tag }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Set Image Tag
+        id: set_tag
+        run: |
+          IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${{ github.run_number }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "Image tag: $IMAGE_TAG"
 
       - name: Create and Inject Keys
         env:
@@ -398,333 +948,455 @@ jobs:
           echo "${USERS_PRIVATE_KEY}" > backend/users-service/src/main/resources/keys/private.pem
           echo "${USERS_PUBLIC_KEY}" > backend/users-service/src/main/resources/keys/public.pem
           echo "Injected keys for users-service"
-
-          for svc in notification-service wallet-service report-service trustees-service; do
+          for svc in notification-service wallet-service report-service trustees-service wealth-service; do
             mkdir -p backend/$svc/src/main/resources/keys
             echo "${SERVICE_PUBLIC_KEY}" > backend/$svc/src/main/resources/keys/public.pem
             echo "Injected public.pem into $svc"
           done
 
-        #Make the build script executable 
       - name: Make Build Script Executable
-        run: chmod +x ./scripts/backend-scripts/temp-build-push.sh
-
-        #Run the build script to build the microservices 
-      - name: Incremental Build Images for various Microservices 
-        env:
-          SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
-          HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
-          HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
-          SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
-          SWR_REGION: ${{ secrets.SWR_REGION }}
-          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
-          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        run: |
-          echo "Building Docker images..."
-          export IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
-          echo "Using image tag: $IMAGE_TAG"
-          bash ./scripts/backend-scripts/temp-build-push.sh
-
-      - name: Persist IMAGE_TAG
-        run: |
-          IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
-          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-          echo "Loaded IMAGE_TAG=$IMAGE_TAG for later steps"
-
-
-      # Upload the build metadata checking for changed services
-      - name: Upload build metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: build_output
-          path: build_output/
-          retention-days: 1
-
-      # Clean up saved images to free space on self-hosted runner
-      - name: Clean up previous local image 
-        run: |
-          echo "Cleaning up previous local image saved..."
-          rm -rf build_output/*.tar
-          echo "Cleanup complete."
-
-      # Save Docker images as tar files and upload them as artifacts
-      - name: Save built Docker images
-        run: |
-           mkdir -p build_output
-           for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
-             if docker image inspect "${svc}:${IMAGE_TAG}" > /dev/null 2>&1; then
-               echo "Saving ${svc}:${IMAGE_TAG}..."
-               docker save "${svc}:${IMAGE_TAG}" -o "build_output/${svc}.tar"
-             else
-               echo "No new image for ${svc}, skipping save."
-             fi
-           done
-
-      - name: Upload Docker images as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker_images
-          path: build_output/
-          retention-days: 1
-
-
-  image-scan:
-    if: |
-      github.actor != 'dependabot[bot]' &&
-      (needs.commit-info.outputs.backend_changed == 'true' || 
-       needs.commit-info.outputs.scripts_changed == 'true') 
-    name: Scan Built Docker Images for Vulnerabilities
-    runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable 
-    permissions:
-      contents: read
-      actions: write
-    env:
-      IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
-    needs: build
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.1.0
-
-      - name: Download build metadata artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build_output
-          path: build_output/
-
-      - name: Load IMAGE_TAG From Built Artifact
-        run: |
-          if [ -f build_output/image_metadata.env ]; then
-            echo "Loading image tag from metadata..."
-            cat build_output/image_metadata.env >> $GITHUB_ENV
-          else
-            echo "No image_metadata.env found — using fallback tag"
-            echo "IMAGE_TAG=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          fi
-
-      - name: Install Trivy (if not installed)
-        run: |
-          if ! command -v trivy &> /dev/null; then
-            echo "Trivy not found — installing..."
-            sudo apt-get update -y
-            sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-            echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
-            sudo apt-get update -y
-            sudo apt-get install -y trivy
-            echo "Trivy installation complete."
-          else
-            echo "Trivy already installed — skipping installation."
-            trivy --version
-          fi
-
-
-      # -----------------------------------------
-      # Cache & Prepare Trivy Database (Optimized)
-      # -----------------------------------------
-      - name: Restore Trivy DB cache
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.cache/trivy/db
-          key: ${{ runner.os }}-trivy-db-v1-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-trivy-db-v1-
-
-      # Ensure Trivy database exists before running scans
-      - name: Download Trivy DB if missing
-        run: |
-          if [ ! -d ~/.cache/trivy/db ] || [ -z "$(ls -A ~/.cache/trivy/db 2>/dev/null)" ]; then
-            echo "No cached Trivy DB found. Downloading..."
-            trivy --download-db-only
-          else
-            echo "Using cached Trivy DB."
-          fi
-
-
-      # Check if Trivy HTML template exists before downloading
-      - name: Ensure Trivy HTML report template
-        run: |
-          mkdir -p contrib
-          if [ -f "contrib/html.tpl" ]; then
-            echo "Trivy HTML template already exists, skipping download..."
-          else
-            echo "Downloading Trivy HTML template..."
-            wget -q https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -O contrib/html.tpl
-            echo "Download completed."
-          fi
-
-      # Scan local images built previously
-      - name: Scan built images (local only)
-        run: |
-          mkdir -p trivy-reports
-          for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
-            if docker image inspect $svc:${IMAGE_TAG} > /dev/null 2>&1; then
-              echo "Scanning $svc:${IMAGE_TAG} for vulnerabilities..."
-              trivy image \
-                --scanners vuln \
-                --severity HIGH,CRITICAL \
-                --timeout 20m \
-                --skip-java-db-update \
-                --format template \
-                --template "@contrib/html.tpl" \
-                --output trivy-reports/${svc}-report.html \
-                $svc:${IMAGE_TAG} || echo "Scan completed with findings, continuing..."
-            else
-              echo "$svc:${IMAGE_TAG} not found locally, skipping."
-            fi
-          done
-
-      # # Skip artifact upload (avoid storage quota issues)
-      # - name: Skip artifact upload
-      #   run: |
-      #     echo "Skipping artifact upload — storage quota exceeded."
-
-      - name: Upload Trivy HTML reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-vulnerability-reports
-          path: trivy-reports/
-          retention-days: 1
-
-          
-
-  # -------------------------------
-  # Push Built Images & Validate Manifests (Env Substitution)
-  # -------------------------------
-  deploy:
-    if: |
-      needs.commit-info.outputs.backend_changed == 'true' ||
-      needs.commit-info.outputs.scripts_changed == 'true'
-    name: Push to Huawei Cloud & Validate Deployment Manifests
-    runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable
-    permissions:
-      contents: read  #Read repo files
-      actions: write  #Use caches or artifacts
-      id-token: write #Authenticate to cloud via OIDC
-      packages: write #Push Docker for container registry uploads
-
-    needs: image-scan
-    defaults:
-      run:
-        shell: bash
-    env:
-      APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
-      ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
-      APP_NAME: ${{ vars.APP_NAME }}
-      GIT_BRANCH: ${{ vars.GIT_BRANCH }}
-      HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
-      SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
-      SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
-      SWR_REGION: ${{ secrets.SWR_REGION }}
-      STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
-      BRANCH_ENV: ${{ vars.BRANCH_ENV }}
-      HUAWEI_ENTERPRISE_PROJECT_ID: ${{ vars.HUAWEI_ENTERPRISE_PROJECT_ID }}
-      HUAWEI_ACCESS_KEY: ${{ secrets.HUAWEI_ACCESS_KEY }}
-      HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
-      
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4.1.0
-
-      # Substitute env vars in manifests for validation (no commit)
-      - name: Substitute Env in Argo CD & Helm Manifests
-        run: |
-          echo "Substituting environment variables into manifests..."
-          for file in $(find ./argocd/apps/argocd-apps.yaml ./charts/mobile-backend/* -type f \( -name "*.yaml" -o -name "*.yml" \)); do
-            echo "Processing: $file"
-            envsubst < "$file" > "${file}.rendered"
-            mv "${file}.rendered" "$file"
-          done
-
-          echo "Env substitution completed. Manifests ready for deployment validation."
-
-      # Download the build metadata checking for changed services
-      - name: Download build metadata
-        uses: actions/download-artifact@v4
-        with:
-          name: build_output
-          path: build_output/
-          retention-days: 1
-
-      # Install yq so Helm update succeeds
-      - name: Ensure yq is installed
-        run: |
-          if command -v yq >/dev/null 2>&1; then
-            echo "yq already installed at $(command -v yq) — skipping download."
-            yq --version
-          else
-            echo "yq not found, installing..."
-            sudo wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-            sudo chmod +x /usr/bin/yq
-            echo "yq installed successfully at /usr/bin/yq."
-            yq --version
-          fi
-
-
-
-      # Download and load Docker image tarballs into local Docker
-      - name: Download Docker image from build stage
-        uses: actions/download-artifact@v4
-        with:
-          name: docker_images
-          path: build_output/
-          retention-days: 1
-
-      - name: Load Docker images
-        run: |
-          echo "Checking for saved Docker images..."
-          if ls build_output/*.tar 1> /dev/null 2>&1; then
-            echo "Found saved images. Loading them into Docker..."
-            for tar in build_output/*.tar; do
-              echo "Loading image from $tar..."
-              docker load -i "$tar"
-            done
-            echo "All images loaded successfully."
-          else
-            echo "No saved Docker images found. Skipping load step."
-          fi
+        run: chmod +x ./scripts/backend-scripts/build-push-swr.sh
 
       # ----------------------------------------
-      # Extract IMAGE_TAG from metadata
+      # Combine changed_java21 + changed_java25 into
+      # CHANGED_SERVICES — this is the ONLY source of
+      # truth for what gets built. Nothing else.
+      # has_build_changes gates the job, these two
+      # outputs tell the script exactly which services.
       # ----------------------------------------
-      - name: Retrieve IMAGE_TAG from metadata
-        id: get_tag
+      - name: Resolve Changed Services
+        id: resolve
         run: |
-          IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
-          if [ -z "$IMAGE_TAG" ]; then
-            echo "IMAGE_TAG not found in metadata. Check your build job export step."
+          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
+          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
+
+          ALL_CHANGED=""
+          [ "$JAVA21" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA21"
+          [ "$JAVA25" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA25"
+          ALL_CHANGED=$(echo "$ALL_CHANGED" | xargs)
+
+          echo "Resolved services for build: $ALL_CHANGED"
+
+          if [ -z "$ALL_CHANGED" ]; then
+            echo "ERROR: has_build_changes was true but no services resolved. Check detect_changes outputs."
             exit 1
           fi
-          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-          echo "Loaded IMAGE_TAG=$IMAGE_TAG for push operations"
-          
-      # Run Push script to Huawei SWR
-      - name: Push Images to Huawei SWR
-        run: |
-          echo "Running push script..."
-          chmod +x ./scripts/backend-scripts/push-image-swr-stag_env.sh
-          bash ./scripts/backend-scripts/push-image-swr-stag_env.sh
-          echo "Push script completed."
-          echo "All CI Workflow actions completed successfully!"
-          echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
 
-      # ----------------------------------------
-      # Cleanup loaded Docker images to free space
-      # ----------------------------------------
-      - name: Cleanup Loaded Docker Images
+          echo "CHANGED_SERVICES=$ALL_CHANGED" >> "$GITHUB_ENV"
+
+      - name: Build & Push Changed Services
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+          SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+          HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
         run: |
-          echo "Cleaning up loaded Docker images..."
-          for tar in build_output/*.tar; do
-            IMG_NAME=$(basename "$tar" .tar)
-            echo "Removing image: $IMG_NAME:${IMAGE_TAG}"
-            docker rmi -f "$IMG_NAME:${IMAGE_TAG}" || echo "Image $IMG_NAME:${IMAGE_TAG} not found, skipping"
-          done
-          echo "Removing build_output directory..."
-          rm -rf build_output/
-          echo "Cleanup complete."
+          echo "Services confirmed for build: $CHANGED_SERVICES"
+          bash ./scripts/backend-scripts/build-push-swr.sh
+
+      - name: Output Job Summary
+        if: always()
+        run: |
+          echo "## Build & Push — Huawei SWR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Image Tag | \`${{ steps.set_tag.outputs.image_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry | \`${{ secrets.SWR_REGISTRY_URL }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services Built" >> $GITHUB_STEP_SUMMARY
+          echo "| Java Version | Services |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
+          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
+          [ "$JAVA21" == "none" ] && JAVA21="—"
+          [ "$JAVA25" == "none" ] && JAVA25="—"
+          echo "| Java 21 | \`$JAVA21\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Java 25 | \`$JAVA25\` |" >> $GITHUB_STEP_SUMMARY
+          echo "## Just Before you get Excited and Make A Push, Kindly Proceed to the Huawei SWR to run Image Scan before making a Push"
+
+  
+  # build:
+  #   if: |
+  #     github.actor != 'dependabot[bot]' &&
+  #     (needs.commit-info.outputs.backend_changed == 'true' || 
+  #     needs.commit-info.outputs.scripts_changed == 'true')
+  #   name: Build  Docker Images For Mobile Backend Services
+  #   runs-on: [self-hosted, linux-runner]
+  #   environment: stag  # Branch Environment variable
+  #   permissions:
+  #     contents: read
+  #     actions: write
+
+  #   needs: commit-info
+  #   env:
+  #     IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4.1.0
+  #       #with:
+  #         #fetch-depth: 2 (only for changes in microservices)
+  #     - name: Load changed services into env
+  #       run: |
+  #         echo "CHANGED_SERVICES='${{ needs.commit-info.outputs.changed_services }}'" >> $GITHUB_ENV
+  #         echo "BACKEND_CHANGED='${{ needs.commit-info.outputs.backend_changed }}'" >> $GITHUB_ENV
+
+  #     #Add git log for debugging
+  #     - name: Show Commit History
+  #       run: git log --oneline -n 2
+
+  #     #Adding a secret validate check
+  #     - name: Validate Required Secrets
+  #       run: |
+  #         echo "Validating secrets..."
+  #         if [ -z "${{ secrets.SWR_REGISTRY_URL }}" ] || [ -z "${{ secrets.HUAWEI_SWR_USERNAME }}" ] || [ -z "${{ secrets.HUAWEI_SWR_PASSWORD }}" ]; then
+  #           echo "Missing required secrets."
+  #           exit 1
+  #         fi
+  #         echo "All secrets available."
+
+  #     - name: Create and Inject Keys
+  #       env:
+  #         USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
+  #         USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
+  #         SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
+  #       run: |
+  #         echo "Injecting public/private keys..."
+  #         mkdir -p backend/users-service/src/main/resources/keys
+  #         echo "${USERS_PRIVATE_KEY}" > backend/users-service/src/main/resources/keys/private.pem
+  #         echo "${USERS_PUBLIC_KEY}" > backend/users-service/src/main/resources/keys/public.pem
+  #         echo "Injected keys for users-service"
+
+  #         for svc in notification-service wallet-service report-service trustees-service wealth-service; do
+  #           mkdir -p backend/$svc/src/main/resources/keys
+  #           echo "${SERVICE_PUBLIC_KEY}" > backend/$svc/src/main/resources/keys/public.pem
+  #           echo "Injected public.pem into $svc"
+  #         done
+
+  #       #Make the build script executable 
+  #     - name: Make Build Script Executable
+  #       run: chmod +x ./scripts/backend-scripts/temp-build-push.sh
+
+  #       #Run the build script to build the microservices 
+  #     - name: Incremental Build Images for various Microservices 
+  #       env:
+  #         SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+  #         HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+  #         HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+  #         SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+  #         SWR_REGION: ${{ secrets.SWR_REGION }}
+  #         BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+  #         HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+  #         GITHUB_SHA: ${{ github.sha }}
+  #         GITHUB_RUN_NUMBER: ${{ github.run_number }}
+  #       run: |
+  #         echo "Building Docker images..."
+  #         export IMAGE_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)-${GITHUB_RUN_NUMBER}
+  #         echo "Using image tag: $IMAGE_TAG"
+  #         bash ./scripts/backend-scripts/temp-build-push.sh
+
+  #     - name: Persist IMAGE_TAG
+  #       run: |
+  #         IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
+  #         echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+  #         echo "Loaded IMAGE_TAG=$IMAGE_TAG for later steps"
+
+
+  #     # Upload the build metadata checking for changed services
+  #     - name: Upload build metadata
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: build_output
+  #         path: build_output/
+  #         retention-days: 1
+
+  #     # Clean up saved images to free space on self-hosted runner
+  #     - name: Clean up previous local image 
+  #       run: |
+  #         echo "Cleaning up previous local image saved..."
+  #         rm -rf build_output/*.tar
+  #         echo "Cleanup complete."
+
+  #     # Save Docker images as tar files and upload them as artifacts
+  #     - name: Save built Docker images
+  #       run: |
+  #          mkdir -p build_output
+  #          for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+  #            if docker image inspect "${svc}:${IMAGE_TAG}" > /dev/null 2>&1; then
+  #              echo "Saving ${svc}:${IMAGE_TAG}..."
+  #              docker save "${svc}:${IMAGE_TAG}" -o "build_output/${svc}.tar"
+  #            else
+  #              echo "No new image for ${svc}, skipping save."
+  #            fi
+  #          done
+
+  #     - name: Upload Docker images as artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: docker_images
+  #         path: build_output/
+  #         retention-days: 1
+
+
+  # image-scan:
+  #   if: |
+  #     github.actor != 'dependabot[bot]' &&
+  #     (needs.commit-info.outputs.backend_changed == 'true' || 
+  #      needs.commit-info.outputs.scripts_changed == 'true') 
+  #   name: Scan Built Docker Images for Vulnerabilities
+  #   runs-on: [self-hosted, linux-runner]
+  #   environment: stag  # Branch Environment variable 
+  #   permissions:
+  #     contents: read
+  #     actions: write
+  #   env:
+  #     IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}
+  #   needs: build
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4.1.0
+
+  #     - name: Download build metadata artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build_output
+  #         path: build_output/
+
+  #     - name: Load IMAGE_TAG From Built Artifact
+  #       run: |
+  #         if [ -f build_output/image_metadata.env ]; then
+  #           echo "Loading image tag from metadata..."
+  #           cat build_output/image_metadata.env >> $GITHUB_ENV
+  #         else
+  #           echo "No image_metadata.env found — using fallback tag"
+  #           echo "IMAGE_TAG=${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+  #         fi
+
+  #     - name: Install Trivy (if not installed)
+  #       run: |
+  #         if ! command -v trivy &> /dev/null; then
+  #           echo "Trivy not found — installing..."
+  #           sudo apt-get update -y
+  #           sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+  #           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+  #           echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+  #           sudo apt-get update -y
+  #           sudo apt-get install -y trivy
+  #           echo "Trivy installation complete."
+  #         else
+  #           echo "Trivy already installed — skipping installation."
+  #           trivy --version
+  #         fi
+
+
+  #     # -----------------------------------------
+  #     # Cache & Prepare Trivy Database (Optimized)
+  #     # -----------------------------------------
+  #     - name: Restore Trivy DB cache
+  #       uses: actions/cache/restore@v4
+  #       with:
+  #         path: ~/.cache/trivy/db
+  #         key: ${{ runner.os }}-trivy-db-v1-${{ github.run_id }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-trivy-db-v1-
+
+  #     # Ensure Trivy database exists before running scans
+  #     - name: Download Trivy DB if missing
+  #       run: |
+  #         if [ ! -d ~/.cache/trivy/db ] || [ -z "$(ls -A ~/.cache/trivy/db 2>/dev/null)" ]; then
+  #           echo "No cached Trivy DB found. Downloading..."
+  #           trivy --download-db-only
+  #         else
+  #           echo "Using cached Trivy DB."
+  #         fi
+
+
+  #     # Check if Trivy HTML template exists before downloading
+  #     - name: Ensure Trivy HTML report template
+  #       run: |
+  #         mkdir -p contrib
+  #         if [ -f "contrib/html.tpl" ]; then
+  #           echo "Trivy HTML template already exists, skipping download..."
+  #         else
+  #           echo "Downloading Trivy HTML template..."
+  #           wget -q https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -O contrib/html.tpl
+  #           echo "Download completed."
+  #         fi
+
+  #     # Scan local images built previously
+  #     - name: Scan built images (local only)
+  #       run: |
+  #         mkdir -p trivy-reports
+  #         for svc in users-service notification-service cloud-gateway config-server wallet-service report-service trustees-service; do
+  #           if docker image inspect $svc:${IMAGE_TAG} > /dev/null 2>&1; then
+  #             echo "Scanning $svc:${IMAGE_TAG} for vulnerabilities..."
+  #             trivy image \
+  #               --scanners vuln \
+  #               --severity HIGH,CRITICAL \
+  #               --timeout 20m \
+  #               --skip-java-db-update \
+  #               --format template \
+  #               --template "@contrib/html.tpl" \
+  #               --output trivy-reports/${svc}-report.html \
+  #               $svc:${IMAGE_TAG} || echo "Scan completed with findings, continuing..."
+  #           else
+  #             echo "$svc:${IMAGE_TAG} not found locally, skipping."
+  #           fi
+  #         done
+
+  #     # # Skip artifact upload (avoid storage quota issues)
+  #     # - name: Skip artifact upload
+  #     #   run: |
+  #     #     echo "Skipping artifact upload — storage quota exceeded."
+
+  #     - name: Upload Trivy HTML reports
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: trivy-vulnerability-reports
+  #         path: trivy-reports/
+  #         retention-days: 1
+
+          
+
+  # # -------------------------------
+  # # Push Built Images & Validate Manifests (Env Substitution)
+  # # -------------------------------
+  # deploy:
+  #   if: |
+  #     needs.commit-info.outputs.backend_changed == 'true' ||
+  #     needs.commit-info.outputs.scripts_changed == 'true'
+  #   name: Push to Huawei Cloud & Validate Deployment Manifests
+  #   runs-on: [self-hosted, linux-runner]
+  #   environment: stag  # Branch Environment variable
+  #   permissions:
+  #     contents: read  #Read repo files
+  #     actions: write  #Use caches or artifacts
+  #     id-token: write #Authenticate to cloud via OIDC
+  #     packages: write #Push Docker for container registry uploads
+
+  #   needs: image-scan
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   env:
+  #     APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+  #     ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+  #     APP_NAME: ${{ vars.APP_NAME }}
+  #     GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+  #     HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+  #     SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+  #     SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+  #     SWR_REGION: ${{ secrets.SWR_REGION }}
+  #     STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+  #     BRANCH_ENV: ${{ vars.BRANCH_ENV }}
+  #     HUAWEI_ENTERPRISE_PROJECT_ID: ${{ vars.HUAWEI_ENTERPRISE_PROJECT_ID }}
+  #     HUAWEI_ACCESS_KEY: ${{ secrets.HUAWEI_ACCESS_KEY }}
+  #     HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
+      
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4.1.0
+
+  #     # Substitute env vars in manifests for validation (no commit)
+  #     - name: Substitute Env in Argo CD & Helm Manifests
+  #       run: |
+  #         echo "Substituting environment variables into manifests..."
+  #         for file in $(find ./argocd/apps/argocd-apps.yaml ./charts/mobile-backend/* -type f \( -name "*.yaml" -o -name "*.yml" \)); do
+  #           echo "Processing: $file"
+  #           envsubst < "$file" > "${file}.rendered"
+  #           mv "${file}.rendered" "$file"
+  #         done
+
+  #         echo "Env substitution completed. Manifests ready for deployment validation."
+
+  #     # Download the build metadata checking for changed services
+  #     - name: Download build metadata
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build_output
+  #         path: build_output/
+  #         retention-days: 1
+
+  #     # Install yq so Helm update succeeds
+  #     - name: Ensure yq is installed
+  #       run: |
+  #         if command -v yq >/dev/null 2>&1; then
+  #           echo "yq already installed at $(command -v yq) — skipping download."
+  #           yq --version
+  #         else
+  #           echo "yq not found, installing..."
+  #           sudo wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+  #           sudo chmod +x /usr/bin/yq
+  #           echo "yq installed successfully at /usr/bin/yq."
+  #           yq --version
+  #         fi
+
+
+
+  #     # Download and load Docker image tarballs into local Docker
+  #     - name: Download Docker image from build stage
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: docker_images
+  #         path: build_output/
+  #         retention-days: 1
+
+  #     - name: Load Docker images
+  #       run: |
+  #         echo "Checking for saved Docker images..."
+  #         if ls build_output/*.tar 1> /dev/null 2>&1; then
+  #           echo "Found saved images. Loading them into Docker..."
+  #           for tar in build_output/*.tar; do
+  #             echo "Loading image from $tar..."
+  #             docker load -i "$tar"
+  #           done
+  #           echo "All images loaded successfully."
+  #         else
+  #           echo "No saved Docker images found. Skipping load step."
+  #         fi
+
+  #     # ----------------------------------------
+  #     # Extract IMAGE_TAG from metadata
+  #     # ----------------------------------------
+  #     - name: Retrieve IMAGE_TAG from metadata
+  #       id: get_tag
+  #       run: |
+  #         IMAGE_TAG=$(grep '^IMAGE_TAG=' build_output/image_metadata.env | cut -d'=' -f2)
+  #         if [ -z "$IMAGE_TAG" ]; then
+  #           echo "IMAGE_TAG not found in metadata. Check your build job export step."
+  #           exit 1
+  #         fi
+  #         echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+  #         echo "Loaded IMAGE_TAG=$IMAGE_TAG for push operations"
+          
+  #     # Run Push script to Huawei SWR
+  #     - name: Push Images to Huawei SWR
+  #       run: |
+  #         echo "Running push script..."
+  #         chmod +x ./scripts/backend-scripts/push-image-swr-stag_env.sh
+  #         bash ./scripts/backend-scripts/push-image-swr-stag_env.sh
+  #         echo "Push script completed."
+  #         echo "All CI Workflow actions completed successfully!"
+  #         echo "Thank you for using the One-Meristem Mobile Backend CI pipeline! See you next time! Please do not forget to merge automatically for your Argo CD!"
+
+  #     # ----------------------------------------
+  #     # Cleanup loaded Docker images to free space
+  #     # ----------------------------------------
+  #     - name: Cleanup Loaded Docker Images
+  #       run: |
+  #         echo "Cleaning up loaded Docker images..."
+  #         for tar in build_output/*.tar; do
+  #           IMG_NAME=$(basename "$tar" .tar)
+  #           echo "Removing image: $IMG_NAME:${IMAGE_TAG}"
+  #           docker rmi -f "$IMG_NAME:${IMAGE_TAG}" || echo "Image $IMG_NAME:${IMAGE_TAG} not found, skipping"
+  #         done
+  #         echo "Removing build_output directory..."
+  #         rm -rf build_output/
+  #         echo "Cleanup complete."
