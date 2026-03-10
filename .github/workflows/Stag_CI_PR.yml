@@ -916,7 +916,7 @@ jobs:
     environment: stag
     if: needs.detect_changes.outputs.has_build_changes == 'true'
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
 
@@ -994,6 +994,48 @@ jobs:
         run: |
           echo "Services confirmed for build: $CHANGED_SERVICES"
           bash ./scripts/backend-scripts/build-push-swr.sh
+
+      # ----------------------------------------
+      # Write image map for CD to consume after merge
+      # Only runs if build & push succeeded above
+      # CHANGED_SERVICES and IMAGE_TAG already in $GITHUB_ENV
+      # from Resolve and Set Image Tag steps respectively
+      # ----------------------------------------
+      - name: Commit Image Map for CD
+        run: |
+          IMAGE_TAG="${{ steps.set_tag.outputs.image_tag }}"
+
+          mkdir -p .github/ci-artifacts
+
+          # image_metadata.env
+          echo "IMAGE_TAG=$IMAGE_TAG"                      >  .github/ci-artifacts/image_metadata.env
+          echo "RUN_NUMBER=${{ github.run_number }}"       >> .github/ci-artifacts/image_metadata.env
+          echo "COMMIT_SHA=${{ github.sha }}"              >> .github/ci-artifacts/image_metadata.env
+
+          # image_map.csv — one line per successfully built service
+          # format: service-name,full-image-ref
+          > .github/ci-artifacts/image_map.csv
+          for svc in $CHANGED_SERVICES; do
+            echo "${svc},${{ secrets.SWR_REGISTRY_URL }}/${{ secrets.SWR_ORGANIZATION_NAME }}/${svc}:${IMAGE_TAG}" \
+              >> .github/ci-artifacts/image_map.csv
+          done
+
+          echo "=== image_metadata.env ==="
+          cat .github/ci-artifacts/image_metadata.env
+          echo ""
+          echo "=== image_map.csv ==="
+          cat .github/ci-artifacts/image_map.csv
+
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .github/ci-artifacts/
+          if git diff --cached --quiet; then
+            echo "No change to ci-artifacts — already up to date."
+          else
+            git commit -m "ci: image map for $IMAGE_TAG [skip ci]"
+            git push origin HEAD
+            echo "Image map committed and pushed."
+          fi
 
       - name: Output Job Summary
         if: always()
