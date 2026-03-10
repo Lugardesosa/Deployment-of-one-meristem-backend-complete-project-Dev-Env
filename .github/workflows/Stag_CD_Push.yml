@@ -1,467 +1,1132 @@
 
-# ----------------------------------------
-# One-Meristem Mobile-backend CD for Staging Env
-# ----------------------------------------
+# =====================================================
+# GitHub Actions Workflow: CD - Deploy to Staging
+# Triggered on push to stag_env (i.e. after PR merge)
+# One Meristem Backend Service
+# =====================================================
 
-name: One-Meristem-Mobile-backend CD for Staging Env 
+name: CD - One-Meristem Backend Deploy to Staging
 
 on:
   push:
     branches:
-      - stag_enj
+      - stag_env
     paths:
-      - "charts/**"            # helm charts
-      - "backend/**"          # backend services
-      #- ".github/workflows/Stag_CD_Push.yml"
+      - "backend/**"
+      - "charts/**"
       - "argocd/**"
       - "scripts/**"
   workflow_dispatch:
 
-
-
 env:
+  # =====================================================
+  # SERVICE DEFINITIONS
+  # =====================================================
+  SERVICES_DIR: backend
+  JAVA_21_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service"
+  JAVA_25_SERVICES: "wealth-service"
+  ALL_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service wealth-service"
+
+  # =====================================================
+  # GITHUB VARIABLES
+  # =====================================================
+  GIT_REPO_URL: ${{ vars.GIT_REPO_URL }}
+  GIT_BRANCH: ${{ vars.GIT_BRANCH }}
   APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
   ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
-  GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+  ARGOCD_SERVER: ${{ vars.ARGOCD_SERVER }}
   HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
   HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
-  APP_NAME: ${{ vars.APP_NAME }}
-  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
-  CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
+  VALUES_FILE: ${{ vars.VALUES_FILE }}
+
+  # ArgoCD App Names
   CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
-  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
-  CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
   NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
   WALLET_SERVICE_APP_NAME: ${{ vars.WALLET_SERVICE_APP_NAME }}
   REPORT_SERVICE_APP_NAME: ${{ vars.REPORT_SERVICE_APP_NAME }}
   USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
   TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
-  VALUES_FILE: ${{ vars.VALUES_FILE }}
-  GIT_REPO_URL: ${{ vars.GIT_REPO_URL }}
-  MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
-  ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
-  MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
-  ARGO_ELB_ID: ${{ vars.ARGO_ELB_ID }}
-  MOBILE_ELB_IP: ${{ vars.MOBILE_ELB_IP }}
-  ARGO_ELB_IP: ${{ vars.ARGO_ELB_IP }}
-  ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
-  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
-  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
-  BRANCH_ENV: ${{ vars.BRANCH_ENV }} #<---- To represent the helm values.yaml used via branch on push
-  HUAWEI_ENTERPRISE_PROJECT_ID: ${{ vars.HUAWEI_ENTERPRISE_PROJECT_ID }}
-      
- 
-  
-  # Stored Secrets in Github Secrets
-  SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
-  HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
-  HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
-  SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
-  SWR_REGION: ${{ secrets.SWR_REGION }}
-  ELB_IP: ${{ secrets.ELB_IP }}
-  ELB_ID: ${{ secrets.ELB_ID }}
-  CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
-  KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
-  HUAWEI_ACCESS_KEY: ${{ secrets.HUAWEI_ACCESS_KEY }}
-  HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
-  
+  WEALTH_SERVICE_APP_NAME: ${{ vars.WEALTH_SERVICE_APP_NAME }}
+  CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
+  WEB_APP_APP_NAME: ${{ vars.WEB_APP_APP_NAME }}
+  ADMIN_APP_APP_NAME: ${{ vars.ADMIN_APP_APP_NAME }}
 
-  SERVICES_DIR: ${{ vars.SERVICES_DIR }}
-  REPO_NAME: ${{ vars.REPO_NAME }}
+  # =====================================================
+  # GITHUB SECRETS — SWR & Cluster
+  # =====================================================
+  ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+  CLUSTER_SERVER_URL: ${{ secrets.CLUSTER_SERVER_URL }}
+
+  # =====================================================
+  # GITHUB SECRETS — Shared Resources Credentials
+  # =====================================================
+  CREDENTIALS_ADMIN_PASSWORD: ${{ secrets.CREDENTIALS_ADMIN_PASSWORD }}
+  CREDENTIALS_ENCRYPTION_KEY: ${{ secrets.CREDENTIALS_ENCRYPTION_KEY }}
+  CREDENTIALS_GITHUB_USERNAME: ${{ secrets.CREDENTIALS_GITHUB_USERNAME }}
+  CREDENTIALS_GITHUB_PASSWORD: ${{ secrets.CREDENTIALS_GITHUB_PASSWORD }}
+  CREDENTIALS_MAILER_USERNAME: ${{ secrets.CREDENTIALS_MAILER_USERNAME }}
+  CREDENTIALS_MAILER_PASSWORD: ${{ secrets.CREDENTIALS_MAILER_PASSWORD }}
+  CREDENTIALS_CREDIT_SWITCH_PUBLIC_KEY: ${{ secrets.CREDENTIALS_CREDIT_SWITCH_PUBLIC_KEY }}
+  CREDENTIALS_CREDIT_SWITCH_PRIVATE_KEY: ${{ secrets.CREDENTIALS_CREDIT_SWITCH_PRIVATE_KEY }}
+  CREDENTIALS_CREDIT_SWITCH_SMS_PASSWORD: ${{ secrets.CREDENTIALS_CREDIT_SWITCH_SMS_PASSWORD }}
+  CREDENTIALS_HUAWEI_CLOUD_ACCESS_KEY_ID: ${{ secrets.CREDENTIALS_HUAWEI_CLOUD_ACCESS_KEY_ID }}
+  CREDENTIALS_HUAWEI_CLOUD_SECRET_ACCESS_KEY: ${{ secrets.CREDENTIALS_HUAWEI_CLOUD_SECRET_ACCESS_KEY }}
+  CREDENTIALS_H2_PASSWORD: ${{ secrets.CREDENTIALS_H2_PASSWORD }}
+  CREDENTIALS_PROVIDUS_API_PUBLIC_KEY: ${{ secrets.CREDENTIALS_PROVIDUS_API_PUBLIC_KEY }}
+  CREDENTIALS_PROVIDUS_API_SECRET_KEY: ${{ secrets.CREDENTIALS_PROVIDUS_API_SECRET_KEY }}
+  CREDENTIALS_TRUSTEES_CLIENT_SECRET: ${{ secrets.CREDENTIALS_TRUSTEES_CLIENT_SECRET }}
+  CREDENTIALS_WEALTH_CLIENT_SECRET: ${{ secrets.CREDENTIALS_WEALTH_CLIENT_SECRET }}
+  CREDENTIALS_ENC_SALT: ${{ secrets.CREDENTIALS_ENC_SALT }}
+  CREDENTIALS_EXPO_TOKEN: ${{ secrets.CREDENTIALS_EXPO_TOKEN }}
+  CREDENTIALS_OKHI_HEADER_VALUE: ${{ secrets.CREDENTIALS_OKHI_HEADER_VALUE }}
+  CREDENTIALS_PAYSTACK_SECRET_KEY: ${{ secrets.CREDENTIALS_PAYSTACK_SECRET_KEY }}
+  CREDENTIALS_SMILE_ID_PROD_API_KEY: ${{ secrets.CREDENTIALS_SMILE_ID_PROD_API_KEY }}
+  CREDENTIALS_SMILE_ID_DEV_API_KEY: ${{ secrets.CREDENTIALS_SMILE_ID_DEV_API_KEY }}
+  CREDENTIALS_MOBILE_SECRET: ${{ secrets.CREDENTIALS_MOBILE_SECRET }}
+  CREDENTIALS_TRUSTEES_SECRET: ${{ secrets.CREDENTIALS_TRUSTEES_SECRET }}
+  CREDENTIALS_NOTIFICATION_SECRET: ${{ secrets.CREDENTIALS_NOTIFICATION_SECRET }}
+  CREDENTIALS_ID_HASHING_SECRET: ${{ secrets.CREDENTIALS_ID_HASHING_SECRET }}
+  CREDENTIALS_WEB_SECRET: ${{ secrets.CREDENTIALS_WEB_SECRET }}
+  CREDENTIALS_WALLET_SECRET: ${{ secrets.CREDENTIALS_WALLET_SECRET }}
+  CREDENTIALS_WEALTH_SECRET: ${{ secrets.CREDENTIALS_WEALTH_SECRET }}
+  CREDENTIALS_MIDDLE_WARE_API_KEY: ${{ secrets.CREDENTIALS_MIDDLE_WARE_API_KEY }}
+  CREDENTIALS_DOJAH_SECRET_KEY: ${{ secrets.CREDENTIALS_DOJAH_SECRET_KEY }}
+  CREDENTIALS_DOJAH_PRIVATE_KEY: ${{ secrets.CREDENTIALS_DOJAH_PRIVATE_KEY }}
+  CREDENTIALS_PASTEL_API_KEY: ${{ secrets.CREDENTIALS_PASTEL_API_KEY }}
+  CREDENTIALS_PASTEL_API_SECRET: ${{ secrets.CREDENTIALS_PASTEL_API_SECRET }}
+
+  # =====================================================
+  # GITHUB SECRETS — OBS, Image Pull, Ingress
+  # =====================================================
+  OBS_ACCESS_KEY_B64: ${{ secrets.OBS_ACCESS_KEY_B64 }}
+  OBS_SECRET_KEY_B64: ${{ secrets.OBS_SECRET_KEY_B64 }}
+  IMAGE_PULL_SECRET_DOCKERCONFIGJSON: ${{ secrets.IMAGE_PULL_SECRET_DOCKERCONFIGJSON }}
+  SHARED_ELB_ID: ${{ secrets.SHARED_ELB_ID }}
+  TLS_CERT_CLOUD_GATEWAY_B64: ${{ secrets.TLS_CERT_CLOUD_GATEWAY_B64 }}
+  TLS_KEY_CLOUD_GATEWAY_B64: ${{ secrets.TLS_KEY_CLOUD_GATEWAY_B64 }}
+  TLS_CERT_WEB_APP_B64: ${{ secrets.TLS_CERT_WEB_APP_B64 }}
+  TLS_KEY_WEB_APP_B64: ${{ secrets.TLS_KEY_WEB_APP_B64 }}
+  TLS_CERT_ADMIN_APP_B64: ${{ secrets.TLS_CERT_ADMIN_APP_B64 }}
+  TLS_KEY_ADMIN_APP_B64: ${{ secrets.TLS_KEY_ADMIN_APP_B64 }}
 
 
 jobs:
-  deploy:
-    name: Validate and Commit Manifests for Argo CD
-    runs-on: [self-hosted, linux-runner]
-    environment: stag  # Branch Environment variable 
-
-    env:
-      APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
-      ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
-      APP_NAME: ${{ vars.APP_NAME }}
-      GIT_BRANCH: ${{ vars.GIT_BRANCH }}
-      HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
-      SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
-      SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
-      SWR_REGION: ${{ secrets.SWR_REGION }}
-      STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+  # =====================================================
+  # JOB 1: Detect Changed Services
+  # Same detection logic as CI
+  # Uses HEAD^ HEAD for push events
+  # =====================================================
+  detect_changes:
+    name: Detect Changed Backend Services
+    runs-on: self-hosted
+    outputs:
+      changed_java21: ${{ steps.check_changes.outputs.changed_java21 }}
+      changed_java25: ${{ steps.check_changes.outputs.changed_java25 }}
+      has_java21_changes: ${{ steps.check_changes.outputs.has_java21_changes }}
+      has_java25_changes: ${{ steps.check_changes.outputs.has_java25_changes }}
+      has_build_changes: ${{ steps.check_changes.outputs.has_build_changes }}
+      helm_changed_services: ${{ steps.check_changes.outputs.helm_changed_services }}
+      has_helm_only_changes: ${{ steps.check_changes.outputs.has_helm_only_changes }}
+      shared_resources_changed: ${{ steps.check_changes.outputs.shared_resources_changed }}
+      argocd_changed: ${{ steps.check_changes.outputs.argocd_changed }}
 
     steps:
-      # ----------------------------------------
-      # Step 1: Checkout Code
-      # ----------------------------------------
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.0
         with:
-          fetch-depth: 2  # Needed for git diff detection
+          fetch-depth: 2
 
-      # ----------------------------------------
-      # Step 2: Debug Git Info
-      # ----------------------------------------
       - name: Debug Branch Info
         run: |
-          echo "----------------------------------------"
-          echo "Current branch and commit info:"
+          echo "Repository  : $GITHUB_REPOSITORY"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Commit      : ${{ github.sha }}"
+          echo ""
           git branch -vv
           git log -1 --oneline
-          echo "----------------------------------------"
+          echo ""
+          echo "=== Files Changed ==="
+          git diff --name-only HEAD^ HEAD
 
-      #----------------------------------------
-      #Step 3: Detect Changed Subfolders
-      # ----------------------------------------
-      - name: Detect Changed Services and Files
-        id: detect_changes
+      - name: Detect Changed Services
+        id: check_changes
         run: |
-          echo "Detecting changes in backend/, charts/, argocd/, and scripts/..."
-          
-          # Get changed files
+          set -e
+
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
-          
-          echo "All changed files:"
+
+          echo "=== ALL CHANGED FILES ==="
           echo "$CHANGED_FILES"
-          echo ""
-          
-          # Extract backend services (only valid ones)
-          BACKEND_SERVICES=$(echo "$CHANGED_FILES" | \
-            grep -E "^backend/(users-service|notification-service|cloud-gateway|config-server|wallet-service|report-service|trustees-service)/" | \
-            awk -F/ '{print $1"/"$2}' | \
-            sort -u)
-          
-          # Extract charts changes
-          CHARTS_CHANGES=$(echo "$CHANGED_FILES" | grep "^charts/" || echo "")
-          
-          # Extract argocd changes
-          ARGOCD_CHANGES=$(echo "$CHANGED_FILES" | grep "^argocd/" || echo "")
-          
-          # Extract scripts changes
-          SCRIPTS_CHANGES=$(echo "$CHANGED_FILES" | grep "^scripts/" || echo "")
-          
-          echo "=== Detection Results ==="
-          echo "Backend services changed:"
-          echo "$BACKEND_SERVICES"
-          echo ""
-          echo "Charts changed:"
-          echo "$CHARTS_CHANGES"
-          echo ""
-          echo "ArgoCD changed:"
-          echo "$ARGOCD_CHANGES"
-          echo ""
-          echo "Scripts changed:"
-          echo "$SCRIPTS_CHANGES"
-          echo ""
-          
+          echo "========================="
+
+          JAVA_21_SERVICES="${{ env.JAVA_21_SERVICES }}"
+          JAVA_25_SERVICES="${{ env.JAVA_25_SERVICES }}"
+          ALL_SERVICES="${{ env.ALL_SERVICES }}"
+
+          # -------------------------------------------------------
+          # 1. Detect backend source changes (triggers image tag update)
+          # -------------------------------------------------------
+          BUILD_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
+            | grep -E "^${{ env.SERVICES_DIR }}/" \
+            | cut -d'/' -f2 \
+            | sort -u \
+            | xargs || true)
+
+          echo "Services with source changes: $BUILD_CHANGED_SERVICES"
+
+          CHANGED_JAVA21=""
+          CHANGED_JAVA25=""
+
+          for svc in $BUILD_CHANGED_SERVICES; do
+            if echo "$ALL_SERVICES" | grep -qw "$svc"; then
+              if echo "$JAVA_25_SERVICES" | grep -qw "$svc"; then
+                CHANGED_JAVA25="$CHANGED_JAVA25 $svc"
+              else
+                CHANGED_JAVA21="$CHANGED_JAVA21 $svc"
+              fi
+            fi
+          done
+
+          CHANGED_JAVA21=$(echo "$CHANGED_JAVA21" | xargs)
+          CHANGED_JAVA25=$(echo "$CHANGED_JAVA25" | xargs)
+
+          # -------------------------------------------------------
+          # 2. Detect helm-only changes (chart changed, no source)
+          # -------------------------------------------------------
+          HELM_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
+            | grep -E "^charts/apps/mobile-backend/" \
+            | cut -d'/' -f4 \
+            | sort -u \
+            | xargs || true)
+
+          HELM_ONLY_SERVICES=""
+          for svc in $HELM_CHANGED_SERVICES; do
+            if ! echo "$BUILD_CHANGED_SERVICES" | grep -qw "$svc"; then
+              HELM_ONLY_SERVICES="$HELM_ONLY_SERVICES $svc"
+            fi
+          done
+          HELM_ONLY_SERVICES=$(echo "$HELM_ONLY_SERVICES" | xargs)
+
+          # -------------------------------------------------------
+          # 3. Detect shared-resources chart changes
+          # -------------------------------------------------------
+          SHARED_RESOURCES_CHANGED=$(echo "$CHANGED_FILES" \
+            | grep -E "^charts/shared-resources/" \
+            | head -1 || true)
+          [ -n "$SHARED_RESOURCES_CHANGED" ] && SHARED_CHANGED=true || SHARED_CHANGED=false
+
+          # -------------------------------------------------------
+          # 4. Detect ArgoCD manifest changes
+          # -------------------------------------------------------
+          ARGOCD_CHANGED_FILES=$(echo "$CHANGED_FILES" \
+            | grep -E "^argocd/" \
+            | head -1 || true)
+          [ -n "$ARGOCD_CHANGED_FILES" ] && ARGOCD_CHANGE=true || ARGOCD_CHANGE=false
+
+          # -------------------------------------------------------
           # Set outputs
-          if [ -n "$BACKEND_SERVICES" ]; then
-            echo "backend_changed=true" >> "$GITHUB_OUTPUT"
-            BACKEND_SERVICES_CSV=$(echo "$BACKEND_SERVICES" | tr '\n' ',' | sed 's/,$//')
-            echo "changed_services=$BACKEND_SERVICES_CSV" >> "$GITHUB_OUTPUT"
+          # -------------------------------------------------------
+          if [ -z "$CHANGED_JAVA21" ]; then
+            echo "changed_java21=none" >> "$GITHUB_OUTPUT"
+            echo "has_java21_changes=false" >> "$GITHUB_OUTPUT"
           else
-            echo "backend_changed=false" >> "$GITHUB_OUTPUT"
-            echo "changed_services=none" >> "$GITHUB_OUTPUT"
-          fi
-          
-          if [ -n "$CHARTS_CHANGES" ]; then
-            echo "charts_changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "charts_changed=false" >> "$GITHUB_OUTPUT"
-          fi
-          
-          if [ -n "$ARGOCD_CHANGES" ]; then
-            echo "argocd_changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "argocd_changed=false" >> "$GITHUB_OUTPUT"
-          fi
-          
-          if [ -n "$SCRIPTS_CHANGES" ]; then
-            echo "scripts_changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "scripts_changed=false" >> "$GITHUB_OUTPUT"
-          fi
-          
-          # Check if ANY relevant changes exist
-          if [ -n "$BACKEND_SERVICES" ] || [ -n "$CHARTS_CHANGES" ] || [ -n "$ARGOCD_CHANGES" ] || [ -n "$SCRIPTS_CHANGES" ]; then
-            echo "any_changes=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "any_changes=false" >> "$GITHUB_OUTPUT"
+            echo "changed_java21=$CHANGED_JAVA21" >> "$GITHUB_OUTPUT"
+            echo "has_java21_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # ----------------------------------------
-      # Step 4: Substitute environment variables
-      # ----------------------------------------
-      - name: Substitute environment variables in manifests
-        if: |
-          steps.detect_changes.outputs.charts_changed == 'true' ||
-          steps.detect_changes.outputs.argocd_changed == 'true' ||
-          steps.detect_changes.outputs.scripts_changed == 'true'
+          if [ -z "$CHANGED_JAVA25" ]; then
+            echo "changed_java25=none" >> "$GITHUB_OUTPUT"
+            echo "has_java25_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_java25=$CHANGED_JAVA25" >> "$GITHUB_OUTPUT"
+            echo "has_java25_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          [ -z "$BUILD_CHANGED_SERVICES" ] \
+            && echo "has_build_changes=false" >> "$GITHUB_OUTPUT" \
+            || echo "has_build_changes=true" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$HELM_ONLY_SERVICES" ]; then
+            echo "helm_changed_services=none" >> "$GITHUB_OUTPUT"
+            echo "has_helm_only_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "helm_changed_services=$HELM_ONLY_SERVICES" >> "$GITHUB_OUTPUT"
+            echo "has_helm_only_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "shared_resources_changed=$SHARED_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "argocd_changed=$ARGOCD_CHANGE" >> "$GITHUB_OUTPUT"
+
+      - name: Output Job Summary
         run: |
-          echo "Exporting environment variables for envsubst..."
-          
-          # Export all necessary variables
+          echo "## Change Detection — Staging CD" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Java Version | Services |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          JAVA21="${{ steps.check_changes.outputs.changed_java21 }}"
+          JAVA25="${{ steps.check_changes.outputs.changed_java25 }}"
+          [ "$JAVA21" == "none" ] && JAVA21="—"
+          [ "$JAVA25" == "none" ] && JAVA25="—"
+          echo "| Java 21 | \`$JAVA21\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Java 25 | \`$JAVA25\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Changed |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| shared-resources | ${{ steps.check_changes.outputs.shared_resources_changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| argocd manifests | ${{ steps.check_changes.outputs.argocd_changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| helm only        | ${{ steps.check_changes.outputs.has_helm_only_changes }} |" >> $GITHUB_STEP_SUMMARY
+
+
+  # =====================================================
+  # JOB 2: Read Image Map Written by CI
+  # No rebuild — reads .github/ci-artifacts/ committed
+  # by CI build_and_push job after successful push to SWR
+  # Only runs when backend services changed
+  # Fails loudly if CI never committed the artifact files
+  # =====================================================
+  read_image_map:
+    name: Read CI Image Map
+    runs-on: self-hosted
+    needs: detect_changes
+    if: needs.detect_changes.outputs.has_build_changes == 'true'
+    outputs:
+      image_tag: ${{ steps.loadmeta.outputs.image_tag }}
+      built_services: ${{ steps.loadmeta.outputs.built_services }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 1
+
+      - name: Load Image Map
+        id: loadmeta
+        run: |
+          METADATA=".github/ci-artifacts/image_metadata.env"
+          IMAGE_MAP=".github/ci-artifacts/image_map.csv"
+
+          if [ ! -f "$METADATA" ] || [ ! -f "$IMAGE_MAP" ]; then
+            echo "ERROR: CI artifact files not found."
+            echo "Expected:"
+            echo "  $METADATA"
+            echo "  $IMAGE_MAP"
+            echo ""
+            echo "This means either:"
+            echo "  1. CI pipeline did not run for this PR"
+            echo "  2. CI build_and_push job failed before committing the image map"
+            echo "  3. Image scan was not completed before merge"
+            exit 1
+          fi
+
+          echo "=== image_metadata.env ==="
+          cat "$METADATA"
+          echo ""
+          echo "=== image_map.csv ==="
+          cat "$IMAGE_MAP"
+          echo ""
+
+          IMAGE_TAG=$(grep '^IMAGE_TAG=' "$METADATA" | cut -d'=' -f2)
+          BUILT_SERVICES=$(cut -d',' -f1 "$IMAGE_MAP" | xargs)
+
+          if [ -z "$IMAGE_TAG" ]; then
+            echo "ERROR: IMAGE_TAG is empty in $METADATA"
+            exit 1
+          fi
+
+          if [ -z "$BUILT_SERVICES" ]; then
+            echo "ERROR: No services found in $IMAGE_MAP"
+            exit 1
+          fi
+
+          echo "Image tag resolved : $IMAGE_TAG"
+          echo "Services from CI   : $BUILT_SERVICES"
+
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "built_services=$BUILT_SERVICES" >> "$GITHUB_OUTPUT"
+
+      - name: Output Job Summary
+        run: |
+          echo "## Image Map — Read from CI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Image Tag | \`${{ steps.loadmeta.outputs.image_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Services  | \`${{ steps.loadmeta.outputs.built_services }}\` |" >> $GITHUB_STEP_SUMMARY
+
+
+  # =====================================================
+  # JOB 3: Deploy via ArgoCD
+  # Runs after read_image_map succeeds OR is skipped
+  # (skipped means helm/argocd/shared-resources only change)
+  #
+  # Two responsibilities:
+  #   1. yq + git commit — updates image.repository and
+  #      image.tag in values-stag_env.yaml per changed service
+  #      ArgoCD watches git and shows OutOfSync after commit
+  #
+  #   2. argocd app set — injects credentials into ArgoCD
+  #      for shared-resources ONLY — secrets never touch git
+  # =====================================================
+  deploy:
+    name: Deploy via ArgoCD
+    runs-on: self-hosted
+    needs: [detect_changes, read_image_map]
+    permissions:
+      contents: write   # required for git commit + push of values files
+    if: |
+      always() &&
+      (needs.read_image_map.result == 'success' ||
+       needs.read_image_map.result == 'skipped') &&
+      (needs.detect_changes.outputs.has_build_changes == 'true' ||
+       needs.detect_changes.outputs.has_helm_only_changes == 'true' ||
+       needs.detect_changes.outputs.shared_resources_changed == 'true' ||
+       needs.detect_changes.outputs.argocd_changed == 'true')
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.0
+        with:
+          fetch-depth: 0
+
+      # -------------------------------------------------------
+      # INSTALL ARGOCD CLI
+      # Only installs if not already present on runner
+      # -------------------------------------------------------
+      - name: Install ArgoCD CLI
+        run: |
+          if ! command -v argocd &>/dev/null; then
+            echo "ArgoCD CLI not found — installing..."
+            curl -sSL -o /usr/local/bin/argocd \
+              https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            chmod +x /usr/local/bin/argocd
+            echo "ArgoCD CLI installed."
+          else
+            echo "ArgoCD CLI already present — skipping."
+          fi
+          argocd version --client
+
+      # -------------------------------------------------------
+      # INSTALL YQ
+      # Only installs if not already present on runner
+      # -------------------------------------------------------
+      - name: Install yq
+        run: |
+          if ! command -v yq &>/dev/null; then
+            echo "yq not found — installing..."
+            sudo wget -qO /usr/local/bin/yq \
+              https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+            echo "yq installed: $(yq --version)"
+          else
+            echo "yq already present: $(yq --version)"
+          fi
+
+      # -------------------------------------------------------
+      # LOGIN TO ARGOCD
+      # -------------------------------------------------------
+      - name: Login to ArgoCD
+        run: |
+          argocd login ${{ env.ARGOCD_SERVER }} \
+            --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }} \
+            --insecure \
+            --grpc-web
+
+      # -------------------------------------------------------
+      # APPLY ARGOCD APPLICATION MANIFESTS
+      # Only runs when argocd/ folder changed
+      # envsubst on argocd manifests ONLY —
+      # NEVER run envsubst on helm charts — corrupts {{ }} templates
+      # -------------------------------------------------------
+      - name: Apply ArgoCD Application Manifests
+        if: needs.detect_changes.outputs.argocd_changed == 'true'
+        run: |
           export GIT_REPO_URL="${{ env.GIT_REPO_URL }}"
           export GIT_BRANCH="${{ env.GIT_BRANCH }}"
           export ARGOCD_NAMESPACE="${{ env.ARGOCD_NAMESPACE }}"
           export ARGOCD_PROJECT="${{ env.ARGOCD_PROJECT }}"
           export APP_NAMESPACE="${{ env.APP_NAMESPACE }}"
-          export CLUSTER_SERVER_URL="${{ env.CLUSTER_SERVER_URL }}"
+          export CLUSTER_SERVER_URL="${{ secrets.CLUSTER_SERVER_URL }}"
           export HELM_REPO_PATH="${{ env.HELM_REPO_PATH }}"
           export HELM_MOBILE_REPO_PATH="${{ env.HELM_MOBILE_REPO_PATH }}"
           export VALUES_FILE="${{ env.VALUES_FILE }}"
-          export BRANCH_ENV="${{ env.BRANCH_ENV }}"
           export CONFIG_SERVER_APP_NAME="${{ env.CONFIG_SERVER_APP_NAME }}"
           export CLOUD_GATEWAY_APP_NAME="${{ env.CLOUD_GATEWAY_APP_NAME }}"
-          export CONSUL_APP_NAME="${{ env.CONSUL_APP_NAME }}"
           export NOTIFICATION_SERVICE_APP_NAME="${{ env.NOTIFICATION_SERVICE_APP_NAME }}"
           export WALLET_SERVICE_APP_NAME="${{ env.WALLET_SERVICE_APP_NAME }}"
           export REPORT_SERVICE_APP_NAME="${{ env.REPORT_SERVICE_APP_NAME }}"
           export USERS_SERVICE_APP_NAME="${{ env.USERS_SERVICE_APP_NAME }}"
           export TRUSTEES_SERVICE_APP_NAME="${{ env.TRUSTEES_SERVICE_APP_NAME }}"
-          export INGRESS_HOST="${{ env.INGRESS_HOST }}"
-          export STAG_INGRESS_HOST="${{ env.STAG_INGRESS_HOST }}"
-          export ARGO_INGRESS_HOST="${{ env.ARGO_INGRESS_HOST }}"
-          export MOBILE_ELB_ID="${{ env.MOBILE_ELB_ID }}"
-          export ARGO_ELB_ID="${{ env.ARGO_ELB_ID }}"
-          export MOBILE_ELB_IP="${{ env.MOBILE_ELB_IP }}"
-          export ARGO_ELB_IP="${{ env.ARGO_ELB_IP }}"
-          export MOBILE_CERTIFICATE_IDS="${{ env.MOBILE_CERTIFICATE_IDS }}"
-          export MOBILE_ELB_ID: ${{ env.MOBILE_ELB_ID }}
-          export HUAWEI_ACCESS_KEY: ${{ env.HUAWEI_ACCESS_KEY }}
-          export HUAWEI_SECRET_KEY: ${{ env.HUAWEI_SECRET_KEY }}
-          export HUAWEI_ENTERPRISE_PROJECT_ID: ${{ env.HUAWEI_ENTERPRISE_PROJECT_ID }}
-          
-          echo "Substituting environment variables in Argo CD manifests..."
-          find ./argocd -type f -name "*.yaml" -print0 | while IFS= read -r -d '' file; do
-            echo "Processing $file"
-            envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
-          done
+          export WEALTH_SERVICE_APP_NAME="${{ env.WEALTH_SERVICE_APP_NAME }}"
 
-          echo "Substituting environment variables in Helm charts..."
-          find ./charts -type f -name "*.yaml" -print0 | while IFS= read -r -d '' file; do
-            echo "Processing $file"
-            envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
-          done
+          echo "Applying ArgoCD application manifests..."
+          envsubst < ./argocd/apps/application.yaml | kubectl apply -f -
+          echo "ArgoCD manifests applied."
 
-          echo "Substitution complete. Checking for unreplaced placeholders..."
-          grep -R "\${" ./argocd || echo "All placeholders substituted in argocd/"
-          grep -R "\${" ./charts || echo "All placeholders substituted in charts/"
-
-
-      # -----------------------
-      # Step 5: DOWNLOAD ONLY LIGHT METADATA
-      # -----------------------
-      - name: Download CI image metadata
-        uses: actions/download-artifact@v4
-        with:
-          name: image_metadata
-          path: image_output/
-
-      # -----------------------
-      # Step 6:. READ THE IMAGE TAG + CHANGED SERVICES
-      # -----------------------
-      - name: Load metadata
-        id: loadmeta
+      # -------------------------------------------------------
+      # INJECT CREDENTIALS INTO ARGOCD FOR SHARED-RESOURCES
+      # argocd app set used ONLY for credentials —
+      # secrets must never be committed to git
+      # Runs when backend changed OR shared-resources changed
+      # -------------------------------------------------------
+      - name: Set Shared Resources Credentials in ArgoCD
+        if: |
+          needs.detect_changes.outputs.has_build_changes == 'true' ||
+          needs.detect_changes.outputs.shared_resources_changed == 'true'
         run: |
-          echo "IMAGE_TAG=$(grep '^IMAGE_TAG=' image_output/image_metadata.env | cut -d'=' -f2)" >> $GITHUB_ENV
+          echo "Injecting shared-resources credentials into ArgoCD..."
+          argocd app set shared-resources \
+            --helm-set credentials.adminPassword="${{ secrets.CREDENTIALS_ADMIN_PASSWORD }}" \
+            --helm-set credentials.encryptionKey="${{ secrets.CREDENTIALS_ENCRYPTION_KEY }}" \
+            --helm-set credentials.githubUsername="${{ secrets.CREDENTIALS_GITHUB_USERNAME }}" \
+            --helm-set credentials.githubPassword="${{ secrets.CREDENTIALS_GITHUB_PASSWORD }}" \
+            --helm-set credentials.mailerUsername="${{ secrets.CREDENTIALS_MAILER_USERNAME }}" \
+            --helm-set credentials.mailerPassword="${{ secrets.CREDENTIALS_MAILER_PASSWORD }}" \
+            --helm-set credentials.creditSwitchPublicKey="${{ secrets.CREDENTIALS_CREDIT_SWITCH_PUBLIC_KEY }}" \
+            --helm-set credentials.creditSwitchPrivateKey="${{ secrets.CREDENTIALS_CREDIT_SWITCH_PRIVATE_KEY }}" \
+            --helm-set credentials.creditSwitchSmsPassword="${{ secrets.CREDENTIALS_CREDIT_SWITCH_SMS_PASSWORD }}" \
+            --helm-set credentials.huaweiCloudAccessKeyId="${{ secrets.CREDENTIALS_HUAWEI_CLOUD_ACCESS_KEY_ID }}" \
+            --helm-set credentials.huaweiCloudSecretAccessKey="${{ secrets.CREDENTIALS_HUAWEI_CLOUD_SECRET_ACCESS_KEY }}" \
+            --helm-set credentials.h2Password="${{ secrets.CREDENTIALS_H2_PASSWORD }}" \
+            --helm-set credentials.providusApiPublicKey="${{ secrets.CREDENTIALS_PROVIDUS_API_PUBLIC_KEY }}" \
+            --helm-set credentials.providusApiSecretKey="${{ secrets.CREDENTIALS_PROVIDUS_API_SECRET_KEY }}" \
+            --helm-set credentials.trusteesClientSecret="${{ secrets.CREDENTIALS_TRUSTEES_CLIENT_SECRET }}" \
+            --helm-set credentials.wealthClientSecret="${{ secrets.CREDENTIALS_WEALTH_CLIENT_SECRET }}" \
+            --helm-set credentials.encSalt="${{ secrets.CREDENTIALS_ENC_SALT }}" \
+            --helm-set credentials.expoToken="${{ secrets.CREDENTIALS_EXPO_TOKEN }}" \
+            --helm-set credentials.okhiHeaderValue="${{ secrets.CREDENTIALS_OKHI_HEADER_VALUE }}" \
+            --helm-set credentials.paystackSecretKey="${{ secrets.CREDENTIALS_PAYSTACK_SECRET_KEY }}" \
+            --helm-set credentials.smileIdProdApiKey="${{ secrets.CREDENTIALS_SMILE_ID_PROD_API_KEY }}" \
+            --helm-set credentials.smileIdDevApiKey="${{ secrets.CREDENTIALS_SMILE_ID_DEV_API_KEY }}" \
+            --helm-set credentials.mobileSecret="${{ secrets.CREDENTIALS_MOBILE_SECRET }}" \
+            --helm-set credentials.trusteesSecret="${{ secrets.CREDENTIALS_TRUSTEES_SECRET }}" \
+            --helm-set credentials.notificationSecret="${{ secrets.CREDENTIALS_NOTIFICATION_SECRET }}" \
+            --helm-set credentials.idHashingSecret="${{ secrets.CREDENTIALS_ID_HASHING_SECRET }}" \
+            --helm-set credentials.webSecret="${{ secrets.CREDENTIALS_WEB_SECRET }}" \
+            --helm-set credentials.walletSecret="${{ secrets.CREDENTIALS_WALLET_SECRET }}" \
+            --helm-set credentials.wealthSecret="${{ secrets.CREDENTIALS_WEALTH_SECRET }}" \
+            --helm-set credentials.middlewareApiKey="${{ secrets.CREDENTIALS_MIDDLE_WARE_API_KEY }}" \
+            --helm-set credentials.dojahSecretKey="${{ secrets.CREDENTIALS_DOJAH_SECRET_KEY }}" \
+            --helm-set credentials.dojahPrivateKey="${{ secrets.CREDENTIALS_DOJAH_PRIVATE_KEY }}" \
+            --helm-set credentials.pastelApiKey="${{ secrets.CREDENTIALS_PASTEL_API_KEY }}" \
+            --helm-set credentials.pastelApiSecret="${{ secrets.CREDENTIALS_PASTEL_API_SECRET }}" \
+            --helm-set obsSecret.data.accessKey="${{ secrets.OBS_ACCESS_KEY_B64 }}" \
+            --helm-set obsSecret.data.secretKey="${{ secrets.OBS_SECRET_KEY_B64 }}" \
+            --helm-set imagePullSecret.dockerconfigjson="${{ secrets.IMAGE_PULL_SECRET_DOCKERCONFIGJSON }}" \
+            --helm-set ingress.elbId="${{ secrets.SHARED_ELB_ID }}" \
+            --helm-set ingress.cloudGateway.tlsCert="${{ secrets.TLS_CERT_CLOUD_GATEWAY_B64 }}" \
+            --helm-set ingress.cloudGateway.tlsKey="${{ secrets.TLS_KEY_CLOUD_GATEWAY_B64 }}" \
+            --helm-set ingress.webApp.tlsCert="${{ secrets.TLS_CERT_WEB_APP_B64 }}" \
+            --helm-set ingress.webApp.tlsKey="${{ secrets.TLS_KEY_WEB_APP_B64 }}" \
+            --helm-set ingress.adminApp.tlsCert="${{ secrets.TLS_CERT_ADMIN_APP_B64 }}" \
+            --helm-set ingress.adminApp.tlsKey="${{ secrets.TLS_KEY_ADMIN_APP_B64 }}" \
+            --insecure \
+            --grpc-web
+          echo "Shared resources credentials injected."
 
-          echo "IMAGE_MAP_CSV:"
-          cat image_output/image_map.csv
-
-          # Extract changed services from CSV
-          CHANGED_SERVICES=$(cut -d',' -f1 image_output/image_map.csv | tr '\n' ',' | sed 's/,$//')
-          echo "CHANGED_SERVICES=${CHANGED_SERVICES}" >> $GITHUB_ENV
-      
-      # ----------------------------------------
-      # Step 5: Load image tag info (from CI)
-      # ----------------------------------------
-      # - name: Load Image Info
-      #   id: image_info
-      #   if: steps.detect_changes.outputs.backend_changed == 'true'
-      #   run: |
-      #     echo "Fetching image tag info from previous CI build..."
-      #     if [ -f "image_output/image_map.csv" ]; then
-      #       echo "Found image_output/image_map.csv from CI build."
-      #       cat image_output/image_map.csv
-      #       echo "image_map_exists=true" >> "$GITHUB_OUTPUT"
-      #     else
-      #       echo "No image_output/image_map.csv found — using timestamp fallback."
-      #       mkdir -p image_output
-      #       echo "default,${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/unknown:$(date +'%Y%m%d-%H%M%S')" > image_output/image_map.csv
-      #       echo "image_map_exists=true" >> "$GITHUB_OUTPUT"
-      #     fi
-
-      # -----------------------
-      # Step 7: UPDATE HELM VALUES ONLY FOR CHANGED SERVICES
-      # -----------------------
-      - name: Update Helm Image Tags
+      # -------------------------------------------------------
+      # UPDATE IMAGE TAGS IN HELM VALUES FILES VIA YQ
+      # Reads image_map.csv written by CI build_and_push job
+      # Updates image.repository and image.tag per changed service
+      # Only touches values files for services in the CSV —
+      # no other services are affected
+      # -------------------------------------------------------
+      - name: Update Helm Image Tags via yq
+        if: needs.detect_changes.outputs.has_build_changes == 'true'
         run: |
-          echo "Loading mapping..."
-          declare -A IMG_MAP
+          IMAGE_MAP=".github/ci-artifacts/image_map.csv"
 
-          while IFS=, read -r svc ref; do
+          if [ ! -f "$IMAGE_MAP" ]; then
+            echo "ERROR: $IMAGE_MAP not found. Cannot update image tags."
+            exit 1
+          fi
+
+          echo "=== image_map.csv ==="
+          cat "$IMAGE_MAP"
+          echo ""
+
+          UPDATED=()
+          SKIPPED=()
+
+          while IFS=, read -r svc full_ref; do
             svc=$(echo "$svc" | xargs)
-            ref=$(echo "$ref" | xargs)
-            IMG_MAP["$svc"]="$ref"
-          done < image_output/image_map.csv
+            full_ref=$(echo "$full_ref" | xargs)
 
-          echo "Updating only changed services: $CHANGED_SERVICES"
+            REPO_ONLY=$(echo "$full_ref" | cut -d':' -f1)
+            TAG_ONLY=$(echo "$full_ref" | cut -d':' -f2)
 
-          for svc in $(echo "$CHANGED_SERVICES" | tr ',' ' '); do
-            SERVICE_NAME=$(basename "$svc")
-            VALUES_FILE="./charts/mobile-backend/${SERVICE_NAME}/values-${BRANCH_ENV}.yaml"
+            VALUES_FILE="charts/apps/mobile-backend/${svc}/${{ env.VALUES_FILE }}"
 
-            if [ -f "$VALUES_FILE" ]; then
-              FULL_REF="${IMG_MAP[$svc]}"
-              REPO_ONLY=$(echo "$FULL_REF" | sed 's/:.*//')
-              TAG_ONLY=$(echo "$FULL_REF" | sed 's/.*://')
-
-              echo "Updating $SERVICE_NAME → $REPO_ONLY:$TAG_ONLY"
-
-              yq e -i ".image.repository = \"${REPO_ONLY}\"" "$VALUES_FILE"
-              yq e -i ".image.tag = \"${TAG_ONLY}\"" "$VALUES_FILE"
-            else
-              echo "⚠ No values file found for $SERVICE_NAME → skipped"
+            if [ ! -f "$VALUES_FILE" ]; then
+              echo "WARN: Values file not found for $svc → $VALUES_FILE — skipping"
+              SKIPPED+=("$svc")
+              continue
             fi
-          done
-      # # ----------------------------------------
-      # # Step 6: Substitute image repository & tags in Helm charts
-      # # ----------------------------------------
-      # - name: Substitute Variables and Image Tags
-      #   if: |
-      #     steps.detect_changes.outputs.any_changes == 'true' &&
-      #     (steps.detect_changes.outputs.backend_changed == 'true' && 
-      #      steps.image_info.outputs.image_map_exists == 'true')
-      #   run: |
-      #     echo "Substituting image values in Helm charts..."
-      #     declare -A IMG_MAP
 
-      #     if [ -f image_output/image_map.csv ]; then
-      #       while IFS=, read -r svc ref; do
-      #         svc=$(echo "$svc" | xargs)
-      #         ref=$(echo "$ref" | xargs)
-      #         IMG_MAP["$svc"]="$ref"
-      #       done < image_output/image_map.csv
-      #       echo "Loaded image map:"
-      #       cat image_output/image_map.csv
-      #     fi
+            echo "--------------------------------------------------"
+            echo "Updating $svc"
+            echo "  Values file : $VALUES_FILE"
+            echo "  Repository  : $REPO_ONLY"
+            echo "  Tag         : $TAG_ONLY"
+            echo ""
+            echo "Before:"
+            yq e '.image' "$VALUES_FILE"
 
-      #     for ENTRY in $(echo "${{ steps.detect_changes.outputs.changed_services }}" | tr ',' ' '); do
-      #       SERVICE_NAME=$(basename "$ENTRY")
-      #       VALUES_FILE="./charts/${SERVICE_NAME}/values-${BRANCH_ENV}.yaml"
+            yq e -i ".image.repository = \"${REPO_ONLY}\"" "$VALUES_FILE"
+            yq e -i ".image.tag = \"${TAG_ONLY}\"" "$VALUES_FILE"
 
-      #       if [ -f "$VALUES_FILE" ]; then
-      #         echo "--------------------------------------------------"
-      #         echo "Processing $VALUES_FILE for service: ${SERVICE_NAME}"
-      #         echo "Before substitution:"
-      #         yq e '.image' "$VALUES_FILE" || true
+            echo "After:"
+            yq e '.image' "$VALUES_FILE"
+            UPDATED+=("$svc")
+          done < "$IMAGE_MAP"
 
-      #         if [ -n "${IMG_MAP[$SERVICE_NAME]}" ]; then
-      #           FULL_REF="${IMG_MAP[$SERVICE_NAME]}"
-      #           REPO_ONLY=$(echo "$FULL_REF" | sed 's/:.*//')
-      #           TAG_ONLY=$(echo "$FULL_REF" | sed 's/.*://')
-      #         else
-      #           REPO_ONLY="${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE_NAME}"
-      #           TAG_ONLY=$(date +'%Y%m%d-%H%M%S')
-      #         fi
+          echo ""
+          echo "Updated : ${UPDATED[*]:-none}"
+          echo "Skipped : ${SKIPPED[*]:-none}"
 
-      #         echo "Setting repository=${REPO_ONLY} tag=${TAG_ONLY}"
-      #         yq e -i ".image.repository = \"${REPO_ONLY}\"" "$VALUES_FILE"
-      #         yq e -i ".image.tag = \"${TAG_ONLY}\"" "$VALUES_FILE"
-
-      #         echo "After substitution:"
-      #         yq e '.image' "$VALUES_FILE"
-      #         echo "--------------------------------------------------"
-      #       else
-      #         echo "Skipping: values file not found for service ${SERVICE_NAME}"
-      #       fi
-      #     done
-      #     echo "Image substitution complete."
-
-
-      # ----------------------------------------
-      # Step 7: Commit and Push Updated Manifests
-      # ----------------------------------------
-      - name: Commit and Push Updated Manifests
+      # -------------------------------------------------------
+      # COMMIT UPDATED VALUES FILES BACK TO STAG_ENV
+      # ArgoCD watches this repo — this git commit is what
+      # triggers OutOfSync and makes manual sync possible
+      # [skip ci] prevents CD from triggering itself again
+      # -------------------------------------------------------
+      - name: Commit Updated Helm Values
+        if: needs.detect_changes.outputs.has_build_changes == 'true'
         run: |
-          echo "Checking for changes to commit..."
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-      
-          # Stage changes in relevant directories
-          echo "Staging changes in charts/, argocd/, scripts/, and backend/..."
-          git add charts/ argocd/ scripts/ 2>/dev/null || true
-          
-          # Show what's staged
-          echo ""
-          echo "=== Git Status ==="
-          git status
-          echo ""
-      
-          # Check if there are staged changes
+
+          git add charts/apps/mobile-backend/
+
           if git diff --cached --quiet; then
-            echo "No changes to commit — manifests are already up to date."
+            echo "No changes to values files — already up to date."
           else
-            echo "Changes detected, preparing commit..."
-            
-            # Build detailed commit message
-            COMMIT_MSG="ci: update manifests"
-            COMMIT_DETAILS=""
-            
-            if [ "${{ steps.detect_changes.outputs.backend_changed }}" == "true" ]; then
-              COMMIT_DETAILS="${COMMIT_DETAILS}\n- Backend images updated"
-            fi
-            
-            if [ "${{ steps.detect_changes.outputs.charts_changed }}" == "true" ]; then
-              COMMIT_DETAILS="${COMMIT_DETAILS}\n- Helm charts updated"
-            fi
-            
-            if [ "${{ steps.detect_changes.outputs.argocd_changed }}" == "true" ]; then
-              COMMIT_DETAILS="${COMMIT_DETAILS}\n- ArgoCD manifests updated"
-            fi
-            
-            if [ "${{ steps.detect_changes.outputs.scripts_changed }}" == "true" ]; then
-              COMMIT_DETAILS="${COMMIT_DETAILS}\n- Scripts updated"
-            fi
-            
-            # Add details if any
-            if [ -n "$COMMIT_DETAILS" ]; then
-              COMMIT_MSG="${COMMIT_MSG}${COMMIT_DETAILS}"
-            fi
-            
-            echo "Commit message:"
-            echo -e "$COMMIT_MSG"
-            echo ""
-            
-            git commit -m "$(echo -e "$COMMIT_MSG")"
-            
-            echo "Pushing changes to $GIT_BRANCH..."
-            git push origin $GIT_BRANCH
-            
-            echo "Changes pushed successfully!"
+            IMAGE_TAG="${{ needs.read_image_map.outputs.image_tag }}"
+            SERVICES="${{ needs.read_image_map.outputs.built_services }}"
+
+            git commit -m "cd: update image tags to $IMAGE_TAG for [$SERVICES] [skip ci]"
+            git push origin ${{ env.GIT_BRANCH }}
+            echo "Values files committed and pushed."
+            echo "ArgoCD will now show OutOfSync — proceed to UI to sync."
           fi
 
-
-      # ----------------------------------------
-      # Step 5: Post Deployment (Argo CD will Deploy Automatically)
-      # ----------------------------------------
-      - name: Post Deployment
+      # -------------------------------------------------------
+      # PIPELINE COMPLETE
+      # Summary of what ran and what to do next
+      # -------------------------------------------------------
+      - name: Pipeline Summary
+        if: always()
         run: |
-          echo "=================================================="
-          echo "CD Pipeline Complete!"
-          echo "=================================================="
-          echo ""
-          echo "Branch: $GIT_BRANCH"
-          echo "Backend Changed: ${{ steps.detect_changes.outputs.backend_changed }}"
-          echo "Charts Changed: ${{ steps.detect_changes.outputs.charts_changed }}"
-          echo "ArgoCD Changed: ${{ steps.detect_changes.outputs.argocd_changed }}"
-          echo "Scripts Changed: ${{ steps.detect_changes.outputs.scripts_changed }}"
-          echo ""
-          if git diff HEAD --quiet 2>/dev/null; then
-            echo "Status: No changes were committed (already up to date)"
-          else
-            echo "Status: Changes committed and pushed"
-            echo "ArgoCD will automatically sync the changes."
-          fi
-          echo ""
-          echo "=================================================="
-          echo "Thank you for using the One-Meristem Mobile Backend CD pipeline! See you next time! I love you!"
-          echo "=================================================="
+          echo "## CD Pipeline Complete — Staging" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch       | \`${{ env.GIT_BRANCH }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Merge Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image Tag    | \`${{ needs.read_image_map.outputs.image_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Services     | \`${{ needs.read_image_map.outputs.built_services }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend build changes | ${{ needs.detect_changes.outputs.has_build_changes }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Helm only changes     | ${{ needs.detect_changes.outputs.has_helm_only_changes }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Shared resources      | ${{ needs.detect_changes.outputs.shared_resources_changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ArgoCD manifests      | ${{ needs.detect_changes.outputs.argocd_changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### What happened" >> $GITHUB_STEP_SUMMARY
+          echo "- Image tags updated in \`values-stag_env.yaml\` via yq and committed to git" >> $GITHUB_STEP_SUMMARY
+          echo "- Credentials injected into ArgoCD via \`argocd app set\` (never committed to git)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Step" >> $GITHUB_STEP_SUMMARY
+          echo "Log into ArgoCD UI and manually sync the updated applications." >> $GITHUB_STEP_SUMMARY
+
+
+# **Complete flow:**
+# ```
+# detect_changes
+#     └── read_image_map         (only if has_build_changes=true)
+#             │                   reads .github/ci-artifacts/image_map.csv
+#             │                   reads .github/ci-artifacts/image_metadata.env
+#             └── deploy          (runs if any change flag is true)
+#                   ├── install argocd cli + yq
+#                   ├── login to argocd
+#                   ├── apply argocd manifests      (if argocd/ changed)
+#                   ├── set shared-resources creds  (if backend or shared changed)
+#                   │     └── argocd app set only — credentials never touch git
+#                   ├── update helm values via yq   (if backend changed)
+#                   │     └── reads image_map.csv → updates image.repository + image.tag
+#                   └── git commit + push values    (if backend changed)
+#                         └── ArgoCD detects OutOfSync → manual sync from UI
+
+
+
+
+
+
+
+# # ----------------------------------------
+# # One-Meristem Mobile-backend CD for Staging Env
+# # ----------------------------------------
+
+# name: One-Meristem-Mobile-backend CD for Staging Env 
+
+# on:
+#   push:
+#     branches:
+#       - stag_enj
+#     paths:
+#       - "charts/**"            # helm charts
+#       - "backend/**"          # backend services
+#       #- ".github/workflows/Stag_CD_Push.yml"
+#       - "argocd/**"
+#       - "scripts/**"
+#   workflow_dispatch:
+
+
+
+# env:
+#   APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+#   ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+#   GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+#   HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+#   HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
+#   APP_NAME: ${{ vars.APP_NAME }}
+#   INGRESS_HOST: ${{ vars.INGRESS_HOST }}
+#   CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
+#   CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
+#   CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
+#   CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
+#   NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
+#   WALLET_SERVICE_APP_NAME: ${{ vars.WALLET_SERVICE_APP_NAME }}
+#   REPORT_SERVICE_APP_NAME: ${{ vars.REPORT_SERVICE_APP_NAME }}
+#   USERS_SERVICE_APP_NAME: ${{ vars.USERS_SERVICE_APP_NAME }}
+#   TRUSTEES_SERVICE_APP_NAME: ${{ vars.TRUSTEES_SERVICE_APP_NAME }}
+#   VALUES_FILE: ${{ vars.VALUES_FILE }}
+#   GIT_REPO_URL: ${{ vars.GIT_REPO_URL }}
+#   MOBILE_CERTIFICATE_IDS: ${{ vars.MOBILE_CERTIFICATE_IDS }}
+#   ARGO_CERTIFICATE_ID: ${{ vars.ARGO_CERTIFICATE_ID }}
+#   MOBILE_ELB_ID: ${{ vars.MOBILE_ELB_ID }}
+#   ARGO_ELB_ID: ${{ vars.ARGO_ELB_ID }}
+#   MOBILE_ELB_IP: ${{ vars.MOBILE_ELB_IP }}
+#   ARGO_ELB_IP: ${{ vars.ARGO_ELB_IP }}
+#   ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+#   ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
+#   STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
+#   BRANCH_ENV: ${{ vars.BRANCH_ENV }} #<---- To represent the helm values.yaml used via branch on push
+#   HUAWEI_ENTERPRISE_PROJECT_ID: ${{ vars.HUAWEI_ENTERPRISE_PROJECT_ID }}
+      
+ 
+  
+#   # Stored Secrets in Github Secrets
+#   SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+#   HUAWEI_SWR_USERNAME: ${{ secrets.HUAWEI_SWR_USERNAME }}
+#   HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+#   SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+#   SWR_REGION: ${{ secrets.SWR_REGION }}
+#   ELB_IP: ${{ secrets.ELB_IP }}
+#   ELB_ID: ${{ secrets.ELB_ID }}
+#   CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+#   KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG_CONTENT }}
+#   HUAWEI_ACCESS_KEY: ${{ secrets.HUAWEI_ACCESS_KEY }}
+#   HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
+  
+
+#   SERVICES_DIR: ${{ vars.SERVICES_DIR }}
+#   REPO_NAME: ${{ vars.REPO_NAME }}
+
+
+# jobs:
+#   deploy:
+#     name: Validate and Commit Manifests for Argo CD
+#     runs-on: [self-hosted, linux-runner]
+#     environment: stag  # Branch Environment variable 
+
+#     env:
+#       APP_NAMESPACE: ${{ vars.APP_NAMESPACE }}
+#       ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+#       APP_NAME: ${{ vars.APP_NAME }}
+#       GIT_BRANCH: ${{ vars.GIT_BRANCH }}
+#       HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
+#       SWR_REGISTRY_URL: ${{ secrets.SWR_REGISTRY_URL }}
+#       SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
+#       SWR_REGION: ${{ secrets.SWR_REGION }}
+#       STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+
+#     steps:
+#       # ----------------------------------------
+#       # Step 1: Checkout Code
+#       # ----------------------------------------
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 2  # Needed for git diff detection
+
+#       # ----------------------------------------
+#       # Step 2: Debug Git Info
+#       # ----------------------------------------
+#       - name: Debug Branch Info
+#         run: |
+#           echo "----------------------------------------"
+#           echo "Current branch and commit info:"
+#           git branch -vv
+#           git log -1 --oneline
+#           echo "----------------------------------------"
+
+#       #----------------------------------------
+#       #Step 3: Detect Changed Subfolders
+#       # ----------------------------------------
+#       - name: Detect Changed Services and Files
+#         id: detect_changes
+#         run: |
+#           echo "Detecting changes in backend/, charts/, argocd/, and scripts/..."
+          
+#           # Get changed files
+#           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          
+#           echo "All changed files:"
+#           echo "$CHANGED_FILES"
+#           echo ""
+          
+#           # Extract backend services (only valid ones)
+#           BACKEND_SERVICES=$(echo "$CHANGED_FILES" | \
+#             grep -E "^backend/(users-service|notification-service|cloud-gateway|config-server|wallet-service|report-service|trustees-service)/" | \
+#             awk -F/ '{print $1"/"$2}' | \
+#             sort -u)
+          
+#           # Extract charts changes
+#           CHARTS_CHANGES=$(echo "$CHANGED_FILES" | grep "^charts/" || echo "")
+          
+#           # Extract argocd changes
+#           ARGOCD_CHANGES=$(echo "$CHANGED_FILES" | grep "^argocd/" || echo "")
+          
+#           # Extract scripts changes
+#           SCRIPTS_CHANGES=$(echo "$CHANGED_FILES" | grep "^scripts/" || echo "")
+          
+#           echo "=== Detection Results ==="
+#           echo "Backend services changed:"
+#           echo "$BACKEND_SERVICES"
+#           echo ""
+#           echo "Charts changed:"
+#           echo "$CHARTS_CHANGES"
+#           echo ""
+#           echo "ArgoCD changed:"
+#           echo "$ARGOCD_CHANGES"
+#           echo ""
+#           echo "Scripts changed:"
+#           echo "$SCRIPTS_CHANGES"
+#           echo ""
+          
+#           # Set outputs
+#           if [ -n "$BACKEND_SERVICES" ]; then
+#             echo "backend_changed=true" >> "$GITHUB_OUTPUT"
+#             BACKEND_SERVICES_CSV=$(echo "$BACKEND_SERVICES" | tr '\n' ',' | sed 's/,$//')
+#             echo "changed_services=$BACKEND_SERVICES_CSV" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "backend_changed=false" >> "$GITHUB_OUTPUT"
+#             echo "changed_services=none" >> "$GITHUB_OUTPUT"
+#           fi
+          
+#           if [ -n "$CHARTS_CHANGES" ]; then
+#             echo "charts_changed=true" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "charts_changed=false" >> "$GITHUB_OUTPUT"
+#           fi
+          
+#           if [ -n "$ARGOCD_CHANGES" ]; then
+#             echo "argocd_changed=true" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "argocd_changed=false" >> "$GITHUB_OUTPUT"
+#           fi
+          
+#           if [ -n "$SCRIPTS_CHANGES" ]; then
+#             echo "scripts_changed=true" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "scripts_changed=false" >> "$GITHUB_OUTPUT"
+#           fi
+          
+#           # Check if ANY relevant changes exist
+#           if [ -n "$BACKEND_SERVICES" ] || [ -n "$CHARTS_CHANGES" ] || [ -n "$ARGOCD_CHANGES" ] || [ -n "$SCRIPTS_CHANGES" ]; then
+#             echo "any_changes=true" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "any_changes=false" >> "$GITHUB_OUTPUT"
+#           fi
+
+#       # ----------------------------------------
+#       # Step 4: Substitute environment variables
+#       # ----------------------------------------
+#       - name: Substitute environment variables in manifests
+#         if: |
+#           steps.detect_changes.outputs.charts_changed == 'true' ||
+#           steps.detect_changes.outputs.argocd_changed == 'true' ||
+#           steps.detect_changes.outputs.scripts_changed == 'true'
+#         run: |
+#           echo "Exporting environment variables for envsubst..."
+          
+#           # Export all necessary variables
+#           export GIT_REPO_URL="${{ env.GIT_REPO_URL }}"
+#           export GIT_BRANCH="${{ env.GIT_BRANCH }}"
+#           export ARGOCD_NAMESPACE="${{ env.ARGOCD_NAMESPACE }}"
+#           export ARGOCD_PROJECT="${{ env.ARGOCD_PROJECT }}"
+#           export APP_NAMESPACE="${{ env.APP_NAMESPACE }}"
+#           export CLUSTER_SERVER_URL="${{ env.CLUSTER_SERVER_URL }}"
+#           export HELM_REPO_PATH="${{ env.HELM_REPO_PATH }}"
+#           export HELM_MOBILE_REPO_PATH="${{ env.HELM_MOBILE_REPO_PATH }}"
+#           export VALUES_FILE="${{ env.VALUES_FILE }}"
+#           export BRANCH_ENV="${{ env.BRANCH_ENV }}"
+#           export CONFIG_SERVER_APP_NAME="${{ env.CONFIG_SERVER_APP_NAME }}"
+#           export CLOUD_GATEWAY_APP_NAME="${{ env.CLOUD_GATEWAY_APP_NAME }}"
+#           export CONSUL_APP_NAME="${{ env.CONSUL_APP_NAME }}"
+#           export NOTIFICATION_SERVICE_APP_NAME="${{ env.NOTIFICATION_SERVICE_APP_NAME }}"
+#           export WALLET_SERVICE_APP_NAME="${{ env.WALLET_SERVICE_APP_NAME }}"
+#           export REPORT_SERVICE_APP_NAME="${{ env.REPORT_SERVICE_APP_NAME }}"
+#           export USERS_SERVICE_APP_NAME="${{ env.USERS_SERVICE_APP_NAME }}"
+#           export TRUSTEES_SERVICE_APP_NAME="${{ env.TRUSTEES_SERVICE_APP_NAME }}"
+#           export INGRESS_HOST="${{ env.INGRESS_HOST }}"
+#           export STAG_INGRESS_HOST="${{ env.STAG_INGRESS_HOST }}"
+#           export ARGO_INGRESS_HOST="${{ env.ARGO_INGRESS_HOST }}"
+#           export MOBILE_ELB_ID="${{ env.MOBILE_ELB_ID }}"
+#           export ARGO_ELB_ID="${{ env.ARGO_ELB_ID }}"
+#           export MOBILE_ELB_IP="${{ env.MOBILE_ELB_IP }}"
+#           export ARGO_ELB_IP="${{ env.ARGO_ELB_IP }}"
+#           export MOBILE_CERTIFICATE_IDS="${{ env.MOBILE_CERTIFICATE_IDS }}"
+#           export MOBILE_ELB_ID: ${{ env.MOBILE_ELB_ID }}
+#           export HUAWEI_ACCESS_KEY: ${{ env.HUAWEI_ACCESS_KEY }}
+#           export HUAWEI_SECRET_KEY: ${{ env.HUAWEI_SECRET_KEY }}
+#           export HUAWEI_ENTERPRISE_PROJECT_ID: ${{ env.HUAWEI_ENTERPRISE_PROJECT_ID }}
+          
+#           echo "Substituting environment variables in Argo CD manifests..."
+#           find ./argocd -type f -name "*.yaml" -print0 | while IFS= read -r -d '' file; do
+#             echo "Processing $file"
+#             envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+#           done
+
+#           echo "Substituting environment variables in Helm charts..."
+#           find ./charts -type f -name "*.yaml" -print0 | while IFS= read -r -d '' file; do
+#             echo "Processing $file"
+#             envsubst < "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+#           done
+
+#           echo "Substitution complete. Checking for unreplaced placeholders..."
+#           grep -R "\${" ./argocd || echo "All placeholders substituted in argocd/"
+#           grep -R "\${" ./charts || echo "All placeholders substituted in charts/"
+
+
+#       # -----------------------
+#       # Step 5: DOWNLOAD ONLY LIGHT METADATA
+#       # -----------------------
+#       - name: Download CI image metadata
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: image_metadata
+#           path: image_output/
+
+#       # -----------------------
+#       # Step 6:. READ THE IMAGE TAG + CHANGED SERVICES
+#       # -----------------------
+#       - name: Load metadata
+#         id: loadmeta
+#         run: |
+#           echo "IMAGE_TAG=$(grep '^IMAGE_TAG=' image_output/image_metadata.env | cut -d'=' -f2)" >> $GITHUB_ENV
+
+#           echo "IMAGE_MAP_CSV:"
+#           cat image_output/image_map.csv
+
+#           # Extract changed services from CSV
+#           CHANGED_SERVICES=$(cut -d',' -f1 image_output/image_map.csv | tr '\n' ',' | sed 's/,$//')
+#           echo "CHANGED_SERVICES=${CHANGED_SERVICES}" >> $GITHUB_ENV
+      
+#       # ----------------------------------------
+#       # Step 5: Load image tag info (from CI)
+#       # ----------------------------------------
+#       # - name: Load Image Info
+#       #   id: image_info
+#       #   if: steps.detect_changes.outputs.backend_changed == 'true'
+#       #   run: |
+#       #     echo "Fetching image tag info from previous CI build..."
+#       #     if [ -f "image_output/image_map.csv" ]; then
+#       #       echo "Found image_output/image_map.csv from CI build."
+#       #       cat image_output/image_map.csv
+#       #       echo "image_map_exists=true" >> "$GITHUB_OUTPUT"
+#       #     else
+#       #       echo "No image_output/image_map.csv found — using timestamp fallback."
+#       #       mkdir -p image_output
+#       #       echo "default,${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/unknown:$(date +'%Y%m%d-%H%M%S')" > image_output/image_map.csv
+#       #       echo "image_map_exists=true" >> "$GITHUB_OUTPUT"
+#       #     fi
+
+#       # -----------------------
+#       # Step 7: UPDATE HELM VALUES ONLY FOR CHANGED SERVICES
+#       # -----------------------
+#       - name: Update Helm Image Tags
+#         run: |
+#           echo "Loading mapping..."
+#           declare -A IMG_MAP
+
+#           while IFS=, read -r svc ref; do
+#             svc=$(echo "$svc" | xargs)
+#             ref=$(echo "$ref" | xargs)
+#             IMG_MAP["$svc"]="$ref"
+#           done < image_output/image_map.csv
+
+#           echo "Updating only changed services: $CHANGED_SERVICES"
+
+#           for svc in $(echo "$CHANGED_SERVICES" | tr ',' ' '); do
+#             SERVICE_NAME=$(basename "$svc")
+#             VALUES_FILE="./charts/mobile-backend/${SERVICE_NAME}/values-${BRANCH_ENV}.yaml"
+
+#             if [ -f "$VALUES_FILE" ]; then
+#               FULL_REF="${IMG_MAP[$svc]}"
+#               REPO_ONLY=$(echo "$FULL_REF" | sed 's/:.*//')
+#               TAG_ONLY=$(echo "$FULL_REF" | sed 's/.*://')
+
+#               echo "Updating $SERVICE_NAME → $REPO_ONLY:$TAG_ONLY"
+
+#               yq e -i ".image.repository = \"${REPO_ONLY}\"" "$VALUES_FILE"
+#               yq e -i ".image.tag = \"${TAG_ONLY}\"" "$VALUES_FILE"
+#             else
+#               echo "⚠ No values file found for $SERVICE_NAME → skipped"
+#             fi
+#           done
+#       # # ----------------------------------------
+#       # # Step 6: Substitute image repository & tags in Helm charts
+#       # # ----------------------------------------
+#       # - name: Substitute Variables and Image Tags
+#       #   if: |
+#       #     steps.detect_changes.outputs.any_changes == 'true' &&
+#       #     (steps.detect_changes.outputs.backend_changed == 'true' && 
+#       #      steps.image_info.outputs.image_map_exists == 'true')
+#       #   run: |
+#       #     echo "Substituting image values in Helm charts..."
+#       #     declare -A IMG_MAP
+
+#       #     if [ -f image_output/image_map.csv ]; then
+#       #       while IFS=, read -r svc ref; do
+#       #         svc=$(echo "$svc" | xargs)
+#       #         ref=$(echo "$ref" | xargs)
+#       #         IMG_MAP["$svc"]="$ref"
+#       #       done < image_output/image_map.csv
+#       #       echo "Loaded image map:"
+#       #       cat image_output/image_map.csv
+#       #     fi
+
+#       #     for ENTRY in $(echo "${{ steps.detect_changes.outputs.changed_services }}" | tr ',' ' '); do
+#       #       SERVICE_NAME=$(basename "$ENTRY")
+#       #       VALUES_FILE="./charts/${SERVICE_NAME}/values-${BRANCH_ENV}.yaml"
+
+#       #       if [ -f "$VALUES_FILE" ]; then
+#       #         echo "--------------------------------------------------"
+#       #         echo "Processing $VALUES_FILE for service: ${SERVICE_NAME}"
+#       #         echo "Before substitution:"
+#       #         yq e '.image' "$VALUES_FILE" || true
+
+#       #         if [ -n "${IMG_MAP[$SERVICE_NAME]}" ]; then
+#       #           FULL_REF="${IMG_MAP[$SERVICE_NAME]}"
+#       #           REPO_ONLY=$(echo "$FULL_REF" | sed 's/:.*//')
+#       #           TAG_ONLY=$(echo "$FULL_REF" | sed 's/.*://')
+#       #         else
+#       #           REPO_ONLY="${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${SERVICE_NAME}"
+#       #           TAG_ONLY=$(date +'%Y%m%d-%H%M%S')
+#       #         fi
+
+#       #         echo "Setting repository=${REPO_ONLY} tag=${TAG_ONLY}"
+#       #         yq e -i ".image.repository = \"${REPO_ONLY}\"" "$VALUES_FILE"
+#       #         yq e -i ".image.tag = \"${TAG_ONLY}\"" "$VALUES_FILE"
+
+#       #         echo "After substitution:"
+#       #         yq e '.image' "$VALUES_FILE"
+#       #         echo "--------------------------------------------------"
+#       #       else
+#       #         echo "Skipping: values file not found for service ${SERVICE_NAME}"
+#       #       fi
+#       #     done
+#       #     echo "Image substitution complete."
+
+
+#       # ----------------------------------------
+#       # Step 7: Commit and Push Updated Manifests
+#       # ----------------------------------------
+#       - name: Commit and Push Updated Manifests
+#         run: |
+#           echo "Checking for changes to commit..."
+#           git config user.name "github-actions"
+#           git config user.email "actions@github.com"
+      
+#           # Stage changes in relevant directories
+#           echo "Staging changes in charts/, argocd/, scripts/, and backend/..."
+#           git add charts/ argocd/ scripts/ 2>/dev/null || true
+          
+#           # Show what's staged
+#           echo ""
+#           echo "=== Git Status ==="
+#           git status
+#           echo ""
+      
+#           # Check if there are staged changes
+#           if git diff --cached --quiet; then
+#             echo "No changes to commit — manifests are already up to date."
+#           else
+#             echo "Changes detected, preparing commit..."
+            
+#             # Build detailed commit message
+#             COMMIT_MSG="ci: update manifests"
+#             COMMIT_DETAILS=""
+            
+#             if [ "${{ steps.detect_changes.outputs.backend_changed }}" == "true" ]; then
+#               COMMIT_DETAILS="${COMMIT_DETAILS}\n- Backend images updated"
+#             fi
+            
+#             if [ "${{ steps.detect_changes.outputs.charts_changed }}" == "true" ]; then
+#               COMMIT_DETAILS="${COMMIT_DETAILS}\n- Helm charts updated"
+#             fi
+            
+#             if [ "${{ steps.detect_changes.outputs.argocd_changed }}" == "true" ]; then
+#               COMMIT_DETAILS="${COMMIT_DETAILS}\n- ArgoCD manifests updated"
+#             fi
+            
+#             if [ "${{ steps.detect_changes.outputs.scripts_changed }}" == "true" ]; then
+#               COMMIT_DETAILS="${COMMIT_DETAILS}\n- Scripts updated"
+#             fi
+            
+#             # Add details if any
+#             if [ -n "$COMMIT_DETAILS" ]; then
+#               COMMIT_MSG="${COMMIT_MSG}${COMMIT_DETAILS}"
+#             fi
+            
+#             echo "Commit message:"
+#             echo -e "$COMMIT_MSG"
+#             echo ""
+            
+#             git commit -m "$(echo -e "$COMMIT_MSG")"
+            
+#             echo "Pushing changes to $GIT_BRANCH..."
+#             git push origin $GIT_BRANCH
+            
+#             echo "Changes pushed successfully!"
+#           fi
+
+
+#       # ----------------------------------------
+#       # Step 5: Post Deployment (Argo CD will Deploy Automatically)
+#       # ----------------------------------------
+#       - name: Post Deployment
+#         run: |
+#           echo "=================================================="
+#           echo "CD Pipeline Complete!"
+#           echo "=================================================="
+#           echo ""
+#           echo "Branch: $GIT_BRANCH"
+#           echo "Backend Changed: ${{ steps.detect_changes.outputs.backend_changed }}"
+#           echo "Charts Changed: ${{ steps.detect_changes.outputs.charts_changed }}"
+#           echo "ArgoCD Changed: ${{ steps.detect_changes.outputs.argocd_changed }}"
+#           echo "Scripts Changed: ${{ steps.detect_changes.outputs.scripts_changed }}"
+#           echo ""
+#           if git diff HEAD --quiet 2>/dev/null; then
+#             echo "Status: No changes were committed (already up to date)"
+#           else
+#             echo "Status: Changes committed and pushed"
+#             echo "ArgoCD will automatically sync the changes."
+#           fi
+#           echo ""
+#           echo "=================================================="
+#           echo "Thank you for using the One-Meristem Mobile Backend CD pipeline! See you next time! I love you!"
+#           echo "=================================================="
