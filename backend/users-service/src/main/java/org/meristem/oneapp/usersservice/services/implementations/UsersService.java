@@ -141,7 +141,6 @@ public class UsersService implements IUsersService {
     public UpdateResponse createJoint(CreateJointUserRequest request) {
 
         checkEmailOrPhoneDoesNotExist(request.primary().email(), request.primary().phoneNumber());
-        checkEmailOrPhoneDoesNotExist(request.secondary().email(), request.secondary().phoneNumber());
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
@@ -447,18 +446,19 @@ public class UsersService implements IUsersService {
                 .userId(user.getId()).idValueHashed(hashingUtil.hmacWithSha256(idHashKey, bvnQueryResponse.getBankBvn()))
                 .build());
 
-        configureUserOnboarding(user, bvnQueryResponse.getGenderCode(), emailVerified);
+        configureUserOnboarding(user, bvnQueryResponse.getGenderCode(), nonNull(bvnQueryResponse.getBirthDate()) ? bvnQueryResponse.getBirthDate().toLocalDate() : null, emailVerified);
 
         log.info("User with existing email {} onboarding completion finished ", user.getEmail());
     }
 
-    private @NonNull UserProfile configureUserOnboarding(Users user, String gender, boolean emailVerified) {
+    private @NonNull UserProfile configureUserOnboarding(Users user, String gender, LocalDate dateOfBirth, boolean emailVerified) {
         String referralCode;
         do {
             referralCode = AppUtil.generateReferralCode(user.getFirstName());
         } while (userProfileRepository.existsByReferralCode(referralCode));
         UserProfile profile = UserProfile.builder().userId(user.getId()).gender(Gender.getGender(gender).getCaps()).referralCode(referralCode).build();
         profile.setEmailVerified(emailVerified);
+        profile.setDateOfBirth(dateOfBirth);
 
         profileRepository.save(profile);
         Long userId = user.getId();
@@ -542,7 +542,7 @@ public class UsersService implements IUsersService {
                 .build());
 
         log.info("User with email {} onboarding completion finished ", user.getEmail());
-        return configureUserOnboarding(user, bvnQueryResponse.getGender(), emailVerified);
+        return configureUserOnboarding(user, bvnQueryResponse.getGender(), nonNull(bvnQueryResponse.getDateOfBirth()) ? LocalDate.parse(bvnQueryResponse.getDateOfBirth()) : null, emailVerified);
     }
 
     private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, Long userId, String kafkaTopics) {
@@ -1319,7 +1319,18 @@ public class UsersService implements IUsersService {
     public StageResponse processDetails(String email) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+        Cache jointCache = requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME));
         IdQueryDetailsDto ninQueryResponse = cache.get(email, IdQueryDetailsDto.class);
+
+        if (ninQueryResponse == null) {
+            CreateJointAccountDtos jointAccountDtos = jointCache.get(email, CreateJointAccountDtos.class);
+
+            if (isNull(jointAccountDtos)) {
+                throw new AccessDeniedException("Initial sign up details not found.");
+            } else {
+                ninQueryResponse = jointAccountDtos.getPrimary();
+            }
+        }
 
         if (ninQueryResponse == null) {
             throw new AccessDeniedException("Initial sign up details not found.");
