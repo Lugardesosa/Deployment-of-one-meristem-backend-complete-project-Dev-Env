@@ -1252,12 +1252,12 @@ public class UsersService implements IUsersService {
             throw new BadRequestException("User does not exist.");
         }
         Map<String, Object> updates = new HashMap<>();
-        updates.put("data_sharing_allowed", true);
-        int updated = customRepository.dynamicUpdate(UserInstrument.class, updates, Map.of("user_id", userId));
-        Long investmentRequirementId = AppUtil.getInvestmentId(httpServletRequest);
-        Long investmentId = investmentInstrumentsRepository.findInvestmentIdById(investmentRequirementId);
-        userInstrumentRepository.updateUserInstrumentDataSharingAllowed(userId, true, investmentId);
-        requireNonNull(cacheManager.getCache(AppConstants.INVESTMENT_INSTRUMENT_CACHE_NAME)).evict(AppUtil.getLoggedInUserId());
+        updates.put("data_sharing", request.dataSharing());
+        updates.put("marketing_data_sharing", request.marketingDataSharing());
+        updates.put("ai_and_analytics_data_sharing", request.aiAndAnalyticsDataSharing());
+
+        int updated = customRepository.dynamicUpdate(UserProfile.class, updates, Map.of("user_id", userId));
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
         return UpdateResponse.builder().success(updated != 0).message(updated != 0 ? "Successful" : "Failed").build();
     }
 

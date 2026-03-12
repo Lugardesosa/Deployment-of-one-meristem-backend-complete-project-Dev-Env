@@ -122,8 +122,12 @@ public class UsersResponse implements Serializable {
 
         private Integer accountType;
 
-        @Schema(description = "States whether all data sharing across subsidiary.", example = "true")
-        private Boolean allDataShared;
+        @Schema(description = "States whether user allows all data sharing across subsidiary.", example = "true")
+        private Boolean dataSharing;
+        @Schema(description = "States whether user allows all data sharing for marketing purposes.", example = "true")
+        private Boolean marketingDataSharing;
+        @Schema(description = "States whether user allows all data sharing for ai and analytics.", example = "true")
+        private Boolean aiAndAnalyticsDataSharing;
     }
 
     @Schema(name = "UserInstrumentResponse", description = "Instrument access information for the user.")

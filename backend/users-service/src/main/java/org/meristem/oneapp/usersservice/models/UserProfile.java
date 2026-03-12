@@ -14,6 +14,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import static java.util.Objects.nonNull;
+
 
 /**
  * This tables houses other pieces of information that a user can provide.
@@ -65,6 +67,10 @@ public class UserProfile extends BaseModel<String> {
     private String employerName;
     private Boolean emailVerified;
 
+    private Boolean dataSharing;
+    private Boolean marketingDataSharing;
+    private Boolean aiAndAnalyticsDataSharing;
+
     /**
      * Constructs a new UserOnboarding instance.
      *
@@ -80,7 +86,8 @@ public class UserProfile extends BaseModel<String> {
     @Builder
     public UserProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
-                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName, Boolean emailVerified) {
+                       Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName, Boolean emailVerified,
+                       Boolean dataSharing, Boolean marketingDataSharing, Boolean aiAndAnalyticsDataSharing) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -97,6 +104,10 @@ public class UserProfile extends BaseModel<String> {
         this.sourceOfIncome = sourceOfIncome;
         this.employerName = employerName;
         this.emailVerified = emailVerified;
+        // allows us to share their data and kyc with other subsidiaries
+        this.dataSharing = nonNull(dataSharing) && dataSharing;
+        this.marketingDataSharing = nonNull(marketingDataSharing) && marketingDataSharing;
+        this.aiAndAnalyticsDataSharing = nonNull(aiAndAnalyticsDataSharing) && aiAndAnalyticsDataSharing;
     }
 
     /**

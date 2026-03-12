@@ -19,7 +19,7 @@ import java.util.Set;
 public interface InvestmentInstrumentsRepository extends BaseRepository<InvestmentInstruments, Long> {
 
     @Cacheable(value = AppConstants.INVESTMENT_INSTRUMENT_CACHE_NAME, key = "#a0", unless = "#result == null")
-    @Query(value = "SELECT ii.code, ii.id, ii.name, ia.data_sharing_allowed, ia.accessed, ia.kyc_completed " +
+    @Query(value = "SELECT ii.code, ii.id, ii.name, ia.accessed, ia.kyc_completed " +
             " FROM user_instrument ia LEFT JOIN investment_instruments ii ON ii.id = ia.instrument_id " +
             " WHERE ii.status = 1 AND ia.user_id = :id ORDER BY ii.id ")
     List<UsersResponse.UserInstrumentResponse> findUserInstrumentsById(Long id);
