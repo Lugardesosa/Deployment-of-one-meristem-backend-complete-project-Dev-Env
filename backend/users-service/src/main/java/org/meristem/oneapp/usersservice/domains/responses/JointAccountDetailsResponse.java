@@ -1,6 +1,5 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 
 @Builder
@@ -16,8 +15,6 @@ public record JointAccountDetailsResponse(
 
         Integer role,
 
-        Integer mandateType,
-
-        Integer operationMode
+        Integer mandateType
 ) {
 }

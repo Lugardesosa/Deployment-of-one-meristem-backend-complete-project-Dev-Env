@@ -19,15 +19,17 @@ public class UserInstrument extends BaseModel<String> {
     private Long instrumentId;
     private Boolean accessed;
     private Boolean dataSharingAllowed;
+    private Boolean kycCompleted;
 
 
     @Builder
-    public UserInstrument(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long instrumentId, Boolean dataSharingAllowed) {
+    public UserInstrument(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long userId, Long instrumentId, Boolean kycCompleted) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.instrumentId = instrumentId;
         this.accessed = false;
         this.dataSharingAllowed = false;
+        this.kycCompleted = false;
     }
 
     @Override

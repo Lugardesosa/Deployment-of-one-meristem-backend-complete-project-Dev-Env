@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.ErrorMessages;
+import org.meristem.oneapp.usersservice.domains.enums.AccountType;
 import org.meristem.oneapp.usersservice.domains.enums.UserStatus;
 import org.meristem.oneapp.usersservice.repositories.UsersRepository;
 import org.springframework.data.redis.cache.RedisCacheManager;
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Objects.isNull;
@@ -79,13 +81,17 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.EMAIL_NOT_VERIFIED, null));
         }
 
+        if (Objects.equals(user.getAccountType(), AccountType.MINOR.getValue())) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.NOT_AUTHORISED_TO_MAKE_THIS_CALL, null));
+        }
+
         if (StringUtils.isBlank(user.getPassword())) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.PASSWORD_NOT_CREATED, null));
         }
 
-        if (user.getStatus() == UserStatus.DATA_SHARING_NOT_COMPLETED.getValue()) {
-            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.DATA_SHARING_NOT_COMPLETED, null));
-        }
+//        if (user.getStatus() == UserStatus.DATA_SHARING_NOT_COMPLETED.getValue()) {
+//            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.DATA_SHARING_NOT_COMPLETED, null));
+//        }
 
         if (user.getStatus() == UserStatus.LOCKED.getValue()) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.ACCOUNT_LOCKED, null));

@@ -2,6 +2,8 @@ package org.meristem.oneapp.kafka.dtos;
 
 import lombok.Builder;
 
+import java.time.LocalDate;
+
 @Builder
 public record CreateCustomerDto(
         String firstName,
@@ -10,7 +12,6 @@ public record CreateCustomerDto(
         String email,
         Long userId,
         String phoneNumber,
-        String dateOfBirth,
         String nationalId,
         String address,
         String employerName,
@@ -18,5 +19,9 @@ public record CreateCustomerDto(
         String occupation,
         String addressStreet,
         String addressCity,
-        String addressCountryCd) {
+        String addressCountryCd,
+        String bankBvnNo,
+        String parentCustomerId,
+        LocalDate birthDate
+) {
 }

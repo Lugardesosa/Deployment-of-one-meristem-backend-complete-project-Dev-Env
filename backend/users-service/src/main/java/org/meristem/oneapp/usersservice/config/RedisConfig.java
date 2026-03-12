@@ -16,6 +16,9 @@ public class RedisConfig {
         return builder -> builder
 
                 .withCacheConfiguration(AppConstants.USERS_CACHE_NAME, defaultCacheConfiguration())
+                .withCacheConfiguration(AppConstants.JOINT_ACCOUNT_CACHE_NAME, defaultCacheConfiguration())
+                .withCacheConfiguration(AppConstants.INVESTMENT_INSTRUMENT_CACHE_NAME, defaultCacheConfiguration())
+                .withCacheConfiguration(AppConstants.INVESTMENT_OPTIONS_CACHE_NAME, defaultCacheConfiguration())
                 .withCacheConfiguration(AppConstants.AVATAR_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(50)))
                 .withCacheConfiguration(AppConstants.OTP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(AppConstants.OTP_EXPIRES_AT_MINUTES + 1)))
                 .withCacheConfiguration(AppConstants.ID_VERIFICATION_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(AppConstants.ID_VERIFICATION_CACHE_EXPIRES_IN)))

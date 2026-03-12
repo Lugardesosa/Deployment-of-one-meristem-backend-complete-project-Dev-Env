@@ -10,8 +10,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.usersservice.models.UserIdDetails;
 import org.meristem.oneapp.usersservice.models.Users;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.security.core.Authentication;
@@ -31,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import static org.meristem.oneapp.usersservice.constants.AppConstants.specialChars;
 
 @Slf4j
@@ -161,51 +164,6 @@ public final class AppUtil {
         return request.getHeader("user-agent");
     }
 
-    public static UsersResponse buildUsersResponse(ResultSet rs) throws SQLException {
-
-        return UsersResponse.builder()
-                .id(rs.getLong("id"))
-                .firstName(rs.getString("first_name"))
-                .middlewareCustomerId(rs.getString("middleware_customer_id"))
-                .lastName(rs.getString("last_name"))
-                .email(rs.getString("email"))
-                .phoneNumber(rs.getString("phone_number"))
-                .userInstrumentResponses(new ArrayList<>())
-                .userOptionResponses(new HashMap<>())
-                .onboardingCompleted(rs.getBoolean("onboarding_completed"))
-                .referralCode(rs.getString("referral_code"))
-                .middleName(rs.getString("middle_name"))
-                .status(rs.getInt("status"))
-                .image(rs.getString("image_key"))
-                .gender(rs.getString("gender"))
-                .dateOfBirth(rs.getObject("date_of_birth", LocalDate.class))
-                .password(rs.getString("password"))
-                .biometricEnabled(rs.getBoolean("biometric_enabled"))
-                .passwordAttempt(rs.getInt("password_attempt"))
-                .interestFreeInvestment(rs.getObject("interest_free_investment", Boolean.class))
-                .interestFreeInvestmentSet(rs.getObject("interest_free_investment", Boolean.class) != null)
-                .cscsNumber(rs.getString("cscs_number"))
-                .chnNumber(rs.getString("chn_number"))
-                .build();
-    }
-
-    public static UsersResponse buildUsersResponseMini(ResultSet rs) throws SQLException {
-
-        return UsersResponse.builder()
-                .id(rs.getLong("id"))
-                .firstName(rs.getString("first_name"))
-                .lastName(rs.getString("last_name"))
-                .email(rs.getString("email"))
-                .phoneNumber(rs.getString("phone_number"))
-                .middleName(rs.getString("middle_name"))
-                .status(rs.getInt("status"))
-                .password(rs.getString("password"))
-                .passwordAttempt(rs.getInt("password_attempt"))
-                .emailVerified(rs.getBoolean("email_verified"))
-                .accountType(rs.getInt("account_type"))
-                .build();
-    }
-
 
     public static String getSmileIdTimestamp() {
 
@@ -240,5 +198,45 @@ public final class AppUtil {
         module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
         mapper.registerModule(module);
         return mapper;
+    }
+
+    public static Long getInvestmentId(HttpServletRequest request) {
+        try {
+            return Long.valueOf(request.getHeader("SUBSIDIARY_ID"));
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("Kindly pass SUBSIDIARY_ID in the Header");
+        }
+    }
+
+    public static String generateCscs() {
+        return UUID.randomUUID().toString().substring(0, 10) + UUID.randomUUID().toString().substring(0, 10);
+    }
+
+    public static boolean firstNamesMatch(String firstName, List<String> names) {
+        return names.stream().anyMatch(n -> n.equalsIgnoreCase(firstName));
+    }
+
+    public static boolean lastNamesMatch(String lastName, List<String> names) {
+        return names.stream().anyMatch(n -> n.equalsIgnoreCase(lastName));
+
+    }
+
+    public static boolean middleNamesMatch(String middleName, List<String> names) {
+        return names.stream().anyMatch(n -> n.equalsIgnoreCase(middleName));
+    }
+
+    public static boolean dobMatch(LocalDate dateOfBirth, LocalDate existingDob) {
+
+        return AppUtil.nonIsNull(dateOfBirth, existingDob) &&
+                dateOfBirth.isEqual(existingDob);
+    }
+
+    @NonNull
+    public static List<String> buildNames(String firstName, String middleName, String lastName) {
+        List<String> names = new ArrayList<>();
+        names.add(firstName);
+        names.add(middleName);
+        names.add(lastName);
+        return names;
     }
 }

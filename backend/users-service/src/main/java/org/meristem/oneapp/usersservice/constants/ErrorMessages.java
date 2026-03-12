@@ -20,4 +20,5 @@ public final class ErrorMessages {
     public static final String MEDIA_TYPES_NOT_ACCEPTABLE = "Http MediaType Not Acceptable";
     public static final String MISSING_PATH_VARIABLE = "Missing Path Variable";
     public static final String MAX_UPLOAD_SIZE_EXCEEDED = "Max Upload Size Exceeded";
+    public static final String NOT_AUTHORISED_TO_MAKE_THIS_CALL = "You are not authorised to make this call";
 }

@@ -32,22 +32,12 @@ public class Requirements extends BaseModel<String> {
     @NotNull(message = "requirementName cannot be null")
     private String requirementName;
 
-    @NotNull(message = "Cannot be null")
-    private Boolean mandatory;
-
-     // @see org.meristem.oneapp.usersservice.domains.enums.RequirementType
-    @Column("requirement_type")
-    @NotNull(message = "Cannot be null")
-    private Integer requirementType;
-
     @Builder
     public Requirements(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                        String displayName, String requirementName, Boolean mandatory, Integer requirementType) {
+                        String displayName, String requirementName) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.displayName = displayName;
         this.requirementName = requirementName;
-        this.mandatory = mandatory;
-        this.requirementType = requirementType;
     }
 
     @Override

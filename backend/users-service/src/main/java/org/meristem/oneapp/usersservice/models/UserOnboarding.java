@@ -31,7 +31,7 @@ public class UserOnboarding extends BaseModel<String> {
     private Long userId;
 
     @NotNull(message = "Cannot be null")
-    private Long requirementId;
+    private Long investmentRequirementId;
 
     @Column("completed")
     @NotNull(message = "Cannot be null")
@@ -47,15 +47,15 @@ public class UserOnboarding extends BaseModel<String> {
      * @param lastModifiedBy the user who last modified the entity
      * @param version the version of the entity
      * @param userId the ID of the user
-     * @param requirementId the ID of the requirement
+     * @param investmentRequirementId the ID of the requirement
      * @param completed whether the onboarding process is completed
      */
     @Builder
     public UserOnboarding(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, Long userId,
-                          Long requirementId, Boolean completed) {
+                          Long investmentRequirementId, Boolean completed) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
-        this.requirementId = requirementId;
+        this.investmentRequirementId = investmentRequirementId;
         this.completed = completed;
     }
 
@@ -69,7 +69,7 @@ public class UserOnboarding extends BaseModel<String> {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         UserOnboarding that = (UserOnboarding) o;
-        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getRequirementId(), that.getRequirementId());
+        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getInvestmentRequirementId(), that.getInvestmentRequirementId());
     }
 
     /**
@@ -79,6 +79,6 @@ public class UserOnboarding extends BaseModel<String> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getUserId(), getRequirementId());
+        return Objects.hash(getUserId(), getInvestmentRequirementId());
     }
 }
