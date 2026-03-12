@@ -1,8 +1,5 @@
 package org.meristem.oneapp.usersservice.dtos;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,6 +10,7 @@ import java.io.Serializable;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class IdQueryDetailsDto implements Serializable {
 
     private String country;
@@ -43,7 +41,7 @@ public class IdQueryDetailsDto implements Serializable {
 
     private String placeOfBirth;
     private String title;
-    private String IdType;
+    private String idType;
     private String taxResidency;
     private String taxId;
     private String height;

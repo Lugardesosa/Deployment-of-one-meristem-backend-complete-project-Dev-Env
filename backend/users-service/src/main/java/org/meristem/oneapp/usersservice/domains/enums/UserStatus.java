@@ -10,9 +10,7 @@ public enum UserStatus {
     LOCKED(2),
     DEACTIVATED(3),
     EMAIL_NOT_VERIFIED(4),
-    KYC_NOT_COMPLETED(5),
-    DELETED(6),
-    DATA_SHARING_NOT_COMPLETED(7);
+    DELETED(6);
 
     private final Integer value;
 }

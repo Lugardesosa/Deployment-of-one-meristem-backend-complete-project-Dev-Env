@@ -182,6 +182,7 @@ public class OtpService implements IOtpService {
     }
 
     @Override
+    @Transactional
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
         return verifyOtp(request, null);
     }

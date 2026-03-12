@@ -16,6 +16,7 @@ import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
+import org.meristem.oneapp.usersservice.models.InvestmentInstruments;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
@@ -68,7 +70,7 @@ public class OnboardingService implements IOnboardingService {
      * @return a list of user onboarding responses
      */
     public List<UserOnboardingResponse> getOnboardingDetails() {
-        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.USER.getId());
+        return userOnboardingRepository.findAllUserOnboardingsByUserId(AppUtil.getLoggedInUserId(), EntityStatus.ACTIVE.getValue(), RequirementType.USER.getId(), AppUtil.getInvestmentId(httpServletRequest));
     }
 
     @Transactional
@@ -143,7 +145,11 @@ public class OnboardingService implements IOnboardingService {
 
             case OkhiEventTypes.ADDRESS_VERIFICATION_COMPLETED -> {
 
-                Requirements requirements = requirementsRepository.findByRequirementNameAndStatus(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), EntityStatus.ACTIVE.getValue());
+                InvestmentRequirement requirements = requirementsRepository.findInvestmentRequirementsByRequirementName(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), request.data().metadata().productId());
+
+                if (isNull(requirements)) {
+                    throw new BadRequestException("Action could not be completed");
+                }
                 Users users = usersRepository.findOneByEmail(request.data().metadata().appUserId()).orElseThrow(() -> new BadRequestException("User not found"));
                 if ("verified".equals(request.data().addressVerification().status())) {
 
@@ -151,7 +157,7 @@ public class OnboardingService implements IOnboardingService {
                         address.setStatus(AddressStatus.APPROVED.getValue());
                         userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
                         addressRepository.save(address);
-                        usersService.completeUserOnboarding(users.getEmail());
+                        usersService.completeUserOnboarding(users.getEmail(), request.data().metadata().productId());
 
                         Countries countries = countriesRepositories.findById(address.getCountryId()).orElseThrow(() -> new BadRequestException("Invalid country"));
 
@@ -193,7 +199,12 @@ public class OnboardingService implements IOnboardingService {
 
             case OkhiEventTypes.ADDRESS_VERIFICATION_CANCELLED -> {
 
-                Requirements requirements = requirementsRepository.findByRequirementNameAndStatus(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), EntityStatus.ACTIVE.getValue());
+                InvestmentRequirement requirements = requirementsRepository.findInvestmentRequirementsByRequirementName(OnboardingRequirements.PROOF_OF_ADDRESS.getName(), request.data().metadata().productId());
+
+                if (isNull(requirements)) {
+                    throw new BadRequestException("Action could not be completed");
+                }
+
                 Long userId = usersRepository.findIdByEmail(request.data().metadata().appUserId());
 
                 usersService.resetUserOnboarding(request.data().metadata().appUserId(), requirements.getId());

@@ -19,6 +19,7 @@ public final class KafkaTopics {
 
     public static final String KAFKA_KYC_IMAGE_UPLOAD_TOPIC = "kyc.image.upload.topic";
     public static final String KAFKA_CUSTOMER_CREATE_TOPIC = "customer.create.topic";
+    public static final String KAFKA_DEPENDENT_CREATE_TOPIC = "dependent.create.topic";
     public static final String KAFKA_WALLET_CREATE_TOPIC = "wallet.create.topic";
     public static final String KAFKA_JOINT_CUSTOMER_CREATE_TOPIC = "joint.customer.create.topic";
     public static final String KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC = "kyc.customer.address.verified.topic";

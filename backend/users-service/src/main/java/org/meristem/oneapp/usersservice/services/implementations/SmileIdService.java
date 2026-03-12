@@ -1,11 +1,11 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.kafka.dtos.WebSocketDto;
+import org.meristem.oneapp.usersservice.config.MaskingUtils;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
@@ -13,12 +13,12 @@ import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
+import org.meristem.oneapp.usersservice.domains.requests.TaxIdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.exception.exceptions.UpstreamServiceException;
-import org.meristem.oneapp.usersservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.usersservice.integrations.SmileIdClient;
 import org.meristem.oneapp.usersservice.integrations.requests.SmileIdEnhancedKycRequest;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
@@ -34,6 +34,7 @@ import org.meristem.oneapp.usersservice.utils.HashingUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
@@ -68,7 +70,6 @@ import static java.util.Objects.requireNonNull;
  * for logging purposes.</p>
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service("SMILE_ID")
 @Transactional
 public class SmileIdService implements IKycService {
@@ -105,6 +106,43 @@ public class SmileIdService implements IKycService {
     private final EncryptionUtil encryptionUtil;
     private final IIdDetailsService  idDetailsService;
 
+    public SmileIdService(
+            CustomRepository customRepository,
+            SmileIdProperties smileIdProperties,
+            AmlVendorRepository amlVendorRepository,
+            KycQueryRepository kycQueryRepository,
+            UserOnboardingRepository userOnboardingRepository,
+            RequirementsRepository requirementsRepository,
+            IdCardRepository idCardRepository,
+            UserProfileRepository userProfileRepository,
+            UsersRepository usersRepository,
+            CacheManager cacheManager,
+            @Lazy IUsersService usersService,
+            HttpServletRequest httpServletRequest,
+            IKafkaSenderService kafkaSenderService,
+            SmileIdClient smileIdClient,
+            HashingUtil hashingUtil,
+            EncryptionUtil encryptionUtil,
+            IIdDetailsService idDetailsService) {
+        this.customRepository = customRepository;
+        this.smileIdProperties = smileIdProperties;
+        this.amlVendorRepository = amlVendorRepository;
+        this.kycQueryRepository = kycQueryRepository;
+        this.userOnboardingRepository = userOnboardingRepository;
+        this.requirementsRepository = requirementsRepository;
+        this.idCardRepository = idCardRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.usersRepository = usersRepository;
+        this.cacheManager = cacheManager;
+        this.usersService = usersService;
+        this.httpServletRequest = httpServletRequest;
+        this.kafkaSenderService = kafkaSenderService;
+        this.smileIdClient = smileIdClient;
+        this.hashingUtil = hashingUtil;
+        this.encryptionUtil = encryptionUtil;
+        this.idDetailsService = idDetailsService;
+    }
+
     List<String> dataStatus = List.of(ID_APPROVED_STATUS, DOCUMENT_APPROVED_STATUS);
     List<String> actionStatus = List.of("1210", DOCUMENT_APPROVED_STATUS);
     List<String> errorCodes = List.of("1013", "1014");
@@ -115,11 +153,22 @@ public class SmileIdService implements IKycService {
         if (IdCardType.BVN.compareTo(IdCardType.fromName(request.idType())) != 0) {
             throw new BadRequestException("Only BVN can be validated.");
         }
+        Optional<IdCard> idCard = idCardRepository.findByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.BVN.getName());
+        if (idCard.isPresent()) {
+            if (request.isPrimary()) {
+                throw new BadRequestException("BVN already exists");
+            } else {
+                IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
 
-        SmileIdWebhookNotification response = getSmileIdWebhookNotification(request, IdCardType.BVN);
+                dto.setIdType(IdCardType.BVN.getName());
+                return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
+            }
+        }
+        SmileIdWebhookNotification response = getSmileIdWebhookNotification(request, IdCardType.BVN, null);
         if (ID_APPROVED_STATUS.equals(response.getResultCode()) && confirmSignature(response.getSignature(), response.getTimestamp())) {
 
             IdQueryDetailsDto dto = userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(response);
+            dto.setIdType(IdCardType.BVN.getName());
             return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
         } else if (errorCodes.contains(response.getResultCode())) {
             throw new ResourceNotFoundException("Enter a valid bvn", request.idType(), request.idNumber());
@@ -133,7 +182,15 @@ public class SmileIdService implements IKycService {
         return null;
     }
 
-    private SmileIdWebhookNotification getSmileIdWebhookNotification(IdQueryRequest request, IdCardType idCardType) {
+    @Override
+    public TaxIdQueryResponse taxIdQuery(TaxIdQueryRequest request) {
+        return null;
+    }
+
+    private SmileIdWebhookNotification getSmileIdWebhookNotification(IdQueryRequest request, IdCardType idCardType, Long userId) {
+
+//        if (idCardRepository.existsByIdValueHashedAndIdCardTypeAndUserIdNot(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.NIN.getName(), userId)) {
+//
         if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), idCardType.getName())) {
             throw new BadRequestException(idCardType.getName() + " already exists.");
         }
@@ -160,10 +217,11 @@ public class SmileIdService implements IKycService {
     public UpdateResponse saveIdTask(IdVerificationRequest smileRequest) {
 
         org.meristem.oneapp.usersservice.models.Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(Vendor.SMILE_ID.getValue());
-        Requirements requirements = requirementsRepository.findByIdAndStatus(smileRequest.requirementId(), EntityStatus.ACTIVE.getValue())
-                .orElseThrow(() -> new BadRequestException("Requirement not found"));
+
+        InvestmentRequirement requirements = requirementsRepository.findInvestmentRequirementsByRequirementName(OnboardingRequirements.BVN.getName(), EntityStatus.ACTIVE.getValue(), AppUtil.getInvestmentId(httpServletRequest)).orElseThrow(() -> new BadRequestException("Requirement not found"));
+
         userOnboardingRepository.updateUserOnboardingStatus(AppUtil.getLoggedInUserId(), requirements.getId(), OnboardingStatus.PENDING.getValue(), UserOnboardingNotes.APPROVED.note, false);
-        kycQueryRepository.save(KycQuery.builder().jobId(smileRequest.jobId()).requirementId(requirements.getId()).userId(AppUtil.getLoggedInUserEmail())
+        kycQueryRepository.save(KycQuery.builder().jobId(smileRequest.jobId()).investmentRequirementId(requirements.getId()).userId(AppUtil.getLoggedInUserEmail())
                 .status(KycQueryStatus.PENDING.getValue()).vendorId(vendor.getId()).build());
         return UpdateResponse.builder().message("Success").success(true).build();
     }
@@ -217,7 +275,7 @@ public class SmileIdService implements IKycService {
         Users loggedInUser = usersRepository.findOneByEmail(kycQuery.getUserId()).orElseThrow(() -> new BadRequestException("User not found"));
         kycQuery.setMessage(notification.getResultText());
         kycQuery.setStatus(KycQueryStatus.FAILED.getValue());
-        usersService.resetUserOnboarding(loggedInUser.getEmail(), kycQuery.getRequirementId());
+        usersService.resetUserOnboarding(loggedInUser.getEmail(), kycQuery.getInvestmentRequirementId());
         kycQueryRepository.save(kycQuery);
     }
 
@@ -249,8 +307,8 @@ public class SmileIdService implements IKycService {
         kycQuery.setMessage(notification.getResultText());
         kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
         kycQueryRepository.save(kycQuery);
-        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), kycQuery.getRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
-        usersService.completeUserOnboarding(loggedInUser.getEmail());
+        userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), kycQuery.getInvestmentRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+        usersService.completeUserOnboarding(loggedInUser.getEmail(), notification.getPartnerParams().productId());
 
     }
 
@@ -261,7 +319,7 @@ public class SmileIdService implements IKycService {
      * @param kycQuery The Smile ID record associated with the notification.
      */
     private void handleData(SmileIdWebhookNotification notification, KycQuery kycQuery) {
-        requirementsRepository.findByIdAndStatus(kycQuery.getRequirementId(), EntityStatus.ACTIVE.getValue())
+        requirementsRepository.findByIdAndStatus(kycQuery.getInvestmentRequirementId(), EntityStatus.ACTIVE.getValue())
                 .orElseThrow(() -> new BadRequestException("Requirement not found"));
 
         // Save document url for non bvn requirement
@@ -295,23 +353,41 @@ public class SmileIdService implements IKycService {
             throw new BadRequestException("Only NIN can be validated .");
         }
 
-        if (idCardRepository.existsByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.NIN.getName())) {
-            throw new BadRequestException("NIN already exists.");
-        }
-
-        SmileIdWebhookNotification notification = getSmileIdWebhookNotification(request, IdCardType.NIN);
+        SmileIdWebhookNotification notification = getSmileIdWebhookNotification(request, IdCardType.NIN, AppUtil.getLoggedInUserId());
 
         if (errorCodes.contains(notification.getResultCode())) {
             throw new ResourceNotFoundException("Invalid NIN", request.idType(), request.idNumber());
         }
+        notification.setIdType(IdCardType.NIN.getName());
         Users loggedInUser = usersRepository.findById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new AuthorizationDeniedException("User is not logged in"));
         UserIdDetails bvn = customRepository.findOneBy(UserIdDetails.class, Map.of("userId", loggedInUser.getId(), "idType", IdCardType.BVN.getName())).orElseThrow(() -> new BadRequestException("BVN details could not be found."));
 
-        List<String> names = buildNames(bvn);
+        List<String> names = AppUtil.buildNames(bvn.getFirstName(), bvn.getMiddleName(), bvn.getLastName());
 
         UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(notification), loggedInUser);
-        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()));
+        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), AppUtil.getInvestmentId(httpServletRequest));
 
+    }
+
+    @Override
+    public IdQueryDetailsDto ninQuery(String nin) {
+        IdQueryRequest request = IdQueryRequest.builder().country("NG").idType("NIN_V2").idNumber(nin).build();
+        SmileIdWebhookNotification response = getSmileIdWebhookNotification(request, IdCardType.NIN, null);
+        if (ID_APPROVED_STATUS.equals(response.getResultCode()) && confirmSignature(response.getSignature(), response.getTimestamp())) {
+
+            return IdQueryDetailsDto.builder().middleName(response.getMiddleName())
+                    .email(response.getEmail()).firstName(response.getFirstName())
+                    .lastName(response.getLastName()).idType(IdCardType.NIN.getName())
+                    .phoneNumber(response.getPhoneNumber())
+                    .dateOfBirth(response.getDateOfBirth())
+                    .localAreaOfOrigin(response.getLocalAreaOfOrigin())
+                    .gender(response.getGender())
+                    .build();
+        } else if (errorCodes.contains(response.getResultCode())) {
+            throw new ResourceNotFoundException("Enter a valid bvn", request.idType(), request.idNumber());
+        } else {
+            throw new BadRequestException("Try again later.");
+        }
     }
 
     /**

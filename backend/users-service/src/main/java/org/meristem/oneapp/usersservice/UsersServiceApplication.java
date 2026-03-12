@@ -43,6 +43,9 @@ public class UsersServiceApplication {
                 requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).clear();
                 requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME)).clear();
                 requireNonNull(cacheManager.getCache(AppConstants.ID_VERIFICATION_CACHE_NAME)).clear();
+                requireNonNull(cacheManager.getCache(AppConstants.INVESTMENT_INSTRUMENT_CACHE_NAME)).clear();
+                requireNonNull(cacheManager.getCache(AppConstants.INVESTMENT_OPTIONS_CACHE_NAME)).clear();
+                requireNonNull(cacheManager.getCache(AppConstants.JOINT_ACCOUNT_CACHE_NAME)).clear();
                 kafkaTemplate.send(KafkaTopics.KAFKA_HEALTH_TOPIC, "ping");
             } catch (Exception e) {
                 log.error("Failed to send Kafka health ping or clear redis cache", e);

@@ -21,7 +21,6 @@ import java.util.Objects;
 public class Users extends BaseModel<String> {
 
     @Size(max = 200, min = 5, message = "Not more than 200 and less than 5")
-    @NotBlank(message = "recipient cannot be null")
     private String email;
 
     @Size(max = 150, min = 1, message = "Not more than 150 and less than 1")
@@ -43,7 +42,6 @@ public class Users extends BaseModel<String> {
 
     // To be saved without the '08024346767'
     @Size(max = 50, min = 7, message = "Not more than 50 and less than 7")
-    @NotBlank(message = "phoneNumber cannot be null")
     private String phoneNumber;
 
     @NotNull(message = "passwordAttempt cannot be null")

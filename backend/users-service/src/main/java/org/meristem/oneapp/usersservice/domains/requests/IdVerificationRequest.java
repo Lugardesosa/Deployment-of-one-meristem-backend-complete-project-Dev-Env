@@ -10,7 +10,7 @@ import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 @Builder
 public record IdVerificationRequest(
         @Schema(description = "Internal requirement identifier associated with the verification flow.", example = "12345")
-        @NotNull(message = "requirementId cannot be null") Long requirementId,
+        @NotNull(message = "investmentRequirementId cannot be null") Long investmentRequirementId,
         @Schema(description = "Smile Identity job identifier returned by the provider.", example = "job_01HZY6E0KQ3T7N9J2C4A")
         @NotBlank(message = "jobId cannot be blank") String jobId
 ) {

@@ -7,6 +7,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
 import org.meristem.oneapp.usersservice.domains.requests.CreateAdminRequest;
+import org.meristem.oneapp.usersservice.domains.requests.CreateUserDependentRequest;
 import org.meristem.oneapp.usersservice.domains.requests.CreateUserRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
@@ -41,4 +42,12 @@ public interface UsersMapping {
             @Mapping(target = "password", ignore = true)
     })
     Users coreBvnQueryResponseToUser(MiddlewareCustomerResponse.CustomerData bvnQueryResponse);
+
+    @Mappings(value = {
+            @Mapping(target = "email", ignore = true),
+            @Mapping(target = "phoneNumber", ignore = true),
+            @Mapping(target = "password", ignore = true),
+    }
+    )
+    Users createDependentRequestToUsers(CreateUserDependentRequest userRequest);
 }
