@@ -220,6 +220,17 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.getUser(), HttpStatus.OK.toString(), "Successful.");
     }
 
+
+    @Operation(summary = "Gets users.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get a user.")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_instruments.get') OR hasRole('ROLE_1000')")
+    @GetMapping(value = "all-instruments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UsersResponse>> getInstruments() {
+        return ApiUtil.buildResponse(usersService.getInstruments(), HttpStatus.OK.toString(), "Successful.");
+    }
+
     @Operation(summary = "Update user's phone number")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows users to update their phone number")

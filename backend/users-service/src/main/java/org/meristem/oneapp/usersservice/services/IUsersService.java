@@ -261,4 +261,6 @@ public interface IUsersService {
     void createDependent(CreateCustomerDto value);
 
     List<ExistingInstrumentResponse> existingInstruments();
+
+    UsersResponse getInstruments();
 }
