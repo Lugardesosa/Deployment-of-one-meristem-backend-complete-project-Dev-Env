@@ -46,7 +46,7 @@ public final class AppConstants {
     public static final String SETTINGS_CACHE_NAME = "settings";
     public static final String USER_ROLE = "USER";
     public static final List<String> MOBILE_N_WEB_ROLES = List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user",
-            "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage", "share_all_data", "get.occupation", "get.source_of_income", "get.existing_intrument");
+            "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage", "share_all_data", "get.occupation", "get.source_of_income", "get.existing_intrument", "instruments.get");
     public static final Integer MAX_PIN_FAILED_ATTEMPTS_B4_LOCK = 5;
     public static final long PIN_LOCKED_MAX_TIME_IN_MINS = 20;
     public static final String VENDOR_PASTEL = "PASTEL";
@@ -61,4 +61,6 @@ public final class AppConstants {
     public static final String JOINT_ACCOUNT_CACHE_NAME = "joint-account";
     public static final String DEPENDENT_ACCOUNT_CACHE_NAME = "dependent-account";
     public static final int MINOR_AGE = 30;
+    public static final String ALL_INVESTMENT_INSTRUMENT_CACHE_NAME = "all_investment_instruments";
+    public static final String ALL_INVESTMENT_OPTIONS_CACHE_NAME = "all_investment_options";
 }
