@@ -2,6 +2,8 @@ package org.meristem.oneapp.usersservice.domains.responses;
 
 import lombok.Builder;
 
+import java.io.Serializable;
+
 @Builder
 public record JointAccountDetailsResponse(
 
@@ -16,5 +18,5 @@ public record JointAccountDetailsResponse(
         Integer role,
 
         Integer mandateType
-) {
+) implements Serializable {
 }
