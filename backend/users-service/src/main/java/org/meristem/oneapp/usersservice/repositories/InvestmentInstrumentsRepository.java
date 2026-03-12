@@ -41,4 +41,12 @@ public interface InvestmentInstrumentsRepository extends BaseRepository<Investme
     List<InvestmentOptions> findInvestmentOptionsByInvestmentId(Long id);
 
     List<ExistingInstrumentResponse> findInvestmentInstrumentsByCodeIn(Collection<String> codes);
+
+    @Query(value = "SELECT ii.code, ii.id, ii.name FROM investment_instruments ii WHERE ii.status = 1 ORDER BY ii.id ")
+    List<UsersResponse.UserInstrumentResponse> findAllUserInstrumentsBy();
+
+    @Query(value = "SELECT ii.code, io.id AS o_iiid, io.name AS o_name, ioa.accessed AS o_accessed FROM investment_options io LEFT JOIN investment_instruments ii ON ii.id = io.investment_id " +
+            " LEFT JOIN investment_options_accessed ioa ON ioa.option_id = io.id " +
+            "WHERE ii.status = 1 ORDER BY ii.id", resultSetExtractorClass = UserInvestmentOptionsResultSetExtractor.class)
+    Map<String, Set<UsersResponse.UserOptionResponse>> findAllUserInstrumentOptions();
 }

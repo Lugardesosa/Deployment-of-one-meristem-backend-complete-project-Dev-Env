@@ -732,6 +732,15 @@ public class UsersService implements IUsersService {
         return investmentInstrumentsRepository.findInvestmentInstrumentsByCodeIn(List.of(org.meristem.oneapp.usersservice.domains.enums.InvestmentInstruments.MSBL.getValue(), org.meristem.oneapp.usersservice.domains.enums.InvestmentInstruments.MWML.getValue()));
     }
 
+    @Override
+    public UsersResponse getInstruments() {
+        UsersResponse usersResponse = new UsersResponse();
+        List<UsersResponse.UserInstrumentResponse> instrumentResponse = investmentInstrumentsRepository.findAllUserInstrumentsBy();
+        usersResponse.setUserInstrumentResponses(instrumentResponse);
+        usersResponse.setUserOptionResponses(investmentInstrumentsRepository.findAllUserInstrumentOptions());
+        return usersResponse;
+    }
+
     @Transactional
     @Override
     public void createJointCustomer(CreateJointCustomerDto value) {
