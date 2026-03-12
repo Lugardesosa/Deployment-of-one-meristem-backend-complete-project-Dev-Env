@@ -84,7 +84,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Verifies users email.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CreateUserRequest.class))
+                            schema = @Schema(implementation = VerifyOtpRequest.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
 
