@@ -374,15 +374,15 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateOptionAccessed(request), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Operation(summary = "Approve or revoke data sharing")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Approve or revoke data sharing")
-    })
-    @PreAuthorize("hasRole('ROLE_1013')")
-    @PutMapping(value = "/share-data", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@Valid @RequestBody DataSharingRequest request) {
-        return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");
-    }
+//    @Operation(summary = "Approve or revoke data sharing")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Approve or revoke data sharing")
+//    })
+//    @PreAuthorize("hasRole('ROLE_1013')")
+//    @PutMapping(value = "/share-data", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@Valid @RequestBody DataSharingRequest request) {
+//        return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");
+//    }
 
     @Operation(summary = "Approve all data sharing")
     @ApiResponses(value = {
