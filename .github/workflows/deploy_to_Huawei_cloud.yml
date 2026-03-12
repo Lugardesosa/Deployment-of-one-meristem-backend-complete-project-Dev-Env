@@ -11,7 +11,7 @@ on:
       - dev_env
     paths:
       - 'backend/**'               # app src  
-      - 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file.
+      #- 'github/workflows/deploy_to_Huawei_cloud.yml' # CI/CD pipeline file.
       - 'docker-compose.yml' 
 
 # Global environment variables
@@ -271,18 +271,20 @@ jobs:
 
               # Ensure persistent cache directory exists
               if [ ! -d "/opt/buildpack-cache/$svc" ]; then
-                echo "Creating cache directory for \$svc"
-                sudo mkdir -p "/opt/buildpack-cache/$svc"
+                  echo "Creating cache directory for $svc"
+                  sudo mkdir -p "/opt/buildpack-cache/$svc"
+                  sudo chmod -R 777 "/opt/buildpack-cache/$svc"
               else
-                echo "Cache directory already exists for $svc"
+                  echo "Cache directory already exists for $svc"
               fi
               
-              sudo pack build "\$svc" \
-                --builder "\$builder" \
-                --env BP_JVM_VERSION="\$java_version" \
-                --path . \
-                --volume /opt/buildpack-cache/$svc:/cache \
-                --pull-policy if-not-present
+              # Build service with persistent cache
+              sudo pack build "$svc" \
+                  --builder "$builder" \
+                  --env BP_JVM_VERSION="$java_version" \
+                  --path . \
+                  --cache "type=build;format=bind;source=/opt/buildpack-cache/$svc" \
+                  --pull-policy if-not-present
               
               local status=\$?
               cd ..
