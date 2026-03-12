@@ -8,6 +8,6 @@ import lombok.Builder;
 @Builder
 public record verificationStartedRequest(
         @Schema(description = "Internal requirement identifier associated with the verification flow.", example = "12345")
-        @NotNull(message = "requirementId cannot be null") Long requirementId
+        @NotNull(message = "investmentRequirementId cannot be null") Long requirementId
 ) {
 }

@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.models;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,10 +30,20 @@ public class InvestmentRequirement extends BaseModel<String> {
     @Column("requirement_id")
     private Long requirementId;
 
-    public InvestmentRequirement(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, Long requirementId) {
+    @NotNull(message = "Cannot be null")
+    private Boolean mandatory;
+
+    // @see org.meristem.oneapp.usersservice.domains.enums.RequirementType
+    @Column("requirement_type")
+    @NotNull(message = "Cannot be null")
+    private Integer requirementType;
+
+    public InvestmentRequirement(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Long investmentId, Long requirementId, Boolean mandatory, Integer requirementType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.investmentId = investmentId;
         this.requirementId = requirementId;
+        this.mandatory = mandatory;
+        this.requirementType = requirementType;
     }
 
     @Override

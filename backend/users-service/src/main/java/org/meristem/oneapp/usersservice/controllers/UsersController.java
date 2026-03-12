@@ -64,6 +64,22 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.createJoint(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
+
+    @Operation(summary = "Creates a minor account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Created a minor account.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1000')")
+    @PostMapping(value = "/minor", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createUserDependent(@RequestBody @Valid CreateUserDependentRequest userRequest) {
+        return ApiUtil.buildResponse(usersService.createUserDependent(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
     @Operation(summary = "Verifies users email.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Verifies users email.",
@@ -122,15 +138,15 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.queryExistingUser(request), HttpStatus.OK.toString(), "Successful.");
     }
 
-    @Operation(summary = "Get users investment instrument")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Get users investment instrument")
-    })
-    @PreAuthorize("hasRole('ROLE_1000')")
-    @GetMapping(value = "/instrument", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UsersResponse>> getInvestmentInstrument() {
-        return ApiUtil.buildResponse(usersService.getInvestmentInstrument(), HttpStatus.OK.toString(), "Request successful");
-    }
+//    @Operation(summary = "Get users investment instrument")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Get users investment instrument")
+//    })
+//    @PreAuthorize("hasRole('ROLE_1000')")
+//    @GetMapping(value = "/instrument", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<AppResponse<UsersResponse>> getInvestmentInstrument() {
+//        return ApiUtil.buildResponse(usersService.getInvestmentInstrument(), HttpStatus.OK.toString(), "Request successful");
+//    }
 
 
     @Operation(summary = "Set a user's cscs and chn number.")
@@ -146,6 +162,22 @@ public class UsersController {
     @PutMapping(value = "/cscs-chn-update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateCscs(@RequestBody @Valid UpdateCscsRequest request) {
         return ApiUtil.buildResponse(usersService.updateCscs(request), HttpStatus.OK.toString(), "Successful.");
+    }
+
+
+    @Operation(summary = "Sign user up for this product/investement instrument.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Sign user up for this product/investement instrument.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateCscsRequest.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - Sign user up for this product/investement instrument failed")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1048')")
+    @PostMapping(value = "/onboard-product", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> onboardOnProduct() {
+        return ApiUtil.buildResponse(usersService.onboardOnProduct(), HttpStatus.OK.toString(), "Successful.");
     }
 
     @Operation(summary = "Set a user's email.")
@@ -349,6 +381,16 @@ public class UsersController {
     @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@RequestBody @Valid ShareAllDataRequest request) {
         return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get existing subsidiary")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get existing subsidiary")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_get.existing_intrument')")
+    @GetMapping(value = "/existing-subsidiary", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<ExistingInstrumentResponse>>> existingInstruments() {
+        return ApiUtil.buildResponse(usersService.existingInstruments(), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Approve all data sharing")

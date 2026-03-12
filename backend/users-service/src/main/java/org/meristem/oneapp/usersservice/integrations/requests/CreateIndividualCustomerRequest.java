@@ -17,6 +17,7 @@ public record CreateIndividualCustomerRequest(
         String genderCd,
         String addressStreet,
         String addressCity,
-        String addressCountryCd
+        String addressCountryCd,
+        String bankBvnNo
 ) {
 }

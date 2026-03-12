@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IKycService;
@@ -73,6 +74,23 @@ public class KycDelegatingService implements IKycDelegatingService {
 //            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
 //        }
 //        return this.dojahService.validateNin(request);
+//    }
+
+
+    // TODO: UNCOMMENT TO ENABLE DOJAH
+//    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdNinQuery")
+    @Override
+    public IdQueryDetailsDto ninQuery(String nin) {
+        return this.smileIdService.ninQuery(nin);
+    }
+
+    // TODO: UNCOMMENT TO ENABLE DOJAH
+//    public IdQueryDetailsDto smileIdNinQuery(String nin, Throwable throwable) {
+//
+//        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
+//            throw new ResourceNotFoundException("ID query not found", "NIN", nin);
+//        }
+//        return dojahService.ninQuery(nin);
 //    }
 
     @Override

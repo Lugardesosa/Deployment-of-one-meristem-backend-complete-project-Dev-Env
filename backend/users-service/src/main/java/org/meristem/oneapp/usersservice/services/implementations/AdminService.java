@@ -15,6 +15,7 @@ import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.usersservice.mappers.UsersMapping;
 import org.meristem.oneapp.usersservice.models.*;
+import org.meristem.oneapp.usersservice.models.InvestmentInstruments;
 import org.meristem.oneapp.usersservice.models.Roles;
 import org.meristem.oneapp.usersservice.models.SourceOfIncome;
 import org.meristem.oneapp.usersservice.repositories.*;

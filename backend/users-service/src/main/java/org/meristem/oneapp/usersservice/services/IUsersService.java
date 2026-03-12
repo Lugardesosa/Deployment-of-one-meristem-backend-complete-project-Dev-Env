@@ -125,7 +125,7 @@ public interface IUsersService {
      *
      * @param userId the user identifier
      */
-    void completeUserOnboarding(String userId);
+    void completeUserOnboarding(String userId, Long productId);
 
     /**
      * Resets onboarding for the specified user.
@@ -234,9 +234,11 @@ public interface IUsersService {
 
     UpdateResponse setJointPassword(@Valid SetPasswordRequest request);
 
+    UpdateResponse onboardOnProduct();
+
     List<JointAccountDetailsResponse> getJointAccountDetails();
 
-    UsersResponse getInvestmentInstrument();
+//    UsersResponse getInvestmentInstrument();
 
     UpdateResponse setPasswordExisting(@Valid SetPasswordRequest request);
 
@@ -253,4 +255,10 @@ public interface IUsersService {
     }
 
     UpdateResponse queryExistingUser(@Valid QueryExistingUserRequest request);
+
+    UpdateResponse createUserDependent(@Valid CreateUserDependentRequest userRequest);
+
+    void createDependent(CreateCustomerDto value);
+
+    List<ExistingInstrumentResponse> existingInstruments();
 }

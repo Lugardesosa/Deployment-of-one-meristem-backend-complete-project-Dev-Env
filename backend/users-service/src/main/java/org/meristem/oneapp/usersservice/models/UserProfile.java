@@ -52,10 +52,6 @@ public class UserProfile extends BaseModel<String> {
     @Size(max = 15, min = 1, message = "Not more than 50 and less than 1")
     private String referralCode;
 
-    @Column("onboarding_completed")
-    @NotNull(message = "onboardingCompleted cannot be null")
-    private Boolean onboardingCompleted = Boolean.FALSE;
-
     @Column("biometric_enabled")
     @NotNull(message = "biometricEnabled cannot be null")
     private Boolean biometricEnabled = Boolean.FALSE;
@@ -91,7 +87,6 @@ public class UserProfile extends BaseModel<String> {
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
         this.referralCode = referralCode;
-        this.onboardingCompleted = Boolean.FALSE;
         this.biometricEnabled = Boolean.FALSE;
         this.interestFreeInvestment = interestFreeInvestment;
         this.chnNumber = chnNumber;

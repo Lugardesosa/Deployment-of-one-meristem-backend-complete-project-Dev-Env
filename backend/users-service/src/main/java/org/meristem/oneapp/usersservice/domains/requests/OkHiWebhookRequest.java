@@ -32,7 +32,8 @@ public record OkHiWebhookRequest(
             @JsonProperty("app_id") String appId,
             @JsonProperty("branch_id") String branchId,
             @JsonProperty("user_id") String userId,
-            @JsonProperty("app_user_id") String appUserId
+            @JsonProperty("app_user_id") String appUserId,
+            @JsonProperty("product_id") Long productId
     ) {}
 
     public record Location(

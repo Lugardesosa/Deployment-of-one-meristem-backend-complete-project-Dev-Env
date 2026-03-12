@@ -1,140 +1,129 @@
 package org.meristem.oneapp.usersservice.domains.responses;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.meristem.oneapp.usersservice.domains.enums.Gender;
 import org.springframework.data.relational.core.mapping.Column;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Schema(name = "UsersResponse", description = "User details, profile metadata, and access options returned by the Users service.")
 @Builder
-public record UsersResponse(
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class UsersResponse implements Serializable {
 
-        @JsonIgnore
-        @Schema(description = "Middleware id of the user.", example = "kskskms92kl2jms", hidden = true)
-        String middlewareCustomerId,
+    @ArraySchema(
+            arraySchema = @Schema(description = "Financial instruments the user can access."),
+            schema = @Schema(implementation = UserInstrumentResponse.class)
+    )
+    private List<UserInstrumentResponse> userInstrumentResponses = new ArrayList<>();
+
+    @Schema(
+            description = "User feature options grouped by category.",
+            example = "{\"MER-STOCKS\":[{\"id\":1,\"name\":\"Dollar Fund\",\"accessed\":true}],\"TRUSTEES\":[{\"id\":2,\"name\":\"Comprehensive WIll\",\"accessed\":false}]}"
+    )
+    private Map<String, Set<UserOptionResponse>> userOptionResponses = new HashMap<>();
+
+    @Schema(
+            description = "User's details",
+            exampleClasses = UsersDetails.class
+    )
+    private UsersDetails usersDetails;
+
+    @Schema(
+            description = "User's dependents",
+            exampleClasses = DependentAccounts.class
+    )
+    private List<DependentAccounts> dependents;
+
+    private List<JointAccountDetailsResponse> jointAccountDetailsResponse;
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
+    public static class UsersDetails implements Serializable {
+        @Schema(description = "Middleware id of the user.", example = "kskskms92kl2jms")
+        private String middlewareCustomerId;
 
         @Schema(description = "Status code for this user.", example = "1")
-        Integer status,
+        private Integer status;
 
         @Schema(description = "Unique identifier of the user.", example = "123456789", format = "int64")
-        Long id,
+        private Long id;
 
         @Schema(description = "Email address of the user.", example = "jane.doe@example.com")
-        String email,
+        private String email;
 
         @Schema(description = "First name of the user.", example = "Jane")
-        String firstName,
+        private String firstName;
 
         @Schema(description = "Last name of the user.", example = "Doe")
-        String lastName,
+        private String lastName;
 
         @Schema(description = "Middle name or initial of the user.", example = "A.", nullable = true)
-        String middleName,
+        private String middleName;
 
         @JsonIgnore
         @Schema(hidden = true, description = "Sensitive. Not exposed in API.")
-        String password,
+        private String password;
 
         @Schema(description = "E.164 formatted phone number.", example = "+234551234567")
-        String phoneNumber,
+        private String phoneNumber;
 
         @JsonIgnore
         @Schema(hidden = true, description = "Sensitive. Not exposed in API.")
-        Integer passwordAttempt,
+        private Integer passwordAttempt;
 
         @Column("image_key")
         @Schema(description = "Storage URL of the user's profile image.", example = "www.huaweicloud.com/images/profiles/abc123.png", nullable = true)
-        String image,
+        private String image;
 
         @Schema(description = "User gender.", allowableValues = {"MALE", "FEMALE", "OTHER"}, example = "FEMALE", oneOf = Gender.class)
-        String gender,
+        private String gender;
 
         @Column("date_of_birth")
         @Schema(description = "Date of birth.", type = "string", format = "date", example = "1990-05-12")
-        LocalDate dateOfBirth,
+        private LocalDate dateOfBirth;
 
         @Column("referral_code")
         @Schema(description = "Referral code associated with the user's account.", example = "REF-1A2B3C")
-        String referralCode,
-
-        @Column("onboarding_completed")
-        @Schema(description = "Whether the user completed onboarding.", example = "true")
-        Boolean onboardingCompleted,
-
-        @ArraySchema(
-                arraySchema = @Schema(description = "Financial instruments the user can access."),
-                schema = @Schema(implementation = UserInstrumentResponse.class)
-        )
-        List<UserInstrumentResponse> userInstrumentResponses,
-
-        @Schema(description = "States whether all data sharing across subsidiary.", example = "true")
-        Boolean allDataShared,
-
-        @Schema(
-                description = "User feature options grouped by category.",
-                example = "{\"MER-STOCKS\":[{\"id\":1,\"name\":\"Dollar Fund\",\"accessed\":true}],\"TRUSTEES\":[{\"id\":2,\"name\":\"Comprehensive WIll\",\"accessed\":false}]}"
-        )
-        Map<String, Set<UserOptionResponse>> userOptionResponses,
+        private String referralCode;
 
         @JsonIgnore
         @Column("biometric_enabled")
         @Schema(hidden = true, description = "Sensitive. Not exposed in API.")
-        Boolean biometricEnabled,
+        private Boolean biometricEnabled;
 
         @Schema(description = "Pin set.")
-        Boolean pinSet,
+        private Boolean pinSet;
 
         @Schema(description = "If the user does not want interest.")
-        Boolean interestFreeInvestment,
+        private Boolean interestFreeInvestment;
 
         @Schema(description = "If the user has set interest free investment.")
-        Boolean interestFreeInvestmentSet,
+        private Boolean interestFreeInvestmentSet;
 
-        String cscsNumber,
+        private String cscsNumber;
 
-        String chnNumber,
+        private String chnNumber;
 
-        Boolean emailVerified,
+        private Boolean emailVerified;
 
-        Integer accountType
+        private Integer accountType;
 
-) implements Serializable {
-
-    public UsersResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                         String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared,
-                         Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet,
-                         String cscsNumber, String chnNumber, Boolean emailVerified, Integer accountType) {
-        this(null, status, id, email, firstName, lastName, middleName, null, phoneNumber, null, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared, userOptionResponses, biometricEnabled, pinSet,
-                interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber, emailVerified, accountType);
-    }
-
-    public UsersResponse(String middlewareCustomerId, Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber, String password, Integer passwordAttempt, Boolean emailVerified, Integer accountType) {
-        this(middlewareCustomerId, status, id, email, firstName, lastName, middleName, password, phoneNumber,
-                passwordAttempt, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, emailVerified, accountType);
-    }
-
-    public static UsersResponse newResponse(Integer status, Long id, String email, String firstName, String lastName, String middleName, String phoneNumber,
-                                     String image, String gender, LocalDate dateOfBirth, String referralCode, Boolean onboardingCompleted, List<UserInstrumentResponse> userInstrumentResponses, Boolean allDataShared,
-                                            Map<String, Set<UserOptionResponse>> userOptionResponses, Boolean biometricEnabled, Boolean pinSet, Boolean interestFreeInvestment, Boolean interestFreeInvestmentSet,
-                                            String cscsNumber, String chnNumber, Boolean  emailVerified, Integer accountType) {
-        return new UsersResponse(status, id, email, firstName, lastName, middleName, phoneNumber, image, gender, dateOfBirth, referralCode, onboardingCompleted, userInstrumentResponses, allDataShared,
-                userOptionResponses, biometricEnabled, pinSet, interestFreeInvestment, interestFreeInvestmentSet, cscsNumber, chnNumber, emailVerified, accountType);
-    }
-
-    public UsersResponse(List<UserInstrumentResponse> userInstrumentResponses, Map<String, Set<UserOptionResponse>> userOptionResponses) {
-        this(null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, userInstrumentResponses, null, userOptionResponses,
-                null, null, null, null, null, null, null, null);
+        @Schema(description = "States whether all data sharing across subsidiary.", example = "true")
+        private Boolean allDataShared;
     }
 
     @Schema(name = "UserInstrumentResponse", description = "Instrument access information for the user.")
@@ -149,7 +138,9 @@ public record UsersResponse(
             @Schema(description = "Code or short identifier for the instrument.", example = "MER-WEALTH")
             String code,
             @Schema(description = "Whether user wants to share this subsidiary's data with other subsidiaries.", example = "true")
-            Boolean dataSharingAllowed
+            Boolean dataSharingAllowed,
+            @Schema(description = "Whether the user completed onboarding.", example = "true")
+            Boolean kycCompleted
     ) implements Serializable {
 
     }
@@ -176,5 +167,47 @@ public record UsersResponse(
         public int hashCode() {
             return Objects.hash(id(), name());
         }
+    }
+
+    @Schema(name = "DependentAccounts", description = "Returns all this user's dependents.")
+    @Builder
+    public record DependentAccounts(
+            @Schema(description = "The userId of the minor.", example = "1", format = "int64")
+            Long userId,
+            @Schema(description = "The customer id of the minor", example = "001127")
+            String customerId,
+
+            @Schema(description = "Unique identifier of the user.", example = "123456789", format = "int64")
+            Long id,
+
+            @Schema(description = "Email address of the user.", example = "jane.doe@example.com")
+            String email,
+
+            @Schema(description = "First name of the user.", example = "Jane")
+            String firstName,
+
+            @Schema(description = "Last name of the user.", example = "Doe")
+            String lastName,
+
+            @Schema(description = "Middle name or initial of the user.", example = "A.", nullable = true)
+            String middleName,
+
+            @Schema(description = "E.164 formatted phone number.", example = "+234551234567")
+            String phoneNumber,
+
+            @Column("image_key")
+            @Schema(description = "Storage URL of the user's profile image.", example = "www.huaweicloud.com/images/profiles/abc123.png", nullable = true)
+            String image,
+
+            @Schema(description = "User gender.", allowableValues = {"MALE", "FEMALE", "OTHER"}, example = "FEMALE", oneOf = Gender.class)
+            String gender,
+
+            @Column("date_of_birth")
+            @Schema(description = "Date of birth.", type = "string", format = "date", example = "1990-05-12")
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+            LocalDate dateOfBirth,
+
+            Integer accountType
+            ) implements Serializable {
     }
 }

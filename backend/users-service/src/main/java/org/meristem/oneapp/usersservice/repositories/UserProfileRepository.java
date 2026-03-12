@@ -1,6 +1,8 @@
 package org.meristem.oneapp.usersservice.repositories;
 
 
+import jakarta.validation.constraints.NotNull;
+import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -27,10 +29,10 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Query("UPDATE user_profile SET gender = :gender, date_of_birth = :dob, country_of_origin = :countryOfOrigin WHERE user_id = :userId ")
     void updateUsersDobAndGender(String gender, LocalDate dob, String countryOfOrigin, long userId);
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE user_profile SET onboarding_completed = TRUE WHERE user_id = :userId ")
-    void completeOnboarding(Long userId);
+//    @Modifying
+//    @Transactional
+//    @Query("UPDATE user_profile SET onboarding_completed = TRUE WHERE user_id = :userId ")
+//    void completeOnboarding(Long userId);
 
     @Modifying
     @Transactional
@@ -69,4 +71,9 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
 
     @Query("SELECT email_verified FROM user_profile WHERE user_id = :userId")
     boolean findEmailVerifiedByUserId(Long userId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET cscs_number = :cscs WHERE user_id = :userId ")
+    void updateUsersCscs(Long userId, String cscs);
 }

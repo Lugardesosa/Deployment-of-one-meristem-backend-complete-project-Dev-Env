@@ -41,6 +41,7 @@ public record CreateJointCustomerDto(
         String person2AddressZipCode,
         String person2NationalityCd,
         String person2GenderCd,
+        String person2BvnNumber,
 
         String accountId
 

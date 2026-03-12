@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.integrations.responses;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -71,26 +72,8 @@ public record DojahNinLookUpResponse(Entity entity) {
             @JsonProperty("residence_status")
             String residenceStatus,
 
-            @JsonProperty("residence_town")
-            String residenceTown,
-
-            @JsonProperty("residence_lga")
-            String residenceLga,
-
-            @JsonProperty("residence_state")
-            String residenceState,
-
             @JsonProperty("ospoken_lang")
             String oSpokenLang,
-
-            @JsonProperty("origin_lga")
-            String originLga,
-
-            @JsonProperty("origin_place")
-            String originPlace,
-
-            @JsonProperty("origin_state")
-            String originState,
 
             String height,
 
@@ -107,7 +90,23 @@ public record DojahNinLookUpResponse(Entity entity) {
             String taxId,
 
             @JsonProperty("tax_residency")
-            String taxResidency
+            String taxResidency,
+
+            @JsonAlias({"origin_lga", "LocalAreaOfOrigin"})
+            String originLga,
+            @JsonProperty("origin_place")
+            String originPlace,
+            @JsonProperty("origin_state")
+            String originState,
+
+            @JsonProperty("residence_lga")
+            String residenceLga,
+            @JsonProperty("residence_town")
+            String residenceTown,
+            @JsonProperty("residence_state")
+            String residenceState,
+            @JsonProperty("residence_address_line_1")
+            String residenceAddress
     ) {
     }
 }

@@ -25,7 +25,7 @@ public interface MiddleWareClient {
     MiddlewareResponse<CreateIndividualCustomerResponse> createJointCustomer(@RequestBody CreateJointCustomerRequest request);
 
     @PostExchange("/customers/customers/minor")
-    MiddlewareResponse<CreateIndividualCustomerResponse> createMinorCustomer(@RequestBody CreateMinorCustomerRequest request);
+    MiddlewareResponse<CreateIndividualCustomerResponse> createMinorCustomer(@RequestBody CustomerDependentRequest request);
 
     @GetExchange("/customers/customers/{customerId}/details")
     MiddlewareCustomerResponse getCustomerDetails(@PathVariable String customerId);

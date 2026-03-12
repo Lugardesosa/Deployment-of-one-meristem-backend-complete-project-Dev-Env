@@ -25,12 +25,12 @@ public record CustomUserDetailsService(UsersRepository usersRepository, RolesRep
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        UsersResponse user = usersRepository.findUserDetailsByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
-        List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.id());
+        UsersResponse.UsersDetails user = usersRepository.findUserDetailsByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email + " not found"));
+        List<Roles> usersRoles = rolesRepository.findAllByUsersId(user.getId());
         List<String> rolesPermissions = permissionsRepository.findAllCodesByRolesIds(usersRoles.stream().map(Roles::getId).collect(Collectors.toList()));
         rolesPermissions.addAll(usersRoles.stream().map(Roles::getName).toList());
         List<GrantedAuthority> authorities = rolesPermissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-        return new AuthenticatedUser(user.middlewareCustomerId(), user.id(), user.email(), user.firstName(), user.lastName(), user.middleName(), user.password(), user.phoneNumber(), authorities, user.status(), user.passwordAttempt(),
-                nonNull(user.emailVerified()) && user.emailVerified(), user.accountType());
+        return new AuthenticatedUser(user.getMiddlewareCustomerId(), user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getMiddleName(), user.getPassword(), user.getPhoneNumber(), authorities, user.getStatus(), user.getPasswordAttempt(),
+                nonNull(user.getEmailVerified()) && user.getEmailVerified(), user.getAccountType());
     }
 }

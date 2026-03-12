@@ -48,9 +48,8 @@ public class KycQuery extends BaseModel<String> {
     /**
      * The requirement id associated with the Smile ID job.
      */
-    @NotNull(message = "requirementId cannot be null")
-    @Column("requirement_id")
-    private Long requirementId;
+    @NotNull(message = "investmentRequirementId cannot be null")
+    private Long investmentRequirementId;
 
     /**
      * The requirement id associated with the Smile ID job.
@@ -76,11 +75,11 @@ public class KycQuery extends BaseModel<String> {
 
     @Builder
     public KycQuery(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, String jobId, String userId,
-                    Long requirementId, Long vendorId) {
+                    Long investmentRequirementId, Long vendorId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.jobId = jobId;
         this.userId = userId;
-        this.requirementId = requirementId;
+        this.investmentRequirementId = investmentRequirementId;
         this.vendorId = vendorId;
     }
 

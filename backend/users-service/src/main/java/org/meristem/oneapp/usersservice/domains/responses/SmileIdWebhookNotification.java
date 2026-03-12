@@ -156,7 +156,10 @@ public class SmileIdWebhookNotification implements Serializable {
 
             // user email
             @JsonProperty("user_id")
-            String userId
+            String userId,
+
+            @JsonProperty("product_id") Long productId
+
     ) implements Serializable {
     }
 

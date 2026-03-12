@@ -1,75 +1,80 @@
 package org.meristem.oneapp.usersservice.integrations.requests;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Builder
-public record CreateJointCustomerRequest(
-        String accountName,
-        String additionalInfo,
-        String person1TitleCd,
-        String person1FirstName,
-        String person1LastName,
-        String person1OtherNames,
-        String person1GenderCd,
-        String person1MobilePhone,
-        String person1EmailAddress,
-        String person1MaritalStatusCd,
-        String person1AddressStreet,
-        String person1AddressCity,
-        String person1AddressStateCd,
-        String person1AddressCountryCd,
-        String person1AddressZipCode,
-        String person1BirthDate,
-        String person1BvnNumber,
-        String person1EmployerAddressCity,
-        String person1EmployerAddressCountryCd,
-        String person1EmployerAddressStateCd,
-        String person1EmployerAddressStreet,
-        String person1EmployerName,
-        String person1EmployerPhoneNo,
-        String person1IdnDocExpiryDate,
-        String person1IdnDocIssueAuth,
-        String person1IdnDocIssueDate,
-        String person1IdnDocName,
-        String person1IdnDocNo,
-        String person1IdnDocTypeCd,
-        String person1IdnDocYn,
-        String person1NationalityCd,
-        String person1OccupationCd,
-        String person2TitleCd,
-        String person2FirstName,
-        String person2LastName,
-        String person2OtherNames,
-        String person2GenderCd,
-        String person2MobilePhone,
-        String person2EmailAddress,
-        String person2MaritalStatusCd,
-        String person2AddressStreet,
-        String person2AddressCity,
-        String person2AddressStateCd,
-        String person2AddressCountryCd,
-        String person2AddressZipCode,
-        String person2BirthDate,
-        String person2BvnNumber,
-        String person2EmployerAddressCity,
-        String person2EmployerAddressCountryCd,
-        String person2EmployerAddressStateCd,
-        String person2EmployerAddressStreet,
-        String person2EmployerName,
-        String person2EmployerPhoneNo,
-        String person2IdnDocExpiryDate,
-        String person2IdnDocIssueAuth,
-        String person2IdnDocIssueDate,
-        String person2IdnDocName,
-        String person2IdnDocNo,
-        String person2IdnDocTypeCd,
-        String person2IdnDocYn,
-        String person2NationalityCd,
-        String person2OccupationCd,
-        String externalReference1,
-        String externalReference2,
-        String externalCrmId,
-        String officerId,
-        String introducerId
-) {
+public class CreateJointCustomerRequest {
+        private String accountName;
+        private String additionalInfo;
+        private String person1TitleCd;
+        private String person1FirstName;
+        private String person1LastName;
+        private String person1OtherNames;
+        private String person1GenderCd;
+        private String person1MobilePhone;
+        private String person1EmailAddress;
+        private String person1MaritalStatusCd;
+        private String person1AddressStreet;
+        private String person1AddressCity;
+        private String person1AddressStateCd;
+        private String person1AddressCountryCd;
+        private String person1AddressZipCode;
+        private String person1BirthDate;
+        private String person1BvnNumber;
+        private String person1EmployerAddressCity;
+        private String person1EmployerAddressCountryCd;
+        private String person1EmployerAddressStateCd;
+        private String person1EmployerAddressStreet;
+        private String person1EmployerName;
+        private String person1EmployerPhoneNo;
+        private String person1IdnDocExpiryDate;
+        private String person1IdnDocIssueAuth;
+        private String person1IdnDocIssueDate;
+        private String person1IdnDocName;
+        private String person1IdnDocNo;
+        private String person1IdnDocTypeCd;
+        private String person1IdnDocYn;
+        private String person1NationalityCd;
+        private String person1OccupationCd;
+        private String person2TitleCd;
+        private String person2FirstName;
+        private String person2LastName;
+        private String person2OtherNames;
+        private String person2GenderCd;
+        private String person2MobilePhone;
+        private String person2EmailAddress;
+        private String person2MaritalStatusCd;
+        private String person2AddressStreet;
+        private String person2AddressCity;
+        private String person2AddressStateCd;
+        private String person2AddressCountryCd;
+        private String person2AddressZipCode;
+        private String person2BirthDate;
+        private String person2BvnNumber;
+        private String person2EmployerAddressCity;
+        private String person2EmployerAddressCountryCd;
+        private String person2EmployerAddressStateCd;
+        private String person2EmployerAddressStreet;
+        private String person2EmployerName;
+        private String person2EmployerPhoneNo;
+        private String person2IdnDocExpiryDate;
+        private String person2IdnDocIssueAuth;
+        private String person2IdnDocIssueDate;
+        private String person2IdnDocName;
+        private String person2IdnDocNo;
+        private String person2IdnDocTypeCd;
+        private String person2IdnDocYn;
+        private String person2NationalityCd;
+        private String person2OccupationCd;
+        private String externalReference1;
+        private String externalReference2;
+        private String externalCrmId;
+        private String officerId;
+        private String introducerId;
 }
