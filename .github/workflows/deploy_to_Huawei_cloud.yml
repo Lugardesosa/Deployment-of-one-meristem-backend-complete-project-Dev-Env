@@ -270,20 +270,19 @@ jobs:
               echo "============================================"
 
               # Ensure persistent cache directory exists
-              if [ ! -d "/opt/buildpack-cache/$svc" ]; then
-                  echo "Creating cache directory for $svc"
-                  sudo mkdir -p "/opt/buildpack-cache/$svc"
-                  sudo chmod -R 777 "/opt/buildpack-cache/$svc"
+              if [ ! -d "/opt/buildpack-cache/\$svc" ]; then
+                  echo "Creating cache directory for \$svc"
+                  sudo mkdir -p "/opt/buildpack-cache/\$svc"
+                  sudo chmod -R 777 "/opt/buildpack-cache/\$svc"
               else
-                  echo "Cache directory already exists for $svc"
+                  echo "Cache directory already exists for \$svc"
               fi
               
-              # Build service with persistent cache
-              sudo pack build "$svc" \
-                  --builder "$builder" \
-                  --env BP_JVM_VERSION="$java_version" \
+              sudo pack build "\$svc" \
+                  --builder "\$builder" \
+                  --env BP_JVM_VERSION="\$java_version" \
                   --path . \
-                  --cache "type=build;format=bind;source=/opt/buildpack-cache/$svc" \
+                  --cache "type=build;format=bind;source=/opt/buildpack-cache/\$svc" \
                   --pull-policy if-not-present
               
               local status=\$?
