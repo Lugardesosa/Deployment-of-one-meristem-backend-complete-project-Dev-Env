@@ -268,11 +268,21 @@ jobs:
               echo "  Builder: \$builder"
               echo "  Java Version: \$java_version"
               echo "============================================"
+
+              # Ensure persistent cache directory exists
+              if [ ! -d "/opt/buildpack-cache/$svc" ]; then
+                echo "Creating cache directory for \$svc"
+                sudo mkdir -p "/opt/buildpack-cache/$svc"
+              else
+                echo "Cache directory already exists for $svc"
+              fi
               
               sudo pack build "\$svc" \
                 --builder "\$builder" \
                 --env BP_JVM_VERSION="\$java_version" \
-                --path .
+                --path . \
+                --volume /opt/buildpack-cache/$svc:/cache \
+                --pull-policy if-not-present
               
               local status=\$?
               cd ..
