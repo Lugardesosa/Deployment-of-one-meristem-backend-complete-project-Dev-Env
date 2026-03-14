@@ -119,10 +119,16 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("SELECT id FROM users WHERE email = :email")
     Long findIdByEmail(String email);
 
-    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, up.date_of_birth FROM users u " +
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, up.date_of_birth, up.data_sharing FROM users u " +
             "LEFT JOIN address a ON a.user_id = u.id LEFT JOIN user_profile up ON up.user_id = u.id " +
             " WHERE u.email = :userId AND (a.verification_method = 0 OR a.verification_method = 1) ORDER BY a.verification_method LIMIT 1")
     KycCompletedDto getUserKyc(String userId);
+
+
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, up.date_of_birth, up.data_sharing FROM users u " +
+            " LEFT JOIN user_profile up ON up.user_id = u.id " +
+            " WHERE u.email = :userId ")
+    KycCompletedDto getUserKyc2(String userId);
 
     Optional<Users> findOneByEmailAndPasswordIsNull(String email);
 

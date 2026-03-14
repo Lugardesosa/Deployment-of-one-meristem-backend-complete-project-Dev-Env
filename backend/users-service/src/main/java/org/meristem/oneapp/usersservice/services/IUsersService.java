@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.services;
 import jakarta.validation.Valid;
 import org.meristem.oneapp.kafka.dtos.CreateJointCustomerDto;
 import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
+import org.meristem.oneapp.usersservice.domains.enums.OnboardingRequirements;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
@@ -125,7 +126,7 @@ public interface IUsersService {
      *
      * @param userId the user identifier
      */
-    void completeUserOnboarding(String userId, Long productId);
+    void completeUserOnboarding(String userId, Long productId, OnboardingRequirements onboardingRequirements);
 
     /**
      * Resets onboarding for the specified user.
@@ -263,4 +264,8 @@ public interface IUsersService {
     List<ExistingInstrumentResponse> existingInstruments();
 
     UsersResponse getInstruments();
+
+    UpdateResponse createAppJoint(CreateInAppJointAccountRequest request);
+
+    UpdateResponse createAppIndividual();
 }

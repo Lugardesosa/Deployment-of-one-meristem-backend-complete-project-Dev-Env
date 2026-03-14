@@ -34,6 +34,11 @@ public interface UserOnboardingRepository extends BaseRepository<UserOnboarding,
     @Query("UPDATE user_onboarding SET status = :value, completed = :completed, note = :note WHERE user_id = :userId AND investment_requirement_id = :investmentRequirementId ")
     void updateUserOnboardingStatus(Long userId, Long investmentRequirementId, Integer value, String note, boolean completed);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_onboarding SET status = :value, completed = :completed, note = :note WHERE user_id = :userId AND investment_requirement_id IN (:investmentRequirementId) ")
+    void updateAllUserOnboardingStatus(Long userId, List<Long> investmentRequirementId, Integer value, String note, boolean completed);
+
 
     @Query("SELECT CASE WHEN COUNT(id) > 0 THEN TRUE ELSE FALSE END FROM user_onboarding WHERE user_id = :userId " +
             "AND requirement_id = :requirementId AND completed = :completed ")

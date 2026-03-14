@@ -9,10 +9,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
-import org.meristem.oneapp.usersservice.domains.requests.AddressVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.verificationStartedRequest;
-import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
+import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.IKycDelegatingService;
 import org.meristem.oneapp.usersservice.services.IOnboardingService;
@@ -133,7 +130,7 @@ public class OnboardingController {
     })
     @PreAuthorize("hasRole('ROLE_1004')")
     @PostMapping(value = "/validate-nin", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<IdValidationResponse>> validateNin(@RequestBody @Valid IdQueryRequest request) {
+    public ResponseEntity<AppResponse<IdValidationResponse>> validateNin(@RequestBody @Valid NinValidationRequest request) {
         return ApiUtil.buildResponse(kycDelegatingService.validateNin(request), HttpStatus.OK.toString(), "Successful");
     }
 

@@ -6,6 +6,7 @@ import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.TaxIdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
@@ -171,7 +172,7 @@ public class DojahService implements IKycService {
                 kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
                 kycQueryRepository.save(kycQuery);
                 userOnboardingRepository.updateUserOnboardingStatus(loggedInUserId, kycQuery.getInvestmentRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
-                usersService.completeUserOnboarding(loggedInUserEmail, AppUtil.getInvestmentId(httpRequest));
+                usersService.completeUserOnboarding(loggedInUserEmail, AppUtil.getInvestmentId(httpRequest), OnboardingRequirements.BVN);
                 cache.evict(loggedInUserEmail.concat(OnboardingRequirements.BVN.getName()));
                 return IdValidationResponse.builder().message("Successful").success(true).build();
             } else {
@@ -194,12 +195,8 @@ public class DojahService implements IKycService {
      * Validates NIN data; flags mismatches; completes onboarding if valid
      */
     @Override
-    public IdValidationResponse validateNin(IdQueryRequest request) {
+    public IdValidationResponse validateNin(NinValidationRequest request) {
         Cache cache = getIdQueryCache(cacheManager);
-
-        if (IdCardType.NIN.compareTo(IdCardType.fromName(request.idType())) != 0) {
-            throw new BadRequestException("Only NIN can be validated.");
-        }
 
         if (idCardRepository.existsByIdValueHashedAndIdCardTypeAndUserIdNot(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.NIN.getName(), AppUtil.getLoggedInUserId())) {
             throw new BadRequestException("NIN already exists.");

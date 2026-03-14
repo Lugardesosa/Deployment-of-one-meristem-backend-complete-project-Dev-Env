@@ -105,6 +105,7 @@ public class UsersService implements IUsersService {
     private final UserInstrumentRepository userInstrumentRepository;
     private final KycDelegatingService kycDelegatingService;
     private final DependentAccountRepository dependentAccountRepository;
+    private final AddressRepository addressRepository;
 
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
@@ -126,13 +127,8 @@ public class UsersService implements IUsersService {
 
         cache.evict(bvnQueryResponse.getBvnHashed());
         String emailDomainPart = request.email().split("@")[1];
-        bvnQueryResponse.setEmail(emailDomainPart.contains("*") ? bvnQueryResponse.getEmail() : request.email());
-        bvnQueryResponse.setPhoneNumber(request.phoneNumber().contains("**") ? bvnQueryResponse.getPhoneNumber() : request.phoneNumber());
-        bvnQueryResponse.setOccupation(request.occupation());
-        bvnQueryResponse.setSourceOfIncome(request.sourceOfIncome());
-        bvnQueryResponse.setEmployerName(request.employerName());
+        updateDetailsSecondaryAndExisting(bvnQueryResponse, emailDomainPart, request);
         cache.put(request.email(), bvnQueryResponse);
-
         log.info("First stage of User with email {} created ", request.email());
         return UpdateResponse.builder().success(true).message("Successful").build();
     }
@@ -170,11 +166,7 @@ public class UsersService implements IUsersService {
 
         cache.evict(secondary.getBvnHashed());
         emailDomainPart = request.secondary().email().split("@")[1];
-        secondary.setEmail(emailDomainPart.contains("*") ? primary.getEmail() : request.secondary().email());
-        secondary.setPhoneNumber(request.secondary().phoneNumber().contains("**") ? primary.getPhoneNumber() : request.secondary().phoneNumber());
-        secondary.setOccupation(request.secondary().occupation());
-        secondary.setSourceOfIncome(request.secondary().sourceOfIncome());
-        secondary.setEmployerName(request.secondary().employerName());
+        updateDetailsSecondaryAndExisting(secondary, emailDomainPart, request.secondary());
 
         requireNonNull(cacheManager.getCache(AppConstants.JOINT_SIGN_UP_CACHE_NAME)).put(request.primary().email(),
                 CreateJointAccountDtos.builder().mandateType(request.mandateType()).primary(primary).secondary(secondary).build());
@@ -299,6 +291,95 @@ public class UsersService implements IUsersService {
         log.info("Joint User with email ({}) completed stage 2 of onboarding process", userRequest.email());
         return UpdateResponse.builder().success(true).message("Your joint account (%s) has been successfully created. Both holders can now access and manage it.".formatted(jointAccountName)).build();
     }
+
+    @Transactional
+    @Override
+    public UpdateResponse createAppJoint(CreateInAppJointAccountRequest request) {
+
+        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+
+        IdQueryDetailsDto secondary = cache.get(hashingUtil.hmacWithSha256(idHashKey, request.secondary().bvn()), IdQueryDetailsDto.class);
+        if (isNull(secondary)) {
+            throw new ResourceNotFoundException("Initial sign up details not found.", "Bvn", request.secondary().bvn().substring(0, 3) + "*".repeat(5) + request.secondary().bvn().substring(8, 11));
+        }
+
+        boolean secondaryUserAlreadyExists = true;
+        Users secondaryUser = idCardRepository.findUsersByIdCardNumberHashedAndType(secondary.getBvnHashed() , IdCardType.BVN.getName());
+        Users primary = usersRepository.findById(AppUtil.getLoggedInUserId()).get();
+        // Check if the secondary user already exists else create a new one
+        if (isNull(secondaryUser)) {
+            secondaryUser = usersMapper.ninQueryResponseToUsers(secondary);
+            secondaryUserAlreadyExists = false;
+        }
+
+        cache.evict(secondary.getBvnHashed());
+
+        String emailDomainPart = request.secondary().email().split("@")[1];
+        updateDetailsSecondaryAndExisting(secondary, emailDomainPart, request.secondary());
+        secondaryUser.setEmail(secondary.getEmail());
+        secondaryUser.setPhoneNumber(secondary.getPhoneNumber());
+        primary.setAccountType(AccountType.BOTH_INDIVIDUAL_AND_JOINT.getValue());
+        usersRepository.save(primary);
+
+        secondaryUser.setAccountType(secondaryUserAlreadyExists ? AccountType.BOTH_INDIVIDUAL_AND_JOINT.getValue() : AccountType.JOINT.getValue());
+        UserProfile secondaryProfile = save(secondaryUser, secondary, false);
+        UserProfile primaryProfile = userProfileRepository.findByUserId(AppUtil.getLoggedInUserId()).get();
+
+        String jointAccountName = primary.getFirstName() + " " + primary.getLastName() + " and " + secondaryUser.getFirstName() + " " + secondaryUser.getLastName();
+
+        String accountId = UUID.randomUUID().toString();
+        JointAccount jointAccountPrimary = JointAccount.builder()
+                .userId(primary.getId())
+                .accountName(jointAccountName)
+                .accountId(accountId)
+                .role(JointAccountType.PRIMARY.getValue())
+                .mandateType(request.mandateType().getValue())
+                .build();
+
+        JointAccount jointAccountSecondary = JointAccount.builder()
+                .userId(secondaryUser.getId())
+                .accountName(jointAccountName)
+                .accountId(accountId)
+                .role(JointAccountType.SECONDARY.getValue())
+                .mandateType(request.mandateType().getValue())
+                .build();
+
+        jointAccountRepository.save(jointAccountPrimary);
+        jointAccountRepository.save(jointAccountSecondary);
+
+        CreateJointAccountDtos jointAccountDtos = CreateJointAccountDtos.builder().primary(IdQueryDetailsDto.builder().idType(IdCardType.BVN.getName()).build()).secondary(secondary).build();
+
+        saveJointToOutbox(primary, secondaryUser, jointAccountDtos, primaryProfile, secondaryProfile, accountId, jointAccountName);
+
+        return UpdateResponse.builder().success(true).message("Successful").build();    }
+
+    @Transactional
+    @Override
+    public UpdateResponse createAppIndividual() {
+        Long userId = AppUtil.getLoggedInUserId();
+        Users user = usersRepository.findById(userId).get();
+
+        if (!AccountType.JOINT.getValue().equals(user.getAccountType())) {
+            throw new BadRequestException("You can already trade as an individual");
+        }
+        UserProfile profile = userProfileRepository.findByUserId(userId).get();
+        Address address = addressRepository.findByUserId(userId).orElseGet(() -> Address.builder().build());
+        IdQueryDetailsDto bvnQueryResponse = IdQueryDetailsDto.builder().idType(IdCardType.BVN.getName()).localAreaOfOrigin(address.getCity()).address(address.getHouseAddress()).build();
+        saveToOutbox(user, bvnQueryResponse, profile, user.getId(), KafkaTopics.KAFKA_CUSTOMER_CREATE_TOPIC);
+
+        user.setAccountType(AccountType.BOTH_INDIVIDUAL_AND_JOINT.getValue());
+        usersRepository.save(user);
+        return UpdateResponse.builder().success(true).message("Successful").build();
+    }
+
+    private void updateDetailsSecondaryAndExisting(IdQueryDetailsDto secondary, String emailDomainPart, CreateUserRequest request) {
+        secondary.setEmail(emailDomainPart.contains("*") ? secondary.getEmail() : request.email());
+        secondary.setPhoneNumber(request.phoneNumber().contains("**") ? secondary.getPhoneNumber() : request.phoneNumber());
+        secondary.setOccupation(request.occupation());
+        secondary.setSourceOfIncome(request.sourceOfIncome());
+        secondary.setEmployerName(request.employerName());
+    }
+
 
     @Transactional
     @Override
@@ -446,12 +527,12 @@ public class UsersService implements IUsersService {
                 .userId(user.getId()).idValueHashed(hashingUtil.hmacWithSha256(idHashKey, bvnQueryResponse.getBankBvn()))
                 .build());
 
-        configureUserOnboarding(user, bvnQueryResponse.getGenderCode(), nonNull(bvnQueryResponse.getBirthDate()) ? bvnQueryResponse.getBirthDate().toLocalDate() : null, emailVerified);
+        configureUserOnboarding(null, null, null, user, bvnQueryResponse.getGenderCode(), nonNull(bvnQueryResponse.getBirthDate()) ? bvnQueryResponse.getBirthDate().toLocalDate() : null, emailVerified);
 
         log.info("User with existing email {} onboarding completion finished ", user.getEmail());
     }
 
-    private @NonNull UserProfile configureUserOnboarding(Users user, String gender, LocalDate dateOfBirth, boolean emailVerified) {
+    private @NonNull UserProfile configureUserOnboarding(String income, String occupation, String employeeName, Users user, String gender, LocalDate dateOfBirth, boolean emailVerified) {
         String referralCode;
         do {
             referralCode = AppUtil.generateReferralCode(user.getFirstName());
@@ -459,6 +540,9 @@ public class UsersService implements IUsersService {
         UserProfile profile = UserProfile.builder().userId(user.getId()).gender(Gender.getGender(gender).getCaps()).referralCode(referralCode).build();
         profile.setEmailVerified(emailVerified);
         profile.setDateOfBirth(dateOfBirth);
+        profile.setSourceOfIncome(income);
+        profile.setOccupation(occupation);
+        profile.setEmployerName(employeeName);
 
         profileRepository.save(profile);
         Long userId = user.getId();
@@ -533,6 +617,12 @@ public class UsersService implements IUsersService {
             }
         }
 
+        if (idCard.isEmpty() && !emailVerified) {
+            if (usersRepository.existsByEmailOrPhoneNumber(user.getEmail(), user.getPhoneNumber())) {
+                throw new BadRequestException("Email or Phone number already exists.");
+            }
+        }
+
         user.setStatus(UserStatus.ACTIVE.getValue());
         user = usersRepository.save(user);
 
@@ -542,7 +632,7 @@ public class UsersService implements IUsersService {
                 .build());
 
         log.info("User with email {} onboarding completion finished ", user.getEmail());
-        return configureUserOnboarding(user, bvnQueryResponse.getGender(), nonNull(bvnQueryResponse.getDateOfBirth()) ? LocalDate.parse(bvnQueryResponse.getDateOfBirth()) : null, emailVerified);
+        return configureUserOnboarding(bvnQueryResponse.getSourceOfIncome(), bvnQueryResponse.getOccupation(), bvnQueryResponse.getEmployerName(), user, bvnQueryResponse.getGender(), nonNull(bvnQueryResponse.getDateOfBirth()) ? LocalDate.parse(bvnQueryResponse.getDateOfBirth()) : null, emailVerified);
     }
 
     private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, Long userId, String kafkaTopics) {
@@ -1111,15 +1201,26 @@ public class UsersService implements IUsersService {
      *
      * @param userId the user identifier
      */
-    public void completeUserOnboarding(String userId, Long investmentId) {
+    public void completeUserOnboarding(String userId, Long investmentId, OnboardingRequirements onboardingRequirements) {
 
-        KycCompletedDto kycCompletedDto = usersRepository.getUserKyc(userId);
+        KycCompletedDto kycCompletedDto = usersRepository.getUserKyc2(userId);
+        completeOnboarding(investmentId, kycCompletedDto);
+
+        Boolean dataSharing = userProfileRepository.findDataSharingByUserId(kycCompletedDto.userId());
+        if (dataSharing) {
+            List<Long> requirements = requirementsRepository.findAllInvestmentRequirementIdByRequirementNameAndNotInvestmentId(onboardingRequirements.getName(), investmentId);
+            List<Long> investmentIds = requirementsRepository.findAllInvestmentInstrumentIdByRequirementName(onboardingRequirements.getName(), investmentId);
+            userOnboardingRepository.updateAllUserOnboardingStatus(kycCompletedDto.userId(), requirements, OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+            investmentIds.forEach(iId -> completeOnboarding(iId, kycCompletedDto));
+        }
+
+        requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
+        requireNonNull(cacheManager.getCache(AppConstants.INVESTMENT_INSTRUMENT_CACHE_NAME)).evict(kycCompletedDto.userId());
+    }
+
+    private void completeOnboarding(Long investmentId, KycCompletedDto kycCompletedDto) {
         if (nonNull(kycCompletedDto) && userOnboardingRepository.allRequirementsSubmitted(kycCompletedDto.userId(), investmentId)) {
             userInstrumentRepository.updateUserInstrumentKycStatus(kycCompletedDto.userId(), true, investmentId);
-            usersRepository.updateUsersStatus(kycCompletedDto.userId(), UserStatus.ACTIVE.getValue());
-            requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(kycCompletedDto.userId());
-            requireNonNull(cacheManager.getCache(AppConstants.INVESTMENT_INSTRUMENT_CACHE_NAME)).evict(kycCompletedDto.userId());
-            kafkaSenderService.send(kycCompletedDto, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_KYC_COMPLETED, KafkaHeaders.KEY, String.valueOf(userId)));
         }
     }
 
