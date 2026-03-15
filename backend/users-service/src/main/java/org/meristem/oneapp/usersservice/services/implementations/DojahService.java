@@ -120,7 +120,7 @@ public class DojahService implements IKycService {
                 throw new BadRequestException("BVN already exists.");
             } else {
                 IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
-
+                dto.setExisting(true);
                 dto.setIdType(IdCardType.BVN.getName());
                 return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
             }

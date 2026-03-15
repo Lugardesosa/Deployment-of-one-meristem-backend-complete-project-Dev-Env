@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -63,6 +64,8 @@ public class IdQueryDetailsDto implements Serializable {
 
     private String employerName;
     private String sourceOfIncome;
+    @Builder.Default
+    private Boolean existing = false;
 
     public String getMiddleName() {
         return StringUtils.isBlank(this.middleName) ? null : this.middleName.trim();

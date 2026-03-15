@@ -27,7 +27,9 @@ public interface DependentAccountRepository extends BaseRepository<DependentAcco
     DependentAccount findDependentAccountByUserId(Long userId);
 
     @Query(value = """
-          SELECT u.*, up.*, da.*
+          SELECT u.*,
+                 up.user_id, up.image_key, up.date_of_birth, up.gender, up.state_of_origin, up.country_of_origin, up.lg_of_origin, up.marital_status, up.chn_number, up.cscs_number, up.referral_code, up.biometric_enabled, up.interest_free_investment, up.email_verified, up.tax_id, occupation, up.source_of_income, up.employer_name, up.data_sharing, up.marketing_data_sharing, up.ai_and_analytics_data_sharing,
+                 da.parent_user_id, da.customer_id
           FROM users u LEFT JOIN user_profile up ON u.id = up.user_id 
           LEFT JOIN dependent_account da ON da.user_id = u.id WHERE da.parent_user_id = :parentUserId 
     """)

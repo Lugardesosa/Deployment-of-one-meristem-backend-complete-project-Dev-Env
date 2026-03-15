@@ -373,6 +373,9 @@ public class UsersService implements IUsersService {
     }
 
     private void updateDetailsSecondaryAndExisting(IdQueryDetailsDto secondary, String emailDomainPart, CreateUserRequest request) {
+        if (secondary.getExisting()) {
+            return;
+        }
         secondary.setEmail(emailDomainPart.contains("*") ? secondary.getEmail() : request.email());
         secondary.setPhoneNumber(request.phoneNumber().contains("**") ? secondary.getPhoneNumber() : request.phoneNumber());
         secondary.setOccupation(request.occupation());
