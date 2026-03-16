@@ -183,7 +183,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Set a user's cscs number.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UpdateCscsRequest.class))
+                            schema = @Schema(implementation = UpdateResponse.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - Cscs and Chn number could not be updated")
 
@@ -199,7 +199,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sign user up for this product/investement instrument.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UpdateCscsRequest.class))
+                            schema = @Schema(implementation = UpdateResponse.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - Sign user up for this product/investement instrument failed")
 
@@ -418,7 +418,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approve all data sharing")
     })
-    @PreAuthorize("hasAuthority('SCOPE_share_all_data')")
+    @PreAuthorize("hasAuthority('SCOPE_share_all_data') OR hasRole('ROLE_1022')")
     @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@RequestBody @Valid ShareAllDataRequest request) {
         return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");

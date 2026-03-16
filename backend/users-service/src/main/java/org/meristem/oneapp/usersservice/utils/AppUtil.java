@@ -208,6 +208,14 @@ public final class AppUtil {
         }
     }
 
+    public static @NonNull String getCustomerId(HttpServletRequest request) {
+        String id = request.getHeader("CUSTOMER_ID");
+        if (StringUtils.isBlank(id)) {
+            throw new BadRequestException("Kindly pass CUSTOMER_ID in the Header");
+        }
+        return request.getHeader("CUSTOMER_ID");
+    }
+
     public static String generateCscs() {
         return UUID.randomUUID().toString().substring(0, 10) + UUID.randomUUID().toString().substring(0, 10);
     }
