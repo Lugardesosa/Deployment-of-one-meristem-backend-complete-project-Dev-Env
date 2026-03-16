@@ -173,7 +173,7 @@ call:
 # TODO: KEEP UPDATED
 # THESE VALUES ARE REPLACED WITH [REDACTED] IN LOGS
 what-to-sanitize: "access_token,refresh_token,newPin,oldPin,password,pin,client_secret,secret,token,authorization,bvn,nin,BVN,NIN,Authorization,newPin,oldPin,X-MERISTEM-KEY,newPassword,oldPassword,IDNumber,IDNumberPreviouslyRegistered,SecondaryIDNumber,confirmPassword,pass,PASS,national_id,bank_bvn_no,bank_account_no,id_number,idNumber,apiKey,api_Key,X-API-KEY"
-headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type,X-PLATFORM"
+headers-to-filter-for: "x-forwarded-for,host,user-agent,content-type,X-PLATFORM,SUBSIDIARY_ID,CUSTOMER_ID"
 
 expo-url: ${EXPO_URL}
 
