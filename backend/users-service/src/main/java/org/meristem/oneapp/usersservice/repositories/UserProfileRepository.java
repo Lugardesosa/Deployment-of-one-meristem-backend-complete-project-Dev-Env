@@ -76,4 +76,7 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Transactional
     @Query("UPDATE user_profile SET cscs_number = :cscs WHERE user_id = :userId ")
     void updateUsersCscs(Long userId, String cscs);
+
+    @Query("SELECT data_sharing FROM user_profile up WHERE up.user_id = :id ")
+    Boolean findDataSharingByUserId(Long id);
 }

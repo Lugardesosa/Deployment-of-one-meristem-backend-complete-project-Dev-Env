@@ -6,6 +6,7 @@ import org.meristem.oneapp.usersservice.config.MaskingUtils;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.TaxIdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.TaxIdQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
@@ -47,7 +48,7 @@ public interface IKycService {
 
     TaxIdQueryResponse taxIdQuery(TaxIdQueryRequest request);
 
-    IdValidationResponse validateNin(@Valid IdQueryRequest request);
+    IdValidationResponse validateNin(@Valid NinValidationRequest request);
 
     default BvnQueryResponse getBvnQueryResponse(CacheManager cacheManager, IdQueryRequest request, IdQueryDetailsDto dto,
                                                  EncryptionUtil encryptionUtil, HashingUtil hashingUtil, String idHashKey) {
@@ -90,7 +91,7 @@ public interface IKycService {
             nin.setValidated(true);
             nin.setNote("NIN verified successfully");
             userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
-            usersService.completeUserOnboarding(loggedInUser.getEmail(), investmentId);
+            usersService.completeUserOnboarding(loggedInUser.getEmail(), investmentId, OnboardingRequirements.NIN);
             idCardRepository.findByIdCardTypeAndIdValueHashedAndUserId(IdCardType.NIN.getName(), ninValueHashed, loggedInUser.getId())
                     .ifPresentOrElse(id -> {
                             },

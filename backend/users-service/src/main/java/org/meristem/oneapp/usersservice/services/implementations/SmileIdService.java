@@ -13,6 +13,7 @@ import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
+import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.TaxIdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
@@ -159,7 +160,7 @@ public class SmileIdService implements IKycService {
                 throw new BadRequestException("BVN already exists");
             } else {
                 IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
-
+                dto.setExisting(true);
                 dto.setIdType(IdCardType.BVN.getName());
                 return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
             }
@@ -308,7 +309,7 @@ public class SmileIdService implements IKycService {
         kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
         kycQueryRepository.save(kycQuery);
         userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), kycQuery.getInvestmentRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
-        usersService.completeUserOnboarding(loggedInUser.getEmail(), notification.getPartnerParams().productId());
+        usersService.completeUserOnboarding(loggedInUser.getEmail(), notification.getPartnerParams().productId(), OnboardingRequirements.BVN);
 
     }
 
@@ -345,18 +346,16 @@ public class SmileIdService implements IKycService {
     /**
      * Validates NIN data; flags mismatches; completes onboarding if valid
      */
-    public IdValidationResponse validateNin(IdQueryRequest request) {
+    public IdValidationResponse validateNin(NinValidationRequest request) {
 
         Cache cache = getIdQueryCache(cacheManager);
 
-        if (IdCardType.NIN.compareTo(IdCardType.fromName(request.idType())) != 0) {
-            throw new BadRequestException("Only NIN can be validated .");
-        }
-
-        SmileIdWebhookNotification notification = getSmileIdWebhookNotification(request, IdCardType.NIN, AppUtil.getLoggedInUserId());
+        IdQueryRequest idQueryRequest = IdQueryRequest.builder()
+                .idType("NIN_V2").idNumber(request.idNumber()).country("NG").build();
+        SmileIdWebhookNotification notification = getSmileIdWebhookNotification(idQueryRequest, IdCardType.NIN, AppUtil.getLoggedInUserId());
 
         if (errorCodes.contains(notification.getResultCode())) {
-            throw new ResourceNotFoundException("Invalid NIN", request.idType(), request.idNumber());
+            throw new ResourceNotFoundException("Invalid NIN", idQueryRequest.idType(), request.idNumber());
         }
         notification.setIdType(IdCardType.NIN.getName());
         Users loggedInUser = usersRepository.findById(AppUtil.getLoggedInUserId()).orElseThrow(() -> new AuthorizationDeniedException("User is not logged in"));

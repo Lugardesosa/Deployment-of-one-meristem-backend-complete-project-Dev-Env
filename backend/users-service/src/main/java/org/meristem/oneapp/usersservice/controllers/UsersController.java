@@ -80,6 +80,36 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.createUserDependent(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
+    @Operation(summary = "Creates a joint account from the app.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Creates a joint account from the app",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1000')")
+    @PostMapping(value = "/joint-account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createAppJoint(@RequestBody @Valid CreateInAppJointAccountRequest request) {
+        return ApiUtil.buildResponse(usersService.createAppJoint(request), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
+    @Operation(summary = "Creates an individual account as a joint user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Creates an individual account as a joint user",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1000')")
+    @PostMapping(value = "/individual-account", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> createAppIndividual() {
+        return ApiUtil.buildResponse(usersService.createAppIndividual(), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
     @Operation(summary = "Verifies users email.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Verifies users email.",
@@ -124,9 +154,9 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.getJointAccountDetails(), HttpStatus.OK.toString(), "Successful.");
     }
 
-    @Operation(summary = "Get a user's joint account details response.")
+    @Operation(summary = "Get a user's existing details and onboard.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Get a user's joint account details response.",
+            @ApiResponse(responseCode = "200", description = "Get a user's existing details and onboard.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = JointAccountDetailsResponse.class))
                     }),
@@ -153,7 +183,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Set a user's cscs number.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UpdateCscsRequest.class))
+                            schema = @Schema(implementation = UpdateResponse.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - Cscs and Chn number could not be updated")
 
@@ -169,7 +199,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sign user up for this product/investement instrument.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UpdateCscsRequest.class))
+                            schema = @Schema(implementation = UpdateResponse.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - Sign user up for this product/investement instrument failed")
 
@@ -225,7 +255,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get a user.")
     })
-    @PreAuthorize("hasAuthority('SCOPE_instruments.get') OR hasRole('ROLE_1000')")
+    @PreAuthorize("hasRole('ROLE_1000')")
     @GetMapping(value = "all-instruments", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UsersResponse>> getInstruments() {
         return ApiUtil.buildResponse(usersService.getInstruments(), HttpStatus.OK.toString(), "Successful.");
@@ -388,7 +418,7 @@ public class UsersController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Approve all data sharing")
     })
-    @PreAuthorize("hasAuthority('SCOPE_share_all_data')")
+    @PreAuthorize("hasAuthority('SCOPE_share_all_data') OR hasRole('ROLE_1022')")
     @PutMapping(value = "/share-all-data", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateDataSharing(@RequestBody @Valid ShareAllDataRequest request) {
         return ApiUtil.buildResponse(usersService.updateDataSharing(request), HttpStatus.OK.toString(), "Successful");

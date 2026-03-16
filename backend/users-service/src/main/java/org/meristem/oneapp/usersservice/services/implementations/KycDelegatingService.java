@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.services.implementations;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
@@ -64,12 +65,12 @@ public class KycDelegatingService implements IKycDelegatingService {
     @Override
     // TODO: UNCOMMENT TO ENABLE DOJAH
 //    @CircuitBreaker(name = "dojah", fallbackMethod = "smileIdValidateNin")
-    public IdValidationResponse validateNin(IdQueryRequest request) {
+    public IdValidationResponse validateNin(NinValidationRequest request) {
         return this.smileIdService.validateNin(request);
     }
 
     // TODO: UNCOMMENT TO ENABLE DOJAH
-//    public IdValidationResponse smileIdValidateNin(IdQueryRequest request, Throwable throwable) {
+//    public IdValidationResponse smileIdValidateNin(NinValidationRequest request, Throwable throwable) {
 //        if (throwable instanceof ResourceNotFoundException ex && "prod".equalsIgnoreCase(activeProfile)) {
 //            throw new ResourceNotFoundException("ID query not found", request.idType(), request.idNumber());
 //        }
