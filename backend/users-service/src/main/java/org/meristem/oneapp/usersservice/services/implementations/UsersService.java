@@ -253,7 +253,7 @@ public class UsersService implements IUsersService {
 
         // Check if the secondary user already exists else create a new one
         if (isNull(secondary)) {
-            secondary = usersMapper.ninQueryResponseToUsers(bvnQueryResponse.getSecondary());;
+            secondary = usersMapper.ninQueryResponseToUsers(bvnQueryResponse.getSecondary());
         }
 
         primary.setPassword(passwordEncoder.encode(userRequest.password()));
