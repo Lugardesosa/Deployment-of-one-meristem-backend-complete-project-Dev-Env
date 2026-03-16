@@ -562,6 +562,9 @@ public class UsersService implements IUsersService {
             Long userId = AppUtil.getLoggedInUserId();
             Long instrumentId = AppUtil.getInvestmentId(httpServletRequest);
 
+            if (nonNull(userInstrumentRepository.findUserInstrumentByInstrumentId(instrumentId))) {
+                throw new BadRequestException("Already onboarded on this subsidiary");
+            }
             requirementsRepository.findAllProductsRequirementByStatus(EntityStatus.ACTIVE.getValue(), instrumentId)
                     .forEach(rId -> {
                         UserOnboarding userOnboarding = UserOnboarding.builder().status(OnboardingStatus.NOT_STARTED.getValue())
@@ -584,6 +587,8 @@ public class UsersService implements IUsersService {
             Cache options = cacheManager.getCache(AppConstants.INVESTMENT_OPTIONS_CACHE_NAME);
             requireNonNull(instrument, "could not complete request").evict(userId);
             requireNonNull(options, "could not complete request").evict(userId);
+        } catch (BadRequestException e) {
+            return UpdateResponse.builder().message(e.getMessage()).success(false).build();
         } catch (RuntimeException e) {
             return UpdateResponse.builder().message("Failed").success(false).build();
         }

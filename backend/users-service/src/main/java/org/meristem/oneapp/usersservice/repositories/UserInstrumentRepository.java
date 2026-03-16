@@ -19,4 +19,5 @@ public interface UserInstrumentRepository extends BaseRepository<UserInstrument,
     @Query("UPDATE user_instrument SET kyc_completed = :b WHERE user_id = :userId AND instrument_id IN (:investmentId) ")
     void updateAllUserInstrumentKycStatus(Long userId, boolean b, List<Long> investmentId);
 
+    UserInstrument findUserInstrumentByInstrumentId(Long instrumentId);
 }
