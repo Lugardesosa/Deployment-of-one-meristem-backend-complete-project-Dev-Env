@@ -57,7 +57,7 @@ public interface IKycService {
         requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(dto.getBvnHashed(), dto);
 
         return BvnQueryResponse.builder().middleName(MaskingUtils.maskMiddleName(dto.getMiddleName()))
-                .email(MaskingUtils.maskEmail(dto.getEmail())).firstName(MaskingUtils.maskFirstName(dto.getFirstName()))
+                .email(dto.getEmail()).firstName(MaskingUtils.maskFirstName(dto.getFirstName()))
                 .lastName(MaskingUtils.maskLastName(dto.getLastName()))
                 .phoneNumber(MaskingUtils.maskPhone(dto.getPhoneNumber()))
                 .build();
