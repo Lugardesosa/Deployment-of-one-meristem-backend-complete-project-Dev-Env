@@ -42,7 +42,7 @@ public class Schedulers {
 
         do {
 
-            List<OutboxEvent> toDelete = new ArrayList<>();
+            List<OutboxEvent> toUpdate = new ArrayList<>();
             for (OutboxEvent event : events) {
                 try {
                     Class<?> clazz = Class.forName(event.getEventClass());
@@ -52,7 +52,9 @@ public class Schedulers {
                     } else {
                         kafkaSenderService.send(event.getEventType(), payload);
                     }
-                    toDelete.add(event);
+                    event.setOutboxStatus(OutboxStatus.SENT.getValue());
+                    event.setSentAt(LocalDateTime.now());
+                    toUpdate.add(event);
                 } catch (Exception e) {
                     event.setRetryCount(event.getRetryCount() + 1);
                     event.setLastError(e.getMessage());
@@ -61,11 +63,11 @@ public class Schedulers {
                     } else {
                         event.setOutboxStatus(OutboxStatus.PENDING.getValue());
                     }
-                    outboxEventRepository.save(event);
                     log.error("Error sending outbox event with id: {}", event.getId(), e);
+                    toUpdate.add(event);
                 }
             }
-            outboxEventRepository.deleteAll(toDelete);
+            outboxEventRepository.saveAll(toUpdate);
             events = outboxEventRepository.findAllByOutboxStatus(OutboxStatus.PENDING.getValue(), Sort.by(Sort.Order.asc("created_date")), Limit.of(100));
         } while (!events.isEmpty());
     }

@@ -2,6 +2,7 @@ package org.meristem.oneapp.usersservice.services;
 
 import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
@@ -24,7 +25,7 @@ public interface IKycDelegatingService {
 
     IdValidationResponse validateBvn(MultipartFile file);
 
-    IdValidationResponse validateNin(IdQueryRequest request);
+    IdValidationResponse validateNin(NinValidationRequest request);
 
     IdQueryDetailsDto ninQuery(String nin);
 }

@@ -63,4 +63,5 @@ public final class AppConstants {
     public static final int MINOR_AGE = 30;
     public static final String ALL_INVESTMENT_INSTRUMENT_CACHE_NAME = "all_investment_instruments";
     public static final String ALL_INVESTMENT_OPTIONS_CACHE_NAME = "all_investment_options";
+    public static final String APP_JOINT_SIGN_UP_CACHE_NAME = "app-joint-sign-ups";
 }

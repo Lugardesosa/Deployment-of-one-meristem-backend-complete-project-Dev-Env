@@ -54,23 +54,17 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @Cacheable(value = "users", key = "#a0", unless = "#result == null")
     @Query(value = """
-          SELECT u.*, up.*
+          SELECT u.*,
+                 up.user_id, up.image_key, up.date_of_birth, up.gender, up.state_of_origin, up.country_of_origin, up.lg_of_origin, up.marital_status, up.chn_number, up.cscs_number, up.referral_code, up.biometric_enabled, up.interest_free_investment, up.email_verified, up.tax_id, occupation, up.source_of_income, up.employer_name, up.data_sharing, up.marketing_data_sharing, up.ai_and_analytics_data_sharing
           FROM users u LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.id = :id AND u.password IS NOT NULL
     """)
     Optional<UsersResponse.UsersDetails> findUserDetailsById(@Param("id") Long id);
 
-    @Cacheable(value = "users", key = "#a0", unless = "#result == null")
     @Query(value = """
             
-            SELECT u.*, up.* FROM users u
-            LEFT JOIN user_profile up ON u.id = up.user_id
-            WHERE u.id = :id AND u.password IS NOT NULL
-            """)
-    Optional<UsersResponse> findUserDetailById(Long id);
-
-    @Query(value = """
-            
-            SELECT u.*, up.* FROM users u
+            SELECT u.*,
+                 up.user_id, up.image_key, up.date_of_birth, up.gender, up.state_of_origin, up.country_of_origin, up.lg_of_origin, up.marital_status, up.chn_number, up.cscs_number, up.referral_code, up.biometric_enabled, up.interest_free_investment, up.email_verified, up.tax_id, occupation, up.source_of_income, up.employer_name, up.data_sharing, up.marketing_data_sharing, up.ai_and_analytics_data_sharing 
+            FROM users u
             LEFT JOIN user_profile up ON u.id = up.user_id
             WHERE u.id = :id
             """)
@@ -119,10 +113,16 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query("SELECT id FROM users WHERE email = :email")
     Long findIdByEmail(String email);
 
-    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, up.date_of_birth FROM users u " +
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, a.house_address, up.date_of_birth, up.data_sharing FROM users u " +
             "LEFT JOIN address a ON a.user_id = u.id LEFT JOIN user_profile up ON up.user_id = u.id " +
             " WHERE u.email = :userId AND (a.verification_method = 0 OR a.verification_method = 1) ORDER BY a.verification_method LIMIT 1")
     KycCompletedDto getUserKyc(String userId);
+
+
+    @Query("SELECT u.id, u.first_name, u.last_name, u.phone_number, u.email, up.date_of_birth, up.data_sharing FROM users u " +
+            " LEFT JOIN user_profile up ON up.user_id = u.id " +
+            " WHERE u.email = :userId ")
+    KycCompletedDto getUserKyc2(String userId);
 
     Optional<Users> findOneByEmailAndPasswordIsNull(String email);
 
