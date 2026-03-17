@@ -10,6 +10,7 @@ import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 //import org.meristem.oneapp.usersservice.dtos.sql.UserResponseRowMapper;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.models.Users;
+import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jdbc.repository.query.Modifying;
@@ -163,4 +164,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @Query("SELECT id FROM users WHERE email IN (:emails)")
     List<Long> findIdsByEmail(List<String> emails);
+
+    @Query("SELECT u.* FROM users u WHERE u.id = :id ")
+    UsersResponse.UsersDetails findUsersDetailsById(Long id);
 }

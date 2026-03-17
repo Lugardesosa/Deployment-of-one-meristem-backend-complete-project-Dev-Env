@@ -406,7 +406,8 @@ public class UsersService implements IUsersService {
         user.setAccountType(AccountType.fromString(bvnQueryResponse.getCustomerType()).getValue());
         saveExisting(user, bvnQueryResponse, true);
 
-        createWalletOutbox(user);
+        UsersResponse.UsersDetails users = usersMapper.usersToUsersDetails(user);
+        createWalletOutbox(users);
 
         cache.evict(request.email());
         log.info("User with existing email {} completed stage 2 of onboarding process", request.email());
@@ -414,7 +415,7 @@ public class UsersService implements IUsersService {
         return UpdateResponse.builder().success(true).message("Password successfully set.").build();
     }
 
-    private void createWalletOutbox(Users user) {
+    private void createWalletOutbox(UsersResponse.UsersDetails user) {
         try {
             UserCreatedDto userCreatedDto = new UserCreatedDto(user.getMiddlewareCustomerId());
             OutboxEvent createWalletOutbox = OutboxEvent.builder()
@@ -422,13 +423,13 @@ public class UsersService implements IUsersService {
                     .eventType(KafkaTopics.KAFKA_WALLET_CREATE_TOPIC)
                     .outboxStatus(OutboxStatus.PENDING.getValue())
                     .eventClass(UserCreatedDto.class.getName())
-                    .eventKey(user.getId().toString())
+                    .eventKey(user.getMiddlewareCustomerId())
                     .payload(objectMapper.writeValueAsString(userCreatedDto)).build();
             outboxEventRepository.save(createWalletOutbox);
             Cache cacheUser = requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME), "could not be completed");
             cacheUser.evict(user.getId());
         } catch (JsonProcessingException e) {
-            log.error("Error creating customer wallet for user with id {} to outbox", user.getId(), e);
+            log.error("Error creating customer wallet for user with id {} to outbox", user.getMiddlewareCustomerId(), e);
             throw new BadRequestException("Could not create customer");
         }
     }
@@ -793,7 +794,9 @@ public class UsersService implements IUsersService {
             usersRepository.save(users);
             Cache cache = requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME), "could not be completed");
             cache.evict(users.getId());
-            createWalletOutbox(users);
+
+            UsersResponse.UsersDetails user = usersMapper.usersToUsersDetails(users);
+            createWalletOutbox(user);
         } else {
             throw new BadRequestException("Could not create customer");
         }
@@ -813,11 +816,12 @@ public class UsersService implements IUsersService {
                 .addressCountryCd(value.addressCountryCd()).parentCustomerId(value.parentCustomerId()).build();
         MiddlewareResponse<CreateIndividualCustomerResponse> response = middleWareClient.createMinorCustomer(request);
         if ("success".equalsIgnoreCase(response.status())) {
-            Users users = usersRepository.findById(value.userId()).get();
+            UsersResponse.UsersDetails users = usersRepository.findUsersDetailsById(value.userId());
 
             DependentAccount dependentAccount = dependentAccountRepository.findDependentAccountByUserId(value.userId());
             dependentAccount.setCustomerId(response.data().customerId());
             dependentAccountRepository.save(dependentAccount);
+            users.setMiddlewareCustomerId(dependentAccount.getCustomerId());
             createWalletOutbox(users);
         } else {
             throw new BadRequestException("Could not create customer");
