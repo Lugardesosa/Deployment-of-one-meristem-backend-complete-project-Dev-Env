@@ -718,6 +718,7 @@ services:
       - ./certs:/etc/nginx/certs
       - ./vhost:/etc/nginx/vhost.d
       - ./html:/usr/share/nginx/html
+      - ./custom_headers.conf:/etc/nginx/conf.d/custom_headers.conf:ro
     depends_on:
       - cloud-gateway
     networks:
