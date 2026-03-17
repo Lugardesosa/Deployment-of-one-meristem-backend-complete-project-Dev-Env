@@ -50,4 +50,6 @@ public interface UsersMapping {
     }
     )
     Users createDependentRequestToUsers(CreateUserDependentRequest userRequest);
+
+    UsersResponse.UsersDetails usersToUsersDetails(Users user);
 }
