@@ -8,27 +8,19 @@ import org.meristem.oneapp.reportservice.exception.exceptions.BadRequestExceptio
 @AllArgsConstructor
 public enum TransactionType {
 
-    DEPOSIT(1, "DEPOSIT"),
-    WITHDRAWAL(2, "WITHDRAWAL"),
-    INVESTMENT(3, "INVESTMENT");
+    BUY(1), SELL(2), DEPOSIT(3), WITHDRAW(4), INTEREST(5), DIVIDEND(6), FEE(7);
 
-    private final int value;
-    private final String name;
-
-    public static TransactionType fromName(String name) {
-        return switch (name) {
-            case "DEPOSIT" -> DEPOSIT;
-            case "WITHDRAWAL" -> WITHDRAWAL;
-            case "INVESTMENT" -> INVESTMENT;
-            default -> throw new BadRequestException("Unknown transaction type");
-        };
-    }
+    private final Integer value;
 
     public static TransactionType fromValue(int value) {
         return switch (value) {
-            case 1 -> DEPOSIT;
-            case 2 -> WITHDRAWAL;
-            case 3 -> INVESTMENT;
+            case 1 -> BUY;
+            case 2 -> SELL;
+            case 3 -> DEPOSIT;
+            case 4 -> WITHDRAW;
+            case 5 -> INTEREST;
+            case 6 -> DIVIDEND;
+            case 7 -> FEE;
             default -> throw new BadRequestException("Unknown transaction type");
         };
     }

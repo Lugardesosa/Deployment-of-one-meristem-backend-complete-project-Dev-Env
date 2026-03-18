@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.reportservice.constants.ApiConstants;
+import org.meristem.oneapp.reportservice.domains.requests.TransactionResponse;
 import org.meristem.oneapp.reportservice.domains.requests.TransactionsRequest;
 import org.meristem.oneapp.reportservice.domains.responses.AppResponse;
 import org.meristem.oneapp.reportservice.domains.responses.PageTransactionsResponse;
@@ -41,9 +42,9 @@ public class TransactionsControllers {
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
     })
-    @PreAuthorize("hasRole('ROLE_users.transactions.get')")
+    @PreAuthorize("hasRole('ROLE_1039')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<Page<PageTransactionsResponse>>>  getTransactions(TransactionsRequest request) {
-        return ApiUtil.buildResponse(transactionsService.getTransactions(request), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<Page<TransactionResponse>>>  getTransactions(TransactionsRequest request) {
+        return ApiUtil.buildResponse(transactionsService.getTransaction(request), HttpStatus.OK.toString(), "Successful");
     }
 }

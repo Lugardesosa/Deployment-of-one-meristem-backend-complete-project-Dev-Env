@@ -137,8 +137,6 @@ public class UsersResponse implements Serializable {
             Long id,
             @Schema(description = "Human-readable instrument name.", example = "Wealth")
             String name,
-            @Schema(description = "Whether the instrument has been accessed by the user.", example = "true")
-            Boolean accessed,
             @Schema(description = "Code or short identifier for the instrument.", example = "MER-WEALTH")
             String code,
             @Schema(description = "Whether user wants to share this subsidiary's data with other subsidiaries.", example = "true")

@@ -114,6 +114,9 @@ public class SmsService implements NotificationService<MessageDto> {
             }
             case PASSWORD_RESET -> {
             }
+            case EMAIL_CONFIRMATION -> {
+
+            }
         }
         return body;
     }

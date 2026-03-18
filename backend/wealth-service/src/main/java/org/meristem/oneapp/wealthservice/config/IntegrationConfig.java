@@ -2,9 +2,11 @@ package org.meristem.oneapp.wealthservice.config;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.wealthservice.config.configProperties.MiddleWareConfigProperties;
 import org.meristem.oneapp.wealthservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.wealthservice.config.configProperties.ServicesUrlProperties;
 import org.meristem.oneapp.wealthservice.config.configProperties.WealthServiceProperties;
+import org.meristem.oneapp.wealthservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.wealthservice.integrations.UserServiceClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,15 +26,27 @@ public class IntegrationConfig {
 
     @Bean
     UserServiceClient userServiceClient(@Qualifier("restClientBuilderInternal") RestClient.Builder restClientBuilder, OneAppProperties oneAppProperties, @Value("${spring.application.name}") String applicationName,
-                                        WealthServiceProperties wealthServiceProperties, ServicesUrlProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
+                                        ServicesUrlProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
 
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 
         return HttpServiceProxyFactory
-                .builderFor(RestClientAdapter.create(restClientBuilder.requestInterceptors(c -> c.add(interceptor))
+                .builderFor(RestClientAdapter.create(restClientBuilder.clone().requestInterceptors(c -> c.add(interceptor))
                         .defaultRequest(r -> r.attributes(clientRegistrationId(applicationName)))
                         .baseUrl(servicesProperties.usersService())
-                        .defaultHeader(oneAppProperties.defaultHeaderName(), wealthServiceProperties.clientName())
+                        .defaultHeader(oneAppProperties.defaultHeaderName(), oneAppProperties.usersService().applicationName())
                         .build())).build().createClient(UserServiceClient.class);
+    }
+
+    @Bean
+    MiddleWareClient middleWareClient(RestClient.Builder restClientBuilder, MiddleWareConfigProperties middleWareConfigProperties, OneAppProperties oneAppProperties) {
+
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
+                        .clone().baseUrl(middleWareConfigProperties.baseUrl())
+                        .defaultHeaders(c -> {
+                            c.set(oneAppProperties.defaultHeaderName(), middleWareConfigProperties.clientName());
+                            c.set("X-API-KEY", middleWareConfigProperties.apiKey());
+                        }).build()))
+                .build().createClient(MiddleWareClient.class);
     }
 }
