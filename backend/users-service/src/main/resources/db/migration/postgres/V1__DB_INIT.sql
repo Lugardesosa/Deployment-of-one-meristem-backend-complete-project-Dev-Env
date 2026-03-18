@@ -557,7 +557,6 @@ CREATE TABLE user_instrument
 
     user_id            bigint       NOT NULL,
     instrument_id      bigint       NOT NULL,
-    accessed           boolean      NOT NULL DEFAULT false,
     kyc_completed      BOOLEAN      NOT NULL DEFAULT FALSE,
     CONSTRAINT uq_user_instrument_user_id_instrument_id UNIQUE (user_id, instrument_id),
     CONSTRAINT pk_user_instrument PRIMARY KEY (id)

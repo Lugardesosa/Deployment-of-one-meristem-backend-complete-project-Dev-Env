@@ -14,18 +14,26 @@ import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.wealthservice.dtos.Serializer.BigDecimalTwoDecimalSerializer;
+import org.meristem.oneapp.wealthservice.exception.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.converter.ConversionException;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration(proxyBeanMethods = false)
@@ -88,10 +96,21 @@ public class AppConfig {
                 new FixedBackOff(2000L, 3)
         );
 
-        handler.addNotRetryableExceptions(IllegalArgumentException.class);
-        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
-            log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex);
-        });
+        handler.setClassifications(
+                Map.ofEntries(
+                        Map.entry(IllegalArgumentException.class, false),
+                        Map.entry(MappingException.class, false),
+                        Map.entry(NullPointerException.class, false),
+                        Map.entry(BadRequestException.class, false),
+                        Map.entry(ResourceAccessException.class, false),
+                        Map.entry(DeserializationException.class, false),
+                        Map.entry(MessageConversionException.class, false),
+                        Map.entry(ConversionException.class, false),
+                        Map.entry(MethodArgumentResolutionException.class, false),
+                        Map.entry(NoSuchMethodException.class, false),
+                        Map.entry(ClassCastException.class, false)
+                ), true);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex));
         return handler;
     }
 }

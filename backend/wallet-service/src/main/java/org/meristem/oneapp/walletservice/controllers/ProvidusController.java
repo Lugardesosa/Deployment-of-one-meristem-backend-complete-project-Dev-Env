@@ -27,13 +27,5 @@ public class ProvidusController {
 
     private final ITransactionService transactionService;
 
-    @Operation(summary = "Wema transaction webhook")
-    @ApiResponses(value = {@ApiResponse(
-            responseCode = "200", description = "Acknowledges wema transaction requests",
-            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ProvidusAccountFundedEventRequest.class))}
-    )})
-    @PostMapping(value = "/webhook/transaction", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ProvidusTransactionResponse transactionWebhook(@RequestBody @Valid ProvidusAccountFundedEventRequest request) {
-        return transactionService.handleProvidusTransaction(request);
-    }
+
 }

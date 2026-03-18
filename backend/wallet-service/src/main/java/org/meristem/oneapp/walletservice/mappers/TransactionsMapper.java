@@ -8,7 +8,11 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 import org.meristem.oneapp.kafka.dtos.TransactionEventDto;
 import org.meristem.oneapp.walletservice.domains.requests.ProvidusAccountFundedEventRequest;
+import org.meristem.oneapp.walletservice.domains.responses.TransactionResponse;
+import org.meristem.oneapp.walletservice.integrations.responses.WalletTransactionResponse;
 import org.meristem.oneapp.walletservice.models.Transactions;
+
+import java.util.List;
 
 @Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface TransactionsMapper {
@@ -50,4 +54,7 @@ public interface TransactionsMapper {
             @Mapping(target = "type", ignore = true)
     })
     TransactionEventDto transactionsToTransactionEventDto(Transactions transactions);
+
+    List<TransactionResponse> walletTransactionResponseToTransactionResponse(List<WalletTransactionResponse> response);
+    TransactionResponse walletTransactionResponseToTransactionResponse(WalletTransactionResponse response);
 }

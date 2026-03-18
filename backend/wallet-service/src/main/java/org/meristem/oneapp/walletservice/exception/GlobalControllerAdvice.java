@@ -166,6 +166,7 @@ public class GlobalControllerAdvice implements MessageSourceAware {
 
     @ExceptionHandler(ResourceAccessException.class)
     protected ResponseEntity<ErrorDetails> handleResourceAccessException(ResourceAccessException ex, WebRequest request) {
+        ex.printStackTrace();
         return handleExceptionInternal("Connection could not be completed", HttpStatus.SERVICE_UNAVAILABLE, request, List.of());
     }
 

@@ -12,7 +12,8 @@ public enum MessageType {
     NOTIFICATION(3, "notification"),
     PASSWORD_RESET(4, "password_reset"),
     ADMIN_ACCOUNT_CREATED(5, "admin_account_created"),
-    LOGIN_SUCCESSFUL(6, "login_successful"),;
+    LOGIN_SUCCESSFUL(6, "login_successful"),
+    EMAIL_CONFIRMATION(7, "");
 
     private final int value;
     private final String label;

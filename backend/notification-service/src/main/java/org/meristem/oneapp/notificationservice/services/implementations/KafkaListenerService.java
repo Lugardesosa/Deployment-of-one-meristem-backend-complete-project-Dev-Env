@@ -26,7 +26,7 @@ public class KafkaListenerService implements IKafkaListenerService {
     private final IWebsocketService websocketService;
     private final IPushNotificationService pushNotificationService;
 
-    @KafkaListener(topics = {KafkaTopics.KAFKA_OTP_TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC})
+    @KafkaListener(topics = {KafkaTopics.KAFKA_OTP_TOPIC, KafkaTopics.KAFKA_LOGIN_TOPIC, KafkaTopics.KAFKA_EMAIL_CONFIRMATION_TOPIC}, concurrency = "3")
     public void sendOtp(ConsumerRecord<String, MessageDto> otpRequest) {
         MessageDto notificationRequest = otpRequest.value();
         NotificationService<MessageDto> messageDtoNotificationService = notificationServices.get(notificationRequest.medium().getLabel());

@@ -20,20 +20,24 @@ public class WalletService implements IWalletService {
 
     private final WalletRepository walletRepository;
 
-    public Wallets createWallet(KycCompletedDto kycCompletedDto) {
-        final Wallets[] savedWallet = new Wallets[1];
-        walletRepository.findByUserId(kycCompletedDto.userId()).ifPresentOrElse(w -> savedWallet[0] = w,
-                () -> {
-                    Wallets wallets = Wallets.builder().userId(kycCompletedDto.userId()).balance(BigDecimal.ZERO).fullName(AppUtil.getUserFullName(kycCompletedDto.firstName(), "", kycCompletedDto.lastName()))
-                            .build();
-                    savedWallet[0] = walletRepository.save(wallets);
-                    log.info("Wallet created for user {}", savedWallet[0].getUserId());
-                });
-        return savedWallet[0];
+    public void createWallet(KycCompletedDto kycCompletedDto) {
     }
 
     public WalletBalanceResponse getAccountBalance() {
 
-        return new WalletBalanceResponse(walletRepository.findBalanceByUserId(AppUtil.getLoggedInUserId()));
+        return WalletBalanceResponse.builder()
+                .ng(WalletBalanceResponse.CurrencyBalance.builder()
+                        .currencyCode("NGG")
+                        .balance(AppUtil.generateRandomBigDecimalFromRange(new BigDecimal("1000"), new BigDecimal("10000000000"), 2))
+                        .build())
+                .us(WalletBalanceResponse.CurrencyBalance.builder()
+                        .currencyCode("USD")
+                        .balance(AppUtil.generateRandomBigDecimalFromRange(new BigDecimal("100"), new BigDecimal("10000"), 2))
+                        .build())
+                .uk(WalletBalanceResponse.CurrencyBalance.builder()
+                        .currencyCode("GBP")
+                        .balance(AppUtil.generateRandomBigDecimalFromRange(new BigDecimal("100"), new BigDecimal("8000"), 2))
+                        .build())
+                .build();
     }
 }
