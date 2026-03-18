@@ -20,4 +20,6 @@ public interface UserInstrumentRepository extends BaseRepository<UserInstrument,
     void updateAllUserInstrumentKycStatus(Long userId, boolean b, List<Long> investmentId);
 
     UserInstrument findUserInstrumentByInstrumentId(Long instrumentId);
+
+    UserInstrument findUserInstrumentByInstrumentIdAndUserId(Long instrumentId, Long userId);
 }

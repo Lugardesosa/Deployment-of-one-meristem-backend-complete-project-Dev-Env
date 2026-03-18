@@ -384,15 +384,16 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.updateCountryOfOrigin(request), HttpStatus.OK.toString(), "Successful");
     }
 
-    @Operation(summary = "Mark an instrument/subsidiary as visited")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Mark an instrument/subsidiary as visited")
-    })
-    @PreAuthorize("hasRole('ROLE_1022')")
-    @PutMapping(value = "/instrument-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> updateUserInstrument(@Valid @RequestBody UserInstrumentRequest request) {
-        return ApiUtil.buildResponse(usersService.updateUserInstrument(request), HttpStatus.OK.toString(), "Successful");
-    }
+//    @Operation(summary = "Mark an instrument/subsidiary as visited")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Mark an instrument/subsidiary as visited")
+//    })
+//    @Hidden
+//    @PreAuthorize("hasRole('ROLE_1022')")
+//    @PutMapping(value = "/instrument-accessed", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<AppResponse<UpdateResponse>> updateUserInstrument(@Valid @RequestBody UserInstrumentRequest request) {
+//        return ApiUtil.buildResponse(usersService.updateUserInstrument(request), HttpStatus.OK.toString(), "Successful");
+//    }
 
     @Operation(summary = "Mark an subsidiary option as visited")
     @ApiResponses(value = {

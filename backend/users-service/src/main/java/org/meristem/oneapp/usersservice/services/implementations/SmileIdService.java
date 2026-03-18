@@ -157,7 +157,7 @@ public class SmileIdService implements IKycService {
         Optional<IdCard> idCard = idCardRepository.findByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.BVN.getName());
         if (idCard.isPresent()) {
             if (request.isPrimary()) {
-                throw new BadRequestException("BVN already exists");
+                throw new BadRequestException("Looks like you already have an account with us. Try logging in.");
             } else {
                 IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
                 dto.setExisting(true);
