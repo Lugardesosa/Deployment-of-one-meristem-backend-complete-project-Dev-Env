@@ -563,7 +563,7 @@ public class UsersService implements IUsersService {
             Long userId = AppUtil.getLoggedInUserId();
             Long instrumentId = AppUtil.getInvestmentId(httpServletRequest);
 
-            if (nonNull(userInstrumentRepository.findUserInstrumentByInstrumentId(instrumentId))) {
+            if (nonNull(userInstrumentRepository.findUserInstrumentByInstrumentIdAndUserId(instrumentId, userId))) {
                 throw new BadRequestException("Already onboarded on this subsidiary");
             }
             requirementsRepository.findAllProductsRequirementByStatus(EntityStatus.ACTIVE.getValue(), instrumentId)
