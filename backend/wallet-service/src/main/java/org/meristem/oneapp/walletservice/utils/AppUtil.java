@@ -1,6 +1,9 @@
 package org.meristem.oneapp.walletservice.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.walletservice.domains.enums.AccountProvider;
 import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
 import org.springframework.cloud.client.ServiceInstance;
@@ -9,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -70,7 +75,7 @@ public final class AppUtil {
     }
 
     public static String getUserFullName(String firstName, String middleName, String lastName) {
-        return firstName + " " + (nonNull(middleName) ? (middleName + " "): "") + lastName;
+        return firstName + " " + (nonNull(middleName) ? (middleName + " ") : "") + lastName;
     }
 
     public static LocalDateTime nonNullOrLocalDateTimeNow(LocalDateTime localDateTime) {
@@ -100,5 +105,27 @@ public final class AppUtil {
             matcher.appendReplacement(buffer, matcher.group(1).toUpperCase() + matcher.group(2));
 
         return matcher.appendTail(buffer).toString();
+    }
+
+    public static BigDecimal generateRandomBigDecimalFromRange(BigDecimal min, BigDecimal max, int scale) {
+        BigDecimal range = max.subtract(min);
+        BigDecimal randomBigDecimal = min.add(range.multiply(new BigDecimal(Math.random())));
+        return randomBigDecimal.setScale(scale, RoundingMode.HALF_EVEN);
+    }
+
+    public static Long getInvestmentId(HttpServletRequest request) {
+        try {
+            return Long.valueOf(request.getHeader("SUBSIDIARY_ID"));
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("Kindly pass SUBSIDIARY_ID in the Header");
+        }
+    }
+
+    public static @NonNull String getCustomerId(HttpServletRequest request) {
+        String id = request.getHeader("CUSTOMER_ID");
+        if (StringUtils.isBlank(id)) {
+            throw new BadRequestException("Kindly pass CUSTOMER_ID in the Header");
+        }
+        return request.getHeader("CUSTOMER_ID");
     }
 }

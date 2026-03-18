@@ -22,7 +22,12 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
+import org.springframework.kafka.support.converter.ConversionException;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -92,10 +97,21 @@ public class AppConfig {
                 new FixedBackOff(2000L, 3)
         );
 
-        handler.setClassifications(Map.of(IllegalArgumentException.class,  false, MappingException.class, false, NullPointerException.class , false, BadRequestException.class, false), true);
-        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
-            log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex);
-        });
+        handler.setClassifications(
+                Map.ofEntries(
+                        Map.entry(IllegalArgumentException.class, false),
+                        Map.entry(MappingException.class, false),
+                        Map.entry(NullPointerException.class, false),
+                        Map.entry(BadRequestException.class, false),
+                        Map.entry(ResourceAccessException.class, false),
+                        Map.entry(DeserializationException.class, false),
+                        Map.entry(MessageConversionException.class, false),
+                        Map.entry(ConversionException.class, false),
+                        Map.entry(MethodArgumentResolutionException.class, false),
+                        Map.entry(NoSuchMethodException.class, false),
+                        Map.entry(ClassCastException.class, false)
+                ), true);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex));
         return handler;
     }
 }

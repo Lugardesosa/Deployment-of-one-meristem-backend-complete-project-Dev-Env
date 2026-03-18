@@ -5,6 +5,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.meristem.oneapp.reportservice.domains.enums.TransactionStatus;
+import org.meristem.oneapp.reportservice.domains.enums.TransactionSubject;
 import org.meristem.oneapp.reportservice.domains.enums.TransactionType;
 
 import java.time.OffsetDateTime;
@@ -22,19 +23,17 @@ public class TransactionsRequest extends PageRequest {
 
     @PastOrPresent(message = "Must not be in the past")
     @Schema(description = "Start date for filtering transactions", example = "2025-07-01T14:06:01.365Z")
-    @Builder.Default
-    private OffsetDateTime from = OffsetDateTime.now().minusMonths(2);
+    private OffsetDateTime from;
 
     @PastOrPresent(message = "Must not be in the past")
-    @Builder.Default
     @Schema(description = "End date for filtering transactions", example = "2025-07-01T14:06:01.365Z")
-    private OffsetDateTime to = OffsetDateTime.now();
+    private OffsetDateTime to;
 
     @Schema(anyOf = {TransactionType.class}, description = "Type of transaction (e.g., deposit, withdrawal)", example = "1")
-    @Builder.Default
-    private Integer transactionType = TransactionType.DEPOSIT.getValue();
+    private TransactionType transactionType;
 
     @Schema(anyOf = {TransactionStatus.class}, description = "Status of the transaction (e.g., completed, pending)", example = "1")
-    @Builder.Default
-    private Integer transactionStatus = TransactionStatus.COMPLETED.getValue();
+    private TransactionStatus transactionStatus;
+
+    private TransactionSubject transactionSubject;
 }

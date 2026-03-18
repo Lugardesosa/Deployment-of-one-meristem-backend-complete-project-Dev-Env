@@ -12,11 +12,4 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public interface WalletRepository extends BaseRepository<Wallets, Long> {
 
-    @Lock(LockMode.PESSIMISTIC_WRITE)
-    Optional<Wallets> findWalletsById(Long id);
-
-    @Query("SELECT balance FROM wallets WHERE user_id = :userId")
-    BigDecimal findBalanceByUserId(Long userId);
-
-    Optional<Wallets> findByUserId(Long id);
 }

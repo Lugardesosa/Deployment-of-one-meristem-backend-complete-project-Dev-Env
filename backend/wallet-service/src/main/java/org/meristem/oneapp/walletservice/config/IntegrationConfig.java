@@ -4,6 +4,7 @@ package org.meristem.oneapp.walletservice.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.walletservice.config.configProperties.*;
+import org.meristem.oneapp.walletservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.walletservice.integrations.PaystackClient;
 import org.meristem.oneapp.walletservice.integrations.ProvidusClient;
 import org.meristem.oneapp.walletservice.integrations.UserServiceClient;
@@ -26,14 +27,12 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 public class IntegrationConfig {
 
     public static final String BEARER = "Bearer ";
-    private final OneAppProperties oneAppProperties;
-    private final ProvidusConfigProperties providusConfigProperties;
 
     @Bean
-    ProvidusClient providusClient(RestClient.Builder restClientBuilder) {
+    ProvidusClient providusClient(RestClient.Builder restClientBuilder, ProvidusConfigProperties providusConfigProperties, OneAppProperties oneAppProperties) {
 
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
-                        .baseUrl(providusConfigProperties.baseUrl())
+                        .clone().baseUrl(providusConfigProperties.baseUrl())
                         .defaultHeaders(c -> {
                             c.set(HttpHeaders.AUTHORIZATION, BEARER + providusConfigProperties.secretKey());
                             c.set(oneAppProperties.defaultHeaderName(), providusConfigProperties.clientName());
@@ -44,22 +43,34 @@ public class IntegrationConfig {
     @Bean
     PaystackClient paystackClient(RestClient.Builder restClientBuilder, @Value("${paystack.api.baseUrl}") String baseUrl, @Value("${paystack.api.secretKey}") String secretKey) {
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
-                        .baseUrl(baseUrl)
-                        .defaultHeaders(c -> c.set(HttpHeaders.AUTHORIZATION, BEARER + secretKey))
+                .clone().baseUrl(baseUrl)
+                .defaultHeaders(c -> c.set(HttpHeaders.AUTHORIZATION, BEARER + secretKey))
                 .build())).build().createClient(PaystackClient.class);
     }
 
     @Bean
     UserServiceClient userServiceClient(@Qualifier("restClientBuilderInternal") RestClient.Builder restClientBuilder, OneAppProperties oneAppProperties, @Value("${spring.application.name}") String applicationName,
-                                        WalletServiceProperties walletServiceProperties, ServicesUrlProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
+                                        ServicesUrlProperties servicesProperties, OAuth2AuthorizedClientManager authorizedClientManager) {
 
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 
         return HttpServiceProxyFactory
                 .builderFor(RestClientAdapter.create(restClientBuilder.requestInterceptors(c -> c.add(interceptor))
                         .defaultRequest(r -> r.attributes(clientRegistrationId(applicationName)))
-                        .baseUrl(servicesProperties.usersService())
-                        .defaultHeader(oneAppProperties.defaultHeaderName(), walletServiceProperties.clientName())
+                        .clone().baseUrl(servicesProperties.usersService())
+                        .defaultHeader(oneAppProperties.defaultHeaderName(), oneAppProperties.usersService().applicationName())
                         .build())).build().createClient(UserServiceClient.class);
+    }
+
+    @Bean
+    MiddleWareClient middleWareClient(RestClient.Builder restClientBuilder, MiddleWareConfigProperties middleWareConfigProperties, OneAppProperties oneAppProperties) {
+
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
+                        .clone().baseUrl(middleWareConfigProperties.baseUrl())
+                        .defaultHeaders(c -> {
+                            c.set(oneAppProperties.defaultHeaderName(), middleWareConfigProperties.clientName());
+                            c.set("X-API-KEY", middleWareConfigProperties.apiKey());
+                        }).build()))
+                .build().createClient(MiddleWareClient.class);
     }
 }

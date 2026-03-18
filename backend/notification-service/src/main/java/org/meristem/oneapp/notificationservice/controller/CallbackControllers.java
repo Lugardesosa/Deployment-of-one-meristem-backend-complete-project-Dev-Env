@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.notificationservice.constants.ApiConstants;
 import org.meristem.oneapp.notificationservice.domains.requests.HollaTagsCallbackRequest;
+import org.meristem.oneapp.notificationservice.domains.requests.TransferPaymentRequest;
 import org.meristem.oneapp.notificationservice.domains.responses.HollaTagsCallbackResponse;
+import org.meristem.oneapp.notificationservice.domains.responses.MiddlewareTransactionResponse;
 import org.meristem.oneapp.notificationservice.services.ICallbackService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,5 +34,14 @@ public class CallbackControllers {
     @PostMapping(value = "/holla-tags", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public HollaTagsCallbackResponse hollaTagsCallback(@RequestBody HollaTagsCallbackRequest request) {
         return callbackService.handleHollaTags(request);
+    }
+
+    @Operation(summary = "Middleware transfer callback")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Middleware transfer callback")
+    })
+    @PostMapping(value = "/transaction", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public MiddlewareTransactionResponse transactionCallback(@RequestBody TransferPaymentRequest request) {
+        return callbackService.transactionCallback(request);
     }
 }

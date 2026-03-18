@@ -13,16 +13,23 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
+import org.meristem.oneapp.notificationservice.exception.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.converter.ConversionException;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,20 +82,6 @@ public class AppConfig {
         return messages;
     }
 
-
-    @Bean
-    public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
-        var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
-        DefaultErrorHandler handler = new DefaultErrorHandler(
-                recoverer,
-                new FixedBackOff(2000L, 3)
-        );
-
-        handler.addNotRetryableExceptions(IllegalArgumentException.class);
-        handler.setRetryListeners((record, ex, deliveryAttempt) -> log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex));
-        return handler;
-    }
-
     @Bean
     public OpenAPI apiDoclet(@Value("${one-app.server-url:http://localhost:20010/}") String serverUrl,
                              @Value("${one-app.server-version}") String serverVersion, @Value("${one-app.server-app-name}")
@@ -116,5 +109,31 @@ public class AppConfig {
                                                 .concat("/oauth2/token"))))
                         )
                 ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
+    }
+
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
+        var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
+        DefaultErrorHandler handler = new DefaultErrorHandler(
+                recoverer,
+                new FixedBackOff(2000L, 3)
+        );
+
+        handler.setClassifications(
+                Map.ofEntries(
+                        Map.entry(IllegalArgumentException.class, false),
+                        Map.entry(MappingException.class, false),
+                        Map.entry(NullPointerException.class, false),
+                        Map.entry(BadRequestException.class, false),
+                        Map.entry(ResourceAccessException.class, false),
+                        Map.entry(DeserializationException.class, false),
+                        Map.entry(MessageConversionException.class, false),
+                        Map.entry(ConversionException.class, false),
+                        Map.entry(MethodArgumentResolutionException.class, false),
+                        Map.entry(NoSuchMethodException.class, false),
+                        Map.entry(ClassCastException.class, false)
+                ), true);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex));
+        return handler;
     }
 }

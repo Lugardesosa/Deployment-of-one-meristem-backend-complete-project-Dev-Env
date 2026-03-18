@@ -17,7 +17,6 @@ public class UserInstrument extends BaseModel<String> {
 
     private Long userId;
     private Long instrumentId;
-    private Boolean accessed;
     private Boolean kycCompleted;
 
 
@@ -26,7 +25,6 @@ public class UserInstrument extends BaseModel<String> {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.instrumentId = instrumentId;
-        this.accessed = false;
         this.kycCompleted = false;
     }
 

@@ -57,6 +57,15 @@ public interface NotificationService<T> {
             PasswordChangeDto passwordChangeDto = mapper.convertValue(request.message(), PasswordChangeDto.class);
             message = messageMapper.passwordChangeDtoToMessage(passwordChangeDto);
             message.setEmailTemplate(EmailTemplate.LOGIN_NOTIFICATION);
+        }  else if (request.classSimpleName().equals(EmailConfirmationDto.class.getSimpleName())) {
+            EmailConfirmationDto emailConfirmationDto = mapper.convertValue(request.message(), EmailConfirmationDto.class);
+            message = messageMapper.emailConfirmationDtoDtoToMessage(emailConfirmationDto);
+            message.setEmailTemplate(EmailTemplate.CONFIRM_EMAIL_ADDRESS);
+            Map<String, Object> context = new HashMap<>();
+            context.put("code", emailConfirmationDto.getCode());
+            context.put("firstName", nonNull(emailConfirmationDto.getFirstName()) ? emailConfirmationDto.getFirstName() : "");
+            context.put("DEEP_LINK", nonNull(emailConfirmationDto.getLink()) ? emailConfirmationDto.getLink() : "");
+            message.setContext(context);
         }
         return message;
     }

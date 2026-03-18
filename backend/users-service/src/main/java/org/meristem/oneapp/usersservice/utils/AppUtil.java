@@ -202,9 +202,7 @@ public final class AppUtil {
 
     public static Long getInvestmentId(HttpServletRequest request) {
         try {
-            String subId = request.getHeader("SUBSIDIARY_ID");
-            log.error("subId -----------------> {}", subId);
-            return Long.valueOf(subId);
+            return Long.valueOf(request.getHeader("SUBSIDIARY_ID"));
         } catch (NumberFormatException e) {
             throw new BadRequestException("Kindly pass SUBSIDIARY_ID in the Header");
         }

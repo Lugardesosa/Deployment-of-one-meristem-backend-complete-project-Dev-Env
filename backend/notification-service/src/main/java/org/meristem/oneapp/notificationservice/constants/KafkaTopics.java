@@ -14,5 +14,6 @@ public final class KafkaTopics {
     public static final String KAFKA_LOGIN_TOPIC = "login.topic";
     public static final String KAFKA_WEB_SOCKET_TOPIC = "websocket.topic";
     public static final String KAFKA_PUSH_NOTIFICATION_TOPIC = "push.notification.topic";
+    public static final String KAFKA_EMAIL_CONFIRMATION_TOPIC = "email.confirmation.topic";
 
 }

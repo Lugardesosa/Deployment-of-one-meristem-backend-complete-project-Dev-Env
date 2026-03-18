@@ -14,21 +14,29 @@ import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import org.meristem.oneapp.walletservice.exception.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.converter.ConversionException;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.sql.DataSource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -80,6 +88,9 @@ public class AppConfig {
         Info info = new Info().title(serverAppName).version(serverVersion).contact(contact).description("This API exposes endpoints to manage and interact with users' wallets.");
 
         final String securitySchemeName = "OAuth2 Security";
+        OAuthFlow clientCredentials = new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
+                .concat("/oauth2/token"));
+        OAuthFlow password = clientCredentials.scopes(new Scopes().addString("profile", "profile"));
         return new OpenAPI().info(info).servers(List.of(server))
                 .components(new Components().addSecuritySchemes(securitySchemeName, new SecurityScheme()
                                 .name(securitySchemeName)
@@ -87,10 +98,8 @@ public class AppConfig {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
                                 .description("This API uses OAuth 2 with the implicit grant flow.")
-                                .flows(new OAuthFlows().password(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
-                                                .concat("/oauth2/token")).scopes(new Scopes().addString("profile", "profile")))
-                                        .clientCredentials(new OAuthFlow().tokenUrl(serverUrl.concat(usersServiceContextPath)
-                                                .concat("/oauth2/token"))))
+                                .flows(new OAuthFlows().password(password)
+                                        .clientCredentials(clientCredentials))
                         )
                 ).security(List.of(new SecurityRequirement().addList(securitySchemeName)));
     }
@@ -104,10 +113,21 @@ public class AppConfig {
                 new FixedBackOff(2000L, 3)
         );
 
-        handler.addNotRetryableExceptions(IllegalArgumentException.class);
-        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
-            log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex);
-        });
+        handler.setClassifications(
+                Map.ofEntries(
+                        Map.entry(IllegalArgumentException.class, false),
+                        Map.entry(MappingException.class, false),
+                        Map.entry(NullPointerException.class, false),
+                        Map.entry(BadRequestException.class, false),
+                        Map.entry(ResourceAccessException.class, false),
+                        Map.entry(DeserializationException.class, false),
+                        Map.entry(MessageConversionException.class, false),
+                        Map.entry(ConversionException.class, false),
+                        Map.entry(MethodArgumentResolutionException.class, false),
+                        Map.entry(NoSuchMethodException.class, false),
+                        Map.entry(ClassCastException.class, false)
+                ), true);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> log.warn("Failed to process {} after {} attempts", record, deliveryAttempt, ex));
         return handler;
     }
 }
