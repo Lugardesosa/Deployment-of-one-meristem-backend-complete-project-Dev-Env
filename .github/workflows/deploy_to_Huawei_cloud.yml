@@ -268,7 +268,7 @@ jobs:
               echo "  Builder: \$builder"
               echo "  Java Version: \$java_version"
               echo "============================================"
-
+            
               # Ensure persistent cache directory exists
               if [ ! -d "/opt/buildpack-cache/\$svc" ]; then
                   echo "Creating cache directory for \$svc"
@@ -277,28 +277,27 @@ jobs:
               else
                   echo "Cache directory already exists for \$svc"
               fi
-              
-              # wealth-service uses noble-tiny builder which has no /cache dir,
-              # requires --volume to bind-mount the launch cache explicitly
+            
               if [ "\$svc" = "wealth-service" ]; then
+                  # noble-tiny builder has no /cache dir - must bind-mount via --volume
+                  # exactly as confirmed working manually on the server
                   sudo mkdir -p "/opt/buildpack-cache/\$svc/launch"
                   sudo pack build "\$svc" \
                       --builder "\$builder" \
                       --env BP_JVM_VERSION="\$java_version" \
                       --path . \
-                      --cache "type=build;format=bind;source=/opt/buildpack-cache/\$svc" \
+                      --tag "\$svc" \
                       --volume "/opt/buildpack-cache/\$svc/launch:/cache" \
                       --pull-policy if-not-present
               else
-              
-              sudo pack build "\$svc" \
-                  --builder "\$builder" \
-                  --env BP_JVM_VERSION="\$java_version" \
-                  --path . \
-                  --cache "type=build;format=bind;source=/opt/buildpack-cache/\$svc" \
-                  --pull-policy if-not-present
+                  sudo pack build "\$svc" \
+                      --builder "\$builder" \
+                      --env BP_JVM_VERSION="\$java_version" \
+                      --path . \
+                      --cache "type=build;format=bind;source=/opt/buildpack-cache/\$svc" \
+                      --pull-policy if-not-present
               fi
-              
+            
               local status=\$?
               cd ..
               return \$status
