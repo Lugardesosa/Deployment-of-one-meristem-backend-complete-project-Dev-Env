@@ -1,0 +1,23 @@
+
+#Ignore the following files and directories
+.DS_Store
+*.log
+*.tmp
+*.bak
+*.swp
+*.old
+*.orig
+*.rej
+*.class
+*.pyc
+*.pyo
+*.exe
+*.dll
+*.so
+*.sh
+.DS_Store
+=======
+#to ignore the github workflows for test_env
+.github/workflows/*
+.env
+

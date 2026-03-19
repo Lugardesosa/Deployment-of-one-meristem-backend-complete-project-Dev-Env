@@ -1,0 +1,56 @@
+
+# {{- if and .Values.pvc.enabled .Values.pvc.useExistingBucket }}
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: users-service-obs-pv-{{ .Values.environment }}
+#   annotations:
+#     argocd.argoproj.io/compare-options: IgnoreExtraneous
+#   labels:
+#     argocd.argoproj.io/instance: users-service
+# spec:
+#   capacity:
+#     storage: {{ .Values.pvc.size }}
+#   accessModes:
+#     - ReadWriteMany
+#   persistentVolumeReclaimPolicy: Retain
+#   storageClassName: ""
+#   csi:
+#     driver: obs.csi.everest.io
+#     nodeStageSecretRef:
+#       name: huawei-credentials-obs-ak
+#       namespace: one-meristem-app
+#     volumeAttributes:
+#       everest.io/obs-volume-type: STANDARD
+#       storage.kubernetes.io/csiProvisionerIdentity: obs.csi.everest.io
+#     volumeHandle: obs-microservice-storage-one-meristem-app-{{ .Values.environment }}
+# {{- end }}
+
+{{- if and .Values.pvc.enabled .Values.pvc.useExistingBucket }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: users-service-obs-pv-{{ .Values.environment }}
+  annotations:
+    pv.kubernetes.io/provisioned-by: everest-csi-provisioner
+spec:
+  capacity:
+    storage: {{ .Values.pvc.size }}
+  accessModes:
+    - ReadWriteMany
+  storageClassName: csi-obs
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  csi:
+    driver: obs.csi.everest.io
+    volumeHandle: obs-microservice-storage-one-meristem-app-{{ .Values.environment }}
+    fsType: s3fs
+    nodePublishSecretRef:
+      name: obs-access-secret
+      namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
+    volumeAttributes:
+      everest.io/enterprise-project-id: {{ .Values.everest.enterpriseProjectID }}
+      everest.io/obs-volume-type: STANDARD
+      everest.io/region: af-south-1
+      storage.kubernetes.io/csiProvisionerIdentity: everest-csi-provisioner
+{{- end }}

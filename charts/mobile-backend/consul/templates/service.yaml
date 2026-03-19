@@ -1,0 +1,20 @@
+
+{{/*
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: {{ include "consul.fullname" . }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   labels:
+#     app: {{ include "consul.name" . }}
+# spec:
+#   type: {{ .Values.service.type }}
+#   selector:
+#     app: {{ include "consul.name" . }}
+#   ports:
+#     - name: {{ .Values.service.portName }}
+#       port: {{ .Values.service.port }}
+#       protocol: TCP
+#       targetPort: {{ .Values.service.targetPort }}
+
+*/}}

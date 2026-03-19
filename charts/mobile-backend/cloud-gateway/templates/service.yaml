@@ -1,0 +1,44 @@
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: {{ include "cloud-gateway.fullname" . }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   labels:
+#     app: {{ include "cloud-gateway.name" . }}
+#   {{- with .Values.service.annotations }}
+#   annotations:
+#     {{- toYaml . | nindent 4 }}
+# {{- end }}
+# spec:
+#   selector:
+#     app: {{ include "cloud-gateway.name" . }}
+#   ports:
+#     - name: http
+#       protocol: TCP
+#       port: {{ .Values.service.port }}
+#       targetPort: {{ .Values.service.targetPort }}
+#   type: {{ .Values.service.type }}
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloud-gateway.fullname" . }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "cloud-gateway.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    {{- include "cloud-gateway.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+  type: {{ .Values.service.type }}

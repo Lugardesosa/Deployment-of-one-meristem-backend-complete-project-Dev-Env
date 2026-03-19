@@ -1,0 +1,241 @@
+# {{- if .Values.ingress.enabled }}
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: {{ .Values.ingress.name }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   annotations:
+#     kubernetes.io/elb.id: {{ .Values.ingress.elbId }} # Replace it with the ID of your existing load balancer.
+#     kubernetes.io/elb.ip: {{ .Values.ingress.elbIp }}  # Replace it with the IP of your existing load balancer.
+#     kubernetes.io/elb.class: performance # Load balancer type
+#     kubernetes.io/elb.port: "443"
+#     kubernetes.io/ingress.class: "cce"
+#     kubernetes.io/elb.tls-certificate-ids: {{ .Values.ingress.certificateIds }} #ELB certificate IDs, which are separated by comma (,) To obtain the certificate, log in to the CCE console, choose Service List > Networking > Elastic Load Balance, and click Certificates in the navigation pane. In the load balancer list, copy the ID under the target certificate name.
+#     kubernetes.io/elb.tls-ciphers-policy: "tls-1-2-fs" #"tls-1-2-fs"
+#     kubernetes.io/elb.http2-enable: "true"
+#     kubernetes.io/elb.pool-protocol: "https"
+#     kubernetes.io/elb.gzip-enabled: "true" #data compression, which reduces the size of files to be transferred, improves file transfer efficiency, and reduces the bandwidth needed for the transmission.
+#     #kubernetes.io/elb.listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+#     #kubernetes.io/elb.ssl-redirect: "true"
+# spec:
+#   tls:
+#     - hosts:
+#         - {{ .Values.ingress.host }}
+#   ingressClassName: cce # Specify the ingress class name. The default value is cce.
+#   rules:
+#     - host: {{ .Values.ingress.host }}
+#       http:
+#         paths:
+#           - path: "/"
+#             pathType: Prefix # or ImplementationSpecific
+#             backend:
+#               service:
+#                 name: {{ include "cloud-gateway.fullname" . }}
+#                 port:
+#                   number: {{ .Values.ingress.servicePort }}
+# {{- end }}
+
+
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.name }}
+  namespace: {{ .Values.ingress.namespace | default .Release.Namespace }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className | default "cce" | quote }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    {{- range .Values.ingress.tls.hosts }}
+    - hosts:
+        - {{ .host | quote }}
+      secretName: {{ .secretName | default "backendstag-tls" | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+  {{- range .Values.ingress.rules }}
+    - host: {{ .host | default "" | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ .path | default "/" }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
+            backend:
+              service:
+                name: {{ include "cloud-gateway.fullname" $ }}
+                port:
+                  number: {{ .service.port }}
+        {{- end }}
+  {{- end }}
+{{- end }}
+
+
+
+# {{- if .Values.ingress.enabled }}
+# # =============================================================================
+# # INGRESS: cloud-gateway (Huawei CCE + cert-manager)
+# #
+# # PURPOSE:
+# # - Exposes cloud-gateway via Huawei ELB ({{ .Values.ingress.elbId }})
+# # - Uses cert-manager managed TLS certificate ({{ .Values.certificate.secretName }})
+# # - Supports ACME HTTP-01 challenge routing for certificate validation
+# #
+# # TLS CONFIGURATION:
+# # - Certificate managed by cert-manager (NOT Huawei ELB certificates)
+# # - TLS termination at ELB level
+# # - Certificate auto-renewed by cert-manager
+# #
+# # IMPORTANT NOTES:
+# # - Do NOT use kubernetes.io/elb.tls-certificate-ids (conflicts with cert-manager)
+# # - ACME challenges are routed via path
+# # - ELB must allow HTTP (port 80) for ACME challenges even if forcing HTTPS
+# #
+# # HUAWEI CCE SPECIFICS:
+# # - Ingress class: {{ .Values.ingress.className }}
+# # - ELB ID: {{ .Values.ingress.elbId }}
+# # - Backend protocol: {{ .Values.ingress.backendProtocol }}
+# # =============================================================================
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: {{ .Values.ingress.name }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   labels:
+#     {{- include "cloud-gateway.name" . | nindent 4 }}
+#     app.kubernetes.io/component: ingress
+#   annotations:
+#     # ─────────────────────────────────────────────────────────────────────
+#     # cert-manager Annotations
+#     # ─────────────────────────────────────────────────────────────────────
+#     # Tell cert-manager which ClusterIssuer to use
+#     cert-manager.io/cluster-issuer: {{ .Values.certificate.issuerRef.name | quote }}
+#     # Challenge type (http01 is default, but explicit is better)
+#     cert-manager.io/acme-challenge-type: http01
+#     # Optional: Issue temporary certificate while waiting for real one
+#     {{- if .Values.ingress.certManager.issueTemporaryCertificate }}
+#     cert-manager.io/issue-temporary-certificate: "true"
+#     {{- end }}
+    
+#     # ─────────────────────────────────────────────────────────────────────
+#     # Huawei CCE ELB Annotations
+#     # ─────────────────────────────────────────────────────────────────────
+#     # ELB class and ID
+#     kubernetes.io/elb.class: {{ .Values.ingress.elbClass | quote }}
+#     kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
+    
+#     {{- if .Values.ingress.elbMasterIngress }}
+#     # Master ingress for Dedicated ELB
+#     kubernetes.io/elb.listener-master-ingress: {{ .Release.Namespace }}/{{ .Values.ingress.name | quote }}
+#     {{- end }}
+    
+#     # ELB listener configuration
+#     kubernetes.io/elb.port: {{ .Values.ingress.elbPort | quote }}
+    
+#     {{- if .Values.ingress.elbSlowStart }}
+#     kubernetes.io/elb.slowstart: {{ .Values.ingress.elbSlowStart | quote }}
+#     {{- end }}
+    
+#     # Protocol configuration
+#     {{- if .Values.ingress.elbHttp2Enabled }}
+#     kubernetes.io/elb.http2-enable: "true"
+#     {{- end }}
+    
+#     {{- if .Values.ingress.elbGzipEnabled }}
+#     kubernetes.io/elb.gzip-enabled: "true"
+#     {{- end }}
+    
+#     {{- if .Values.ingress.elbXRealIp }}
+#     kubernetes.io/elb.x-real-ip: "true" #app can see the real client IP (for logging, rate limiting)
+#     {{- end }}
+    
+#     # Timeout configuration
+#     {{- if .Values.ingress.elbMemberTimeout }}
+#     kubernetes.io/elb.member_timeout: {{ .Values.ingress.elbMemberTimeout | quote }}
+#     {{- end }}
+    
+#     {{- if .Values.ingress.elbClientTimeout }}
+#     kubernetes.io/elb.client_timeout: {{ .Values.ingress.elbClientTimeout | quote }}
+#     {{- end }}
+    
+#     {{- if .Values.ingress.elbKeepaliveTimeout }}
+#     kubernetes.io/elb.keepalive_timeout: {{ .Values.ingress.elbKeepaliveTimeout | quote }}
+#     {{- end }}
+
+#     kubernetes.io/elb.x-forwarded-host: "true" #app knows if the original request was HTTP or HTTPS
+#     kubernetes.io/elb.x-forwarded-port: "true" #app knows which port the client used
+    
+#     # Health check configuration
+#     {{- if .Values.ingress.healthCheck.enabled }}
+#     kubernetes.io/elb.health-check-flag: "on"
+#     kubernetes.io/elb.health-check-option: |
+#       {
+#         "protocol":"{{ .Values.ingress.healthCheck.protocol }}",
+#         "port":"{{ .Values.ingress.healthCheck.port }}",
+#         "uri":"{{ .Values.ingress.healthCheck.path }}",
+#         "interval":{{ .Values.ingress.healthCheck.interval }},
+#         "timeout":{{ .Values.ingress.healthCheck.timeout }},
+#         "rise":{{ .Values.ingress.healthCheck.rise }},
+#         "fall":{{ .Values.ingress.healthCheck.fall }}
+#       }
+#     {{- end }}
+    
+#     # Backend configuration
+#     kubernetes.io/elb.backend-protocol: {{ .Values.ingress.backendProtocol | quote }}
+#     kubernetes.io/elb.backend-port: {{ .Values.service.port | quote }}
+    
+#     # ─────────────────────────────────────────────────────────────────────
+#     # Optional: SSL/TLS Enforcement (enable after certificate is issued)
+#     # ─────────────────────────────────────────────────────────────────────
+#     {{- if .Values.ingress.forceSSL }}
+#     # Redirect HTTP to HTTPS
+#     #nginx.ingress.kubernetes.io/ssl-redirect: "true"
+#     kubernetes.io/elb.redirect-to-https: "true"
+#     #nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+#     {{- end }}
+    
+#     # ArgoCD sync wave
+#     argocd.argoproj.io/sync-wave: "15"  # After certificate (wave 10)
+    
+#     {{- with .Values.ingress.customAnnotations }}
+#     # Custom annotations from values
+#     {{- toYaml . | nindent 4 }}
+#     {{- end }}
+
+# spec:
+#   # Ingress class (MUST match Huawei CCE ingress controller)
+#   ingressClassName: {{ .Values.ingress.className }}
+  
+#   {{- if .Values.ingress.tls.enabled }}
+#   # TLS configuration
+#   tls:
+#   - hosts:
+#     {{- if .Values.certificate.dnsNames }}
+#     {{- range .Values.certificate.dnsNames }}
+#     - {{ . | quote }}
+#     {{- end }}
+#     {{- else }}
+#     - {{ .Values.ingress.host | quote }}
+#     {{- end }}
+#     # Secret created by cert-manager Certificate resource
+#     secretName: {{ .Values.certificate.secretName }}
+#   {{- end }}
+  
+#   # Routing rules
+#   rules:
+#   - host: {{ .Values.ingress.host | quote }}
+#     http:
+#       paths:
+#       {{- range .Values.ingress.paths }}
+#       - path: {{ .path }}
+#         pathType: {{ .pathType }}
+#         backend:
+#           service:
+#             name: cloud-gateway
+#             port:
+#               number: {{ $.Values.service.port }}
+#       {{- end }}
+# {{- end }}

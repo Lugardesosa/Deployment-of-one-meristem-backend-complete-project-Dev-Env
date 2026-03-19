@@ -1,0 +1,12 @@
+# The Namespace for Cert Manager
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    pod-security.kubernetes.io/enforce: restricted
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"  # Create before other resources

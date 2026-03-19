@@ -1,0 +1,54 @@
+
+
+{{/*
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: {{ include "consul.fullname" . }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   labels:
+#     app: {{ include "consul.name" . }}
+# spec:
+#   replicas: {{ .Values.replicaCount }}
+#   strategy:
+#     type: {{ .Values.strategy.type }}
+#     rollingUpdate:
+#       maxUnavailable: {{ .Values.strategy.rollingUpdate.maxUnavailable }}
+#       maxSurge: {{ .Values.strategy.rollingUpdate.maxSurge }}
+#   selector:
+#     matchLabels:
+#       app: {{ include "consul.name" . }}
+#   template:
+#     metadata:
+#       labels:
+#         app: {{ include "consul.name" . }}
+#     spec:
+#       containers:
+#         - name: {{ include "consul.name" . }}
+#           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+#           args: {{ toYaml .Values.image.args | nindent 12 }}
+#           ports:
+#             {{- range .Values.containerPorts }}
+#             - containerPort: {{ .port }}
+#               name: {{ .name }}
+#             {{- end }}
+#           # HEALTH CHECKS START HERE
+#           livenessProbe:
+#             httpGet:
+#               path: /v1/status/leader
+#               port: {{ .Values.service.targetPort }}
+#             initialDelaySeconds: 15
+#             periodSeconds: 10
+#             timeoutSeconds: 3
+#             failureThreshold: 3
+#           readinessProbe:
+#             httpGet:
+#               path: /v1/status/leader
+#               port: {{ .Values.service.targetPort }}
+#             initialDelaySeconds: 10
+#             periodSeconds: 5
+#             timeoutSeconds: 3
+#             failureThreshold: 3
+#           resources:
+#             {{- toYaml .Values.resources | nindent 12 }}
+*/}}

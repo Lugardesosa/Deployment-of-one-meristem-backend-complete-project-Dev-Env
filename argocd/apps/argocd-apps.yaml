@@ -1,0 +1,602 @@
+# ------------------ ARGO CD APPLICATIONS ------------------#
+# This file contains the Argo CD applications configuration for deploying the one-meristem-app microservices on Production.
+
+# =============================================================================
+# ARGO CD APPLICATION: cert-manager CRDs
+
+# PURPOSE:
+# This application installs the cert-manager CustomResourceDefinitions (CRDs)
+# into the cluster.
+
+# WHY THIS EXISTS:
+# - cert-manager depends on these CRDs to define its APIs (Certificate,
+#   ClusterIssuer, Order, Challenge, etc).
+# - CRDs MUST be installed before the cert-manager controller is deployed.
+# - CRDs are cluster-scoped and must NEVER be pruned once created.
+
+# IMPORTANT NOTES:
+# - This application should be synced FIRST.
+# - Pruning is intentionally disabled to prevent accidental CRD deletion.
+# - This application changes very rarely.
+# DEPLOYMENT ORDER:
+# Wave -5: cert-manager CRDs
+# Wave  0: cert-manager controller
+# Wave  3: EAB Sealed Secrets (this app)
+# Wave  5: ClusterIssuers (this app)
+# Wave 10+: Application certificates
+# =============================================================================
+
+#------------------ ARGO CD APPLICATIONS ------------------#
+# Backend microservices for one-meristem-app namespace
+# Repo: https://github.com/mit-meristem/one_meristem_app.git
+#
+# SYNC POLICY: Manual — no automated sync
+# Sync from ArgoCD UI or CLI: argocd app sync <app-name>
+# Rollback from ArgoCD UI: select revision and click Rollback
+#
+# DEPLOYMENT WAVE ORDER (sync-wave only applies during manual sync-all):
+# Wave  0: shared-resources
+# Wave  5: config-server, consul
+# Wave 10: all backend services
+
+# =============================================================================
+# cert-manager — COMMENTED OUT FOR STAGING
+# Uncomment for production deployment only
+# =============================================================================
+
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: cert-manager-crds
+#   namespace: ${ARGOCD_NAMESPACE}
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "-5"
+# spec:
+#   project: ${ARGOCD_PROJECT}
+#   source:
+#     repoURL: ${GIT_REPO_URL}
+#     targetRevision: ${GIT_BRANCH}
+#     path: ${HELM_REPO_PATH}/shared-resources/cert-manager/crds
+#   destination:
+#     server: ${CLUSTER_SERVER_URL}
+#     namespace: cert-manager
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#       - Replace=true
+#       - ServerSideApply=true
+#     retry:
+#       limit: 5
+#       backoff:
+#         duration: 5s
+#         factor: 2
+#         maxDuration: 3m
+#   ignoreDifferences:
+#   - group: apiextensions.k8s.io
+#     kind: CustomResourceDefinition
+#     jsonPointers:
+#     - /spec/conversion/webhook/clientConfig/caBundle
+# ---
+
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: cert-manager-controller
+#   namespace: ${ARGOCD_NAMESPACE}
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "0"
+#   finalizers:
+#   - resources-finalizer.argocd.argoproj.io
+# spec:
+#   project: ${ARGOCD_PROJECT}
+#   source:
+#     repoURL: ${GIT_REPO_URL}
+#     targetRevision: ${GIT_BRANCH}
+#     path: ${HELM_REPO_PATH}/shared-resources/cert-manager/controller
+#     helm:
+#       releaseName: cert-manager
+#       valueFiles:
+#       - values.yaml
+#   destination:
+#     server: ${CLUSTER_SERVER_URL}
+#     namespace: cert-manager
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#       - ServerSideApply=true
+#     retry:
+#       limit: 5
+#       backoff:
+#         duration: 5s
+#         factor: 2
+#         maxDuration: 3m
+#   ignoreDifferences:
+#   - group: admissionregistration.k8s.io
+#     kind: MutatingWebhookConfiguration
+#     jsonPointers:
+#     - /webhooks/0/clientConfig/caBundle
+#   - group: admissionregistration.k8s.io
+#     kind: ValidatingWebhookConfiguration
+#     jsonPointers:
+#     - /webhooks/0/clientConfig/caBundle
+# ---
+
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: cert-manager-issuers
+#   namespace: ${ARGOCD_NAMESPACE}
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "3"
+#   finalizers:
+#   - resources-finalizer.argocd.argoproj.io
+# spec:
+#   project: ${ARGOCD_PROJECT}
+#   source:
+#     repoURL: ${GIT_REPO_URL}
+#     targetRevision: ${GIT_BRANCH}
+#     path: ${HELM_REPO_PATH}/shared-resources/cert-manager/issuers
+#   destination:
+#     server: ${CLUSTER_SERVER_URL}
+#     namespace: cert-manager
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=false
+#       - PrunePropagationPolicy=foreground
+#       - PruneLast=true
+#     retry:
+#       limit: 3
+#       backoff:
+#         duration: 5s
+#         factor: 2
+#         maxDuration: 1m
+#   ignoreDifferences:
+#   - group: cert-manager.io
+#     kind: ClusterIssuer
+#     jsonPointers:
+#     - /status
+# ---
+
+# =============================================================================
+# SHARED RESOURCES — Wave 0
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shared-resources
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_REPO_PATH}/shared-resources
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        # All values empty here — injected via argocd app set from pipeline
+        # Credentials
+        - name: credentials.adminPassword
+          value: ""
+        - name: credentials.encryptionKey
+          value: ""
+        - name: credentials.githubUsername
+          value: ""
+        - name: credentials.githubPassword
+          value: ""
+        - name: credentials.mailerHost
+          value: ""
+        - name: credentials.mailerUsername
+          value: ""
+        - name: credentials.mailerPassword
+          value: ""
+        - name: credentials.creditSwitchPublicKey
+          value: ""
+        - name: credentials.creditSwitchPrivateKey
+          value: ""
+        - name: credentials.creditSwitchSmsPassword
+          value: ""
+        - name: credentials.huaweiCloudAccessKeyId
+          value: ""
+        - name: credentials.huaweiCloudSecretAccessKey
+          value: ""
+        - name: credentials.h2Password
+          value: ""
+        - name: credentials.providusApiPublicKey
+          value: ""
+        - name: credentials.providusApiSecretKey
+          value: ""
+        - name: credentials.trusteesClientSecret
+          value: ""
+        - name: credentials.encSalt
+          value: ""
+        - name: credentials.expoToken
+          value: ""
+        - name: credentials.okhiHeaderValue
+          value: ""
+        - name: credentials.paystackSecretKey
+          value: ""
+        # OBS
+        - name: obsSecret.data.accessKey
+          value: ""
+        - name: obsSecret.data.secretKey
+          value: ""
+        # Image pull secret
+        - name: imagePullSecret.dockerconfigjson
+          value: ""
+        # Ingress
+        - name: ingress.elbId
+          value: ""
+        - name: ingress.cloudGateway.tlsCert
+          value: ""
+        - name: ingress.cloudGateway.tlsKey
+          value: ""
+        - name: ingress.webApp.tlsCert
+          value: ""
+        - name: ingress.webApp.tlsKey
+          value: ""
+        - name: ingress.adminApp.tlsCert
+          value: ""
+        - name: ingress.adminApp.tlsKey
+          value: ""
+        # # ⚠ Move these to GitHub Actions secrets — base64 is not encryption
+        # - name: obsSecret.data.accessKey
+        #   value: "SFBVQUVaSzNETExQTFZGWFpJQzU="
+        # - name: obsSecret.data.secretKey
+        #   value: "c05weTlSN0FjN0JIZU9VcDVhRGhyRERkY1lFYWh1M1BVQnNWM0s0NQ=="
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    managedNamespaceMetadata:
+      labels:
+        argocd.argoproj.io/managed-by: shared-resources
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: obs-access-secret
+      namespace: one-meristem-app
+      jsonPointers:
+        - /data
+        - /metadata/annotations
+        - /metadata/labels
+    - group: ""
+      kind: Secret
+      name: credentials
+      namespace: one-meristem-app
+      jsonPointers:
+        - /data
+
+---
+
+# =============================================================================
+# CONFIG SERVER — Wave 5
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${CONFIG_SERVER_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${CONFIG_SERVER_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+      # parameters:
+      #   - name: image.tag
+      #     value: ""    # injected via argocd app set from pipeline
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+# # Consul Application
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: ${CONSUL_APP_NAME}
+#   namespace: ${ARGOCD_NAMESPACE}
+#   annotations:
+#     notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+#     notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+#     notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+#     notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+# spec:
+#   project: ${ARGOCD_PROJECT}
+#   source:
+#     repoURL: ${GIT_REPO_URL}
+#     targetRevision: ${GIT_BRANCH} 
+#     path: ${HELM_MOBILE_REPO_PATH}/${CONSUL_APP_NAME}
+#     helm:
+#       valueFiles:
+#         - values.yaml
+#   destination:
+#     server: ${CLUSTER_SERVER_URL}
+#     namespace: ${APP_NAMESPACE}
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+      
+# ---
+
+# =============================================================================
+# BACKEND SERVICES — Wave 10
+# =============================================================================
+
+# Notification Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${NOTIFICATION_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${NOTIFICATION_SERVICE_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+# Wallet Service (backend — Spring Boot, one-meristem-app namespace)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${WALLET_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${WALLET_SERVICE_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+# Report Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${REPORT_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${REPORT_SERVICE_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+---
+
+# Users Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${USERS_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${USERS_SERVICE_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+# Trustees Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${TRUSTEES_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${TRUSTEES_SERVICE_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+---
+
+# Wealth Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${WEALTH_SERVICE_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${WEALTH_SERVICE_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      
+---
+
+# Cloud Gateway
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${CLOUD_GATEWAY_APP_NAME}
+  namespace: ${ARGOCD_NAMESPACE}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+    notifications.argoproj.io/subscribe.on-out-of-sync.teams: channelName
+    notifications.argoproj.io/subscribe.on-healthy.teams: channelName
+    notifications.argoproj.io/subscribe.on-unhealthy.teams: channelName
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ${ARGOCD_PROJECT}
+  source:
+    repoURL: ${GIT_REPO_URL}
+    targetRevision: ${GIT_BRANCH}
+    path: ${HELM_MOBILE_REPO_PATH}/${CLOUD_GATEWAY_APP_NAME}
+    helm:
+      valueFiles:
+        - ${VALUES_FILE}
+  destination:
+    server: ${CLUSTER_SERVER_URL}
+    namespace: ${APP_NAMESPACE}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+#Env Varables to store secret
+
+# Shared — same value for both files
+# ARGOCD_NAMESPACE=argocd
+# ARGOCD_PROJECT=one-meristem
+# CLUSTER_SERVER_URL=https://<your-cce-cluster-api-endpoint>  # same for both
+# GIT_BRANCH=stag_env
+# VALUES_FILE=values-stag_env.yaml
+# APP_NAMESPACE=one-meristem-app
+
+# # Backend repo
+# GIT_REPO_URL=https://github.com/mit-meristem/one_meristem_app.git
+# HELM_REPO_PATH=helm                        # path to shared-resources
+# HELM_MOBILE_REPO_PATH=helm/apps/apis       # path to service helm charts
+
+# # Backend app names
+# CONFIG_SERVER_APP_NAME=config-server
+# CLOUD_GATEWAY_APP_NAME=cloud-gateway
+# NOTIFICATION_SERVICE_APP_NAME=notification-service
+# WALLET_SERVICE_APP_NAME=wallet-service
+# REPORT_SERVICE_APP_NAME=report-service
+# USERS_SERVICE_APP_NAME=users-service
+# TRUSTEES_SERVICE_APP_NAME=trustees-service
+# WEALTH_SERVICE_APP_NAME=wealth-service

@@ -1,0 +1,52 @@
+{{/*
+# # -------------------- CONSUL SERVICE VALUES --------------------
+# # This file contains the consul values for the consul service deployment.
+
+# environment: stag-env
+
+# global:
+#   namespace: one-meristem-app
+#   serviceAccountName: app-spc-sa
+  
+# #Deployment configuration for consul service
+
+# replicaCount: 2 #replica  count
+
+# strategy:
+#   type: RollingUpdate
+#   rollingUpdate:
+#     maxUnavailable: 0
+#     maxSurge: 1
+
+# image:
+#   repository: consul
+#   tag: "1.15.4" 
+#   pullPolicy: IfNotPresent
+#   args:
+#   - "agent"
+#   - "-server"
+#   - "-bootstrap-expect"
+#   - "1"
+#   - "-ui"
+#   - "-client"
+#   - "0.0.0.0"
+
+# resources:
+#   limits:
+#     cpu: "500m"
+#     memory: "128Mi"
+#   requests:
+#     cpu: "250m"
+#     memory: "64Mi"
+
+# containerPorts:
+#   - name: consul-ui
+#     port: 8500
+#   - name: 8301-port
+#     port: 8301
+#   - name: 8302-port
+#     port: 8302
+#   - name: 8600-port
+#     port: 8600
+*/}}
+  

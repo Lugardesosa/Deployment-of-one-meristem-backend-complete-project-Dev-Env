@@ -1,0 +1,166 @@
+# =============================================================================
+# CREDENTIALS SECRET
+# Values are always empty in git
+# Real values injected via argocd app set from GitHub Secrets in pipeline
+# =============================================================================
+credentials:
+  #Web-App Credentials
+  adminPassword: ""
+  encryptionKey: ""
+
+  # Backend Credentials
+  githubUsername:             ""
+  githubPassword:             ""
+  mailerHost:                 ""
+  mailerUsername:             ""
+  mailerPassword:             ""
+  creditSwitchPublicKey:      ""
+  creditSwitchPrivateKey:     ""
+  creditSwitchSmsPassword:    ""
+  huaweiCloudAccessKeyId:     ""
+  huaweiCloudSecretAccessKey: ""
+  h2Password:                 ""
+  providusApiPublicKey:       ""
+  providusApiSecretKey:       ""
+  trusteesClientSecret:       ""
+  encSalt:                    ""
+  expoToken:                  ""
+  okhiHeaderValue:            ""
+  paystackSecretKey:          ""
+  smileIdProdApiKey:    ""
+  smileIdDevApiKey:     ""
+  mobileSecret:         ""
+  trusteesSecret:       ""
+  notificationSecret:   ""
+  wealthClientSecret: ""
+  idHashingSecret:   ""
+  webSecret:         ""
+  walletSecret:      ""
+  wealthSecret:      ""
+  middlewareApiKey:  ""
+  dojahSecretKey:    ""
+  dojahPrivateKey:   ""
+  pastelApiKey:      ""
+  pastelApiSecret:   ""
+
+
+namespace: one-meristem-app
+
+#Roles
+role:
+  name: sa-secret-role
+
+#Role Binding
+roleBinding:
+  name: sa-secret-rolebinding
+
+#Secrets
+k8sSecret:
+  name: credentials
+
+#SecretProviderClass
+environment: stag_env
+secretProviderClass:
+  name: huawei-csms-credentials
+  provider: cce
+  k8sSecretName: huawei-csms-credentials
+
+serviceAccount:
+  name: app-spc-sa
+  dewResources:
+    - "db-admin-secret-one-meristem-app-stag-env"
+    - "redis-middleware-credentials-one-meristem-app-stag-env"
+    - "redis-mobile-backend-credentials-one-meristem-app-stag-env" 
+    - "kafka-credentials-one-meristem-app-stag-env"
+    - "db-notification_service-secret-one-meristem-app-stag-env"
+    - "db-users_service-secret-one-meristem-app-stag-env"
+    - "db-wallet_service-secret-one-meristem-app-stag-env"
+    - "db-report_service-secret-one-meristem-app-stag-env"
+    - "db-trustees_service-secret-one-meristem-app-stag-env"
+    - "db-wealth_service-secret-one-meristem-app-stag-env"
+
+
+# =============================================================================
+# IMAGE PULL SECRET
+# Empty in git — injected via argocd app set from pipeline
+# =============================================================================
+imagePullSecret:
+  dockerconfigjson: ""
+
+# image pull secret
+# imagePullSecret:
+#   dockerconfigjson: eyJhdXRocyI6eyJzd3IuYWYtc291dGgtMS5teWh1YXdlaWNsb3VkLmNvbSI6eyJ1c2VybmFtZSI6ImFmLXNvdXRoLTFASFBVQUVaSzNETExQTFZGWFpJQzUiLCJwYXNzd29yZCI6ImJiZTFhYzgxZjBkNjRjZDczYWM0MmFhOWEzYmZlODBiY2MzNGE4MmM1M2VkMmMwNWQ4MGU5NTQ5NDM5NzlkZWIiLCJlbWFpbCI6InRhbGsybHVnYXJkQGdtYWlsLmNvbSIsImF1dGgiOiJZV1l0YzI5MWRHZ3RNVUJJVUZWQlJWcExNMFJNVEZCTVZrWllXa2xETlRwaVltVXhZV000TVdZd1pEWTBZMlEzTTJGak5ESmhZVGxoTTJKbVpUZ3dZbU5qTXpSaE9ESmpOVE5sWkRKak1EVmtPREJsT1RVME9UUXpPVGM1WkdWaSJ9fX0K 
+
+  
+# obsSecret:
+#   enabled: true
+#   name: huawei-credentials-obs-ak
+#   data:
+#     accessKey: ""
+#     secretKey: ""
+
+# =============================================================================
+# OBS SECRET
+# Empty in git — injected via argocd app set from pipeline
+# =============================================================================
+obsSecret:
+  enabled: true
+  name: obs-access-secret
+  data:
+    accessKey: ""
+    secretKey: ""
+    
+# obsSecret:
+#   enabled: true
+#   name: obs-access-secret
+#   data:
+#     accessKey: "MDAwMDAwMDEwMDAwMDAwMTExQjg4QUExNUU2NTMxMjMwNzhDOTdDMThEQzlFQTYwQ0ExRUM2MUY4RUM0M0EzMEEyOUQyRDdDQ0QxNUE5QjE4MTFBNTdDRjc5RDk5MzZGODhENzUxQTIzQ0QzMkIyOQ=="
+#     secretKey: "MDAwMDAwMDEwMDAwMDAwMTkyMDJEN0NENUM3QTkwRTBBRDM5MUYzQ0E1QjIzQ0M1N0ZBODZGNjZERjMyQ0VGNUFFQkJERkI5QTcyQjAyRDlDRDk4ODkzQzhEN0UzN0M3NEI1OTYyRDI2MDEyMkZCOUNENTAwMEQ4ODdDRjE5Q0ZBQ0JGMTY0MkJCMEQ0MDE3"
+
+# =============================================================================
+# HUAWEI CLOUD STORAGE
+# =============================================================================
+huaweiCloudStorage:
+  enabled: false
+  accessKey: ""
+  secretKey: ""
+  projectId: ""
+  region: "af-south-1"
+# # Huawei Cloud Storage Authentication (for OBS, EVS, SFS CSI drivers)
+# huaweiCloudStorage:
+#   enabled: false
+#   accessKey: ${HUAWEI_ACCESS_KEY} # Your decoded AK
+#   secretKey: ${HUAWEI_SECRET_KEY} # Your decoded SK
+#   projectId: ${HUAWEI_ENTERPRISE_PROJECT_ID} # Enterprise ID
+#   region: "af-south-1"   # Region
+
+
+# =============================================================================
+# INGRESS — Values
+# =============================================================================
+
+ingress:
+  enabled: true
+  #elbId: "PLACEHOLDER_ELB_ID"   
+
+  cloudGateway:
+    host: "onemeristemstag.meristemng.com"
+    tlsSecretName: "tls-onemeristemstag"
+    servicePort: 8082              # Kubernetes service port
+    # pod targetPort is 20010 — used in elb.backend-port annotation
+    tlsCert: ""                    # injected via ArgoCD parameter
+    tlsKey: ""                     # injected via ArgoCD parameter
+
+  webApp:
+    host: "onemeristemwebstag.meristemng.com"
+    tlsSecretName: "tls-onemeristemwebstag"
+    servicePort: 8083              # pod port = service port for frontend
+    tlsCert: ""
+    tlsKey: ""
+
+  adminApp:
+    host: "onemeristemadminstag.meristemng.com"
+    tlsSecretName: "tls-onemeristemadminstag"
+    servicePort: 8084
+    tlsCert: ""
+    tlsKey: ""

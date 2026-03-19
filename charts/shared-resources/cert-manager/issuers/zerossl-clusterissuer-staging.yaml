@@ -1,0 +1,92 @@
+# =============================================================================
+# CLUSTERISSUER: ZeroSSL (Staging)
+#
+# PURPOSE:
+# Test environment for certificate issuance before production.
+# Uses ZeroSSL's ACME v2 endpoint with staging configuration.
+#
+# WHAT THIS ENABLES:
+# - Safe testing of certificate automation
+# - Debugging ACME challenges without rate limits
+# - Validation of Huawei CCE ingress integration
+#
+# PLATFORM NOTES:
+# - Designed for Huawei CCE Managed Kubernetes
+# - Uses HTTP-01 challenge via Huawei Ingress Controller
+# - Integrates with Huawei ELB
+# - Requires External Account Binding (EAB) credentials
+#
+# USAGE:
+# In your Certificate or Ingress resources:
+#   cert-manager.io/cluster-issuer: zerossl-staging
+#
+# TESTING WORKFLOW:
+# 1. Deploy this ClusterIssuer
+# 2. Create test Certificate
+# 3. Verify successful issuance
+# 4. Switch to zerossl-prod for production
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: zerossl-staging
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"  # After secrets (wave 3)
+  labels:
+    environment: staging
+    certificate-authority: zerossl
+spec:
+  acme:
+    # ZeroSSL ACME v2 endpoint
+    server: https://acme.zerossl.com/v2/DV90
+    
+    # Email for ACME account registration & certificate expiry notifications
+    email: esosamumen@meristemng.com  # Use staging-specific email
+    
+    # Secret storing the ACME account private key (auto-created by cert-manager)
+    privateKeySecretRef:
+      name: zerossl-staging-account-key
+    
+    # REQUIRED: External Account Binding (EAB)
+    # ZeroSSL requires EAB to link cert-manager with your ZeroSSL account
+    # Without this, certificate requests WILL FAIL
+    externalAccountBinding:
+      keyID: "PASTE_YOUR_STAGING_EAB_KID_HERE"  # Plain text KID from ZeroSSL
+      keySecretRef:
+        name: zerossl-eab-staging  # References sealed secret
+        key: hmac
+      keyAlgorithm: HS256
+    
+    # Challenge solver configuration
+    solvers:
+    # HTTP-01 challenge via Huawei CCE Ingress
+    - http01:
+        ingress:
+          # CRITICAL: Verify your Huawei CCE ingress class name
+          # Common values: 'cce', 'nginx', 'huawei-ingress'
+          # Check with: kubectl get ingressclass
+          class: cce  
+          
+          # Pod template for ACME challenge solver
+          podTemplate:
+            metadata:
+              annotations:
+                # Huawei CCE ELB annotations
+                kubernetes.io/elb.class: performance
+                kubernetes.io/elb.autocreate: "true"  # Auto-create temp ELB for challenges
+              labels:
+                app: cert-manager-acme-solver
+                environment: staging
+            spec:
+              # Node selector (if needed for specific node pools)
+              nodeSelector:
+                kubernetes.io/os: linux
+              # Tolerations (if needed for tainted nodes)
+              tolerations: []
+      
+      # Selector: Which domains use this solver
+      selector:
+        dnsZones:
+        - "onemeristemstag.meristemng.com"   # Mobile Backend (Stag)
+        - "onemeristemargocd.meristem.com"  # Argo CD 
+        - "onemeristemwebstag.meristemng.com" #Web App (Stag)

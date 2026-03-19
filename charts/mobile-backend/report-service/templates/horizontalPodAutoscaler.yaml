@@ -1,0 +1,78 @@
+
+# {{- if .Values.autoscaling.enabled }}
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: {{ include "report-service.fullname" . }}-hpa
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: {{ include "report-service.fullname" . }}
+#   minReplicas: {{ .Values.autoscaling.minReplicas }}
+#   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+#     - type: Resource
+#       resource:
+#         name: memory
+#         target:
+#           type: Utilization
+#           averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+# {{- end }}
+
+
+{{- if .Values.hpa.enabled }}
+apiVersion: autoscaling.cce.io/v1alpha1
+kind: CustomedHPA
+metadata:
+  name: {{ include "report-service.fullname" . }}-hpa
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "report-service.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "report-service.fullname" . }}
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
+  minScaleStep: {{ .Values.hpa.minScaleStep | default 1 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetMemoryUtilizationPercentage }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.hpa.behavior.scaleUp.stabilizationWindowSeconds | default 60 }}
+      policies:
+        - type: Percent
+          value: {{ .Values.hpa.behavior.scaleUp.percentValue | default 100 }}
+          periodSeconds: 60
+        - type: Pods
+          value: {{ .Values.hpa.behavior.scaleUp.podsValue | default 2 }}
+          periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.hpa.behavior.scaleDown.stabilizationWindowSeconds | default 300 }}
+      policies:
+        - type: Percent
+          value: {{ .Values.hpa.behavior.scaleDown.percentValue | default 25 }}
+          periodSeconds: 60
+      selectPolicy: Min
+{{- end }}
