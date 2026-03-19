@@ -35,7 +35,7 @@ jobs:
     steps:
       # Checkout code
       - name: Checkout Code
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
       #Add git log for debugging
