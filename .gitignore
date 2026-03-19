@@ -15,9 +15,11 @@
 *.dll
 *.so
 *.sh
+*.md
 .DS_Store
 =======
 #to ignore the github workflows for test_env
 .github/workflows/*
+README.md
 .env
 
