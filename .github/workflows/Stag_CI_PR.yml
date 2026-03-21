@@ -363,7 +363,7 @@ jobs:
   # =====================================================
   test:
     name: Code Quality and Security Checks
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux-runner]
     environment: stag
     needs: detect_changes
     if: |
@@ -661,7 +661,7 @@ jobs:
   # =====================================================
   helm_lint:
     name: Helm Lint Changed Charts
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux-runner]
     needs: detect_changes
     if: |
       needs.detect_changes.outputs.has_helm_only_changes == 'true' ||
@@ -759,7 +759,7 @@ jobs:
   # =====================================================
   build_and_push:
     name: Build & Push to Huawei SWR
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux-runner]
     needs: [detect_changes, test, helm_lint]
     environment: stag
     if: |
