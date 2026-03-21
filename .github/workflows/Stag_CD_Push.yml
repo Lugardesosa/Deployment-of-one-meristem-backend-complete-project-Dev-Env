@@ -52,6 +52,12 @@ env:
   WEB_APP_APP_NAME: ${{ vars.WEB_APP_APP_NAME }}
   ADMIN_APP_APP_NAME: ${{ vars.ADMIN_APP_APP_NAME }}
 
+  # Ingress & Networking
+  APP_NAME: ${{ vars.APP_NAME }}
+  INGRESS_HOST: ${{ vars.INGRESS_HOST }}
+  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }}
+  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+
   # =====================================================
   # GITHUB SECRETS — SWR & Cluster
   # =====================================================
