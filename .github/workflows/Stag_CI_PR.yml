@@ -1,9 +1,16 @@
-# ----------------------------------------
-# One-Meristem Mobile-backend CI for Staging Env
-# ----------------------------------------
+# =====================================================
+# One-Meristem Mobile Backend CI for Staging Env
+# Spring Boot | Java 21 + Java 25 | self-hosted runner
+# =====================================================
+# Trigger: PR to stag_env
+# Paths: backend/**, charts/**, scripts/**, argocd/**
+#
+# Job flow:
+#   detect_changes → test + helm_lint (parallel)
+#                 → build_and_push
+# =====================================================
 
-
-name: One-Meristem-Mobile-backend CI for Staging Env 
+name: One-Meristem Mobile Backend CI for Staging Env
 
 on:
   pull_request:
@@ -15,8 +22,11 @@ on:
       - "charts/**"
       - "scripts/**"
       - "argocd/**"
-      #- ".github/workflows/Stag_CI_PR.yml"  # CI/CD Pipeline config file
+      #- ".github/workflows/backend-ci-stag.yaml"
 
+# =============================================================================
+# GLOBAL ENV
+# =============================================================================
 env:
   # =====================================================
   # SERVICE DEFINITIONS
@@ -38,7 +48,7 @@ env:
   HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
   HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
   VALUES_FILE: ${{ vars.VALUES_FILE }}
-  
+
   # ArgoCD App Names
   CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
   NOTIFICATION_SERVICE_APP_NAME: ${{ vars.NOTIFICATION_SERVICE_APP_NAME }}
@@ -50,18 +60,16 @@ env:
   CLOUD_GATEWAY_APP_NAME: ${{ vars.CLOUD_GATEWAY_APP_NAME }}
   WEB_APP_APP_NAME: ${{ vars.WEB_APP_APP_NAME }}
   ADMIN_APP_APP_NAME: ${{ vars.ADMIN_APP_APP_NAME }}
-  #CONSUL_APP_NAME: ${{ vars.CONSUL_APP_NAME }}
 
-  #Others
+  # Others
   APP_NAME: ${{ vars.APP_NAME }}
   INGRESS_HOST: ${{ vars.INGRESS_HOST }}
   GITHUB_REPO_URL: "https://github.com/mit-meristem/one_meristem_app.git"
-  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }} #<-- Change this to your ArgoCD ingress host
-  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }} #<-- Change this to your Staging ingress host
-  BRANCH_ENV: ${{ vars.BRANCH_ENV }} #<---- To represent the helm values.yaml used via branch  
+  ARGO_INGRESS_HOST: ${{ vars.ARGO_INGRESS_HOST }}
+  STAG_INGRESS_HOST: ${{ vars.STAG_INGRESS_HOST }}
+  BRANCH_ENV: ${{ vars.BRANCH_ENV }}
   HUAWEI_ENTERPRISE_PROJECT_ID: ${{ vars.HUAWEI_ENTERPRISE_PROJECT_ID }}
   REPO_NAME: ${{ vars.REPO_NAME }}
-
 
   # =====================================================
   # GITHUB SECRETS — SWR & Cluster
@@ -141,9 +149,8 @@ env:
   HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
 
 
- 
-
 jobs:
+
   # =====================================================
   # JOB 1: Detect Changed Services
   # =====================================================
@@ -171,7 +178,7 @@ jobs:
 
       - name: Show Commit Info
         run: |
-          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Repository : $GITHUB_REPOSITORY"
           echo "Triggered by: ${{ github.actor }}"
           echo "PR: ${{ github.event.pull_request.title }}"
           echo ""
@@ -227,8 +234,9 @@ jobs:
           CHANGED_JAVA25=$(echo "$CHANGED_JAVA25" | xargs)
 
           # -------------------------------------------------------
-          # 2. Detect helm chart changes (helm-only, no docker build)
-          #    Only for services NOT already in build list
+          # 2. Detect helm-only chart changes
+          #    Only charts that actually changed — source changes
+          #    (backend/) are irrelevant to helm linting
           # -------------------------------------------------------
           HELM_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
             | grep -E "^charts/apps/mobile-backend/" \
@@ -312,41 +320,45 @@ jobs:
           echo "shared_resources_changed=$SHARED_CHANGED" >> "$GITHUB_OUTPUT"
           echo "argocd_changed=$ARGOCD_CHANGE" >> "$GITHUB_OUTPUT"
 
-      # -------------------------------------------------------
-      # Job Summary
-      # -------------------------------------------------------
       - name: Output Job Summary
         run: |
           echo "## Backend Change Detection — Staging CI" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
           echo "### Services Queued for Docker Build" >> $GITHUB_STEP_SUMMARY
           echo "| Java Version | Services |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-
           JAVA21="${{ steps.check_changes.outputs.changed_java21 }}"
           JAVA25="${{ steps.check_changes.outputs.changed_java25 }}"
           [ "$JAVA21" == "none" ] && JAVA21="—"
           [ "$JAVA25" == "none" ] && JAVA25="—"
-
           echo "| Java 21 | \`$JAVA21\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Java 25 | \`$JAVA25\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
           echo "### Helm-Only Updates (no rebuild)" >> $GITHUB_STEP_SUMMARY
           HELM_ONLY="${{ steps.check_changes.outputs.helm_changed_services }}"
           [ "$HELM_ONLY" == "none" ] && HELM_ONLY="—"
           echo "\`$HELM_ONLY\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
           echo "### Infrastructure Changes" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Changed |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| shared-resources | ${{ steps.check_changes.outputs.shared_resources_changed }} |" >> $GITHUB_STEP_SUMMARY
           echo "| argocd manifests | ${{ steps.check_changes.outputs.argocd_changed }} |" >> $GITHUB_STEP_SUMMARY
 
+
   # =====================================================
   # JOB 2: Code Quality and Security Checks
+  # Runs in parallel with helm_lint
+  #
+  # Active checks:
+  #   - Unit Tests (failures reported, not blocking)
+  #   - SpotBugs static analysis (HTML report uploaded)
+  #   - OWASP Dependency Check (report uploaded)
+  #
+  # Enterprise checks (uncomment when GitHub Enterprise
+  # is activated):
+  #   - Secret Scanning (GitHub Advanced Security)
+  #   - CodeQL Static Analysis (GitHub Advanced Security)
   # =====================================================
   test:
     name: Code Quality and Security Checks
@@ -361,13 +373,6 @@ jobs:
       security-events: write
       pull-requests: write
       actions: read
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['java']
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - name: Checkout Code
@@ -385,7 +390,6 @@ jobs:
           else
             echo "gh CLI already installed, skipping."
           fi
-
           if ! command -v jq &> /dev/null; then
             echo "jq not found, installing..."
             sudo apt-get install -y jq
@@ -419,8 +423,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # -------------------------------------------------------
-      # Resolve which services to scan
-      # Only scan services that actually changed — not all services
+      # Resolve which services to scan — only changed services
       # -------------------------------------------------------
       - name: Resolve Changed Services for Scanning
         id: resolve_services
@@ -436,7 +439,6 @@ jobs:
           echo "Services to scan: $ALL_CHANGED"
           echo "services=$ALL_CHANGED" >> "$GITHUB_OUTPUT"
 
-          # Build backend/<service> paths for scanning steps
           SCAN_PATHS=""
           for svc in $ALL_CHANGED; do
             SCAN_PATHS="$SCAN_PATHS backend/$svc"
@@ -446,8 +448,12 @@ jobs:
 
       # -------------------------------------------------------
       # Unit Tests — only changed services
+      # Failures are reported but do not block the pipeline.
+      # Tighten this gate once test baseline is clean.
       # -------------------------------------------------------
       - name: Run Unit Tests for Changed Services
+        id: unit_tests
+        continue-on-error: true
         run: |
           SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
 
@@ -456,7 +462,7 @@ jobs:
             exit 0
           fi
 
-          echo "Running Unit Tests but ignoring all errors and failures..."
+          echo "Running unit tests (failures ignored)..."
           for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
               echo "Running Maven tests in $dir"
@@ -473,8 +479,11 @@ jobs:
 
       # -------------------------------------------------------
       # SpotBugs — only changed services
+      # Static analysis — report uploaded, not blocking
       # -------------------------------------------------------
-      - name: Run Static Code Analysis (SpotBugs HTML Reports)
+      - name: Run SpotBugs Static Analysis
+        id: spotbugs
+        continue-on-error: true
         run: |
           SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
 
@@ -483,7 +492,6 @@ jobs:
             exit 0
           fi
 
-          echo "Cleaning old SpotBugs reports..."
           rm -rf reports/spotbugs
           mkdir -p reports/spotbugs
 
@@ -496,17 +504,18 @@ jobs:
                 -Dspotbugs.htmlOutput=true \
                 -Dspotbugs.outputDirectory="$OUT_DIR" \
                 -Dspotbugs.failOnError=false \
-                || echo "SpotBugs scan failed for $dir but continuing."
+                || echo "SpotBugs scan failed for $dir — continuing."
             else
               echo "Skipping $dir — no pom.xml found"
             fi
           done
 
-          echo "SpotBugs HTML reports generated in reports/spotbugs/"
+          echo "SpotBugs reports generated in reports/spotbugs/"
           ls -R reports/spotbugs || echo "No SpotBugs reports found."
 
       - name: Upload SpotBugs HTML Reports
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: spotbugs-html-reports
           path: reports/spotbugs/
@@ -514,8 +523,12 @@ jobs:
 
       # -------------------------------------------------------
       # OWASP Dependency Check — only changed services
+      # Vulnerability scan — report uploaded, not blocking
+      # High severity gate is disabled — enable when ready
       # -------------------------------------------------------
-      - name: Run Dependency Vulnerability Scan for Changed Services
+      - name: Run OWASP Dependency Check
+        id: owasp
+        continue-on-error: true
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
@@ -526,10 +539,10 @@ jobs:
             exit 0
           fi
 
-          echo "Running Dependency Vulnerability Scan for changed services..."
+          echo "Running OWASP Dependency Check for changed services..."
           for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
-              echo "Scanning $dir for vulnerable dependencies..."
+              echo "Scanning $dir..."
               mvn -f "$dir/pom.xml" org.owasp:dependency-check-maven:check \
                 -Dformat=ALL \
                 -DfailOnError=false
@@ -538,45 +551,49 @@ jobs:
             fi
           done
 
-      - name: Gather Dependency Check Reports into a single folder
+      - name: Gather OWASP Reports
+        if: always()
         run: |
-          mkdir -p reports
+          mkdir -p reports/owasp
           SCAN_PATHS="${{ steps.resolve_services.outputs.scan_paths }}"
           for dir in $SCAN_PATHS; do
             if [ -f "$dir/pom.xml" ]; then
-              cp "$dir/target/dependency-check-report.html" reports/ || true
+              SVC=$(basename $dir)
+              cp "$dir/target/dependency-check-report.html" \
+                "reports/owasp/${SVC}-dependency-check-report.html" || true
             fi
           done
 
-      - name: Delete Previous Dependency Check Artifact
+      - name: Delete Previous OWASP Artifact
         uses: geekyeggo/delete-artifact@v4
         with:
-          name: dependency-check-reports
+          name: owasp-dependency-check-reports
 
-      - name: Upload Dependency Check Report
+      - name: Upload OWASP Dependency Check Reports
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: dependency-check-reports
-          path: reports/
+          name: owasp-dependency-check-reports
+          path: reports/owasp/
           overwrite: true
           retention-days: 3
 
-      - name: Parse JSON reports and fail if high severity vulnerabilities exist
-        if: false  # disabled — enable when ready to enforce
-        run: |
-          found=0
-          for f in reports/*/dependency-check-report.json; do
-            if [ -f "$f" ]; then
-              high=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.cvssScore >= 1)] | length' "$f")
-              if [ "$high" -gt 0 ]; then
-                echo "Found $high high-severity vulnerabilities in $f"
-                found=1
-              fi
-            fi
-          done
-          if [ "$found" -eq 1 ]; then
-            exit 1
-          fi
+      # High severity gate — disabled, enable when baseline is clean
+      # - name: Fail on High Severity Vulnerabilities
+      #   run: |
+      #     found=0
+      #     for f in reports/owasp/*-dependency-check-report.json; do
+      #       if [ -f "$f" ]; then
+      #         high=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.cvssScore >= 7)] | length' "$f")
+      #         if [ "$high" -gt 0 ]; then
+      #           echo "Found $high high-severity vulnerabilities in $f"
+      #           found=1
+      #         fi
+      #       fi
+      #     done
+      #     if [ "$found" -eq 1 ]; then
+      #       exit 1
+      #     fi
 
       # -------------------------------------------------------
       # Job Summary
@@ -595,34 +612,57 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Unit Tests | Run (failures ignored) |" >> $GITHUB_STEP_SUMMARY
-          echo "| SpotBugs | Report uploaded |" >> $GITHUB_STEP_SUMMARY
-          echo "| OWASP Dependency Check | Report uploaded |" >> $GITHUB_STEP_SUMMARY
-          echo "| High Severity Gate | Disabled |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ steps.unit_tests.outcome }} (non-blocking) |" >> $GITHUB_STEP_SUMMARY
+          echo "| SpotBugs | ${{ steps.spotbugs.outcome }} (report uploaded) |" >> $GITHUB_STEP_SUMMARY
+          echo "| OWASP Dependency Check | ${{ steps.owasp.outcome }} (report uploaded) |" >> $GITHUB_STEP_SUMMARY
+          echo "| High Severity Gate | Disabled — enable when baseline is clean |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Enterprise scans (CodeQL, Secret Scanning) are commented out — uncomment when GitHub Enterprise is activated."
 
+      # =======================================================
+      # ENTERPRISE CODE SCANS — uncomment when GitHub Enterprise
+      # is activated. These steps are preserved and ready.
+      # Both require GitHub Advanced Security to be enabled
+      # on the repository under Security settings.
+      # =======================================================
+
+      # -------------------------------------------------------
+      # Secret Scanning — GitHub Advanced Security
+      # Scans the entire repository for accidentally committed
+      # secrets, API keys, tokens and credentials.
+      # -------------------------------------------------------
       # - name: Secret Scanning
       #   uses: github/secret-scanning-action@v1
 
+      # -------------------------------------------------------
+      # CodeQL Static Analysis — GitHub Advanced Security
+      # Deep semantic code analysis for Java.
+      # Results appear in the Security tab of the repository.
+      # -------------------------------------------------------
       # - name: Initialize CodeQL
       #   uses: github/codeql-action/init@v3
       #   with:
-      #     languages: ${{ matrix.language }}
+      #     languages: java
+      #   env:
+      #     CODEQL_DEBUG: true
 
       # - name: Perform CodeQL Analysis
       #   uses: github/codeql-action/analyze@v3
+      #   with:
+      #     category: "/language:java"
 
 
   # =====================================================
-  # JOB 3: Helm Lint — validate changed charts
+  # JOB 3: Helm Lint — validate changed Helm charts only
   # Runs in parallel with test job
   # Catches broken chart syntax before merge
+  #
   # =====================================================
   helm_lint:
     name: Helm Lint Changed Charts
     runs-on: self-hosted
     needs: detect_changes
     if: |
-      needs.detect_changes.outputs.has_build_changes == 'true' ||
       needs.detect_changes.outputs.has_helm_only_changes == 'true' ||
       needs.detect_changes.outputs.shared_resources_changed == 'true'
 
@@ -633,7 +673,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure Helm is installed
+      - name: Ensure Helm is Installed
         run: |
           if ! command -v helm &>/dev/null; then
             echo "Installing Helm..."
@@ -642,39 +682,42 @@ jobs:
             echo "Helm already installed: $(helm version --short)"
           fi
 
+      # -------------------------------------------------------
+      # Lint only charts that actually changed in charts/
+      # -------------------------------------------------------
       - name: Lint Changed Service Charts
+        id: lint_services
         run: |
-          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
-          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
           HELM_ONLY="${{ needs.detect_changes.outputs.helm_changed_services }}"
 
-          ALL_CHANGED=""
-          [ "$JAVA21" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA21"
-          [ "$JAVA25" != "none" ] && ALL_CHANGED="$ALL_CHANGED $JAVA25"
-          [ "$HELM_ONLY" != "none" ] && ALL_CHANGED="$ALL_CHANGED $HELM_ONLY"
-          ALL_CHANGED=$(echo "$ALL_CHANGED" | xargs)
+          if [ "$HELM_ONLY" == "none" ] || [ -z "$HELM_ONLY" ]; then
+            echo "No service chart changes detected — skipping service lint."
+          else
+            FAILED=()
+            PASSED=()
 
-          FAILED=()
-          for svc in $ALL_CHANGED; do
-            CHART_DIR="charts/apps/mobile-backend/${svc}"
-            if [ -d "$CHART_DIR" ]; then
-              echo "Linting $CHART_DIR..."
-              if helm lint "$CHART_DIR" \
-                -f "$CHART_DIR/values-stag_env.yaml"; then
-                echo "$svc — lint passed"
+            for svc in $HELM_ONLY; do
+              CHART_DIR="charts/apps/mobile-backend/${svc}"
+              if [ -d "$CHART_DIR" ]; then
+                echo "Linting $CHART_DIR..."
+                if helm lint "$CHART_DIR" \
+                  -f "$CHART_DIR/values-stag_env.yaml"; then
+                  echo "$svc — lint passed"
+                  PASSED+=("$svc")
+                else
+                  echo "$svc — lint failed"
+                  FAILED+=("$svc")
+                fi
               else
-                echo "$svc — lint failed"
-                FAILED+=("$svc")
+                echo "No chart found at $CHART_DIR — skipping"
               fi
-            else
-              echo "No chart found for $svc — skipping"
-            fi
-          done
+            done
 
-          if [ ${#FAILED[@]} -gt 0 ]; then
-            echo ""
-            echo "Helm lint failed for: ${FAILED[*]}"
-            exit 1
+            if [ ${#FAILED[@]} -gt 0 ]; then
+              echo ""
+              echo "Helm lint failed for: ${FAILED[*]}"
+              exit 1
+            fi
           fi
 
       - name: Lint Shared Resources Chart
@@ -696,35 +739,33 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Chart | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          JAVA21="${{ needs.detect_changes.outputs.changed_java21 }}"
-          JAVA25="${{ needs.detect_changes.outputs.changed_java25 }}"
           HELM_ONLY="${{ needs.detect_changes.outputs.helm_changed_services }}"
-          ALL=""
-          [ "$JAVA21" != "none" ] && ALL="$ALL $JAVA21"
-          [ "$JAVA25" != "none" ] && ALL="$ALL $JAVA25"
-          [ "$HELM_ONLY" != "none" ] && ALL="$ALL $HELM_ONLY"
-          ALL=$(echo "$ALL" | xargs)
-          for svc in $ALL; do
-            echo "| \`$svc\` | checked |" >> $GITHUB_STEP_SUMMARY
-          done
+          if [ "$HELM_ONLY" != "none" ] && [ -n "$HELM_ONLY" ]; then
+            for svc in $HELM_ONLY; do
+              echo "| \`$svc\` | checked |" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
           SHARED="${{ needs.detect_changes.outputs.shared_resources_changed }}"
           [ "$SHARED" == "true" ] && echo "| \`shared-resources\` | checked |" >> $GITHUB_STEP_SUMMARY
-  
-  # -------------------------------
-  # Build the Docker Images for various Microservices
-  # -------------------------------
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Only charts that actually changed in \`charts/\` are linted." >> $GITHUB_STEP_SUMMARY
+
+
   # =====================================================
-  # JOB 4: Build and Push to Huawei SWR
-  # Gated by has_build_changes boolean from detect_changes
-  # Actual service list comes from changed_java21 + changed_java25
-  # Script resolves builder + Java version per service internally
+  # JOB 4: Build & Push to Huawei SWR
+  # Needs test + helm_lint (both must pass or be skipped)
+  # Gated by has_build_changes
   # =====================================================
   build_and_push:
     name: Build & Push to Huawei SWR
     runs-on: self-hosted
     needs: [detect_changes, test, helm_lint]
     environment: stag
-    if: needs.detect_changes.outputs.has_build_changes == 'true'
+    if: |
+      always() &&
+      needs.detect_changes.outputs.has_build_changes == 'true' &&
+      needs.test.result == 'success' &&
+      (needs.helm_lint.result == 'success' || needs.helm_lint.result == 'skipped')
     permissions:
       contents: write
       packages: write
@@ -748,33 +789,28 @@ jobs:
           echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
           echo "Image tag: $IMAGE_TAG"
 
-      - name: Create and Inject Keys
+      - name: Inject RSA Keys
         env:
           USERS_PRIVATE_KEY: ${{ secrets.USERS_PRIVATE_KEY }}
           USERS_PUBLIC_KEY: ${{ secrets.USERS_PUBLIC_KEY }}
           SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
         run: |
-          echo "Injecting public/private keys..."
+          echo "Injecting RSA keys..."
+
           mkdir -p backend/users-service/src/main/resources/keys
           echo "${USERS_PRIVATE_KEY}" > backend/users-service/src/main/resources/keys/private.pem
-          echo "${USERS_PUBLIC_KEY}" > backend/users-service/src/main/resources/keys/public.pem
-          echo "Injected keys for users-service"
+          echo "${USERS_PUBLIC_KEY}"  > backend/users-service/src/main/resources/keys/public.pem
+          echo "✓ Injected private + public keys for users-service"
+
           for svc in notification-service wallet-service report-service trustees-service wealth-service; do
             mkdir -p backend/$svc/src/main/resources/keys
             echo "${SERVICE_PUBLIC_KEY}" > backend/$svc/src/main/resources/keys/public.pem
-            echo "Injected public.pem into $svc"
+            echo "Injected public key for $svc"
           done
 
       - name: Make Build Script Executable
         run: chmod +x ./scripts/backend-scripts/build-push-swr.sh
 
-      # ----------------------------------------
-      # Combine changed_java21 + changed_java25 into
-      # CHANGED_SERVICES — this is the ONLY source of
-      # truth for what gets built. Nothing else.
-      # has_build_changes gates the job, these two
-      # outputs tell the script exactly which services.
-      # ----------------------------------------
       - name: Resolve Changed Services
         id: resolve
         run: |
@@ -789,7 +825,7 @@ jobs:
           echo "Resolved services for build: $ALL_CHANGED"
 
           if [ -z "$ALL_CHANGED" ]; then
-            echo "ERROR: has_build_changes was true but no services resolved. Check detect_changes outputs."
+            echo "ERROR: has_build_changes was true but no services resolved."
             exit 1
           fi
 
@@ -806,25 +842,16 @@ jobs:
           echo "Services confirmed for build: $CHANGED_SERVICES"
           bash ./scripts/backend-scripts/build-push-swr.sh
 
-      # ----------------------------------------
-      # Write image map for CD to consume after merge
-      # Only runs if build & push succeeded above
-      # CHANGED_SERVICES and IMAGE_TAG already in $GITHUB_ENV
-      # from Resolve and Set Image Tag steps respectively
-      # ----------------------------------------
       - name: Commit Image Map for CD
         run: |
           IMAGE_TAG="${{ steps.set_tag.outputs.image_tag }}"
 
           mkdir -p .github/ci-artifacts
 
-          # image_metadata.env
           echo "IMAGE_TAG=$IMAGE_TAG"                      >  .github/ci-artifacts/image_metadata.env
           echo "RUN_NUMBER=${{ github.run_number }}"       >> .github/ci-artifacts/image_metadata.env
           echo "COMMIT_SHA=${{ github.sha }}"              >> .github/ci-artifacts/image_metadata.env
 
-          # image_map.csv — one line per successfully built service
-          # format: service-name,full-image-ref
           > .github/ci-artifacts/image_map.csv
           for svc in $CHANGED_SERVICES; do
             echo "${svc},${{ secrets.SWR_REGISTRY_URL }}/${{ secrets.SWR_ORGANIZATION_NAME }}/${svc}:${IMAGE_TAG}" \
@@ -867,4 +894,5 @@ jobs:
           [ "$JAVA25" == "none" ] && JAVA25="—"
           echo "| Java 21 | \`$JAVA21\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Java 25 | \`$JAVA25\` |" >> $GITHUB_STEP_SUMMARY
-          echo "## Just Before you get Excited and Make A Push, Kindly Proceed to the Huawei SWR to run Image Scan before making a Push"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Before merging — run an image scan on Huawei SWR for all built images." >> $GITHUB_STEP_SUMMARY
