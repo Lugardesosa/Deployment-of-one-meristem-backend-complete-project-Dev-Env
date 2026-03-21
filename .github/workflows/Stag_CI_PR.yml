@@ -48,6 +48,7 @@ env:
   HELM_REPO_PATH: ${{ vars.HELM_REPO_PATH }}
   HELM_MOBILE_REPO_PATH: ${{ vars.HELM_MOBILE_REPO_PATH }}
   VALUES_FILE: ${{ vars.VALUES_FILE }}
+  CLUSTER_SERVER_URL: ${{ vars.CLUSTER_SERVER_URL }}
 
   # ArgoCD App Names
   CONFIG_SERVER_APP_NAME: ${{ vars.CONFIG_SERVER_APP_NAME }}
@@ -79,7 +80,6 @@ env:
   HUAWEI_SWR_PASSWORD: ${{ secrets.HUAWEI_SWR_PASSWORD }}
   SWR_ORGANIZATION_NAME: ${{ secrets.SWR_ORGANIZATION_NAME }}
   SWR_REGION: ${{ secrets.SWR_REGION }}
-  CLUSTER_SERVER_URL: ${{ secrets.CLUSTER_SERVER_URL }}
   ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
 
   # =====================================================
