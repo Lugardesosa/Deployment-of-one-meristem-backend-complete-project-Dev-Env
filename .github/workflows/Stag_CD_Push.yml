@@ -125,7 +125,7 @@ jobs:
   # =====================================================
   detect_changes:
     name: Detect Changed Backend Services
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux-runner]
     outputs:
       changed_java21: ${{ steps.check_changes.outputs.changed_java21 }}
       changed_java25: ${{ steps.check_changes.outputs.changed_java25 }}
@@ -294,7 +294,7 @@ jobs:
   # =====================================================
   read_image_map:
     name: Read CI Image Map
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux-runner]
     needs: detect_changes
     if: needs.detect_changes.outputs.has_build_changes == 'true'
     outputs:
@@ -378,7 +378,7 @@ jobs:
   # =====================================================
   deploy:
     name: Deploy via ArgoCD
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux-runner]
     needs: [detect_changes, read_image_map]
     permissions:
       contents: write   # required for git commit + push of values files
