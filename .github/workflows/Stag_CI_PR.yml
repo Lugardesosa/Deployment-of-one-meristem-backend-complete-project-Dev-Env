@@ -147,6 +147,7 @@ env:
   SERVICE_PUBLIC_KEY: ${{ secrets.SERVICE_PUBLIC_KEY }}
   HUAWEI_ACCESS_KEY: ${{ secrets.HUAWEI_ACCESS_KEY }}
   HUAWEI_SECRET_KEY: ${{ secrets.HUAWEI_SECRET_KEY }}
+  NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
 
 jobs:
