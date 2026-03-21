@@ -11,7 +11,7 @@ metadata:
   namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
   annotations:
     kubernetes.io/elb.class: "performance"
-    kubernetes.io/elb.id: ${MOBILE_ELB_ID}
+    kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
     kubernetes.io/elb.port: "443"
     kubernetes.io/elb.slowstart: "30"
     kubernetes.io/elb.tls-ciphers-policy: "tls-1-2"
@@ -65,7 +65,7 @@ metadata:
   namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
   annotations:
     kubernetes.io/elb.class: "performance"
-    kubernetes.io/elb.id: ${MOBILE_ELB_ID}
+    kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
     kubernetes.io/elb.listener-master-ingress: {{ printf "%s/cloud-gateway-ingress" (.Values.global.namespace | default "one-meristem-app") | quote }}
     kubernetes.io/elb.health-check-flag: "on"
     kubernetes.io/elb.health-check-option: |
@@ -97,7 +97,7 @@ metadata:
   namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
   annotations:
     kubernetes.io/elb.class: "performance"
-    kubernetes.io/elb.id: ${MOBILE_ELB_ID}
+    kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
     kubernetes.io/elb.listener-master-ingress: {{ printf "%s/cloud-gateway-ingress" (.Values.global.namespace | default "one-meristem-app") | quote }}
     kubernetes.io/elb.health-check-flag: "on"
     kubernetes.io/elb.health-check-option: |
