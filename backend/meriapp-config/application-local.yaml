@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    username: sa
+    password: '${H2_PASSWORD}'
+    url: jdbc:h2:mem:mydb;DATABASE_TO_UPPER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: true
+  flyway:
+    locations: classpath:db/migration/h2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health,prometheus'
+  endpoint:
+    health:
+      show-details: always
+      access: read_only
+    prometheus:
+      access: read_only
+  health:
+    mail:
+      enabled: false
+
+springdoc.api-docs.path: /api-docs
+
+#logging:
+#  level:
+#    root: WARN
+#    org.apache.kafka.streams: DEBUG
+#    org.springframework.kafka.listener: DEBUG
+#    org.springframework.web: DEBUG
+#    org.springframework.jdbc: DEBUG
+#    org.springframework.security: TRACE
+#    #     SEE SQL STATEMENT AND VALUES
+#    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+#    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+#
+#    org.springframework.cloud: DEBUG
+#    org.springframework.http: DEBUG
+#    org.springframework.cloud.gateway: DEBUG
+#    reactor.netty.http.client: DEBUG

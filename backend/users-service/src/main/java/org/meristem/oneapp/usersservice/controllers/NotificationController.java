@@ -1,0 +1,61 @@
+package org.meristem.oneapp.usersservice.controllers;
+
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.usersservice.constants.ApiConstants;
+import org.meristem.oneapp.usersservice.domains.requests.SendOtpRequest;
+import org.meristem.oneapp.usersservice.domains.requests.VerifyOtpRequest;
+import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
+import org.meristem.oneapp.usersservice.domains.responses.SendOtpResponse;
+import org.meristem.oneapp.usersservice.domains.responses.VerifyOtpResponse;
+import org.meristem.oneapp.usersservice.services.IOtpService;
+import org.meristem.oneapp.usersservice.utils.ApiUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping(path = ApiConstants.CONTEXT_PATH + "notification", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
+public class NotificationController {
+
+    private final IOtpService otpService;
+
+
+    @Operation(summary = "Sends an otp.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Sends an otp to the given number or recipient.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SendOtpResponse.class))
+                    }),
+    })
+    @PreAuthorize("hasAuthority('SCOPE_send_otp') OR hasRole('ROLE_1001')")
+    @PostMapping(value = "/otp")
+    public ResponseEntity<AppResponse<SendOtpResponse>> sendOtp(@Valid @RequestBody SendOtpRequest sendOtpRequest) {
+        return ApiUtil.buildResponse(otpService.sendOtp(sendOtpRequest), HttpStatus.OK.toString(), "Otp sent to ".concat(sendOtpRequest.recipient()));
+    }
+
+    @Operation(summary = "Verifies an otp.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Verifies an otp sent to the given number or recipient.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = VerifyOtpResponse.class))
+                    })
+    })
+    @PreAuthorize("hasAuthority('SCOPE_verify_otp') OR hasRole('ROLE_1002')")
+    @PostMapping(value = "/otp/verify")
+    public ResponseEntity<AppResponse<VerifyOtpResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest verifyOtpRequest) {
+        return ApiUtil.buildResponse(otpService.verifyOtp(verifyOtpRequest), HttpStatus.OK.toString(), "Otp request verification processed.");
+    }
+}

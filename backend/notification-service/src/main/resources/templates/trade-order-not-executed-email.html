@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trade Order Not Executed</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", Arial, sans-serif;
+        background-color: #ffffff;
+        padding: 40px 20px;
+        line-height: 1.6;
+      }
+
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+      }
+
+      .header {
+        text-align: left;
+        padding: 40px 40px 30px;
+      }
+
+      .logo {
+        height: 40px;
+        width: auto;
+      }
+
+      .content {
+        padding: 0 40px;
+        background-color: #ffffff;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 30px;
+        text-align: left;
+      }
+
+      .greeting {
+        font-size: 16px;
+        color: #666666;
+        margin-bottom: 20px;
+        font-weight: 400;
+      }
+
+      .main-text {
+        font-size: 16px;
+        color: #666666;
+        margin-bottom: 20px;
+        font-weight: 400;
+        line-height: 1.6;
+      }
+
+      .closing-text {
+        font-size: 16px;
+        color: #666666;
+        margin: 30px 0;
+        font-weight: 400;
+        line-height: 1.6;
+      }
+
+      .signature {
+        font-size: 16px;
+        color: #666666;
+        margin: 20px 0 40px;
+      }
+
+      .signature-line-1 {
+        margin-bottom: 4px;
+        font-weight: 400;
+      }
+
+      .signature-line-2 {
+        font-weight: 500;
+      }
+
+      .cta-container {
+        text-align: center;
+        margin: 40px 0;
+      }
+
+      .cta-button {
+        background-color: #00643c;
+        color: #ffffff;
+        padding: 16px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 600;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-family: "Poppins", Arial, sans-serif;
+      }
+
+      .cta-button:hover {
+        background-color: #004d2e;
+      }
+
+      .footer {
+        padding: 40px 40px 20px;
+        background-color: #ffffff;
+        text-align: left;
+      }
+
+      .footer-text {
+        font-size: 14px;
+        color: #666666;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+
+      .footer-text a {
+        color: #00643c;
+        text-decoration: none;
+      }
+
+      .footer-text a:hover {
+        text-decoration: underline;
+      }
+
+      .footer-address {
+        font-size: 12px;
+        color: #999999;
+        margin-top: 20px;
+        line-height: 1.4;
+      }
+
+      .footer-copyright {
+        font-size: 12px;
+        color: #999999;
+        margin-top: 10px;
+      }
+
+      /* Responsive Design */
+      @media only screen and (max-width: 600px) {
+        body {
+          padding: 20px 10px;
+        }
+
+        .content,
+        .footer {
+          padding: 0 20px 20px;
+        }
+
+        .header {
+          padding: 20px 0;
+        }
+
+        .title {
+          font-size: 20px;
+        }
+
+        .cta-button {
+          padding: 14px 28px;
+          font-size: 15px;
+        }
+      }
+
+      /* Email client compatibility */
+      table {
+        border-collapse: collapse;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+        -ms-interpolation-mode: bicubic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <img
+          src="https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+          alt="Meristem Logo"
+          class="logo"
+        />
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <h1 class="title">Abisola, Your Trade Order Was Not Executed</h1>
+
+        <p class="greeting">Hi Abisola,</p>
+
+        <p class="main-text">
+          This is to inform you that your recent trade order has expired as it
+          exceeded the specified order term without execution.
+        </p>
+
+        <p class="main-text">
+          No action has been taken on your account. If you would still like to
+          proceed, you can place a new order directly from the One Meristem app.
+        </p>
+
+        <!-- Call to Action -->
+        <div class="cta-container">
+          <a href="#" class="cta-button">Place a New Order</a>
+        </div>
+
+        <p class="closing-text">
+          Thank you for choosing Meristem for your investments.
+        </p>
+
+        <div class="signature">
+          <div class="signature-line-1">Best regards,</div>
+          <div class="signature-line-2">Meristem Securities Limited</div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p class="footer-text">
+          This email was sent to
+          <a href="mailto:abisolaoladipo@gmail.com">abisolaoladipo@gmail.com</a
+          >. Don't want any more emails from Meristem Securities?
+          <a href="#">Unsubscribe</a> or
+          <a href="#">manage your email preferences</a>.
+        </p>
+
+        <p class="footer-address">
+          20A Gerrard Road, Ikoyi Lagos State Nigeria
+        </p>
+
+        <p class="footer-copyright">© 2025 Meristem Securities Limited</p>
+      </div>
+    </div>
+  </body>
+</html>

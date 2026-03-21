@@ -1,0 +1,96 @@
+spring:
+  cloud:
+
+    consul:
+      discovery:
+        metadata:
+          contextPath: ${one-app.gateway-service.context-path}
+        health-check-path: ${one-app.gateway-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${GATEWAY_SERVICE_HOSTNAME}
+        port: ${GATEWAY_SERVICE_PORT}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          filter:
+            request-rate-limiter:
+              deny-empty-key: false
+
+#          default-filters:
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: ${GATEWAY_REPLENISH_RATE}
+#                redis-rate-limiter.burstCapacity: ${GATEWAY_BURST_CAPACITY}
+#                redis-rate-limiter.requestedTokens: ${GATEWAY_REQUESTED_TOKENS}
+#                redis-rate-limiter.key-resolver: '#{@keyResolver}'
+#
+#            - name: CircuitBreaker
+#              args:
+#                name: downstreamCircuitBreaker
+#                fallbackUri: forward:/fallback
+
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins: ${ALLOWED_ORIGINS}
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
+                maxAge: 3600
+
+          routes:
+            - id: ${one-app.users-service.application-name}
+              uri: lb://${one-app.users-service.application-name}
+              predicates:
+                - Path=${one-app.users-service.context-path}/**
+
+            - id: ${one-app.wallet-service.application-name}
+              uri: lb://${one-app.wallet-service.application-name}
+              predicates:
+                - Path=${one-app.wallet-service.context-path}/**
+
+            - id: ${one-app.wealth-service.application-name}
+              uri: lb://${one-app.wealth-service.application-name}
+              predicates:
+                - Path=${one-app.wealth-service.context-path}/**
+
+            - id: ${one-app.report-service.application-name}
+              uri: lb://${one-app.report-service.application-name}
+              predicates:
+                - Path=${one-app.report-service.context-path}/**
+
+            - id: ${one-app.trustees-service.application-name}
+              uri: lb://${one-app.trustees-service.application-name}
+              predicates:
+                - Path=${one-app.trustees-service.context-path}/**
+
+            - id: ${one-app.notification-service.application-name}
+              uri: lb://${one-app.notification-service.application-name}
+              predicates:
+                - Path=${one-app.notification-service.context-path}/**
+
+whitelisted:
+  ips: ${WHITELISTED_IPS}
+
+server:
+  error:
+    include-stacktrace: never
+

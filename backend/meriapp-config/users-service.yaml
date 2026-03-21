@@ -1,0 +1,95 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-users-service
+
+  cloud:
+    consul:
+      discovery:
+        metadata:
+          contextPath: ${one-app.users-service.context-path}
+        health-check-path: ${one-app.users-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${USER_SERVICE_HOSTNAME}
+        port: ${USER_SERVICE_PORT}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+server:
+  port: 20020
+  servlet:
+    context-path: ${one-app.users-service.context-path}
+
+one-app:
+  users-service:
+    geoip-filepath: "${GEOIP_DB_LOCATION}"
+    smile-id:
+      server-ips: ${SMILE_ID_PROD_WHITELIST_IPS}
+      api-key: ${SMILE_ID_PROD_API_KEY}
+      partner-id: ${SMILE_ID_PARTNER_ID}
+      url: ${SMILE_ID_PROD_LAMBDA_URL}
+      callback-url: ${SMILE_ID_PROD_CALLBACK_URL}
+      is-single-use: true
+      expires-at: 2 # in days
+      client-name: SmileID
+    pastel:
+      url: ${PASTEL_BASE_URL}
+      api-key: ${PASTEL_API_KEY}
+      secret: ${PASTEL_API_SECRET}
+      client-name: Pastel
+      threshold: 80
+      limit: 10
+      callback-url: ${PASTEL_CALLBACK_URL}
+
+    dojah:
+      app-id: ${DOJAH_APP_ID}
+      secret-key: ${DOJAH_SECRET_KEY}
+      private-key: ${DOJAH_PRIVATE_KEY}
+      base-url: ${DOJAH_BASE_URL}
+      client-name: Dojah
+
+    company-name: ${COMPANY_NAME}
+    data-privacy-policy-url: ${DATA_PRIVACY_POLICY_URL}
+    logo-url: ${GREEN_LOGO_URL}
+    white-logo-url: ${WHITE_LOGO_URL}
+    finance-logo-url: ${FINANCE_LOGO_URL}
+    okhi:
+      server-ips: ${OKHI_DEV_AND_PROD_WHITELIST_IP}
+      header-value: ${OKHI_HEADER_VALUE}
+
+  mobile-service:
+    secret: ${MOBILE_SECRET}
+    name: MobileService
+  web-service:
+    secret: ${WEB_SECRET}
+    name: WebService
+  notification-service:
+    secret: ${NOTIFICATION_SECRET}
+    name: NotificationService
+  trustees-service:
+    secret: ${TRUSTEES_SECRET}
+    name: TrusteesService
+  wallet-service:
+    secret: ${WALLET_SECRET}
+    name: WalletService
+  wealth-service:
+    secret: ${WEALTH_SECRET}
+    name: WealthService
+
+
+logging:
+  level:
+    com.obs.services: ERROR
+    nl.basjes.parse: ERROR
+
+pin-unlock:
+  cron:
+    fix-rate: 5
+
+outbox:
+  cron:
+    fix-rate: 5

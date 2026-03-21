@@ -1,0 +1,30 @@
+server:
+  port: 20010
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health,prometheus,info,gateway,circuitbreakerevents'
+  endpoint:
+    health:
+      show-details: always
+      access: read_only
+    prometheus:
+      access: none
+    gateway:
+      access: read_only
+  health:
+    mail:
+      enabled: false
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - name: CircuitBreaker
+              args:
+                name: downstreamCircuitBreaker
+                fallbackUri: forward:/fallback
