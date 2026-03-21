@@ -141,7 +141,7 @@ huaweiCloudStorage:
 
 ingress:
   enabled: true
-  #elbId: "PLACEHOLDER_ELB_ID"   
+  elbId: ""   
 
   cloudGateway:
     host: "onemeristemstag.meristemng.com"
