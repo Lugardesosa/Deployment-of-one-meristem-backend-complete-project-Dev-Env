@@ -16,6 +16,7 @@ on:
       - "charts/**"
       - "argocd/**"
       - "scripts/**"
+      - ".github/ci-artifacts/image_map.csv" #the exported image metadata and tags changed from PR
   workflow_dispatch:
 
 env:
