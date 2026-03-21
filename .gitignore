@@ -1,0 +1,17 @@
+# GitHub workflows
+.github/
+
+# Local environment
+.env
+docker-compose.yml
+
+# Data & backups
+postgres/
+data/
+logs_collector/
+monitoring/
+docker-compose.backup.yml
+
+# Misc
+README.md
+curl-format.txt

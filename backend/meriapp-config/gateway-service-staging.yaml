@@ -1,0 +1,5 @@
+
+server:
+  port: 20010
+  http2:
+    enabled: true

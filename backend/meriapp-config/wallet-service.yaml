@@ -1,0 +1,42 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-wallet-service
+
+  cloud:
+    consul:
+      discovery:
+        metadata:
+          contextPath: ${one-app.wallet-service.context-path}
+        health-check-path: ${one-app.wallet-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${WALLET_SERVICE_HOSTNAME}
+        port: ${WALLET_SERVICE_PORT}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+server:
+  port: 20040
+  servlet:
+    context-path: ${one-app.wallet-service.context-path}
+
+one-app:
+  wallet-service:
+    wema:
+      integration-name: 'Wema Integration'
+      url: ${WEMA_API_URL}
+      account-prefix: ${WEMA_ACCOUNT_PREFIX}
+      client-name: Wema
+    providus:
+      base-url: ${PROVIDUS_BASE_URL}
+      public-key: ${PROVIDUS_API_PUBLIC_KEY}
+      secret-key: ${PROVIDUS_API_SECRET_KEY}
+      client-name: Providus
+
+outbox:
+  cron:
+    fix-rate: 2
