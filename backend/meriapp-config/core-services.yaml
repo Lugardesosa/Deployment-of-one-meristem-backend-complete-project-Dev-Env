@@ -1,14 +1,5 @@
 spring:
-  # modulith:
-  #   runtime:
-  #     flyway:
-  #       enabled: true
-  # flyway:
-  #   locations: 
-  #     - classpath:db/migration/
-  #     # - classpath:db/migration/__root
-  #     # - classpath:db/migration/notifications
-  #     # - classpath:db/migration/wealth
+
   kafka:
     consumer:
       group-id: ${spring.cloud.config.profile}-core-service
@@ -41,15 +32,15 @@ spring:
 
 
 server:
-  port: 20030
+  port: 20080
   servlet:
     context-path: ${one-app.core-service.context-path}
 
 notification-service:
     one-app:
       notification-service:
-        context-path: /api/notification
-        application-name: notification-service
+        context-path: /notification
+        module-name: notification-service
         mail-sender: ${MAIL_SENDER}
         mail-sender-name: ${MAIL_SENDER_NAME}
 
@@ -69,7 +60,6 @@ notification-service:
       pass: ${HOLLA_TAGS_PASS}
       callbackUrl: ${HOLLATAGS_CALLBACK_URL}
 
-
     expo:
       push:
         notifications:
@@ -78,6 +68,21 @@ notification-service:
         receipts:
           cron: 0 */20 * * * *
 
+wealth-service:
+   one-app:
+      wealth-service:
+        context-path: wealth
+        module-name: wealth-service
+      middleware:
+        base-url: ${MIDDLEWARE_BASE_URL}
+        client-name: MiddlewareClient
+        api-key: ${MIDDLEWARE_API_KEY}
+
+wallet-service:
+   one-app:
+      wallet-service:
+        context-path: wallet
+        module-name: wallet-service
 
 resilience4j:
   circuitbreaker:
