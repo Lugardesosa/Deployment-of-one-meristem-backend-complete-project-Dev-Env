@@ -1,4 +1,6 @@
 spring:
+  flyway:
+    locations: classpath:db/migration/postgres
   datasource:
     url: ${DB_SERVER}/${WEALTH_DB_NAME}
     password: ${WEALTH_DB_PASSWORD}

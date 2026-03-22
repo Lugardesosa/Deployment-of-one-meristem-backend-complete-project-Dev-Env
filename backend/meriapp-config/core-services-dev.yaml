@@ -1,5 +1,15 @@
 spring:
 
+  modulith:
+    runtime:
+      flyway:
+        enabled: true
+  flyway:
+    locations:
+       - classpath:db/migration/__root
+       - classpath:db/migration/notifications
+       - classpath:db/migration/wealth
+       
   datasource:
     url: ${DB_SERVER}/${CORE_DB_NAME}
     password: ${CORE_DB_PASSWORD}
