@@ -203,3 +203,4 @@ encryption:
   secret-key: ${ENC_SALT}
 hashing:
   id-hash-key: ${ID_HASHING_SECRET}
+

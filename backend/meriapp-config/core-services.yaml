@@ -88,3 +88,8 @@ resilience4j:
         wait-duration: 1000
         enable-exponential-backoff: true
         exponential-backoff-multiplier: 2
+
+
+spring:
+  flyway:
+    locations: classpath:db/migration
