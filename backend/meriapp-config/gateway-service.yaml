@@ -87,10 +87,10 @@ spring:
               predicates:
                 - Path=${one-app.notification-service.context-path}/**
 
-            - id: ${one-app.core-service.application-name}
-              uri: lb://${one-app.core-service.application-name}
+            - id: ${one-app.core-services.application-name}
+              uri: lb://${one-app.core-services.application-name}
               predicates:
-                - Path=${one-app.core-service.context-path}/**
+                - Path=${one-app.core-services.context-path}/**
 
 whitelisted:
   ips: ${WHITELISTED_IPS}

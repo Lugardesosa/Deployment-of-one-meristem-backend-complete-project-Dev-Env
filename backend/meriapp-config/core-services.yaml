@@ -2,14 +2,14 @@ spring:
 
   kafka:
     consumer:
-      group-id: ${spring.cloud.config.profile}-core-service
+      group-id: ${spring.cloud.config.profile}-core-services
 
   cloud:
     consul:
       discovery:
         metadata:
-          contextPath: ${one-app.core-service.context-path}
-        health-check-path: ${one-app.core-service.context-path}/actuator/health
+          contextPath: ${one-app.core-services.context-path}
+        health-check-path: ${one-app.core-services.context-path}/actuator/health
         enabled: true
         fail-fast: true
         catalogServicesWatch:
@@ -34,7 +34,7 @@ spring:
 server:
   port: 20080
   servlet:
-    context-path: ${one-app.core-service.context-path}
+    context-path: ${one-app.core-services.context-path}
 
 notification-service:
     one-app:

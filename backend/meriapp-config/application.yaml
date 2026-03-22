@@ -72,7 +72,7 @@ spring:
             scope:
               - verify.pin
           
-          core-service:
+          core-services:
             client-id: ${CORE_CLIENT_ID}
             client-secret: ${CORE_CLIENT_SECRET}
             authorization-grant-type: client_credentials
@@ -133,9 +133,9 @@ one-app:
 
   
   #  CORE SERVICE
-  core-service:
+  core-services:
     context-path: /api/core
-    application-name: core-service
+    application-name: core-services
 
   # GATEWAY SERVICE
   gateway-service:
@@ -150,7 +150,7 @@ one-app:
     report-service: http://${one-app.report-service.application-name}${one-app.report-service.context-path}
     users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
     notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
-    core-service: http://${one-app.core-service.application-name}${one-app.core-service.context-path}
+    core-services: http://${one-app.core-services.application-name}${one-app.core-services.context-path}
 
   middle-ware:
     base-url: ${MIDDLE_WARE_BASE_URL}
