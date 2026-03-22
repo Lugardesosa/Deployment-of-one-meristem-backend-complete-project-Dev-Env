@@ -240,8 +240,8 @@ jobs:
           #    (backend/) are irrelevant to helm linting
           # -------------------------------------------------------
           HELM_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
-            | grep -E "^charts/apps/mobile-backend/" \
-            | cut -d'/' -f4 \
+            | grep -E "^charts/mobile-backend/" \
+            | cut -d'/' -f3 \
             | sort -u \
             | xargs || true)
 
@@ -698,7 +698,7 @@ jobs:
             PASSED=()
 
             for svc in $HELM_ONLY; do
-              CHART_DIR="charts/apps/mobile-backend/${svc}"
+              CHART_DIR="charts/mobile-backend/${svc}"
               if [ -d "$CHART_DIR" ]; then
                 echo "Linting $CHART_DIR..."
                 if helm lint "$CHART_DIR" \
