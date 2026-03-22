@@ -13,5 +13,4 @@ monitoring/
 docker-compose.backup.yml
 
 # Misc
-README.md
 curl-format.txt
