@@ -1,0 +1,97 @@
+# =============================================================================
+# CLUSTERISSUER: ZeroSSL (Production)
+#
+# PURPOSE:
+# Production-grade certificate issuance using ZeroSSL.
+# Issues trusted TLS certificates for public-facing services.
+#
+# BEFORE USING THIS:
+# 1. Test thoroughly with zerossl-staging first
+# 2. Verify ACME challenges complete successfully
+# 3. Confirm certificates are issued and valid
+# 4. Use different EAB credentials than staging
+#
+# WHAT THIS ENABLES:
+# - Automatic TLS certificate issuance for production
+# - Automatic renewal (no downtime)
+# - Browser-trusted certificates
+# - Centralized certificate authority for all namespaces
+#
+# PLATFORM NOTES:
+# - Designed for Huawei CCE Managed Kubernetes
+# - Uses HTTP-01 challenge via Huawei Ingress Controller
+# - Works with Huawei ELB
+# - Requires External Account Binding (EAB) credentials
+#
+# USAGE:
+# Reference this issuer in Certificate or Ingress resources:
+#   cert-manager.io/cluster-issuer: zerossl-prod
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: zerossl-prod
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+  labels:
+    environment: production
+    certificate-authority: zerossl
+spec:
+  acme:
+    # ZeroSSL ACME v2 Production endpoint
+    server: https://acme.zerossl.com/v2/DV90
+    
+    # Production email for certificate notifications
+    email: esosamumen@meristemng.com
+    
+    # Secret storing the ACME account private key
+    privateKeySecretRef:
+      name: zerossl-prod-account-key
+    
+    # REQUIRED: External Account Binding (EAB)
+    # Use PRODUCTION credentials (different from staging)
+    externalAccountBinding:
+      keyID: "PASTE_YOUR_PRODUCTION_EAB_KID_HERE"  # Different from staging
+      keySecretRef:
+        name: zerossl-eab-prod  # References production sealed secret
+        key: hmac
+      keyAlgorithm: HS256
+    
+    # Challenge solver configuration
+    solvers:
+    # HTTP-01 challenge via Huawei CCE Ingress
+    - http01:
+        ingress:
+          # Huawei CCE ingress class
+          class: cce  
+          
+          # Pod template for ACME challenge solver
+          podTemplate:
+            metadata:
+              annotations:
+                # Huawei CCE ELB annotations
+                kubernetes.io/elb.class: performance
+                kubernetes.io/elb.autocreate: "true"
+              labels:
+                app: cert-manager-acme-solver
+                environment: production
+            spec:
+              nodeSelector:
+                kubernetes.io/os: linux
+              # Production-specific resource limits
+              containers:
+              - name: acme-solver
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 64Mi
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+      
+      # Selector: Which domains use this solver
+      selector:
+        dnsZones:
+        - "onemeristem.meristemng.com"     # Mobile Backend (Prod)
+        - "onemeristemweb.meristemng.com"   # Web App (Prod)
+        - "onemeristemargocd.meristem.com"  # Argo CD 

@@ -1,0 +1,100 @@
+{{- if .Values.certificate.enabled }}
+# =============================================================================
+# CERTIFICATE: cloud-gateway TLS (ZeroSSL)
+#
+# PURPOSE:
+# Requests and automatically renews a TLS certificate for cloud-gateway
+# using cert-manager and the ZeroSSL ClusterIssuer.
+#
+# ACME FLOW:
+# 1. cert-manager creates ACME challenge
+# 2. Challenge solver pod is created
+# 3. Temporary ingress routes /.well-known/acme-challenge/ to solver
+# 4. ZeroSSL validates domain ownership via HTTP-01
+# 5. Certificate is issued and stored in Kubernetes Secret
+# 6. Ingress uses this Secret for TLS termination
+#
+# RENEWAL:
+# - Automatic renewal {{ .Values.certificate.renewBefore }} before expiry
+# - Zero downtime (new cert issued before old expires)
+#
+# SECRET CREATED:
+# {{ .Values.certificate.secretName }} (in namespace: {{ .Release.Namespace }})
+#
+# USED BY:
+# - {{ .Values.ingress.name }} Ingress
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "cloud-gateway.fullname" . }}-cert
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "cloud-gateway.name" . | nindent 4 }}
+    app.kubernetes.io/component: certificate
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"  # Deploy after ClusterIssuer (wave 5)
+spec:
+  # Secret name where certificate will be stored
+  secretName: {{ .Values.certificate.secretName }}
+  
+  # Certificate validity period
+  duration: {{ .Values.certificate.duration | default "2160h" }}  # 90 days (ZeroSSL default)
+  
+  # When to trigger renewal (default: 30 days before expiry)
+  renewBefore: {{ .Values.certificate.renewBefore | default "720h" }}  # 30 days
+  
+  # Issuer reference
+  issuerRef:
+    name: {{ .Values.certificate.issuerRef.name }}
+    kind: {{ .Values.certificate.issuerRef.kind | default "ClusterIssuer" }}
+    group: cert-manager.io
+  
+  # Common name (primary domain)
+  commonName: {{ .Values.ingress.host }}
+  
+  # Subject Alternative Names (all domains for this certificate)
+  dnsNames:
+  {{- if .Values.certificate.dnsNames }}
+  {{- range .Values.certificate.dnsNames }}
+  - {{ . }}
+  {{- end }}
+  {{- else }}
+  - {{ .Values.ingress.host }}
+  {{- end }}
+  
+  # Private key configuration
+  privateKey:
+    algorithm: {{ .Values.certificate.privateKey.algorithm | default "RSA" }}
+    encoding: PKCS1
+    size: {{ .Values.certificate.privateKey.size | default 2048 }}
+    rotationPolicy: Always  # Rotate key with each renewal
+  
+  # Certificate subject
+  subject:
+    organizations:
+    - {{ .Values.certificate.organization | default "Meristem Securities Limited" }}
+  
+  # Key usages
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  
+  # Additional certificate options
+  {{- if .Values.certificate.emailAddresses }}
+  emailAddresses:
+  {{- range .Values.certificate.emailAddresses }}
+  - {{ . }}
+  {{- end }}
+  {{- end }}
+  
+  # Conditions for certificate readiness
+  # Certificate is ready when it's issued and not expired
+  {{- if .Values.certificate.additionalOutputFormats }}
+  additionalOutputFormats:
+  {{- range .Values.certificate.additionalOutputFormats }}
+  - type: {{ .type }}
+  {{- end }}
+  {{- end }}
+{{- end }}

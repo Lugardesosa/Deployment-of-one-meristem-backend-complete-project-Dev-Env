@@ -1,0 +1,44 @@
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: {{ include "trustees-service.fullname" . }}
+#   namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+#   labels:
+#     app: {{ include "trustees-service.name" . }}
+#   {{- if .Values.service.annotationsEnabled }}
+#   annotations:
+#     {{- toYaml .Values.service.annotations | nindent 4 }}
+#   {{- end }}
+# spec:
+#   type: {{ .Values.service.type }}
+#   ports:
+#     - name: {{ .Values.service.name }}
+#       port: {{ .Values.service.port }}
+#       protocol: TCP
+#       targetPort: {{ .Values.service.targetPort }}
+#   selector:
+#     app: {{ include "trustees-service.name" . }}
+
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "trustees-service.fullname" . }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "trustees-service.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    {{- include "trustees-service.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+  type: {{ .Values.service.type }}

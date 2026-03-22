@@ -1,0 +1,410 @@
+##--------------------- CLOUD-GATEWAY VALUES ---------------------
+## This file contains the configuration values for the cloud-gateway service deployment.
+
+
+
+##--------------------- CLOUD-GATEWAY STAGING VALUES ---------------------
+## API Gateway — Spring Boot running on port 20010
+## Node pool: backend | Namespace: one-meristem-app
+## Routes traffic to all backend microservices
+
+environment: stag-env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/cloud-gateway
+  pullPolicy: Always
+  tag: ""
+
+imagePullSecrets:
+  - name: huawei-swr-auth
+
+terminationGracePeriodSeconds: 60
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+# =============================================================================
+# RESOURCES — gateway handles all inbound traffic, needs more CPU than others
+# =============================================================================
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "800m"
+    memory: "800Mi"
+
+# =============================================================================
+# HEALTH PROBES — Spring Boot actuator endpoints
+# =============================================================================
+probes:
+  startup:
+    path: /actuator/health
+    failureThreshold: 30      # 30 * 10s = 5 mins max startup
+    periodSeconds: 10
+
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 90
+    periodSeconds: 35
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 45
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+# =============================================================================
+# SCHEDULING & AVAILABILITY
+# =============================================================================
+nodePool: one-meristem-backend
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node_pool
+              operator: In
+              values:
+                - one-meristem-backend
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - cloud-gateway-stag-env
+          topologyKey: kubernetes.io/hostname
+
+# =============================================================================
+# AUTOSCALING — CCE CustomedHPA
+# Gateway needs higher ceiling — all traffic passes through it
+# =============================================================================
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  minScaleStep: 1
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      percentValue: 100
+      podsValue: 2
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      percentValue: 25
+
+# =============================================================================
+# SECRET PROVIDER CLASS — Redis + Kafka only, no database
+# =============================================================================
+secretProviderClass:
+  name: cloud-gateway-secrets
+  provider: cce
+  k8sSecretName: cloud-gateway-secrets
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+env:
+  GITHUB_BRANCH: "test_env"
+  APP_PROFILE: "staging"
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemeristem.meristemng.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+
+  # Internal service URIs — using Kubernetes DNS
+  CONFIG_SERVER_URI: "http://config-server-stag-env.one-meristem-app.svc.cluster.local:8082/config"
+  USER_SERVICE_URI: "http://users-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  NOTIFICATION_SERVICE_URI: "http://notification-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  WALLET_SERVICE_URI: "http://wallet-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  REPORT_SERVICE_URI: "http://report-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  TRUSTEES_SERVICE_URI: "http://trustees-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  WEALTH_SERVICE_URI: "http://wealth-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+
+  # Gateway config
+  ADMIN_USERNAME: "admin"
+  GATEWAY_REPLENISH_RATE: "10"
+  GATEWAY_BURST_CAPACITY: "20"
+  GATEWAY_REQUESTED_TOKENS: "2"
+  WHITELISTED_IPS: "52.18.220.93,18.202.96.242"
+  GATEWAY_SERVICE_HOSTNAME: "cloud-gateway-stag-env.one-meristem-app.svc.cluster.local"
+  GATEWAY_SERVICE_PORT: "8082"
+  CONSUL_HOST: "consul-stag-env.one-meristem-app.svc.cluster.local"
+  ALLOWED_ORIGINS: "https://onemeristemstag.meristemng.com,https://admin.onemeristemstag.meristemng.com"
+  ENC_ALGORITHM: "AES"
+  ENC_ALGORITHM_GCM: "AES/GCM/NoPadding"
+  MIDDLE_WARE_BASE_URL: "http://gateway-api-stag-env.middleware-core-app.svc.cluster.local:8080"
+
+# =============================================================================
+# SECRET ENV — pulled from credentials and cloud-gateway-secrets
+# Keys match credentials-secret.yaml template exactly
+# =============================================================================
+secretEnv:
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: ADMIN_PASSWORD          # matches credentials template
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: ENCRYPTION_KEY          # matches credentials template
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: H2_PASSWORD             # matches credentials template
+  ENC_SALT:
+    secretName: credentials
+    secretKey: ENC_SALT                # matches credentials template
+  REDIS_HOST:
+    secretName: cloud-gateway-secrets  # from CSMS via SecretProviderClass
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: cloud-gateway-secrets  # from CSMS via SecretProviderClass
+    secretKey: REDIS_PASSWORD
+    
+# secretEnv:
+#   ADMIN_PASSWORD:
+#     secretName: credentials
+#     secretKey: key3
+#   ENCRYPTION_KEY:
+#     secretName: credentials
+#     secretKey: key4
+#   REDIS_HOST:
+#     secretName: cloud-gateway-secrets
+#     secretKey: REDIS_HOST
+#   REDIS_PASSWORD:
+#     secretName: cloud-gateway-secrets
+#     secretKey: REDIS_PASSWORD
+#   H2_PASSWORD:
+#     secretName: credentials
+#     secretKey: key13
+#   ENC_SALT:
+#     secretName: credentials
+#     secretKey: key17
+
+# =============================================================================
+# VOLUMES & MOUNTS
+# =============================================================================
+volumeMounts:
+  - name: cloud-gateway-secrets
+    mountPath: /mnt/secrets-store/cloud-gateway
+    readOnly: true
+  - name: gateway-data
+    mountPath: /mnt/gateway
+  - name: secret-volume
+    mountPath: /etc/secrets-store/cloud-gateway
+    readOnly: true
+
+volumes:
+  - name: gateway-data
+    emptyDir: {}
+  - name: cloud-gateway-secrets
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: cloud-gateway-secrets
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+# =============================================================================
+# SERVICE — ClusterIP, ingress in shared-resources handles external traffic
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8082
+  targetPort: 20010
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "20010"
+    prometheus.io/path: "/actuator/prometheus"
+
+# =============================================================================
+# PROMETHEUS
+# =============================================================================
+prometheus:
+  enabled: true
+  path: /actuator/prometheus
+  port: 20010
+
+# =============================================================================
+# INGRESS — lives in backend-repo/shared-resources
+# cloud-gateway is the primary backend entry point referenced in shared ingress
+# =============================================================================
+
+
+
+# # =============================================================================
+# # CERTIFICATE CONFIGURATION (ZeroSSL via cert-manager)
+# # =============================================================================
+certificate:
+  enabled: false
+  
+#   # Secret name where certificate will be stored
+#   secretName: cloud-gateway-tls
+  
+#   # ClusterIssuer reference
+#   issuerRef:
+#     name: zerossl-staging  # ← Use staging issuer for testing
+#     kind: ClusterIssuer
+  
+#   # DNS names for certificate (SAN - Subject Alternative Names)
+#   dnsNames:
+#   - onemeristemstag.meristemng.com
+#   # Add more domains if needed:
+#   - www.onemeristemstag.meristemng.com
+#   - api.onemeristemstag.meristemng.com
+  
+#   # Certificate duration and renewal
+#   duration: 2160h    # 90 days
+#   renewBefore: 1080h  # Renew 45 days before expiry
+  
+#   # Private key configuration
+#   privateKey:
+#     algorithm: RSA
+#     size: 2048
+#     rotationPolicy: Never
+  
+#   # Organization name
+#   organization: "Meristem Securities Limited"
+  
+#   # Optional: Email addresses for certificate
+#   emailAddresses:
+#   - esosamumen@meristemng.com
+
+
+# # =============================================================================
+# # INGRESS CONFIGURATION (Huawei CCE + cert-manager)
+# # =============================================================================
+# ingress:
+#   enabled: true
+#   name: cloud-gateway-ingress
+#   className: cce  
+  
+#   # Primary domain
+#   host: ${INGRESS_HOST}
+
+
+# # ───────────────────────────────────────────────────────────────────────
+#   # Huawei CCE ELB Configuration
+#   # ───────────────────────────────────────────────────────────────────────
+#   elbClass: performance  # or "union" depending on your ELB type
+#   elbId: ${MOBILE_ELB_ID} # Your staging ELB ID
+#   elbPort: "443"  # HTTPS port
+#   elbMasterIngress: true  # Set true if this is the master ingress for shared ELB
+  
+#   # Optional ELB features
+#   elbSlowStart: "30"
+#   elbHttp2Enabled: true
+#   elbGzipEnabled: true
+#   elbXRealIp: true
+  
+#   # Timeout configuration
+#   elbMemberTimeout: "300"
+#   elbClientTimeout: "300"
+#   elbKeepaliveTimeout: "300"
+  
+#   # Backend configuration
+#   backendProtocol: HTTP  # Protocol between ELB and pods
+  
+#   # Health check configuration
+#   healthCheck:
+#     enabled: true
+#     protocol: HTTP
+#     port: "8082"
+#     path: /actuator/health
+#     interval: 5
+#     timeout: 10
+#     rise: 2
+#     fall: 2
+  
+#   # TLS configuration
+#   tls:
+#     enabled: true
+#     secretName: cloud-gateway-tls  # Must match certificate.secretName
+  
+#   # Force HTTPS redirect (enable AFTER first certificate is issued)
+#   forceSSL: true  # ← Set to true to ensure redirect from HTTP to HTTPS
+  
+#   # cert-manager specific options
+#   certManager:
+#     issueTemporaryCertificate: true  # Issue temp cert while waiting for real one
+  
+#   # Routing paths
+#   paths:
+#   - path: /
+#     pathType: ImplementationSpecific
+  
+#   # Custom annotations (merged with template annotations)
+#   customAnnotations: {}
+
+
+
+
+
+
+
+Ingress configuration
+ingress:
+  enabled: false
+#   name: cloud-gateway-ingress
+#   namespace: one-meristem-app
+#   className: cce
+
+#   annotations:
+#     kubernetes.io/elb.class: performance  # Specifies the ELB performance mode (best for production use)
+#     kubernetes.io/elb.id: ${MOBILE_ELB_ID} #Elb id
+#     # Master listener - other ingresses reference this
+#     kubernetes.io/elb.listener-master-ingress: one-meristem-app/cloud-gateway-ingress #This annotation links this Ingress as the master listener for the ELB
+#     kubernetes.io/elb.port: "443"
+#     kubernetes.io/elb.slowstart: "30" # Newly added pods receive limited traffic for 30s to warm up before full load
+#     #kubernetes.io/elb.tls-certificate-ids: cf67274e67144a40a4a66afd0cac1a98 #Cerificates IDs, Secrets handles TLS
+#     kubernetes.io/elb.tls-ciphers-policy: tls-1-2  # Use TLS 1.2 encryption policy for secure HTTPS traffic
+#     kubernetes.io/elb.http2-enable: "true"  # Enable HTTP/2 protocol for faster client-server communication
+#     kubernetes.io/elb.gzip-enabled: "true" # Enable GZIP compression to reduce response size and improve speed
+#     kubernetes.io/elb.x-real-ip: "true" # Forward the client’s real IP address to backend pods (for logs and tracing)
+#     kubernetes.io/elb.member_timeout: "300" # Maximum time (seconds) the ELB waits before removing an unresponsive backend pod
+#     kubernetes.io/elb.client_timeout: "300"
+#     kubernetes.io/elb.keepalive_timeout: "300"
+#     kubernetes.io/elb.health-check-flag: "on" # Enable ELB health checks for backend pods
+#     kubernetes.io/elb.health-check-option: |
+#       {"protocol":"HTTP","port":"8082","uri":"/actuator/health","interval":5,"timeout":10,"rise":2,"fall":2}  
+#     kubernetes.io/elb.backend-protocol: "HTTP"  
+#     kubernetes.io/elb.backend-port: "8082"
+#   tls:
+#     enabled: true
+#     hosts:
+#       - host: ${INGRESS_HOST}
+#         secretName: backend-tls  # Uses SealedSecret
+#   rules:
+#     - host: ${INGRESS_HOST} # Access via DNS
+#       paths:
+#         - path: /
+#           pathType: ImplementationSpecific
+#           service:
+#             name: cloud-gateway
+#             port: 8082
+

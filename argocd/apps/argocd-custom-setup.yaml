@@ -1,0 +1,23 @@
+# #------------------- ARGOCD CUSTOM SETUP -------------------#
+# # This file contains argo custom setup configurations for deploying argo.
+
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: argocd-custom-setup
+#   namespace: argocd
+# spec:
+#   project: one-meristem-app
+#   source:
+#     repoURL: 
+#     targetRevision: stag_env
+#     path: /applications/bootstrap
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: argocd
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true

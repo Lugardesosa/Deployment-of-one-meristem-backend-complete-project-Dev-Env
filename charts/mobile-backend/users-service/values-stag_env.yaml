@@ -1,0 +1,689 @@
+
+# environment: stag-env
+
+# global:
+#   namespace: one-meristem-app
+#   serviceAccountName: app-spc-sa
+#   create: false     # Prevent chart from trying to create it
+
+# networkpolicy:
+#   enabled: false
+
+
+# replicaCount: 2
+
+# image:
+#   repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/users-service
+#   tag: d9b0bc3-87
+#   pullPolicy: Always
+
+# # Secret provider class
+# secretProviderClass:
+#   name: users-service-secrets
+#   provider: cce
+#   k8sSecretName: users-service-secrets
+
+
+# strategy:
+#   type: RollingUpdate
+#   rollingUpdate:
+#     maxUnavailable: 0
+#     maxSurge: 1
+
+# env:
+#   COMPANY_NAME: "Meristem Securities Limited"
+#   DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+#   GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+#   WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+#   FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+#   SMILE_ID_PARTNER_ID: "7496"
+#   SMILE_ID_PROD_API_KEY: "ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI="
+#   SMILE_ID_DEV_API_KEY: "3d64d61d-6d64-402d-a5f0-fa288507ec8f"
+#   SMILE_ID_PROD_LAMBDA_URL: "https://api.smileidentity.com/v1/"
+#   SMILE_ID_TEST_LAMBDA_URL: "https://testapi.smileidentity.com/v1/"
+#   SMILE_ID_PROD_WHITELIST_IPS: "34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74"
+#   SMILE_ID_DEV_WHITELIST_IPS: "35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141"
+#   SMILE_ID_DEV_CALLBACK_URL: "https://www.onemerristem.merristem.com/api/users/onboard/smile-id/webhook"
+#   APP_PROFILE: "staging"
+#   GITHUB_BRANCH: "test_env"
+#   USER: "System"
+#   ONE_APP_SERVER_URL: "https://onemeristemstag.meristemng.com" #placeholder for the EIP IP
+#   ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+#   CONSUL_HOST: "consul-stag-env.one-meristem-app.svc.cluster.local"
+#   USER_SERVICE_HOSTNAME: "users-service-stag-env.one-meristem-app.svc.cluster.local"
+#   USER_SERVICE_PORT: "8082"
+#   USER_SERVICE_URI: "http://users-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+#   CONFIG_SERVER_URI: "http://config-server-stag-env.one-meristem-app.svc.cluster.local:8082/config"
+#   HUAWEI_OBS_ENDPOINT: "obs.af-south-1.myhuaweicloud.com"
+#   HUAWEI_OBS_IMAGES_BUCKET: "obs-image-storage-one-meristem-stag_env"
+#   HUAWEI_OBS_DOC_BUCKET: "obs-documents-one-meristem-stag_env"
+#   OKHI_DEV_AND_PROD_WHITELIST_IP: "52.18.220.93,18.202.96.242"
+#   ADMIN_USERNAME: "admin"  # Replace with your actual admin username
+#   TRUSTEES_CLIENT_ID: "trustees-service"
+#   MOBILE_SECRET: "secret"
+#   TRUSTEES_SECRET: "secret"
+#   NOTIFICATION_SECRET: "secret"
+#   HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-stag-env"
+#   GEOIP_DB_LOCATION: "/app/data/geoip/GeoLite2-City.mmdb"
+#   MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+#   SUPPORT_PHONE: "0700-MERISTEM"
+#   SUPPORT_EMAIL: "support@onemeristem.com"
+#   ENC_ALGORITHM: "AES"
+#   ENC_ALGORITHM_GCM: "AES/GCM/NoPadding"
+
+
+#   # Configure JVM heap size to prevent OutOfMemory crashes.
+#   # -Xms sets the initial heap size (matches resource request)
+#   # -Xmx sets the max heap size (kept below pod memory limit to avoid OOM kill)
+#   #JAVA_OPTS: "-Xms512m -Xmx900m" 
+
+# secretEnv:
+#   ADMIN_PASSWORD:
+#     secretName: credentials
+#     secretKey: key3
+#   DB_SERVER:
+#     secretName: users-service-secrets
+#     secretKey: DB_SERVER
+#   USERS_DB_NAME:
+#     secretName: users-service-secrets
+#     secretKey: USERS_DB_NAME
+#   USERS_DB_USERNAME:
+#     secretName: users-service-secrets
+#     secretKey: USERS_DB_USERNAME
+#   USERS_DB_PASSWORD:
+#     secretName: users-service-secrets
+#     secretKey: USERS_DB_PASSWORD
+#   KAFKA_HOST_URL:
+#     secretName: users-service-secrets
+#     secretKey: KAFKA_HOST_URL
+#   REDIS_HOST:
+#     secretName: users-service-secrets
+#     secretKey: REDIS_HOST
+#   REDIS_PASSWORD:
+#     secretName: users-service-secrets
+#     secretKey: REDIS_PASSWORD
+#   MAILER_HOST:
+#     secretName: credentials
+#     secretKey: key5
+#   MAILER_USERNAME:
+#     secretName: credentials
+#     secretKey: key6
+#   MAILER_PASSWORD:
+#     secretName: credentials
+#     secretKey: key7
+#   HUAWEI_ACCESS_KEY_ID:
+#     secretName: credentials
+#     secretKey: key11
+#   HUAWEI_SECRET_ACCESS_KEY_ID:
+#     secretName: credentials
+#     secretKey: key12
+#   H2_PASSWORD:
+#     secretName: credentials
+#     secretKey: key13
+#   TRUSTEES_CLIENT_SECRET: 
+#     secretName: credentials
+#     secretKey: key16
+#   ENC_SALT:
+#     secretName: credentials
+#     secretKey: key17
+#    OKHI_HEADER_VALUE:
+#     secretName: credentials
+#     secretKey: key19
+
+# # =============================================================================
+# # SCHEDULING & AVAILABILITY CONFIGURATION
+# # =============================================================================
+# affinity:
+#   # Keep pods in the correct Node Pool
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             - key: nodepool
+#               operator: In
+#               values:
+#                 - one-meristem-backend
+
+#   # Ensure the 2 pod replicas never share the same physical node
+#   # ALLOW HPA to scale 
+#   podAntiAffinity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#     - weight: 100
+#       podAffinityTerm:
+#         labelSelector:
+#           matchExpressions:
+#             - key: app
+#               operator: In
+#               values:
+#                 - users-service-stag-env
+#         topologyKey: "kubernetes.io/hostname"
+
+  
+# volumeMounts:
+#   - name: users-service-secrets
+#     mountPath: /mnt/secrets-store/users-service
+#     readOnly: true
+#   - name: users-data
+#     mountPath: /mnt/users
+#   - name: secret-volume
+#     mountPath: /etc/secrets-store/users-service
+#     readOnly: true
+#   - name: users-service-storage
+#     mountPath: /app/data/geoip 
+#     readOnly: true
+
+# volumes:
+#   - name: users-data
+#     emptyDir: {}
+#   - name: users-service-secrets
+#     csi:
+#       driver: secrets-store.csi.k8s.io
+#       readOnly: true
+#       volumeAttributes:
+#         secretProviderClass: users-service-secrets
+#         #csi.storage.k8s.io/provisioner-secret-name: users-service-secrets
+#         #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+#   - name: secret-volume
+#     secret:
+#       secretName: credentials
+#   - name: users-service-storage
+#     persistentVolumeClaim:
+#       claimName: users-service-pvc
+
+# pvc:
+#   enabled: true
+#   useExistingBucket: true
+#   name: users-service-pvc
+#   size: "1Gi"
+
+# everest:
+#   enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb
+
+
+    
+
+# resources:
+#   limits:
+#     cpu: "1"
+#     memory: "1200Mi"
+#   requests:
+#     cpu: "0.7"
+#     memory: "800Mi"
+
+# imagePullSecrets:
+#   - name: huawei-swr-auth #relying on CCE's automatic injection
+
+# # PVC configuration
+# # pvc:
+# #   name: users-service-pvc-evs
+# #   accessModes:
+# #     - ReadWriteOnce
+# #   resources:
+# #     requests:
+# #       storage: 20Gi
+# #   storageClassName: csi-disk-topology
+# #   volumeMode: Filesystem
+
+
+
+# # HorizontalPodAutoscaler configuration
+# autoscaling:
+#   enabled: false
+#   minReplicas: 2
+#   maxReplicas: 10
+#   targetCPUUtilizationPercentage: 70
+#   targetMemoryUtilizationPercentage: 70
+
+# #Prometheus Config
+# prometheus:
+#   enabled: true
+#   path: /api/users/actuator/prometheus
+#   port: 20030
+
+# # service configuration
+# service:
+#   type: ClusterIP
+#   name: users-service
+#   port: 8082
+#   targetPort: 20020
+#   annotationsEnabled: false
+#   annotations:
+#     prometheus.io/scrape: "true"
+#     prometheus.io/port: "20030"
+#     prometheus.io/path: "/api/users/actuator/prometheus"
+#      # ---- Consul service registration ----
+#     consul.hashicorp.com/service-name: "users-service"
+#     #consul.hashicorp.com/service-port: "8082"
+#     consul.hashicorp.com/service-tags: "springboot,backend,users"
+#     consul.hashicorp.com/service-meta-environment: "stag-env"
+
+#     # Optional: Define Consul health check
+#     consul.hashicorp.com/check-path: "/actuator/health"
+#     consul.hashicorp.com/check-interval: "10s"
+#     consul.hashicorp.com/check-timeout: "5s"
+
+
+
+
+
+##--------------------- USERS-SERVICE STAGING VALUES ---------------------
+## Spring Boot Users Service — authentication, onboarding, KYC
+## Node pool: backend | Namespace: one-meristem-app
+## App port: 20020 | Prometheus port: 20030 | Service port: 8082
+
+environment: stag-env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false
+
+# networkpolicy:
+#   enabled: false
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/users-service
+  tag: ""
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: huawei-swr-auth
+
+terminationGracePeriodSeconds: 60
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+# =============================================================================
+# RESOURCES — users service handles auth + KYC, needs more memory
+# =============================================================================
+resources:
+  requests:
+    cpu: "700m"
+    memory: "800Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1200Mi"
+
+# =============================================================================
+# HEALTH PROBES
+# =============================================================================
+probes:
+  startup:
+    path: /api/users/actuator/health
+    failureThreshold: 30
+    periodSeconds: 10
+
+  liveness:
+    path: /api/users/actuator/health
+    initialDelaySeconds: 120
+    periodSeconds: 40
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+  readiness:
+    path: /api/users/actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# =============================================================================
+# SCHEDULING & AVAILABILITY
+# =============================================================================
+nodePool: one-meristem-backend
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node_pool
+              operator: In
+              values:
+                - one-meristem-backend
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - users-service-stag-env
+          topologyKey: kubernetes.io/hostname
+
+# =============================================================================
+# AUTOSCALING — CCE CustomedHPA
+# Users service handles auth — higher ceiling for login spikes
+# =============================================================================
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  minScaleStep: 1
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      percentValue: 100
+      podsValue: 2
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      percentValue: 25
+
+# =============================================================================
+# SECRET PROVIDER CLASS
+# =============================================================================
+secretProviderClass:
+  name: users-service-secrets
+  provider: cce
+  k8sSecretName: users-service-secrets
+
+# =============================================================================
+# NETWORK POLICY — egress to middleware namespace
+# Enable when middleware services are deployed
+# =============================================================================
+networkpolicy:
+  enabled: true    
+  middlewareNamespace: middleware-core-app
+  middlewarePorts:  
+    - 8080    # all middleware API services listen here
+
+nameOverride: ""
+fullnameOverride: ""
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+env:
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemeristem.meristemng.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  SMILE_ID_PARTNER_ID: "7496"
+  #SMILE_ID_PROD_API_KEY: "ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI="
+  #SMILE_ID_DEV_API_KEY: "3d64d61d-6d64-402d-a5f0-fa288507ec8f"
+  SMILE_ID_PROD_LAMBDA_URL: "https://api.smileidentity.com/v1/"
+  SMILE_ID_TEST_LAMBDA_URL: "https://testapi.smileidentity.com/v1/"
+  SMILE_ID_PROD_WHITELIST_IPS: "34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74"
+  SMILE_ID_DEV_WHITELIST_IPS: "35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141"
+  SMILE_ID_DEV_CALLBACK_URL: "https://onemeristem.meristemng.com/api/users/onboard/smile-id/webhook"
+  APP_PROFILE: "staging"
+  GITHUB_BRANCH: "test_env"
+  USER: "System"
+  ONE_APP_SERVER_URL: "https://onemeristemstag.meristemng.com"
+  ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+  CONSUL_HOST: "consul-stag-env.one-meristem-app.svc.cluster.local"
+  USER_SERVICE_HOSTNAME: "users-service-stag-env.one-meristem-app.svc.cluster.local"
+  USER_SERVICE_PORT: "8082"
+  USER_SERVICE_URI: "http://users-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  CONFIG_SERVER_URI: "http://config-server-stag-env.one-meristem-app.svc.cluster.local:8082/config"
+  HUAWEI_OBS_ENDPOINT: "obs.af-south-1.myhuaweicloud.com"
+  HUAWEI_OBS_IMAGES_BUCKET: "obs-image-storage-one-meristem-stag-env"
+  HUAWEI_OBS_DOC_BUCKET: "obs-documents-one-meristem-stag-env"
+  OKHI_DEV_AND_PROD_WHITELIST_IP: "52.18.220.93,18.202.96.242"
+  ADMIN_USERNAME: "admin"
+  TRUSTEES_CLIENT_ID: "trustees-service"
+  HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-stag-env"
+  GEOIP_DB_LOCATION: "/app/data/geoip/GeoLite2-City.mmdb"
+  MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  SUPPORT_PHONE: "0700-MERISTEM"
+  SUPPORT_EMAIL: "support@onemeristem.com"
+  ENC_ALGORITHM: "AES"
+  ENC_ALGORITHM_GCM: "AES/GCM/NoPadding"
+  MIDDLE_WARE_BASE_URL: "http://gateway-api-stag-env.middleware-core-app.svc.cluster.local:8080"
+  DOJAH_BASE_URL: "https://sandbox.dojah.io"      # staging stays on sandbox
+  DOJAH_APP_ID: "69982bc9cab03cc55e59ba33"
+  PASTEL_BASE_URL: "https://sigmaaml.sabipay.com/api/v1"
+  PASTEL_CALLBACK_URL: "https://onemeristemstag.meristemng.com/api/users/callback/pastel"
+
+# =============================================================================
+# SECRET ENV — keys match credentials-secret.yaml template exactly
+# =============================================================================
+secretEnv:
+  # From credentials Kubernetes secret
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: ADMIN_PASSWORD
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: ENCRYPTION_KEY
+  MAILER_USERNAME:
+    secretName: credentials
+    secretKey: MAILER_USERNAME
+  MAILER_PASSWORD:
+    secretName: credentials
+    secretKey: MAILER_PASSWORD
+  HUAWEI_ACCESS_KEY_ID:
+    secretName: credentials
+    secretKey: HUAWEI_CLOUD_ACCESS_KEY_ID
+  HUAWEI_SECRET_ACCESS_KEY_ID:
+    secretName: credentials
+    secretKey: HUAWEI_CLOUD_SECRET_ACCESS_KEY
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: H2_PASSWORD
+  TRUSTEES_CLIENT_SECRET:
+    secretName: credentials
+    secretKey: TRUSTEES_CLIENT_SECRET
+  ENC_SALT:
+    secretName: credentials
+    secretKey: ENC_SALT
+  OKHI_HEADER_VALUE:
+    secretName: credentials
+    secretKey: OKHI_HEADER_VALUE
+  SMILE_ID_PROD_API_KEY:
+    secretName: credentials
+    secretKey: SMILE_ID_PROD_API_KEY      # moved from env — real API key
+  SMILE_ID_DEV_API_KEY:
+    secretName: credentials
+    secretKey: SMILE_ID_DEV_API_KEY       # moved from env — real API key
+  MOBILE_SECRET:
+    secretName: credentials
+    secretKey: MOBILE_SECRET              # inter-service JWT secret
+  TRUSTEES_SECRET:
+    secretName: credentials
+    secretKey: TRUSTEES_SECRET            # inter-service JWT secret
+  NOTIFICATION_SECRET:
+    secretName: credentials
+    secretKey: NOTIFICATION_SECRET        # inter-service JWT secret
+  ID_HASHING_SECRET:
+    secretName: credentials
+    secretKey: ID_HASHING_SECRET
+  WEB_SECRET:
+    secretName: credentials
+    secretKey: WEB_SECRET
+  WALLET_SECRET:
+    secretName: credentials
+    secretKey: WALLET_SECRET
+  WEALTH_SECRET:
+    secretName: credentials
+    secretKey: WEALTH_SECRET
+  MIDDLE_WARE_API_KEY:
+    secretName: credentials
+    secretKey: MIDDLE_WARE_API_KEY
+  DOJAH_SECRET_KEY:
+    secretName: credentials
+    secretKey: DOJAH_SECRET_KEY
+  DOJAH_PRIVATE_KEY:
+    secretName: credentials
+    secretKey: DOJAH_PRIVATE_KEY
+  PASTEL_API_KEY:
+    secretName: credentials
+    secretKey: PASTEL_API_KEY
+  PASTEL_API_SECRET:
+    secretName: credentials
+    secretKey: PASTEL_API_SECRET
+    
+  # From CSMS via SecretProviderClass
+  DB_SERVER:
+    secretName: users-service-secrets
+    secretKey: DB_SERVER
+  USERS_DB_NAME:
+    secretName: users-service-secrets
+    secretKey: USERS_DB_NAME
+  USERS_DB_USERNAME:
+    secretName: users-service-secrets
+    secretKey: USERS_DB_USERNAME
+  USERS_DB_PASSWORD:
+    secretName: users-service-secrets
+    secretKey: USERS_DB_PASSWORD
+  KAFKA_HOST_URL:
+    secretName: users-service-secrets
+    secretKey: KAFKA_HOST_URL
+  REDIS_HOST:
+    secretName: users-service-secrets
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: users-service-secrets
+    secretKey: REDIS_PASSWORD
+
+# secretEnv:
+#   ADMIN_PASSWORD:
+#     secretName: credentials
+#     secretKey: key3
+#   DB_SERVER:
+#     secretName: users-service-secrets
+#     secretKey: DB_SERVER
+#   USERS_DB_NAME:
+#     secretName: users-service-secrets
+#     secretKey: USERS_DB_NAME
+#   USERS_DB_USERNAME:
+#     secretName: users-service-secrets
+#     secretKey: USERS_DB_USERNAME
+#   USERS_DB_PASSWORD:
+#     secretName: users-service-secrets
+#     secretKey: USERS_DB_PASSWORD
+#   KAFKA_HOST_URL:
+#     secretName: users-service-secrets
+#     secretKey: KAFKA_HOST_URL
+#   REDIS_HOST:
+#     secretName: users-service-secrets
+#     secretKey: REDIS_HOST
+#   REDIS_PASSWORD:
+#     secretName: users-service-secrets
+#     secretKey: REDIS_PASSWORD
+#   MAILER_HOST:
+#     secretName: credentials
+#     secretKey: key5
+#   MAILER_USERNAME:
+#     secretName: credentials
+#     secretKey: key6
+#   MAILER_PASSWORD:
+#     secretName: credentials
+#     secretKey: key7
+#   HUAWEI_ACCESS_KEY_ID:
+#     secretName: credentials
+#     secretKey: key11
+#   HUAWEI_SECRET_ACCESS_KEY_ID:
+#     secretName: credentials
+#     secretKey: key12
+#   H2_PASSWORD:
+#     secretName: credentials
+#     secretKey: key13
+#   TRUSTEES_CLIENT_SECRET:
+#     secretName: credentials
+#     secretKey: key16
+#   ENC_SALT:
+#     secretName: credentials
+#     secretKey: key17
+#   OKHI_HEADER_VALUE:
+#     secretName: credentials
+#     secretKey: key19
+
+# =============================================================================
+# VOLUMES & MOUNTS — includes OBS PVC for GeoIP database
+# =============================================================================
+volumeMounts:
+  - name: users-service-secrets
+    mountPath: /mnt/secrets-store/users-service
+    readOnly: true
+  - name: users-data
+    mountPath: /mnt/users
+  - name: secret-volume
+    mountPath: /etc/secrets-store/users-service
+    readOnly: true
+  - name: users-service-storage
+    mountPath: /app/data/geoip
+    readOnly: true
+
+volumes:
+  - name: users-data
+    emptyDir: {}
+  - name: users-service-secrets
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: users-service-secrets
+  - name: secret-volume
+    secret:
+      secretName: credentials
+  - name: users-service-storage
+    persistentVolumeClaim:
+      claimName: users-service-pvc
+
+# =============================================================================
+# OBS PVC — GeoIP database stored in OBS bucket
+# =============================================================================
+pvc:
+  enabled: true
+  useExistingBucket: true
+  name: users-service-pvc
+  size: "1Gi"
+
+everest:
+  enterpriseProjectID: ad2cb210-4c6e-47dd-9a5a-bcc02dc3faeb
+
+# =============================================================================
+# SERVICE
+# NOTE: targetPort 20020 is app port, prometheus scrapes on 20030
+# Ensure app exposes actuator on separate management port 20030
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8082
+  targetPort: 20020
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "20030"
+    prometheus.io/path: "/api/users/actuator/prometheus"
+    consul.hashicorp.com/service-name: "users-service"
+    consul.hashicorp.com/service-tags: "springboot,backend,users"
+    consul.hashicorp.com/service-meta-environment: "stag-env"
+    consul.hashicorp.com/check-path: "/api/users/actuator/health"  # fixed — was /actuator/health
+    consul.hashicorp.com/check-interval: "10s"
+    consul.hashicorp.com/check-timeout: "5s"
+
+# =============================================================================
+# PROMETHEUS
+# =============================================================================
+prometheus:
+  enabled: true
+  path: /api/users/actuator/prometheus
+  port: 20030
+
+# =============================================================================
+# INGRESS — lives in backend-repo/shared-resources
+# =============================================================================
+ingress:
+  enabled: false
+
+# =============================================================================
+# CERTIFICATE — prod only
+# =============================================================================
+certificate:
+  enabled: false

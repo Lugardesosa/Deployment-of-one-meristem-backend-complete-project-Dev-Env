@@ -1,0 +1,120 @@
+{{- if .Values.ingress.enabled }}
+# =============================================================================
+# MASTER INGRESS — cloud-gateway owns the ELB port 443 listener
+# Web-app and admin-app are slaves referencing this master
+# TLS terminated at ELB using Kubernetes secrets per subdomain
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-gateway-ingress
+  namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
+  annotations:
+    kubernetes.io/elb.class: "performance"
+    kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
+    kubernetes.io/elb.port: "443"
+    kubernetes.io/elb.slowstart: "30"
+    kubernetes.io/elb.tls-ciphers-policy: "tls-1-2"
+    kubernetes.io/elb.http2-enable: "true"
+    kubernetes.io/elb.gzip-enabled: "true"
+    kubernetes.io/elb.x-real-ip: "true"
+    kubernetes.io/elb.member_timeout: "300"
+    kubernetes.io/elb.client_timeout: "300"
+    kubernetes.io/elb.keepalive_timeout: "300"
+    kubernetes.io/elb.health-check-flag: "on"
+    kubernetes.io/elb.health-check-option: |
+      {"protocol":"HTTP","port":"20010","uri":"/actuator/health","interval":5,"timeout":10,"rise":2,"fall":2}
+    kubernetes.io/elb.backend-protocol: "HTTP"
+    kubernetes.io/elb.backend-port: "20010"
+    # Ensure ELB passes the real client IP and other standard proxy headers
+    kubernetes.io/elb.x-forwarded-host: "true"
+    kubernetes.io/elb.x-forwarded-proto: "true"
+    kubernetes.io/elb.x-forwarded-port: "true"
+spec:
+  ingressClassName: cce
+  tls:
+    - hosts:
+        - {{ .Values.ingress.cloudGateway.host | quote }}
+      secretName: {{ .Values.ingress.cloudGateway.tlsSecretName | quote }}
+    - hosts:
+        - {{ .Values.ingress.webApp.host | quote }}
+      secretName: {{ .Values.ingress.webApp.tlsSecretName | quote }}
+    - hosts:
+        - {{ .Values.ingress.adminApp.host | quote }}
+      secretName: {{ .Values.ingress.adminApp.tlsSecretName | quote }}
+  rules:
+    - host: {{ .Values.ingress.cloudGateway.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.ingress.cloudGateway.serviceName | quote }}
+                port:
+                  number: {{ .Values.ingress.cloudGateway.servicePort }}   # service port 8082
+---
+# =============================================================================
+# SLAVE INGRESS — web-app
+# References cloud-gateway-ingress as master — no new listener created
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
+  annotations:
+    kubernetes.io/elb.class: "performance"
+    kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
+    kubernetes.io/elb.listener-master-ingress: {{ printf "%s/cloud-gateway-ingress" (.Values.global.namespace | default "one-meristem-app") | quote }}
+    kubernetes.io/elb.health-check-flag: "on"
+    kubernetes.io/elb.health-check-option: |
+      {"protocol":"HTTP","port":"3000","uri":"/","interval":5,"timeout":10,"rise":2,"fall":2}
+    kubernetes.io/elb.backend-protocol: "HTTP"
+    kubernetes.io/elb.backend-port: "3000"
+spec:
+  ingressClassName: cce
+  rules:
+    - host: {{ .Values.ingress.webApp.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.ingress.webApp.serviceName | quote }}
+                port:
+                  number: {{ .Values.ingress.webApp.servicePort }}   # service port 8084
+---
+# =============================================================================
+# SLAVE INGRESS — admin-app
+# References cloud-gateway-ingress as master — no new listener created
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: admin-app-ingress
+  namespace: {{ .Values.global.namespace | default "one-meristem-app" }}
+  annotations:
+    kubernetes.io/elb.class: "performance"
+    kubernetes.io/elb.id: {{ .Values.ingress.elbId | quote }}
+    kubernetes.io/elb.listener-master-ingress: {{ printf "%s/cloud-gateway-ingress" (.Values.global.namespace | default "one-meristem-app") | quote }}
+    kubernetes.io/elb.health-check-flag: "on"
+    kubernetes.io/elb.health-check-option: |
+      {"protocol":"HTTP","port":"3000","uri":"/","interval":5,"timeout":10,"rise":2,"fall":2}
+    kubernetes.io/elb.backend-protocol: "HTTP"
+    kubernetes.io/elb.backend-port: "3000"
+spec:
+  ingressClassName: cce
+  rules:
+    - host: {{ .Values.ingress.adminApp.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.ingress.adminApp.serviceName | quote }}
+                port:
+                  number: {{ .Values.ingress.adminApp.servicePort }} # service port 8084
+{{- end }}

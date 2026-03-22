@@ -1,0 +1,596 @@
+
+# environment: stag-env
+
+# global:
+#   namespace: one-meristem-app
+#   serviceAccountName: app-spc-sa
+#   create: false     # Prevent chart from trying to create it
+
+# #Deployment configuration
+# replicaCount: 2
+
+# image:
+#   repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/notification-service
+#   tag: 05e34d9-86
+#   pullPolicy: Always
+
+# imagePullSecrets:
+#   - name: huawei-swr-auth #relying on CCE's automatic injection
+
+# # Secret provider class
+# secretProviderClass:
+#   name: notification-service-secrets
+#   provider: cce
+#   k8sSecretName: notification-service-secrets
+
+
+# strategy:
+#   type: RollingUpdate
+#   rollingUpdate:
+#     maxUnavailable: 0
+#     maxSurge: 1
+
+# env:
+#   COMPANY_NAME: "Meristem Securities Limited"
+#   DATA_PRIVACY_POLICY_URL: "https://www.onemerristem.merristem.com"
+#   GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+#   WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+#   FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag_env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+#   GITHUB_BRANCH: "test_env"
+#   APP_PROFILE: "staging"
+#   ONE_APP_SERVER_URL: "https://onemeristemstag.meristemng.com" #placeholder for the EIP IP
+#   ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+#   ADMIN_USERNAME: "admin"
+#   CONFIG_SERVER_URI: "http://config-server-stag-env.one-meristem-app.svc.cluster.local:8082/config"
+#   CREDIT_SWITCH_LOGIN_ID: "315497"
+#   CREDIT_SWITCH_SMS_MERCHANT_NAME: "Meristem Securities Limited"
+#   CREDIT_SWITCH_SMS_BASEURL: "http://176.58.99.160:9014/api/v1/sms/send"
+#   CREDIT_SWITCH_SMS_SENDER_ID: "Meristem"
+#   CONSUL_HOST: "consul-stag-env.one-meristem-app.svc.cluster.local" 
+#   NOTIFICATION_SERVICE_HOSTNAME: "notification-service-stag-env.one-meristem-app.svc.cluster.local"
+#   NOTIFICATION_SERVICE_PORT: "8082"
+#   NOTIFICATION_SERVICE_URI: "http://notification-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+#   TRUSTEES_CLIENT_ID: "trustees-service"
+#   HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-stag-env"
+#   MAIL_SENDER: "reply@onemeristem.meristemng.com"
+#   MAILER_HOST: "live.smtp.mailtrap.io"
+#   MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+#   SUPPORT_PHONE: "0700-MERISTEM"
+#   SUPPORT_EMAIL: "support@onemeristem.com"
+#   MAIL_SENDER_NAME: "One Meristem" #Mail Sender
+#   MAILER_PORT: "2525"
+#   EXPO_URL: "https://exp.host/--/api/v2"
+#   ENC_ALGORITHM: "AES"
+#   ENC_ALGORITHM_GCM: "AES/GCM/NoPadding"
+
+# secretEnv:
+#   ADMIN_PASSWORD:
+#     secretName: credentials
+#     secretKey: key3
+#   ENCRYPTION_KEY:
+#     secretName: credentials
+#     secretKey: key4
+#   DB_SERVER:
+#     secretName: notification-service-secrets
+#     secretKey: DB_SERVER
+#   NOTIFICATION_DB_NAME:
+#     secretName: notification-service-secrets
+#     secretKey: NOTIFICATION_DB_NAME
+#   NOTIFICATION_DB_USERNAME:
+#     secretName: notification-service-secrets
+#     secretKey: NOTIFICATION_DB_USERNAME
+#   NOTIFICATION_DB_PASSWORD:
+#     secretName: notification-service-secrets
+#     secretKey: NOTIFICATION_DB_PASSWORD
+#   KAFKA_HOST_URL:
+#     secretName: notification-service-secrets
+#     secretKey: KAFKA_HOST_URL
+#   REDIS_HOST:
+#     secretName: notification-service-secrets
+#     secretKey: REDIS_HOST
+#   REDIS_PASSWORD:
+#     secretName: notification-service-secrets
+#     secretKey: REDIS_PASSWORD
+#   # MAILER_HOST:
+#   #   secretName: credentials
+#   #   secretKey: key5
+#   MAILER_USERNAME:
+#     secretName: credentials
+#     secretKey: key6
+#   MAILER_PASSWORD:
+#     secretName: credentials
+#     secretKey: key7
+#   CREDIT_SWITCH_PUBLIC_KEY:
+#     secretName: credentials
+#     secretKey: key8
+#   CREDIT_SWITCH_PRIVATE_KEY:
+#     secretName: credentials
+#     secretKey: key9
+#   CREDIT_SWITCH_SMS_PASSWORD:
+#     secretName: credentials
+#     secretKey: key10
+#   H2_PASSWORD:
+#     secretName: credentials
+#     secretKey: key13
+#   TRUSTEES_CLIENT_SECRET: 
+#     secretName: credentials
+#     secretKey: key16
+#   ENC_SALT:
+#     secretName: credentials
+#     secretKey: key17
+#   EXPO_PUSH_TOKEN:
+#     secretName: credentials
+#     secretKey: key18
+
+# # =============================================================================
+# # SCHEDULING & AVAILABILITY CONFIGURATION
+# # =============================================================================
+
+# affinity:
+#    # Keep pods in the correct Node Pool
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             - key: nodepool
+#               operator: In
+#               values:
+#                 - one-meristem-backend
+#   # Ensure the 2 pod replicas never share the same physical node
+#   # ALLOW HPA to scale 
+#   podAntiAffinity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#     - weight: 100
+#       podAffinityTerm:
+#         labelSelector:
+#           matchExpressions:
+#             - key: app
+#               operator: In
+#               values:
+#                 - notification-service-stag-env
+#         topologyKey: "kubernetes.io/hostname"
+
+# resources:
+#   limits:
+#     cpu: "0.8"
+#     memory: 700Mi
+#   requests:
+#     cpu: "0.5"
+#     memory: 400Mi
+
+
+# volumeMounts:
+#   - name: notification-service-secrets
+#     mountPath: /mnt/secrets-store/notification-service
+#     readOnly: true
+#   - name: notification-data
+#     mountPath: /mnt/notification
+#   - name: secret-volume
+#     mountPath: /etc/secrets-store/notification-service
+#     readOnly: true
+
+# volumes:
+#   - name: notification-data
+#     emptyDir: {}
+#   - name: notification-service-secrets
+#     csi:
+#       driver: secrets-store.csi.k8s.io
+#       readOnly: true
+#       volumeAttributes:
+#         secretProviderClass: notification-service-secrets
+#         #csi.storage.k8s.io/provisioner-secret-name: notification-service-secrets
+#         #csi.storage.k8s.io/provisioner-secret-namespace: one-meristem-app
+#   - name: secret-volume
+#     secret:
+#       secretName: credentials
+
+# #PVC configuration
+# # pvc:
+# #   name: notification-service-pvc-evs
+# #   accessModes:
+# #     - ReadWriteOnce
+# #   resources:
+# #     requests:
+# #       storage: 20Gi
+# #   storageClassName: csi-disk-topology
+# #   volumeMode: Filesystem
+ 
+
+# # HorizontalPodAutoscaler configuration
+# autoscaling:
+#   enabled: false
+#   minReplicas: 2
+#   maxReplicas: 10
+#   targetCPUUtilizationPercentage: 70
+#   targetMemoryUtilizationPercentage: 70
+
+# #Prometheus Config
+# prometheus:
+#   enabled: true
+#   path: /api/notification/actuator/prometheus
+#   port: 20030
+
+
+# # service configuration
+# service:
+#   type: ClusterIP
+#   name: notification-service
+#   port: 8082
+#   targetPort: 20030
+#   annotationsEnabled: false
+#   annotations:
+#     prometheus.io/scrape: "true"
+#     prometheus.io/port: "20030"
+#     prometheus.io/path: "/api/notification/actuator/prometheus"
+
+#     # ---- Consul service registration ----
+#     consul.hashicorp.com/service-name: "notification-service"
+#     #consul.hashicorp.com/service-port: "8082"
+#     consul.hashicorp.com/service-tags: "springboot,backend,report"
+#     consul.hashicorp.com/service-meta-environment: "stag-env"
+
+#     # Optional: Define Consul health check
+#     consul.hashicorp.com/check-path: "/api/notification/actuator/health"
+#     consul.hashicorp.com/check-interval: "10s"
+#     consul.hashicorp.com/check-timeout: "5s"
+
+
+##--------------------- NOTIFICATION-SERVICE STAGING VALUES ---------------------
+## Spring Boot Notification Service — email, SMS, push notifications
+## Node pool: backend | Namespace: one-meristem-app
+## Port: 20030 (actuator/app) | Service port: 8082
+
+environment: stag-env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/notification-service
+  tag: ""
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: huawei-swr-auth
+
+terminationGracePeriodSeconds: 60
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+# =============================================================================
+# RESOURCES
+# =============================================================================
+resources:
+  requests:
+    cpu: "500m"
+    memory: "400Mi"
+  limits:
+    cpu: "800m"
+    memory: "700Mi"
+
+# =============================================================================
+# HEALTH PROBES
+# =============================================================================
+probes:
+  startup:
+    path: /api/notification/actuator/health
+    failureThreshold: 30
+    periodSeconds: 10
+
+  liveness:
+    path: /api/notification/actuator/health
+    initialDelaySeconds: 120
+    periodSeconds: 60
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+  readiness:
+    path: /api/notification/actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# =============================================================================
+# SCHEDULING & AVAILABILITY
+# =============================================================================
+nodePool: one-meristem-backend
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node_pool
+              operator: In
+              values:
+                - one-meristem-backend
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - notification-service-stag-env
+          topologyKey: kubernetes.io/hostname
+
+# =============================================================================
+# AUTOSCALING — CCE CustomedHPA
+# =============================================================================
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  minScaleStep: 1
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      percentValue: 100
+      podsValue: 2
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      percentValue: 25
+
+# =============================================================================
+# SECRET PROVIDER CLASS
+# =============================================================================
+secretProviderClass:
+  name: notification-service-secrets
+  provider: cce
+  k8sSecretName: notification-service-secrets
+
+# =============================================================================
+# NETWORK POLICY — egress to middleware namespace
+# Enable when middleware services are deployed
+# =============================================================================
+networkpolicy:
+  enabled: true    
+  middlewareNamespace: middleware-core-app
+  middlewarePorts:  
+    - 8080    # all middleware API services listen here
+
+nameOverride: ""
+fullnameOverride: ""
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+env:
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemeristem.meristemng.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  GITHUB_BRANCH: "test_env"
+  APP_PROFILE: "staging"
+  ONE_APP_SERVER_URL: "https://onemeristemstag.meristemng.com"
+  ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+  ADMIN_USERNAME: "admin"
+  CONFIG_SERVER_URI: "http://config-server-stag-env.one-meristem-app.svc.cluster.local:8082/config"
+  CREDIT_SWITCH_LOGIN_ID: "315497"
+  CREDIT_SWITCH_SMS_MERCHANT_NAME: "Meristem Securities Limited"
+  CREDIT_SWITCH_SMS_BASEURL: "http://176.58.99.160:9014/api/v1/sms/send"
+  CREDIT_SWITCH_SMS_SENDER_ID: "Meristem"
+  # CONSUL_HOST: "consul-stag-env.one-meristem-app.svc.cluster.local"
+  NOTIFICATION_SERVICE_HOSTNAME: "notification-service-stag-env.one-meristem-app.svc.cluster.local"
+  NOTIFICATION_SERVICE_PORT: "8082"
+  NOTIFICATION_SERVICE_URI: "http://notification-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  TRUSTEES_CLIENT_ID: "trustees-service"
+  HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-stag-env"
+  MAIL_SENDER: "reply@onemeristem.meristemng.com"
+  MAILER_HOST: "live.smtp.mailtrap.io"
+  MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  SUPPORT_PHONE: "0700-MERISTEM"
+  SUPPORT_EMAIL: "support@onemeristem.com"
+  MAIL_SENDER_NAME: "One Meristem"
+  MAILER_PORT: "2525"
+  EXPO_URL: "https://exp.host/--/api/v2"
+  ENC_ALGORITHM: "AES"
+  ENC_ALGORITHM_GCM: "AES/GCM/NoPadding"
+  USER_SERVICE_URI: "http://users-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  HOLLA_TAGS_FROM: "maijamaa190"
+  MIDDLE_WARE_BASE_URL: "http://gateway-api-stag-env.middleware-core-app.svc.cluster.local:8080"
+
+# =============================================================================
+# SECRET ENV — keys match credentials-secret.yaml template exactly
+# CSMS secrets come from notification-service-secrets via SecretProviderClass
+# =============================================================================
+secretEnv:
+  # From credentials Kubernetes secret
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: ADMIN_PASSWORD
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: ENCRYPTION_KEY
+  # MAILER_HOST:
+  #   secretName: credentials
+  #   secretKey: MAILER_HOST           # moved from env — it is a secret
+  MAILER_USERNAME:
+    secretName: credentials
+    secretKey: MAILER_USERNAME
+  MAILER_PASSWORD:
+    secretName: credentials
+    secretKey: MAILER_PASSWORD
+  CREDIT_SWITCH_PUBLIC_KEY:
+    secretName: credentials
+    secretKey: CREDIT_SWITCH_PUBLIC_KEY
+  CREDIT_SWITCH_PRIVATE_KEY:
+    secretName: credentials
+    secretKey: CREDIT_SWITCH_PRIVATE_KEY
+  CREDIT_SWITCH_SMS_PASSWORD:
+    secretName: credentials
+    secretKey: CREDIT_SWITCH_SMS_PASSWORD
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: H2_PASSWORD
+  TRUSTEES_CLIENT_SECRET:
+    secretName: credentials
+    secretKey: TRUSTEES_CLIENT_SECRET
+  ENC_SALT:
+    secretName: credentials
+    secretKey: ENC_SALT
+  EXPO_PUSH_TOKEN:
+    secretName: credentials
+    secretKey: EXPO_TOKEN
+  ID_HASHING_SECRET:
+   secretName: credentials
+   secretKey: ID_HASHING_SECRET
+  WALLET_SECRET:
+    secretName: credentials
+    secretKey: WALLET_SECRET
+  MIDDLE_WARE_API_KEY:
+    secretName: credentials
+    secretKey: MIDDLE_WARE_API_KEY
+    
+  # From CSMS via SecretProviderClass
+  DB_SERVER:
+    secretName: notification-service-secrets
+    secretKey: DB_SERVER
+  NOTIFICATION_DB_NAME:
+    secretName: notification-service-secrets
+    secretKey: NOTIFICATION_DB_NAME
+  NOTIFICATION_DB_USERNAME:
+    secretName: notification-service-secrets
+    secretKey: NOTIFICATION_DB_USERNAME
+  NOTIFICATION_DB_PASSWORD:
+    secretName: notification-service-secrets
+    secretKey: NOTIFICATION_DB_PASSWORD
+  KAFKA_HOST_URL:
+    secretName: notification-service-secrets
+    secretKey: KAFKA_HOST_URL
+  REDIS_HOST:
+    secretName: notification-service-secrets
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: notification-service-secrets
+    secretKey: REDIS_PASSWORD
+
+# secretEnv:
+#   ADMIN_PASSWORD:
+#     secretName: credentials
+#     secretKey: key3
+#   ENCRYPTION_KEY:
+#     secretName: credentials
+#     secretKey: key4
+#   DB_SERVER:
+#     secretName: notification-service-secrets
+#     secretKey: DB_SERVER
+#   NOTIFICATION_DB_NAME:
+#     secretName: notification-service-secrets
+#     secretKey: NOTIFICATION_DB_NAME
+#   NOTIFICATION_DB_USERNAME:
+#     secretName: notification-service-secrets
+#     secretKey: NOTIFICATION_DB_USERNAME
+#   NOTIFICATION_DB_PASSWORD:
+#     secretName: notification-service-secrets
+#     secretKey: NOTIFICATION_DB_PASSWORD
+#   KAFKA_HOST_URL:
+#     secretName: notification-service-secrets
+#     secretKey: KAFKA_HOST_URL
+#   REDIS_HOST:
+#     secretName: notification-service-secrets
+#     secretKey: REDIS_HOST
+#   REDIS_PASSWORD:
+#     secretName: notification-service-secrets
+#     secretKey: REDIS_PASSWORD
+#   MAILER_USERNAME:
+#     secretName: credentials
+#     secretKey: key6
+#   MAILER_PASSWORD:
+#     secretName: credentials
+#     secretKey: key7
+#   CREDIT_SWITCH_PUBLIC_KEY:
+#     secretName: credentials
+#     secretKey: key8
+#   CREDIT_SWITCH_PRIVATE_KEY:
+#     secretName: credentials
+#     secretKey: key9
+#   CREDIT_SWITCH_SMS_PASSWORD:
+#     secretName: credentials
+#     secretKey: key10
+#   H2_PASSWORD:
+#     secretName: credentials
+#     secretKey: key13
+#   TRUSTEES_CLIENT_SECRET:
+#     secretName: credentials
+#     secretKey: key16
+#   ENC_SALT:
+#     secretName: credentials
+#     secretKey: key17
+#   EXPO_PUSH_TOKEN:
+#     secretName: credentials
+#     secretKey: key18
+
+# =============================================================================
+# VOLUMES & MOUNTS
+# =============================================================================
+volumeMounts:
+  - name: notification-service-secrets
+    mountPath: /mnt/secrets-store/notification-service
+    readOnly: true
+  - name: notification-data
+    mountPath: /mnt/notification
+  - name: secret-volume
+    mountPath: /etc/secrets-store/notification-service
+    readOnly: true
+
+volumes:
+  - name: notification-data
+    emptyDir: {}
+  - name: notification-service-secrets
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: notification-service-secrets
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+# =============================================================================
+# SERVICE
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8082
+  targetPort: 20030
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "20030"
+    prometheus.io/path: "/api/notification/actuator/prometheus"
+    # consul.hashicorp.com/service-name: "notification-service"
+    # consul.hashicorp.com/service-tags: "springboot,backend,notification"
+    # consul.hashicorp.com/service-meta-environment: "stag-env"
+    # consul.hashicorp.com/check-path: "/api/notification/actuator/health"
+    # consul.hashicorp.com/check-interval: "10s"
+    # consul.hashicorp.com/check-timeout: "5s"
+
+# =============================================================================
+# PROMETHEUS
+# =============================================================================
+prometheus:
+  enabled: true
+  path: /api/notification/actuator/prometheus
+  port: 20030
+
+# =============================================================================
+# INGRESS — lives in backend-repo/shared-resources
+# =============================================================================

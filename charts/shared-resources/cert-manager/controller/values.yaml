@@ -1,0 +1,112 @@
+# ============================================
+# Core Configuration
+# ============================================
+
+installCRDs: false   # ❗ CRDs handled separately
+
+global:
+  leaderElection:
+    namespace: cert-manager
+
+replicaCount: 2
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1    # Ensure at least 1 pod always running
+
+# Anti-affinity for pod distribution
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - cert-manager
+        topologyKey: kubernetes.io/hostname
+
+# ============================================
+# Components Configuration
+# ============================================
+
+# Webhook Component
+webhook:
+  enabled: true
+  replicaCount: 2    # HA for webhook
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# CA Injector Component
+cainjector:
+  enabled: true
+  replicaCount: 2    # HA for cainjector
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Startup API Check
+startupapicheck:
+  enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+
+# ============================================
+# Resource Management
+# ============================================
+resources:
+  requests:
+    cpu: 100m       
+    memory: 128Mi  
+  limits:
+    cpu: 300m       
+    memory: 312Mi   
+
+# ============================================
+# Security Configuration
+# ============================================
+securityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 1001      # Non-root user
+  fsGroup: 1001        # File system group
+
+# ============================================
+# ACME Solver Configuration (Huawei CCE)
+# ============================================
+extraArgs:
+  # DNS resolvers for ACME challenges
+  - --dns01-recursive-nameservers-only
+  - --dns01-recursive-nameservers=8.8.8.8:53,1.1.1.1:53
+  # HTTP-01 challenge nameservers
+  - --acme-http01-solver-nameservers=8.8.8.8:53,1.1.1.1:53
+  # Concurrent challenges
+  - --max-concurrent-challenges=60
+  # Cluster resource namespace
+  - --cluster-resource-namespace=cert-manager
+
+# ============================================
+# Monitoring (Optional)
+# ============================================
+prometheus:
+  enabled: true          
+  servicemonitor:
+    enabled: false        
+    interval: 60s

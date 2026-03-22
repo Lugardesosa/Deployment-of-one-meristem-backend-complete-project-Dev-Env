@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wealth-service.fullname" . }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "wealth-service.labels" . | nindent 4 }}
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "wealth-service.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.strategy.rollingUpdate.maxSurge }}
+  template:
+    metadata:
+      labels:
+        {{- include "wealth-service.labels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.prometheus.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.prometheus.path | quote }}
+        prometheus.io/port: {{ .Values.prometheus.port | quote }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.global.serviceAccountName | default "app-spc-sa" }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 60 }}
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node_pool
+                    operator: In
+                    values:
+                      - {{ .Values.nodePool }}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ include "wealth-service.name" . }}
+                topologyKey: kubernetes.io/hostname
+
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: {{ include "wealth-service.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.startup.path | default "/api/wealth/actuator/health" }}
+              port: {{ .Values.service.targetPort }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold | default 30 }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds | default 10 }}
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path | default "/api/wealth/actuator/health" }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 120 }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 40 }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 5 }}
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path | default "/api/wealth/actuator/health" }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 60 }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 30 }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 5 }}
+
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- range $name, $secret := .Values.secretEnv }}
+            - name: {{ $name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret.secretName }}
+                  key: {{ $secret.secretKey }}
+            {{- end }}
+
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+          {{- end }}
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
+
+      {{- if .Values.volumes }}
+      volumes:
+        {{- toYaml .Values.volumes | nindent 8 }}
+      {{- end }}

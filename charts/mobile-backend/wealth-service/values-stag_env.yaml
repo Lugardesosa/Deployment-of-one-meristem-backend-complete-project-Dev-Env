@@ -1,0 +1,316 @@
+##--------------------- WEALTH-SERVICE STAGING VALUES ---------------------
+## Spring Boot Wealth Service — wealth management, investments
+## Node pool: backend | Namespace: one-meristem-app
+## Port: 20070 (actuator/app) | Service port: 8082
+
+environment: stag-env
+
+global:
+  namespace: one-meristem-app
+  serviceAccountName: app-spc-sa
+  create: false
+
+# networkpolicy:
+#   enabled: false
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+replicaCount: 2
+
+image:
+  repository: swr.af-south-1.myhuaweicloud.com/swr-repo-one-meristem-app-stag-env/wealth-service
+  tag: ""
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: huawei-swr-auth
+
+terminationGracePeriodSeconds: 60
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+# =============================================================================
+# RESOURCES
+# =============================================================================
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "800m"
+    memory: "900Mi"
+
+# =============================================================================
+# HEALTH PROBES
+# =============================================================================
+probes:
+  startup:
+    path: /api/wealth/actuator/health
+    failureThreshold: 30
+    periodSeconds: 10
+
+  liveness:
+    path: /api/wealth/actuator/health
+    initialDelaySeconds: 120
+    periodSeconds: 40
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+  readiness:
+    path: /api/wealth/actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+# =============================================================================
+# SCHEDULING & AVAILABILITY
+# =============================================================================
+nodePool: one-meristem-backend
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node_pool
+              operator: In
+              values:
+                - one-meristem-backend
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - wealth-service-stag-env
+          topologyKey: kubernetes.io/hostname
+
+# =============================================================================
+# AUTOSCALING — CCE CustomedHPA
+# =============================================================================
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  minScaleStep: 1
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      percentValue: 100
+      podsValue: 2
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      percentValue: 25
+
+# =============================================================================
+# SECRET PROVIDER CLASS
+# =============================================================================
+secretProviderClass:
+  name: wealth-service-secrets
+  provider: cce
+  k8sSecretName: wealth-service-secrets
+
+# =============================================================================
+# NETWORK POLICY — egress to middleware namespace
+# Enable when middleware services are deployed
+# =============================================================================
+networkpolicy:
+  enabled: true    
+  middlewareNamespace: middleware-core-app
+  middlewarePorts:  
+    - 8080    # all middleware API services listen here
+
+nameOverride: ""
+fullnameOverride: ""
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+env:
+  COMPANY_NAME: "Meristem Securities Limited"
+  DATA_PRIVACY_POLICY_URL: "https://www.onemeristem.meristemng.com"
+  GREEN_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  WHITE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png"
+  FINANCE_LOGO_URL: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png"
+  GITHUB_BRANCH: "test_env"
+  APP_PROFILE: "staging"
+  ONE_APP_SERVER_URL: "https://onemeristemstag.meristemng.com"
+  ONE_APP_EMAIL: "hello@onemeristem.meristemng.com"
+  ADMIN_USERNAME: "admin"
+  CONFIG_SERVER_URI: "http://config-server-stag-env.one-meristem-app.svc.cluster.local:8082/config"
+  WEALTH_CLIENT_ID: "wealth-service"
+  WEALTH_SERVICE_HOSTNAME: "wealth-service-stag-env.one-meristem-app.svc.cluster.local"
+  WEALTH_SERVICE_PORT: "8082"
+  WEALTH_SERVICE_URI: "http://wealth-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  CONSUL_HOST: "consul-stag-env.one-meristem-app.svc.cluster.local"
+  USER_SERVICE_URI: "http://users-service-stag-env.one-meristem-app.svc.cluster.local:8082"
+  USER_SERVICE_HOSTNAME: "users-service-stag-env.one-meristem-app.svc.cluster.local"
+  HUAWEI_OBS_UNSTRUCTURED_BUCKET: "obs-unstructured-logo-one-meristem-stag-env"
+  MERISTEM_GREEN_LOGO: "https://obs-unstructured-logo-one-meristem-stag-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png"
+  SUPPORT_PHONE: "0700-MERISTEM"
+  SUPPORT_EMAIL: "support@onemeristem.com"
+  ENC_ALGORITHM: "AES"
+  ENC_ALGORITHM_GCM: "AES/GCM/NoPadding"
+  MIDDLE_WARE_BASE_URL: "http://gateway-api-stag-env.middleware-core-app.svc.cluster.local:8080"
+
+# =============================================================================
+# SECRET ENV — keys match credentials-secret.yaml template exactly
+# =============================================================================
+secretEnv:
+  # From credentials Kubernetes secret
+  ADMIN_PASSWORD:
+    secretName: credentials
+    secretKey: ADMIN_PASSWORD
+  ENCRYPTION_KEY:
+    secretName: credentials
+    secretKey: ENCRYPTION_KEY
+  H2_PASSWORD:
+    secretName: credentials
+    secretKey: H2_PASSWORD
+  WEALTH_CLIENT_SECRET:
+    secretName: credentials
+    secretKey: WEALTH_CLIENT_SECRET    # named key — no more key21 confusion
+  ENC_SALT:
+    secretName: credentials
+    secretKey: ENC_SALT
+  ID_HASHING_SECRET:
+    secretName: credentials
+    secretKey: ID_HASHING_SECRET
+  WALLET_SECRET:
+    secretName: credentials
+    secretKey: WALLET_SECRET
+  WEALTH_SECRET:
+    secretName: credentials
+    secretKey: WEALTH_SECRET
+  MIDDLE_WARE_API_KEY:
+    secretName: credentials
+    secretKey: MIDDLE_WARE_API_KEY
+    
+  # From CSMS via SecretProviderClass
+  DB_SERVER:
+    secretName: wealth-service-secrets
+    secretKey: DB_SERVER
+  WEALTH_DB_NAME:
+    secretName: wealth-service-secrets
+    secretKey: WEALTH_DB_NAME
+  WEALTH_DB_USERNAME:
+    secretName: wealth-service-secrets
+    secretKey: WEALTH_DB_USERNAME
+  WEALTH_DB_PASSWORD:
+    secretName: wealth-service-secrets
+    secretKey: WEALTH_DB_PASSWORD
+  KAFKA_HOST_URL:
+    secretName: wealth-service-secrets
+    secretKey: KAFKA_HOST_URL
+  REDIS_HOST:
+    secretName: wealth-service-secrets
+    secretKey: REDIS_HOST
+  REDIS_PASSWORD:
+    secretName: wealth-service-secrets
+    secretKey: REDIS_PASSWORD
+
+# secretEnv:
+#   ADMIN_PASSWORD:
+#     secretName: credentials
+#     secretKey: key3
+#   ENCRYPTION_KEY:
+#     secretName: credentials
+#     secretKey: key4
+#   DB_SERVER:
+#     secretName: wealth-service-secrets
+#     secretKey: DB_SERVER
+#   WEALTH_DB_NAME:
+#     secretName: wealth-service-secrets
+#     secretKey: WEALTH_DB_NAME
+#   WEALTH_DB_USERNAME:
+#     secretName: wealth-service-secrets
+#     secretKey: WEALTH_DB_USERNAME
+#   WEALTH_DB_PASSWORD:
+#     secretName: wealth-service-secrets
+#     secretKey: WEALTH_DB_PASSWORD
+#   KAFKA_HOST_URL:
+#     secretName: wealth-service-secrets
+#     secretKey: KAFKA_HOST_URL
+#   REDIS_HOST:
+#     secretName: wealth-service-secrets
+#     secretKey: REDIS_HOST
+#   REDIS_PASSWORD:
+#     secretName: wealth-service-secrets
+#     secretKey: REDIS_PASSWORD
+#   H2_PASSWORD:
+#     secretName: credentials
+#     secretKey: key13
+#   WEALTH_CLIENT_SECRET:
+#     secretName: credentials
+#     secretKey: key21          # confirm key number with credentials secret
+#   ENC_SALT:
+#     secretName: credentials
+#     secretKey: key17
+
+# =============================================================================
+# VOLUMES & MOUNTS
+# =============================================================================
+volumeMounts:
+  - name: wealth-service-secrets
+    mountPath: /mnt/secrets-store/wealth-service
+    readOnly: true
+  - name: wealth-data
+    mountPath: /mnt/wealth
+  - name: secret-volume
+    mountPath: /etc/secrets-store/wealth-service
+    readOnly: true
+
+volumes:
+  - name: wealth-data
+    emptyDir: {}
+  - name: wealth-service-secrets
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: wealth-service-secrets
+  - name: secret-volume
+    secret:
+      secretName: credentials
+
+# =============================================================================
+# SERVICE
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 8082
+  targetPort: 20070
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "20070"
+    prometheus.io/path: "/api/wealth/actuator/prometheus"
+    # consul.hashicorp.com/service-name: "wealth-service"
+    # consul.hashicorp.com/service-tags: "springboot,backend,wealth"
+    # consul.hashicorp.com/service-meta-environment: "stag-env"
+    # consul.hashicorp.com/check-path: "/api/wealth/actuator/health"
+    # consul.hashicorp.com/check-interval: "10s"
+    # consul.hashicorp.com/check-timeout: "5s"
+
+# =============================================================================
+# PROMETHEUS
+# =============================================================================
+prometheus:
+  enabled: true
+  path: /api/wealth/actuator/prometheus
+  port: 20070
+
+# =============================================================================
+# INGRESS — lives in backend-repo/shared-resources
+# =============================================================================
