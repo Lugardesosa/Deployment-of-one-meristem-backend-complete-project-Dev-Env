@@ -5,9 +5,9 @@ spring:
         enabled: true
   flyway:
     locations: 
-      - classpath:db/migration/__root
+      # - classpath:db/migration/__root
       - classpath:db/migration/notifications
-      - classpath:db/migration/wealth
+      # - classpath:db/migration/wealth
   kafka:
     consumer:
       group-id: ${spring.cloud.config.profile}-core-service
