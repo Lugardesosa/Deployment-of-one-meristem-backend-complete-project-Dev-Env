@@ -203,8 +203,8 @@ jobs:
           # 2. Detect helm-only changes (chart changed, no source)
           # -------------------------------------------------------
           HELM_CHANGED_SERVICES=$(echo "$CHANGED_FILES" \
-            | grep -E "^charts/apps/mobile-backend/" \
-            | cut -d'/' -f4 \
+            | grep -E "^charts/mobile-backend/" \
+            | cut -d'/' -f3 \
             | sort -u \
             | xargs || true)
 
@@ -565,7 +565,7 @@ jobs:
             REPO_ONLY=$(echo "$full_ref" | cut -d':' -f1)
             TAG_ONLY=$(echo "$full_ref" | cut -d':' -f2)
 
-            VALUES_FILE="charts/apps/mobile-backend/${svc}/${{ env.VALUES_FILE }}"
+            VALUES_FILE="charts/mobile-backend/${svc}/${{ env.VALUES_FILE }}"
 
             if [ ! -f "$VALUES_FILE" ]; then
               echo "WARN: Values file not found for $svc → $VALUES_FILE — skipping"
@@ -606,7 +606,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git add charts/apps/mobile-backend/
+          git add charts/mobile-backend/
 
           if git diff --cached --quiet; then
             echo "No changes to values files — already up to date."
