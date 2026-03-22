@@ -1,4 +1,8 @@
 spring:
+  modulith:
+    runtime:
+      flyway:
+        enabled: true
   flyway:
     locations: classpath:db/migration
   kafka:
