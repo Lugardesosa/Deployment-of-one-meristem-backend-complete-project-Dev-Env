@@ -5,8 +5,9 @@ spring:
         enabled: true
   flyway:
     locations: 
+      - classpath:db/migration/
       # - classpath:db/migration/__root
-      - classpath:db/migration/notifications
+      # - classpath:db/migration/notifications
       # - classpath:db/migration/wealth
   kafka:
     consumer:
