@@ -1,14 +1,14 @@
 spring:
-  modulith:
-    runtime:
-      flyway:
-        enabled: true
-  flyway:
-    locations: 
-      - classpath:db/migration/
-      # - classpath:db/migration/__root
-      # - classpath:db/migration/notifications
-      # - classpath:db/migration/wealth
+  # modulith:
+  #   runtime:
+  #     flyway:
+  #       enabled: true
+  # flyway:
+  #   locations: 
+  #     - classpath:db/migration/
+  #     # - classpath:db/migration/__root
+  #     # - classpath:db/migration/notifications
+  #     # - classpath:db/migration/wealth
   kafka:
     consumer:
       group-id: ${spring.cloud.config.profile}-core-service
