@@ -1,0 +1,90 @@
+spring:
+  kafka:
+    consumer:
+      group-id: ${spring.cloud.config.profile}-core-service
+
+  cloud:
+    consul:
+      discovery:
+        metadata:
+          contextPath: ${one-app.core-service.context-path}
+        health-check-path: ${one-app.core-service.context-path}/actuator/health
+        enabled: true
+        fail-fast: true
+        catalogServicesWatch:
+          enabled: false
+        hostname: ${CORE_SERVICE_HOSTNAME}
+        port: ${CORE_SERVICE_PORT}
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        health-check-interval: 60s
+      host: ${CONSUL_HOST}
+
+
+  mail:
+    host: ${MAILER_HOST}
+    username: ${MAILER_USERNAME}
+    port: ${MAILER_PORT}
+    password: ${MAILER_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+
+server:
+  port: 20030
+  servlet:
+    context-path: ${one-app.core-service.context-path}
+
+notification-service:
+    one-app:
+      notification-service:
+        context-path: /api/notification
+        application-name: notification-service
+        mail-sender: ${MAIL_SENDER}
+        mail-sender-name: ${MAIL_SENDER_NAME}
+
+    credit-switch:
+      login-id: ${CREDIT_SWITCH_LOGIN_ID}
+      public-key: ${CREDIT_SWITCH_PUBLIC_KEY}
+      private-key: ${CREDIT_SWITCH_PRIVATE_KEY}
+      sender-id: ${CREDIT_SWITCH_SMS_SENDER_ID}
+      base-url: ${CREDIT_SWITCH_SMS_BASEURL}
+      password: ${CREDIT_SWITCH_SMS_PASSWORD}
+
+
+    holla-tags:
+      base-url: ${HOLLA_TAGS_BASE_URL}
+      user: ${HOLLA_TAGS_USER}
+      from: ${HOLLA_TAGS_FROM}
+      pass: ${HOLLA_TAGS_PASS}
+      callbackUrl: ${HOLLATAGS_CALLBACK_URL}
+
+
+    expo:
+      push:
+        notifications:
+          token: ${EXPO_PUSH_TOKEN}
+      query:
+        receipts:
+          cron: 0 */20 * * * *
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      expo:
+        sliding-window-type: COUNT_BASED
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10
+        register-health-indicator: true
+  retry:
+    instances:
+      expo:
+        max-attempts: 4
+        wait-duration: 1000
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2

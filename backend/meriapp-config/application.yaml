@@ -122,6 +122,12 @@ one-app:
     context-path: /api/notification
     application-name: notification-service
 
+  
+  #  CORE SERVICE
+  core-service:
+    context-path: /api/core
+    application-name: core-service
+
   # GATEWAY SERVICE
   gateway-service:
     context-path:
@@ -135,6 +141,7 @@ one-app:
     report-service: http://${one-app.report-service.application-name}${one-app.report-service.context-path}
     users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
     notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
+    core-service: http://${one-app.core-service.application-name}${one-app.core-service.context-path}
 
   middle-ware:
     base-url: ${MIDDLE_WARE_BASE_URL}
