@@ -71,6 +71,15 @@ spring:
             provider: users-service
             scope:
               - verify.pin
+          
+          core-service:
+            client-id: ${CORE_CLIENT_ID}
+            client-secret: ${CORE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            provider: users-service
+            scope:
+              - verify.pin
 
         provider:
           users-service:
