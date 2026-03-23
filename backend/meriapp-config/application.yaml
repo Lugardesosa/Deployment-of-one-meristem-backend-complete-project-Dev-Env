@@ -81,7 +81,7 @@ spring:
             scope:
               - verify.pin
 
-          notification-services:
+          notification-service:
             client-id: ${NOTIFICATION_CLIENT_ID}
             client-secret: ${NOTIFICATION_CLIENT_SECRET}
             authorization-grant-type: client_credentials
