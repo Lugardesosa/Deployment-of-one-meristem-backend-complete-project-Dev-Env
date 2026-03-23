@@ -78,8 +78,6 @@ spring:
             authorization-grant-type: client_credentials
             client-authentication-method: client_secret_basic
             provider: users-service
-            scope:
-              - verify.pin
 
           notification-service:
             client-id: ${NOTIFICATION_CLIENT_ID}
