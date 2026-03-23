@@ -60,6 +60,11 @@ notification-service:
       pass: ${HOLLA_TAGS_PASS}
       callbackUrl: ${HOLLATAGS_CALLBACK_URL}
 
+    one-signal:
+      base-url: ${ONE_SIGNAL_BASE_URL}
+      app-id: ${ONE_SIGNAL_APP_ID}
+      api-key: ${ONE_SIGNAL_API_KEY}
+
     expo:
       push:
         notifications:
