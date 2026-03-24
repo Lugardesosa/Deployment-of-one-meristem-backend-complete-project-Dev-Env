@@ -8,6 +8,7 @@ import org.meristem.oneapp.coreservices.notifications.domains.responses.UserDevi
 
 public interface IUserDeviceRegistrationService {
     UserDeviceRegistrationResponse registerUserDevice(UserDeviceRegistrationRequest request);
+    UserDeviceRegistrationResponse registerUserDeviceOneSignal(UserDeviceRegistrationRequest request);
     UserDeviceRegistrationResponse updateUserDeviceExpo(@Valid UserDeviceUpdateRequest request);
     UserDeviceRegistrationResponse updateUserDeviceOneSignal(@Valid OneSignalUserDeviceUpdateRequest request);
 }

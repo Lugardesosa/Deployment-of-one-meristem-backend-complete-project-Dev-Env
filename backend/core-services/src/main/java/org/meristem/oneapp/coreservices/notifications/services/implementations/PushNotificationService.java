@@ -114,13 +114,14 @@ public class PushNotificationService implements IPushNotificationService {
                 .contents(new OneSignalPushNotificationRequest.Contents(notifications.body()))
                 .subscriptionIds(to)
                 .build();
-        OneSignalPushNotificationResponse response = oneSignalClient.sendPushNotification(request);
+        OneSignalPushNotificationResponse response = oneSignalClient.sendPushNotification("push", request);
 
         log.info("Push notification sent to {} users, response id: {}", to.size(), response.id());
     }
 
     @Override
     public void recoverPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {
-        kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
+        log.error(throwable.getMessage());
+//        kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
     }
 }

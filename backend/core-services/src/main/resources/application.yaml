@@ -20,3 +20,9 @@ spring:
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
+
+
+logging:
+  level:
+    org.springframework.messaging: TRACE
+    org.springframework.web.socket: TRACE

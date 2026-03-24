@@ -35,7 +35,7 @@ import java.util.Map;
 public class PushNotificationService implements IPushNotificationService {
 
 
-    @Value("${notification-service.expo.push.notifications.token}")
+    @Value("${expo.push.notifications.token}")
     private String expoToken;
     private final UserExpoTokensRepository userExpoTokensRepository;
     private final OneSignalSubscriptionsRepository oneSignalSubscriptionsRepository;

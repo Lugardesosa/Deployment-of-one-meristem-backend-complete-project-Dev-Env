@@ -45,6 +45,21 @@ public class UserDeviceRegistrationService implements IUserDeviceRegistrationSer
         return new UserDeviceRegistrationResponse("Created", true);
     }
 
+    public UserDeviceRegistrationResponse registerUserDeviceOneSignal(UserDeviceRegistrationRequest request) {
+
+        if (userExpoTokensRepository.existsByExpoToken(request.expoToken())) {
+            throw new BadRequestException("Token already registered");
+        }
+        OneSignalSubscriptions userExpoTokens = OneSignalSubscriptions.builder().subscriptionId(request.expoToken())
+                .deviceId(request.deviceId()).build();
+        Long authUserId = AppUtil.getAuthUserId();
+        if (authUserId != null) {
+            userExpoTokens.setUserId(authUserId);
+        }
+        customRepository.save(userExpoTokens);
+        return new UserDeviceRegistrationResponse("Created", true);
+    }
+
     public UserDeviceRegistrationResponse updateUserDeviceExpo(@Valid UserDeviceUpdateRequest request) {
 
         UserExpoTokens userExpoTokens = userExpoTokensRepository.findOneByDeviceId(request.deviceId()).orElseThrow(() -> new BadRequestException("Device not found"));
