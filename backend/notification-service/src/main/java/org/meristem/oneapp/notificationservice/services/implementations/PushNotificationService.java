@@ -5,12 +5,17 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.kafka.dtos.PushNotificationDto;
+import org.meristem.oneapp.notificationservice.config.configProperties.OneSignalProperties;
 import org.meristem.oneapp.notificationservice.constants.KafkaTopics;
 import org.meristem.oneapp.notificationservice.integrations.ExpoPushNotificationClient;
+import org.meristem.oneapp.notificationservice.integrations.OneSignalClient;
 import org.meristem.oneapp.notificationservice.integrations.requests.ExpoPushNotificationRequest;
+import org.meristem.oneapp.notificationservice.integrations.requests.OneSignalPushNotificationRequest;
 import org.meristem.oneapp.notificationservice.integrations.responses.ExpoPushNotificationResponse;
+import org.meristem.oneapp.notificationservice.integrations.responses.OneSignalPushNotificationResponse;
 import org.meristem.oneapp.notificationservice.models.ExpoNotificationTicket;
 import org.meristem.oneapp.notificationservice.repositories.CustomRepository;
+import org.meristem.oneapp.notificationservice.repositories.OneSignalSubscriptionsRepository;
 import org.meristem.oneapp.notificationservice.repositories.UserExpoTokensRepository;
 import org.meristem.oneapp.notificationservice.services.IKafkaSenderService;
 import org.meristem.oneapp.notificationservice.services.IPushNotificationService;
@@ -29,15 +34,20 @@ import java.util.Map;
 @Slf4j
 public class PushNotificationService implements IPushNotificationService {
 
-    @Value("${expo.push.notifications.token}")
+
+    @Value("${notification-service.expo.push.notifications.token}")
     private String expoToken;
     private final UserExpoTokensRepository userExpoTokensRepository;
+    private final OneSignalSubscriptionsRepository oneSignalSubscriptionsRepository;
     private final ExpoPushNotificationClient expoPushNotificationClient;
     private final IKafkaSenderService kafkaSenderService;
     private final CustomRepository customRepository;
+    private final OneSignalProperties onesignalProperties;
+    private final OneSignalClient oneSignalClient;
 
-    @CircuitBreaker(name = "expo", fallbackMethod = "recoverPushNotificationCircuit")
-    public void sendPushNotification(PushNotificationDto notifications) {
+//    @CircuitBreaker(name = "expo", fallbackMethod = "recoverExpoPushNotificationCircuit")
+    @Override
+    public void sendExpoPushNotification(PushNotificationDto notifications) {
 
         List<String> to = new ArrayList<>();
 
@@ -78,7 +88,39 @@ public class PushNotificationService implements IPushNotificationService {
         log.info("Push notification sent to {} users", tickets.size());
     }
 
-    public void recoverPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {
-        kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
+//    public void recoverExpoPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {
+//        kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
+//    }
+
+    @Override
+//    @CircuitBreaker(name = "one-signal", fallbackMethod = "recoverPushNotificationCircuit")
+    public void sendPushNotification(PushNotificationDto notifications) {
+
+        List<String> to = new ArrayList<>();
+
+        if (notifications.toAll()) {
+            to.addAll(oneSignalSubscriptionsRepository.findAllSubscriptionIds());
+        }
+        if (notifications.userId() != null) {
+            to.addAll(oneSignalSubscriptionsRepository.findAllSubscriptionIdsByUserId(notifications.userId()));
+        } else {
+            return;
+        }
+        if (to.isEmpty()) {
+            return;
+        }
+        OneSignalPushNotificationRequest request = OneSignalPushNotificationRequest.builder()
+                .appId(onesignalProperties.appId())
+                .contents(new OneSignalPushNotificationRequest.Contents(notifications.body()))
+                .subscriptionIds(to)
+                .build();
+        OneSignalPushNotificationResponse response = oneSignalClient.sendPushNotification("push", request);
+
+        log.info("Push notification sent to {} users, response id: {}", to.size(), response.id());
     }
+
+//    public void recoverPushNotificationCircuit(PushNotificationDto notifications, Throwable throwable) {
+//        log.error(throwable.getMessage());
+//        kafkaSenderService.send(notifications, Map.of(KafkaHeaders.TOPIC, KafkaTopics.KAFKA_PUSH_NOTIFICATION_TOPIC));
+//    }
 }

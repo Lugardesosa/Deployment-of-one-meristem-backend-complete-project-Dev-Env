@@ -1,4 +1,4 @@
-package org.meristem.oneapp.coreservices.notifications.config;
+package org.meristem.oneapp.coreservices.shared.config;
 
 
 import org.springframework.context.annotation.Configuration;

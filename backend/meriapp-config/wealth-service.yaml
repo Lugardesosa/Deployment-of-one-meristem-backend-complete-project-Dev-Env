@@ -24,3 +24,9 @@ server:
   servlet:
     context-path: ${one-app.wealth-service.context-path}
 
+
+one-app:
+  middleware:
+    base-url: ${MIDDLEWARE_BASE_URL}
+    client-name: MiddlewareClient
+    api-key: ${MIDDLEWARE_API_KEY}

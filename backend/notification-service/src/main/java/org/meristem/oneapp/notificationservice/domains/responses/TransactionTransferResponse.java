@@ -1,4 +1,6 @@
 package org.meristem.oneapp.notificationservice.domains.responses;
 
-public record TransactionTransferResponse() {
+import java.math.BigDecimal;
+
+public record TransactionTransferResponse(BigDecimal amount, String customerId, String currency) {
 }
