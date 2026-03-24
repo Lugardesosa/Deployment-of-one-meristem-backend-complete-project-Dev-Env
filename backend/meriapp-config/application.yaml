@@ -160,10 +160,10 @@ one-app:
     notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
     core-services: http://${one-app.core-services.application-name}${one-app.core-services.context-path}
 
-  middle-ware:
-    base-url: ${MIDDLE_WARE_BASE_URL}
-    api-key: ${MIDDLE_WARE_API_KEY}
-    client-name: MiddleWare
+  middleware:
+    base-url: ${MIDDLEWARE_BASE_URL}
+    client-name: MiddlewareClient
+    api-key: ${MIDDLEWARE_API_KEY}
 
 logging:
   file:
