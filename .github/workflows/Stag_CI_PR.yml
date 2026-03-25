@@ -32,8 +32,8 @@ env:
   # SERVICE DEFINITIONS
   # =====================================================
   SERVICES_DIR: backend
-  JAVA_21_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service"
-  JAVA_25_SERVICES: "wealth-service"
+  JAVA_21_SERVICES: "config-server cloud-gateway users-service trustees-service report-service"
+  JAVA_25_SERVICES: "wealth-service notification-service wallet-service "
   ALL_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service wealth-service"
 
   # =====================================================
