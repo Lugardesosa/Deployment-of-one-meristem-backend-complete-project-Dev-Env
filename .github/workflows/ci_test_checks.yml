@@ -159,7 +159,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'maven'
 
       - name: Verify Java Installation
         run: |
@@ -354,7 +353,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25-ea'
-          cache: 'maven'
 
       - name: Verify Java Installation
         run: |
