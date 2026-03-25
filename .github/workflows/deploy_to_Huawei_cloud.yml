@@ -242,9 +242,9 @@ jobs:
                   echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
                   ;;
                 # Add future Java 25+ services here:
-                # another-service)
-                #   echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
-                #   ;;
+                notification-service)
+                  echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
+                  ;;
                 
                 # Default: Java 21 (jammy builder)
                 *)
@@ -307,7 +307,7 @@ jobs:
 
             for svc in \$CHANGED_SERVICES; do
               case \$svc in
-                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|wealth-service|trustees-service)
+                cloud-gateway|users-service|config-server|wallet-service|report-service|wealth-service|trustees-service)
                   if [ -d "\$svc" ]; then
                     if build_service "\$svc"; then
                       echo "Build successful: \$svc"
