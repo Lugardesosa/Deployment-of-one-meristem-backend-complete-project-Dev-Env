@@ -29,7 +29,6 @@ public class TBillService implements ITBillService {
     public TBillRateResponse getTBillRate(String instrumentId) {
         return middlewareMapper.middlewareTBillRateResponseToTBillRateResponse(middleWareClient.getTBillRate(instrumentId).data());
     }
-    //
     @Override
     public TBillPreviewResponse previewTBillPurchase(TBillPreviewRequest request) {
         return middlewareMapper.middlewareTBillPreviewResponseToTBillPreviewResponse(
