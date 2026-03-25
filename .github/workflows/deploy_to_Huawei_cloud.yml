@@ -245,7 +245,9 @@ jobs:
                 notification-service)
                   echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
                   ;;
-                
+                wallet-service)
+                  echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
+                  ;; 
                 # Default: Java 21 (jammy builder)
                 *)
                   echo "paketobuildpacks/builder-jammy-base 21"

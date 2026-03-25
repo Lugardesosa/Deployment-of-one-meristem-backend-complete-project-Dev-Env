@@ -18,9 +18,9 @@ env:
   # SERVICE JAVA VERSION MAPPING based on Java Versions
   # =====================================================
   # Java 21 Services (LTS)
-  JAVA_21_SERVICES: "config-server cloud-gateway users-service notification-service wallet-service trustees-service report-service"
+  JAVA_21_SERVICES: "config-server cloud-gateway users-service trustees-service report-service"
   # Java 25 Services (Latest)
-  JAVA_25_SERVICES: "wealth-service"
+  JAVA_25_SERVICES: "wealth-service notification-service wallet-service"
 
 
 jobs:
