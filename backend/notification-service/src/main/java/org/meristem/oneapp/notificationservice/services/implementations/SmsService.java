@@ -32,6 +32,7 @@ import java.util.*;
 @Slf4j
 public class SmsService implements NotificationService<MessageDto> {
 
+    //
     private final CreditSwitchClient creditSwitchClient;
     private final HollaTagsClient hollaTagsClient;
     private final MessageDtoToMessageMapper messageMapper = MessageDtoToMessageMapper.INSTANCE;

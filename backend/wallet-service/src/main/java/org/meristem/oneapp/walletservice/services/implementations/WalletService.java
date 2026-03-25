@@ -20,6 +20,7 @@ public class WalletService implements IWalletService {
 
     private final WalletRepository walletRepository;
 
+    //
     public void createWallet(KycCompletedDto kycCompletedDto) {
     }
 
