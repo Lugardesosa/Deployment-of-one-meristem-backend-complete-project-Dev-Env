@@ -17,7 +17,9 @@ import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.notificationservice.constants.AppConstants;
 import org.meristem.oneapp.notificationservice.dtos.configs.BufferingClientHttpResponseWrapper;
 import org.meristem.oneapp.notificationservice.exception.exceptions.BadRequestException;
+import org.meristem.oneapp.notificationservice.exception.exceptions.ResourceNotFoundException;
 import org.meristem.oneapp.notificationservice.exception.exceptions.UpstreamServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +40,6 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,14 +48,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
-@Configuration
+@Configuration()
 public class RestClientConfig {
 
     public static final String REDACTED = "[REDACTED]";
-    private final List<String> bodyToSanitize = List.of("password", "pin", "secret", "token", "authorization", "bvn", "nin", "BVN", "NIN", "API_KEY", "API-KEY", "Connection");
+    @Value("${what-to-sanitize}")
+    private List<String> bodyToSanitize;
 
     @Bean
     @Primary
@@ -64,6 +67,8 @@ public class RestClientConfig {
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }
 
+    @Bean
+    @Primary
     private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
 
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
@@ -108,7 +113,9 @@ public class RestClientConfig {
             public void handleError(@NonNull URI url, @NonNull HttpMethod method, @NonNull ClientHttpResponse response) throws IOException {
                 HttpStatusCode status = response.getStatusCode();
 
-                if (status.is4xxClientError()) {
+                if (status.value() == 404) {
+                    throw new ResourceNotFoundException("Check your request. Response message: " + response.getStatusText(), "", "");
+                } else if (status.is4xxClientError()) {
                     throw new BadRequestException("Check your request body. Response message: " + response.getStatusText());
                 } else if (status.is5xxServerError()) {
                     throw new UpstreamServiceException("Upstream Server error. Response message: " + response.getStatusText());
@@ -124,11 +131,11 @@ public class RestClientConfig {
 
             @NonNull
             @Override
-            public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull[] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
+            public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull [] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
 
-                long startTime = System.nanoTime() / 1_000_000;
+                long startTime = System.nanoTime() / 1_000_000L;
                 ClientHttpResponse response = execution.execute(request, body);
-                long endTime = System.nanoTime() / 1_000_000;
+                long endTime = System.nanoTime() / 1_000_000L;
 
                 byte[] responseBodyBytes = StreamUtils.copyToByteArray(response.getBody());
 
@@ -156,8 +163,11 @@ public class RestClientConfig {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            HashMap<String, Object> bodyRequest = requestBody.isBlank() || !requestHeaders.containsValue(Collections.singletonList(MediaType.APPLICATION_JSON_VALUE)) ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
-            HashMap<String, Object> bodyResponse = responseBody.isBlank() || !requestHeaders.containsValue(Collections.singletonList(MediaType.APPLICATION_JSON_VALUE)) ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
+            String firstContentType = requestHeaders.getFirst("Content-Type");
+            HashMap<String, Object> bodyRequest = requestBody.isBlank() || isNull(firstContentType) || !firstContentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {
+            });
+            HashMap<String, Object> bodyResponse = responseBody.isBlank() || isNull(firstContentType) || !firstContentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {
+            });
 
             MediaType requestHeadersContentType = requestHeaders.getContentType();
             MediaType responseHeadersContentType = responseHeaders.getContentType();
@@ -170,11 +180,11 @@ public class RestClientConfig {
             boolean requestContentTypeIsText = nonNull(requestHeadersContentType) && requestHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
             boolean responseContentTypeIsText = nonNull(responseHeadersContentType) && responseHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
 
-            bodyRequest = sanitizeBody(bodyRequest);
-            bodyResponse = sanitizeBody(bodyResponse);
+            sanitizeBody(bodyRequest);
+            sanitizeBody(bodyResponse);
 
-            HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);
-            HashMap<String, List<String>> responseHeaders1 = new HashMap<>(responseHeaders);
+            HashMap<String, String> requestHeaders1 = new HashMap<>(requestHeaders.toSingleValueMap());
+            HashMap<String, String> responseHeaders1 = new HashMap<>(responseHeaders.toSingleValueMap());
             sanitizeHeaders(requestHeaders1, responseHeaders1);
             Map<String, Object> logInfo = new HashMap<>();
             logInfo.put("status", status);
@@ -206,20 +216,16 @@ public class RestClientConfig {
         return response;
     }
 
-    private void sanitizeHeaders(Map<String, List<String>> requestHeaders, Map<String, List<String>> responseHeaders) {
+    private void sanitizeHeaders(Map<String, String> requestHeaders, Map<String, String> responseHeaders) {
 
         bodyToSanitize.forEach(k -> {
-            requestHeaders.forEach((key, value) -> {
-                if (key.equals(k)) {
-                    requestHeaders.put(k, Collections.singletonList(REDACTED));
-                }
-            });
+            if (requestHeaders.containsKey(k)) {
+                requestHeaders.put(k, REDACTED);
+            }
 
-            responseHeaders.forEach((key, value) -> {
-                if (key.equals(k)) {
-                    responseHeaders.put(k, Collections.singletonList(REDACTED));
-                }
-            });
+            if (responseHeaders.containsKey(k)) {
+                responseHeaders.put(k, REDACTED);
+            }
         });
     }
 
@@ -234,7 +240,7 @@ public class RestClientConfig {
                     ? URLDecoder.decode(parts[1], StandardCharsets.UTF_8)
                     : "";
 
-            result.computeIfAbsent(key, k -> value);
+            result.computeIfAbsent(key, _ -> value);
         }
 
         return result;

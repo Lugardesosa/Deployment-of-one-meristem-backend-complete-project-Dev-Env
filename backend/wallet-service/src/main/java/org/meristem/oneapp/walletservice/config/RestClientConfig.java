@@ -48,11 +48,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
 @Configuration
 public class RestClientConfig {
+
 
     public static final String REDACTED = "[REDACTED]";
     @Value("${what-to-sanitize}")
@@ -66,6 +68,8 @@ public class RestClientConfig {
                 .defaultStatusHandler(errorHandler()).requestInterceptor(requestInterceptor());
     }
 
+    @Bean
+    @Primary
     private static @NonNull HttpComponentsClientHttpRequestFactory getRequestFactory() {
 
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
@@ -78,7 +82,7 @@ public class RestClientConfig {
         connectionManager.setDefaultMaxPerRoute(5);
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectionRequestTimeout(Timeout.ofSeconds(3))
-                .setResponseTimeout(Timeout.ofSeconds(10))
+                .setResponseTimeout(Timeout.ofSeconds(8))
                 .build();
 
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager)
@@ -89,7 +93,7 @@ public class RestClientConfig {
         return new HttpComponentsClientHttpRequestFactory(httpClient);
     }
 
-    @Bean
+    @Bean("restClientBuilderInternal")
     @LoadBalanced
     public RestClient.Builder restClientBuilderInternal(ObservationRegistry observationRegistry) {
         HttpComponentsClientHttpRequestFactory requestFactory = getRequestFactory();
@@ -113,7 +117,7 @@ public class RestClientConfig {
                 if (status.value() == 404) {
                     throw new ResourceNotFoundException("Check your request. Response message: " + response.getStatusText(), "", "");
                 } else if (status.is4xxClientError()) {
-                    throw new BadRequestException("Check your request. Response message: " + response.getStatusText());
+                    throw new BadRequestException("Check your request body. Response message: " + response.getStatusText());
                 } else if (status.is5xxServerError()) {
                     throw new UpstreamServiceException("Upstream Server error. Response message: " + response.getStatusText());
                 } else {
@@ -160,8 +164,11 @@ public class RestClientConfig {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
 
-            HashMap<String, Object> bodyRequest = requestBody.isBlank() || !requestHeaders.containsValue(Collections.singletonList(MediaType.APPLICATION_JSON_VALUE)) ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {});
-            HashMap<String, Object> bodyResponse = responseBody.isBlank() || !requestHeaders.containsValue(Collections.singletonList(MediaType.APPLICATION_JSON_VALUE)) ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {});
+            String firstContentType = requestHeaders.getFirst("Content-Type");
+            HashMap<String, Object> bodyRequest = requestBody.isBlank() || isNull(firstContentType) || !firstContentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) ? new HashMap<>() : objectMapper.readValue(requestBody, new TypeReference<>() {
+            });
+            HashMap<String, Object> bodyResponse = responseBody.isBlank() || isNull(firstContentType) || !firstContentType.equalsIgnoreCase(MediaType.APPLICATION_JSON_VALUE) ? new HashMap<>() : objectMapper.readValue(responseBody, new TypeReference<>() {
+            });
 
             MediaType requestHeadersContentType = requestHeaders.getContentType();
             MediaType responseHeadersContentType = responseHeaders.getContentType();
@@ -174,13 +181,12 @@ public class RestClientConfig {
             boolean requestContentTypeIsText = nonNull(requestHeadersContentType) && requestHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
             boolean responseContentTypeIsText = nonNull(responseHeadersContentType) && responseHeadersContentType.toString().contains(MediaType.TEXT_HTML_VALUE);
 
-            bodyRequest = sanitizeBody(bodyRequest);
-            bodyResponse = sanitizeBody(bodyResponse);
+            sanitizeBody(bodyRequest);
+            sanitizeBody(bodyResponse);
 
-            HashMap<String, List<String>> requestHeaders1 = new HashMap<>(requestHeaders);
-            HashMap<String, List<String>> responseHeaders1 = new HashMap<>(responseHeaders);
+            HashMap<String, String> requestHeaders1 = new HashMap<>(requestHeaders.toSingleValueMap());
+            HashMap<String, String> responseHeaders1 = new HashMap<>(responseHeaders.toSingleValueMap());
             sanitizeHeaders(requestHeaders1, responseHeaders1);
-
             Map<String, Object> logInfo = new HashMap<>();
             logInfo.put("status", status);
             logInfo.put("method", method);
@@ -211,23 +217,18 @@ public class RestClientConfig {
         return response;
     }
 
-    private void sanitizeHeaders(Map<String, List<String>> requestHeaders, Map<String, List<String>> responseHeaders) {
+    private void sanitizeHeaders(Map<String, String> requestHeaders, Map<String, String> responseHeaders) {
 
         bodyToSanitize.forEach(k -> {
-            requestHeaders.forEach((key, value) -> {
-                if (key.equals(k)) {
-                    requestHeaders.put(k, Collections.singletonList(REDACTED));
-                }
-            });
+            if (requestHeaders.containsKey(k)) {
+                requestHeaders.put(k, REDACTED);
+            }
 
-            responseHeaders.forEach((key, value) -> {
-                if (key.equals(k)) {
-                    responseHeaders.put(k, Collections.singletonList(REDACTED));
-                }
-            });
+            if (responseHeaders.containsKey(k)) {
+                responseHeaders.put(k, REDACTED);
+            }
         });
     }
-
 
     public static HashMap<String, Object> parseUrlEncoded(String input) {
         HashMap<String, Object> result = new HashMap<>();
@@ -240,7 +241,7 @@ public class RestClientConfig {
                     ? URLDecoder.decode(parts[1], StandardCharsets.UTF_8)
                     : "";
 
-            result.computeIfAbsent(key, k -> value);
+            result.computeIfAbsent(key, _ -> value);
         }
 
         return result;

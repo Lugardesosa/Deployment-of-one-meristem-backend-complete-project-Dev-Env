@@ -1,5 +1,6 @@
 spring:
-
+  flyway:
+    locations: classpath:db/migration/postgres
   datasource:
     url: ${DB_SERVER}/${TRUSTEES_DB_NAME}
     password: ${TRUSTEES_DB_PASSWORD}
