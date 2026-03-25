@@ -79,6 +79,9 @@ one-app:
   wealth-service:
     secret: ${WEALTH_SECRET}
     name: WealthService
+  core-services:
+    secret: ${CORE_SECRET}
+    name: CoreServices
 
 
 logging:

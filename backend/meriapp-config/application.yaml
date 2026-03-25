@@ -33,7 +33,7 @@ spring:
       bootstrap-servers: ${KAFKA_HOST_URL}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      auto-offset-reset: earliest
+      auto-offset-reset: latest
       properties:
         spring.json.trusted.packages: 'org.meristem.oneapp.kafka.*'
 
@@ -71,6 +71,23 @@ spring:
             provider: users-service
             scope:
               - verify.pin
+          
+          core-services:
+            client-id: ${CORE_CLIENT_ID}
+            client-secret: ${CORE_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            provider: users-service
+
+          notification-service:
+            client-id: ${NOTIFICATION_CLIENT_ID}
+            client-secret: ${NOTIFICATION_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            provider: users-service
+            scope:
+              - user.user_id
+              - user.customer_ids
 
         provider:
           users-service:
@@ -122,6 +139,12 @@ one-app:
     context-path: /api/notification
     application-name: notification-service
 
+  
+  #  CORE SERVICE
+  core-services:
+    context-path: /api/core
+    application-name: core-services
+
   # GATEWAY SERVICE
   gateway-service:
     context-path:
@@ -135,11 +158,12 @@ one-app:
     report-service: http://${one-app.report-service.application-name}${one-app.report-service.context-path}
     users-service: http://${one-app.users-service.application-name}${one-app.users-service.context-path}
     notification-service: http://${one-app.notification-service.application-name}${one-app.notification-service.context-path}
+    core-services: http://${one-app.core-services.application-name}${one-app.core-services.context-path}
 
-  middle-ware:
-    base-url: ${MIDDLE_WARE_BASE_URL}
-    api-key: ${MIDDLE_WARE_API_KEY}
-    client-name: MiddleWare
+  middleware:
+    base-url: ${MIDDLEWARE_BASE_URL}
+    client-name: MiddlewareClient
+    api-key: ${MIDDLEWARE_API_KEY}
 
 logging:
   file:
@@ -187,3 +211,4 @@ encryption:
   secret-key: ${ENC_SALT}
 hashing:
   id-hash-key: ${ID_HASHING_SECRET}
+
