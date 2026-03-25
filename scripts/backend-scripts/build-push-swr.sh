@@ -65,13 +65,22 @@ fi
 echo "SWR login successful."
 
 # ----------------------------------------
-# Builder and Java version config per service
-# Mirrors your dev_env get_build_config() exactly
+# Noble-tiny services (Java 25) — require --volume for /cache
+# because the tiny builder has no writable /cache directory.
+# Add any new Java 25 noble-tiny service here — this is the
+# only place that needs updating when onboarding a new service.
+# ----------------------------------------
+NOBLE_TINY_SERVICES="wealth-service wallet-service notification-service"
+
+# ----------------------------------------
+# Returns builder image and Java version for a given service.
+# noble-tiny services → Java 25
+# everything else     → Java 21 (jammy-base)
 # ----------------------------------------
 get_build_config() {
   local service="$1"
   case "$service" in
-    wealth-service)
+    wealth-service|wallet-service|notification-service)
       echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
       ;;
     *)
@@ -145,24 +154,19 @@ wallet-service|report-service|trustees-service|wealth-service)
   echo "Remote Image : $REMOTE_IMAGE"
 
   # ----------------------------------------
-  # Build using pack
-  # Cache intentionally preserved — do NOT
-  # docker rmi after push
-  # ----------------------------------------
-  echo "Building $LOCAL_IMAGE..."
-  cd "${SERVICE_DIR}"
-
-  CACHE_DIR="/opt/buildpack-cache/$svc"  # optional if you want host-based cache
-  # sudo mkdir -p "$CACHE_DIR"
-  # sudo chmod -R 777 "$CACHE_DIR"
-  
   # Ensure cache directory exists for all services
+  # ----------------------------------------
   sudo mkdir -p "/opt/buildpack-cache/${svc}"
   sudo chmod -R 777 "/opt/buildpack-cache/${svc}"
 
-  if [ "$svc" = "wealth-service" ]; then
-    # noble-tiny builder has no /cache dir - must bind-mount via --volume
-    # exactly as confirmed working manually on the server
+  echo "Building $LOCAL_IMAGE..."
+  cd "${SERVICE_DIR}"
+
+  # ----------------------------------------
+  # noble-tiny services need --volume for /cache
+  # jammy-base services use standard --cache bind mount
+  # ----------------------------------------
+  if echo "$NOBLE_TINY_SERVICES" | grep -qw "$svc"; then
     sudo mkdir -p "/opt/buildpack-cache/${svc}/launch"
     if sudo pack build "${svc}" \
         --builder "${BUILDER}" \
@@ -226,29 +230,29 @@ echo ""
 if [ ${#PUSHED[@]} -gt 0 ]; then
   echo "Pushed (${#PUSHED[@]}):"
   for svc in "${PUSHED[@]}"; do
-    echo " - ${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${svc}:${IMAGE_TAG}"
+    echo "  - ${SWR_REGISTRY_URL}/${SWR_ORGANIZATION_NAME}/${svc}:${IMAGE_TAG}"
   done
 fi
 
 if [ ${#SKIPPED[@]} -gt 0 ]; then
   echo ""
-  echo " Skipped (${#SKIPPED[@]}):"
+  echo "Skipped (${#SKIPPED[@]}):"
   for svc in "${SKIPPED[@]}"; do
-    echo " - $svc"
+    echo "  - $svc"
   done
 fi
 
 if [ ${#FAILED[@]} -gt 0 ]; then
   echo ""
-  echo " Failed (${#FAILED[@]}):"
+  echo "Failed (${#FAILED[@]}):"
   for svc in "${FAILED[@]}"; do
-    echo "   - $svc"
+    echo "  - $svc"
   done
   echo ""
   echo "One or more services failed. See logs above."
   exit 1
 fi
 
-echo """"""""""""""""""""""""""""""""""""""""""""""""""
+echo "=================================================="
 echo "All services processed successfully."
 echo "=================================================="
