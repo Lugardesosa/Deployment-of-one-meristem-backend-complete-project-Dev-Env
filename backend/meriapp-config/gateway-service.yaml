@@ -19,6 +19,8 @@ spring:
     gateway:
       server:
         webflux:
+          x-forwarded: #
+            enabled: true #
           discovery:
             locator:
               enabled: true
@@ -26,6 +28,9 @@ spring:
           filter:
             request-rate-limiter:
               deny-empty-key: false
+
+          default-filters: #
+            - PreserveHostHeader #
 
 #          default-filters:
 #            - name: RequestRateLimiter
@@ -98,4 +103,3 @@ whitelisted:
 server:
   error:
     include-stacktrace: never
-
