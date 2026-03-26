@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.walletservice.config.configProperties.*;
 import org.meristem.oneapp.walletservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.walletservice.integrations.PaystackClient;
-import org.meristem.oneapp.walletservice.integrations.ProvidusClient;
 import org.meristem.oneapp.walletservice.integrations.UserServiceClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,18 +26,6 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 public class IntegrationConfig {
 
     public static final String BEARER = "Bearer ";
-
-    @Bean
-    ProvidusClient providusClient(RestClient.Builder restClientBuilder, ProvidusConfigProperties providusConfigProperties, OneAppProperties oneAppProperties) {
-
-        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClientBuilder
-                        .clone().baseUrl(providusConfigProperties.baseUrl())
-                        .defaultHeaders(c -> {
-                            c.set(HttpHeaders.AUTHORIZATION, BEARER + providusConfigProperties.secretKey());
-                            c.set(oneAppProperties.defaultHeaderName(), providusConfigProperties.clientName());
-                        }).build()))
-                .build().createClient(ProvidusClient.class);
-    }
 
     @Bean
     PaystackClient paystackClient(RestClient.Builder restClientBuilder, @Value("${paystack.api.baseUrl}") String baseUrl, @Value("${paystack.api.secretKey}") String secretKey) {
