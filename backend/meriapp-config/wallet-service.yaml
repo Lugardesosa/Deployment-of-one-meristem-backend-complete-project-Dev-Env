@@ -21,7 +21,6 @@ spring:
 
 server:
   port: 20040
-  forward-headers-strategy: framework #
   servlet:
     context-path: ${one-app.wallet-service.context-path}
 
