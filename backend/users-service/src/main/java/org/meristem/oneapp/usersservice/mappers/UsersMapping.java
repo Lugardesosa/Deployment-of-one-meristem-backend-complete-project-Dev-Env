@@ -42,6 +42,7 @@ public interface UsersMapping {
             @Mapping(target = "password", ignore = true)
     })
     Users coreBvnQueryResponseToUser(MiddlewareCustomerResponse.CustomerData bvnQueryResponse);
+    Users coreBvnQueryResponseToUser(IdQueryDetailsDto bvnQueryResponse);
 
     @Mappings(value = {
             @Mapping(target = "email", ignore = true),
@@ -52,4 +53,20 @@ public interface UsersMapping {
     Users createDependentRequestToUsers(CreateUserDependentRequest userRequest);
 
     UsersResponse.UsersDetails usersToUsersDetails(Users user);
+
+    @Mappings(value = {
+            @Mapping(target = "phoneNumber", source = "phoneNo"),
+            @Mapping(target = "email", source = "emailAddress"),
+            @Mapping(target = "gender", source = "genderCode"),
+            @Mapping(target = "country", source = "customerCountry"),
+            @Mapping(target = "residenceState", source = "customerCity"),
+            @Mapping(target = "address", source = "customerAddress"),
+            @Mapping(target = "dateOfBirth", source = "birthDate"),
+            @Mapping(target = "middleName", source = "otherName"),
+            @Mapping(target = "emailVerified", ignore = true),
+            @Mapping(target = "phoneNumberVerified", ignore = true),
+            @Mapping(target = "bvnFacialVerified", ignore = true),
+            @Mapping(target = "passwordSet", ignore = true),
+    })
+    IdQueryDetailsDto middlewareCustomerResponseToIdQueryDetailsDto(MiddlewareCustomerResponse.CustomerData r);
 }

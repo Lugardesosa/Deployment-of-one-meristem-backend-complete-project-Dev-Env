@@ -5,6 +5,7 @@ import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @Getter
@@ -60,12 +61,58 @@ public class IdQueryDetailsDto implements Serializable {
     private String bvn;
     private String bvnHashed;
     private boolean emailVerified;
+    private boolean phoneNumberVerified;
+    private boolean bvnFacialVerified;
     private boolean passwordSet;
 
     private String employerName;
     private String sourceOfIncome;
-    @Builder.Default
-    private Boolean existing = false;
+
+    private String customerId;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
+    private String modifiedYesNo;
+    private String customerType;
+    private String parentCustomerName;
+    private String parentCustomerId;
+    private String isMinorYesNo;
+    private String isStaffYesNo;
+    private String kycCompleted;
+    private LocalDateTime kycCompleteOn;
+    private String isBlacklistedYesNo;
+    private LocalDateTime blacklistedOn;
+    private String introducedBy;
+    private String careOfficer;
+    private String careTeam;
+    private String location;
+    private String customerName;
+    private String otherName;
+    private LocalDateTime birthDate;
+    private Integer currentAge;
+    private LocalDateTime weddingAnniversary;
+    private String customerAddress;
+    private String customerCity;
+    private String customerState;
+    private String customerCountry;
+    private String emailAddress;
+    private String phoneNumbers;
+    private String bankBvn;
+    private String birthLocation;
+    private String externalReference;
+    private String identityDocumentType;
+    private String identityDocumentName;
+    private String identityDocumentNo;
+    private String customerJobTitle;
+    private String phoneNo;
+    private String genderCode;
+    private String genderDescription;
+    private String kycStatus;
+    private String nin;
+    private String isPrimaryCustomerYesNo;
+    private String loginId;
+    private String careOfficerId;
+    private String introducerId;
+
 
     public String getMiddleName() {
         return StringUtils.isBlank(this.middleName) ? null : this.middleName.trim();
@@ -77,5 +124,9 @@ public class IdQueryDetailsDto implements Serializable {
 
     public String getLastName() {
         return this.lastName.trim();
+    }
+
+    public String getPhoneNumber() {
+        return this.phoneNumber.replace("+", "");
     }
 }

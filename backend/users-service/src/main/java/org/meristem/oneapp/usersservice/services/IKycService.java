@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
@@ -59,26 +60,25 @@ public interface IKycService {
         return BvnQueryResponse.builder().middleName(MaskingUtils.maskMiddleName(dto.getMiddleName()))
                 .email(dto.getEmail()).firstName(MaskingUtils.maskFirstName(dto.getFirstName()))
                 .lastName(MaskingUtils.maskLastName(dto.getLastName()))
-                .phoneNumber(MaskingUtils.maskPhone(dto.getPhoneNumber()))
+                .phoneNumber(dto.getPhoneNumber())
                 .build();
     }
 
-    default IdValidationResponse compareNinAndBvnDetailsSaveAndReturn(Cache cache, UserIdDetails nin, List<String> names, UserIdDetails bvn, Users loggedInUser, RequirementsRepository requirementsRepository,
+    default IdValidationResponse compareNinAndBvnDetailsSaveAndReturn(Cache cache, UserIdDetails nin, List<String> names, UserIdDetails bvn, Users loggedInUser, RequirementsRepository requirementsRepository, UsersRepository usersRepository,
                                                                       UserOnboardingRepository userOnboardingRepository, IUsersService usersService, CustomRepository customRepository, IdCardRepository idCardRepository, String ninValue, String ninValueHashed, Long investmentId) {
 
-        StringBuilder stringBuilder = new StringBuilder();
+        List<String> stringBuilder = new ArrayList<>();
 
-        if (!AppUtil.firstNamesMatch(nin.getFirstName(), names)) {
-            stringBuilder.append("Firstnames on NIN and BVN do not match,");
-        }
-        if (!AppUtil.lastNamesMatch(nin.getLastName(), names)) {
-            stringBuilder.append("Lastnames on NIN and BVN do not match,");
-        }
-        if (!AppUtil.middleNamesMatch(nin.getMiddleName(), names)) {
-            stringBuilder.append("Middle names on NIN and BVN do not match,");
-        }
         if (!AppUtil.dobMatch(nin.getDateOfBirth(), bvn.getDateOfBirth())) {
-            stringBuilder.append("Date of births on NIN and BVN do not match,");
+            stringBuilder.add("Date of births on NIN and BVN do not match");
+        }
+
+        List<String> ninNames = new ArrayList<>();
+        ninNames.add(nin.getFirstName());
+        ninNames.add(nin.getLastName());
+        ninNames.add(nin.getMiddleName());
+        if (!AppUtil.allNamesMatch(ninNames, names)) {
+            stringBuilder.add("Names do not match");
         }
 
         // Validates user; updates onboarding status; notifies user service
@@ -87,27 +87,30 @@ public interface IKycService {
             throw new BadRequestException("Action could not be completed");
         }
         // Validates user; updates onboarding status; notifies user service
-        if (AppUtil.firstNamesMatch(nin.getFirstName(), names) && AppUtil.lastNamesMatch(nin.getLastName(), names) && AppUtil.dobMatch(nin.getDateOfBirth(), bvn.getDateOfBirth()) && AppUtil.middleNamesMatch(nin.getMiddleName(), names)) {
+        if (AppUtil.allNamesMatch(ninNames, names) && AppUtil.dobMatch(nin.getDateOfBirth(), bvn.getDateOfBirth())) {
             nin.setValidated(true);
             nin.setNote("NIN verified successfully");
             userOnboardingRepository.updateUserOnboardingStatus(loggedInUser.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
-            usersService.completeUserOnboarding(loggedInUser.getEmail(), investmentId, OnboardingRequirements.NIN);
+            usersService.completeUserOnboarding(usersRepository.getUserKyc2(loggedInUser.getEmail()), true, loggedInUser.getEmail(), investmentId, OnboardingRequirements.NIN);
             idCardRepository.findByIdCardTypeAndIdValueHashedAndUserId(IdCardType.NIN.getName(), ninValueHashed, loggedInUser.getId())
                     .ifPresentOrElse(id -> {
                             },
                             () -> {
                                 idCardRepository.save(IdCard.builder().idValue(ninValue)
-                                        .idCardType(IdCardType.NIN.getName())
+                                        .idCardType(IdCardType.NIN.getName()).accountType(loggedInUser.getAccountType())
                                         .userId(nin.getUserId()).idValueHashed(ninValueHashed)
                                         .build());
                             });
 
-            cache.evict(loggedInUser.getEmail().concat(OnboardingRequirements.BVN.getName()));
+            cache.evict(loggedInUser.getEmail().concat(OnboardingRequirements.NIN.getName()));
 
         } else {
             usersService.resetUserOnboarding(loggedInUser.getEmail(), requirements.getId());
             nin.setValidated(false);
-            nin.setNote(stringBuilder.isEmpty() ? null : stringBuilder.toString().concat("Please correct the mismatch and come back and revalidate."));
+            if (!stringBuilder.isEmpty()) {
+                stringBuilder.add("Please correct the mismatch and come back and revalidate.");
+            }
+            nin.setNote(stringBuilder.toString());
         }
 
         customRepository.save(nin);
@@ -129,6 +132,17 @@ public interface IKycService {
             throw new BadRequestException("Try again at " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(expireIn));
         }
         return cache;
+    }
+
+    default BvnQueryResponse getBvnResponse(CacheManager cacheManager, EncryptionUtil encryptionUtil, IdQueryRequest request, IdCardRepository idCardRepository, HashingUtil hashingUtil, String idHashKey, UsersRepository usersRepository) {
+        Optional<IdCard> idCard = idCardRepository.findByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.BVN.getName());
+        if (idCard.isPresent()) {
+
+            IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
+            dto.setIdType(IdCardType.BVN.getName());
+            return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
+        }
+        return null;
     }
 
     IdQueryDetailsDto ninQuery(String nin);

@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
+import org.meristem.oneapp.usersservice.dtos.sql.InvestmentReqIdReqName;
 import org.meristem.oneapp.usersservice.models.InvestmentRequirement;
 import org.meristem.oneapp.usersservice.models.Requirements;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -18,8 +19,8 @@ public interface RequirementsRepository extends BaseRepository<Requirements, Lon
     Iterable<Long> findAllByStatus(Integer status);
 
 
-    @Query("SELECT ir.id FROM investment_requirement ir LEFT JOIN requirements r ON r.id = ir.requirement_id WHERE r.status = :status AND ir.investment_id = :investmentId ")
-    Iterable<Long> findAllProductsRequirementByStatus(Integer status, Long investmentId);
+    @Query("SELECT ir.id, r.requirement_name FROM investment_requirement ir LEFT JOIN requirements r ON r.id = ir.requirement_id WHERE r.status = :status AND ir.investment_id = :investmentId ")
+    Iterable<InvestmentReqIdReqName> findAllProductsRequirementByStatus(Integer status, Long investmentId);
 
     @Query("SELECT ir.id FROM investment_requirement ir LEFT JOIN requirements r ON r.id = ir.requirement_id WHERE r.status = :status AND ir.investment_id = :investmentId ")
     Optional<Long> findOneProductsRequirementByStatus(Integer status, Long investmentId);

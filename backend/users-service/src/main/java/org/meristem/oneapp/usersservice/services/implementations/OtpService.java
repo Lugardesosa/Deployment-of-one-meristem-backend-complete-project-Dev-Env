@@ -61,7 +61,7 @@ public class OtpService implements IOtpService {
      */
     @Transactional
     @Override
-    public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest, String cacheKey) {
+    public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
 
         Cache cache = requireNonNull(cacheManager.getCache(AppConstants.OTP_CACHE_NAME), "Error creating otp");
         MessageMedium messageMedium = validateAndGetMessageMedium(sendOtpRequest.messageMedium(), sendOtpRequest.recipient());
@@ -77,7 +77,7 @@ public class OtpService implements IOtpService {
             messageMedium = validateAndGetMessageMedium(MessageMedium.SMS.getValue(), sendOtpRequest.recipient());
         }
 
-        OtpVerificationDto otpVerificationDto = generateOtpVerificationDto(sendOtpRequest, expiresAt, cache, cacheKey);
+        OtpVerificationDto otpVerificationDto = generateOtpVerificationDto(sendOtpRequest, expiresAt, cache);
 
         OtpDto otpDto = OtpDto.builder().recipient(new String[]{sendOtpRequest.recipient()})
                 .code(String.valueOf(otpVerificationDto.getCode()))
@@ -102,12 +102,6 @@ public class OtpService implements IOtpService {
         return SendOtpResponse.builder().message("Successfully sent OTP").recipient(sendOtpRequest.recipient())
                 .timeToExpireInSeconds((int) ChronoUnit.SECONDS.between(LocalDateTime.now(), otpVerificationDto.getExpiresAt()))
                 .build();
-    }
-
-    @Transactional
-    @Override
-    public SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest) {
-        return sendOtp(sendOtpRequest, null);
     }
 
     /**
@@ -187,15 +181,14 @@ public class OtpService implements IOtpService {
         return verifyOtp(request, null);
     }
 
-    public static OtpVerificationDto generateOtpVerificationDto(SendOtpRequest sendOtpRequest, LocalDateTime expiresAt, Cache cache, String cacheKey) {
+    public static OtpVerificationDto generateOtpVerificationDto(SendOtpRequest sendOtpRequest, LocalDateTime expiresAt, Cache cache) {
         int code = AppUtil.randomInt(AppConstants.fourNumbersOtp.getFirst(), AppConstants.fourNumbersOtp.getSecond());
 
         OtpVerificationDto otpVerificationDto = OtpVerificationDto.builder()
                 .userId(sendOtpRequest.recipient()).expiresAt(expiresAt)
                 .otpType(sendOtpRequest.otpType()).code(code).build();
 
-        cacheKey = StringUtils.isNotBlank(cacheKey) ? cacheKey : sendOtpRequest.recipient();
-        cache.put(cacheKey.concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
+        cache.put(sendOtpRequest.recipient().concat(sendOtpRequest.otpType().toString()), otpVerificationDto);
         return otpVerificationDto;
     }
 }

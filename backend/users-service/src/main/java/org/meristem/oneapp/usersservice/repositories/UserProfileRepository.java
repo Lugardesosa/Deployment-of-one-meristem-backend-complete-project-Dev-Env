@@ -79,4 +79,17 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
 
     @Query("SELECT data_sharing FROM user_profile up WHERE up.user_id = :id ")
     Boolean findDataSharingByUserId(Long id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET phone_number_verified = :value WHERE user_id = :userId ")
+    void updatePhoneNumberVerified(Long userId, boolean value);
+
+    @Query("SELECT bvn_verified FROM user_profile up LEFT JOIN id_card ic ON up.user_id = ic.user_id WHERE ic.id_value_hashed = :key")
+    boolean bvnVerified(String key);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET bvn_verified = :value WHERE user_id = :userId ")
+    void updateBvnVerified(Long userId, boolean value);
 }

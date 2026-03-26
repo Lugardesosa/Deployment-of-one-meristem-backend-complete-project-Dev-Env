@@ -22,6 +22,7 @@ public record CreateCustomerDto(
         String addressCountryCd,
         String bankBvnNo,
         String parentCustomerId,
+        Long parentUserId,
         LocalDate birthDate
 ) {
 }

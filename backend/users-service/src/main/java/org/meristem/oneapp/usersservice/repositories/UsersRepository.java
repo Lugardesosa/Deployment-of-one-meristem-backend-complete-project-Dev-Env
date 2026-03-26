@@ -64,7 +64,7 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
     @Query(value = """
             
             SELECT u.*,
-                 up.user_id, up.image_key, up.date_of_birth, up.gender, up.state_of_origin, up.country_of_origin, up.lg_of_origin, up.marital_status, up.chn_number, up.cscs_number, up.referral_code, up.biometric_enabled, up.interest_free_investment, up.email_verified, up.tax_id, occupation, up.source_of_income, up.employer_name, up.data_sharing, up.marketing_data_sharing, up.ai_and_analytics_data_sharing 
+                 up.user_id, up.image_key, up.date_of_birth, up.gender, up.state_of_origin, up.country_of_origin, up.lg_of_origin, up.marital_status, up.chn_number, up.cscs_number, up.referral_code, up.biometric_enabled, up.interest_free_investment, up.tax_id, occupation, up.source_of_income, up.employer_name, up.data_sharing, up.marketing_data_sharing, up.ai_and_analytics_data_sharing 
             FROM users u
             LEFT JOIN user_profile up ON u.id = up.user_id
             WHERE u.id = :id
@@ -167,4 +167,13 @@ public interface UsersRepository extends BaseRepository<Users, Long> {
 
     @Query("SELECT u.* FROM users u WHERE u.id = :id ")
     UsersResponse.UsersDetails findUsersDetailsById(Long id);
+
+    @Query("SELECT customer_id FROM user_customer_id WHERE user_id = :loggedInUserId")
+    List<String> findUserCustomerIds(Long loggedInUserId);
+
+
+    @Query("SELECT user_id FROM user_customer_id WHERE customer_id = :customerId")
+    Long findUserId(String customerId);
+
+    boolean existsByPhoneNumberAndAccountType(String phoneNumber, Integer accountType);
 }

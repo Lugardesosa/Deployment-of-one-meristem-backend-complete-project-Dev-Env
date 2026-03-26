@@ -1,6 +1,7 @@
 package org.meristem.oneapp.usersservice.config.authConfig;
 
 import lombok.Getter;
+import org.meristem.oneapp.usersservice.domains.enums.AccountType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -10,6 +11,7 @@ import org.springframework.security.oauth2.server.authorization.authentication.O
 import org.springframework.util.StringUtils;
 
 import java.io.Serial;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +26,9 @@ public class CustomCodeGrantAuthenticationToken extends OAuth2AuthorizationGrant
     private String username;
     @Getter
     private String password;
+
+    @Getter
+    private AccountType accountType;
     private final String scopes;
     /**
      * Sub-class constructor.
@@ -37,8 +42,17 @@ public class CustomCodeGrantAuthenticationToken extends OAuth2AuthorizationGrant
         this.username = additionalParameters.get(OAuth2ParameterNames.USERNAME).toString();
         this.password = additionalParameters.get(OAuth2ParameterNames.PASSWORD).toString();
         this.scopes = additionalParameters.get(OAuth2ParameterNames.SCOPE).toString();
+        Object loginType = additionalParameters.get("login_type");
+        if (isNull(loginType)) {
+            throw new OAuth2AuthenticationException("Invalid login type");
+        }
+
+        this.accountType = AccountType.fromString(loginType.toString());
         if (isNull(scopes)) {
             throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_SCOPE);
+        }
+        if (!List.of(AccountType.INDIVIDUAL, AccountType.JOINT).contains(accountType)) {
+            throw new OAuth2AuthenticationException("Invalid login type");
         }
     }
 

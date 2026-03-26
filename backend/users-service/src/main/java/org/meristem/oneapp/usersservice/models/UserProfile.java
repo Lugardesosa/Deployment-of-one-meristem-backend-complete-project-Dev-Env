@@ -66,6 +66,10 @@ public class UserProfile extends BaseModel<String> {
     private String occupation;
     private String employerName;
     private Boolean emailVerified;
+    private Boolean phoneNumberVerified;
+    private Boolean bvnVerified;
+    private Boolean ninVerified;
+    private Boolean addressVerified;
 
     private Boolean dataSharing;
     private Boolean marketingDataSharing;
@@ -87,7 +91,7 @@ public class UserProfile extends BaseModel<String> {
     public UserProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
                        Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName, Boolean emailVerified,
-                       Boolean dataSharing, Boolean marketingDataSharing, Boolean aiAndAnalyticsDataSharing) {
+                       Boolean dataSharing, Boolean marketingDataSharing, Boolean aiAndAnalyticsDataSharing, Boolean phoneNumberVerified) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -104,6 +108,7 @@ public class UserProfile extends BaseModel<String> {
         this.sourceOfIncome = sourceOfIncome;
         this.employerName = employerName;
         this.emailVerified = emailVerified;
+        this.phoneNumberVerified = phoneNumberVerified;
         // allows us to share their data and kyc with other subsidiaries
         this.dataSharing = nonNull(dataSharing) && dataSharing;
         this.marketingDataSharing = nonNull(marketingDataSharing) && marketingDataSharing;

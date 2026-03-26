@@ -41,6 +41,14 @@ public interface UserIdDetailsMapper {
     })
     IdQueryDetailsDto dojahNinLookupResponseToIdQueryDetailsDto(DojahNinLookUpResponse.Entity response);
 
+    @Mappings(value = {
+            @Mapping(target = "bvn", ignore = true),
+            @Mapping(target = "bvnHashed", ignore = true),
+            @Mapping(target = "emailVerified", ignore = true),
+            @Mapping(target = "phoneNumberVerified", ignore = true),
+            @Mapping(target = "bvnFacialVerified", ignore = true),
+            @Mapping(target = "passwordSet", ignore = true),
+    })
     IdQueryDetailsDto smileIdBvnLookupResponseToIdQueryDetailsDto(SmileIdWebhookNotification response);
 
     default boolean notBlankOrEmpty(String value) {
@@ -59,4 +67,9 @@ public interface UserIdDetailsMapper {
     default String stateMapper(DojahNinLookUpResponse.Entity response) {
         return org.apache.commons.lang3.StringUtils.isNotBlank(response.residenceState()) ? response.residenceState() : response.originState() ;
     }
+
+    @Mappings(value = {
+            @Mapping(target = "resultCode", ignore = true),
+    })
+    SmileIdWebhookNotification idQueryDetailsDtoToSmileIdWebhookNotification(IdQueryDetailsDto dto);
 }

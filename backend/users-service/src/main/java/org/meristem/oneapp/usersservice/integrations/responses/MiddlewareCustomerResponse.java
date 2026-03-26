@@ -69,5 +69,7 @@ public record MiddlewareCustomerResponse(
         private String introducerId;
         @Builder.Default
         private Boolean emailVerified = false;
+        private boolean phoneNumberVerified;
+        private boolean bvnFacialVerified;
     }
 }

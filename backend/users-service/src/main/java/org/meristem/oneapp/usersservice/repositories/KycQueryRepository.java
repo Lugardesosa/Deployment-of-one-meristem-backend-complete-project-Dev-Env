@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface KycQueryRepository extends BaseRepository<KycQuery, Long> {
     KycQuery findKycQueryByJobIdAndUserId(String jobId, String userId);
 
-    KycQuery findKycQueryByJobId(String jobId);
+    Optional<KycQuery> findKycQueryByJobId(String jobId);
 
     KycQuery findKycQueryByJobIdAndStatus(String jobId, Integer status);
 

@@ -17,10 +17,13 @@ import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.INextOfKinService;
 import org.meristem.oneapp.usersservice.services.IUsersService;
 import org.meristem.oneapp.usersservice.utils.ApiUtil;
+import org.meristem.oneapp.usersservice.utils.AppUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -74,40 +77,10 @@ public class UsersController {
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
 
     })
-    @PreAuthorize("hasRole('ROLE_1000')")
+    @PreAuthorize("hasRole('ROLE_1000') AND authentication.principal.claims['accountType'] == 0")
     @PostMapping(value = "/minor", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> createUserDependent(@RequestBody @Valid CreateUserDependentRequest userRequest) {
         return ApiUtil.buildResponse(usersService.createUserDependent(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
-    }
-
-    @Operation(summary = "Creates a joint account from the app.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Creates a joint account from the app",
-                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UpdateResponse.class))
-                    }),
-            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
-
-    })
-    @PreAuthorize("hasRole('ROLE_1000')")
-    @PostMapping(value = "/joint-account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> createAppJoint(@RequestBody @Valid CreateInAppJointAccountRequest request) {
-        return ApiUtil.buildResponse(usersService.createAppJoint(request), HttpStatus.CREATED.toString(), "Created successfully.");
-    }
-
-    @Operation(summary = "Creates an individual account as a joint user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Creates an individual account as a joint user",
-                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UpdateResponse.class))
-                    }),
-            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
-
-    })
-    @PreAuthorize("hasRole('ROLE_1000')")
-    @PostMapping(value = "/individual-account", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<UpdateResponse>> createAppIndividual() {
-        return ApiUtil.buildResponse(usersService.createAppIndividual(), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
     @Operation(summary = "Verifies users email.")
@@ -117,7 +90,6 @@ public class UsersController {
                             schema = @Schema(implementation = VerifyOtpRequest.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
-
     })
     @PreAuthorize("hasAuthority('SCOPE_create_user')")
     @PutMapping(value = "/verify-email", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -207,7 +179,7 @@ public class UsersController {
     @PreAuthorize("hasRole('ROLE_1048')")
     @PostMapping(value = "/onboard-product", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> onboardOnProduct() {
-        return ApiUtil.buildResponse(usersService.onboardOnProduct(), HttpStatus.OK.toString(), "Successful.");
+        return ApiUtil.buildResponse(usersService.onboardOnProduct(AppUtil.getLoggedInUserId(), AppUtil.getLoggedInSubject()), HttpStatus.OK.toString(), "Successful.");
     }
 
     @Operation(summary = "Set a user's email.")
@@ -481,5 +453,23 @@ public class UsersController {
     @PostMapping(value = "/create-spouse", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> createSpouse(@Valid @RequestBody CreateSpouseRequest request) {
         return ApiUtil.buildResponse(usersService.createSpouse(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_user.customer_ids')")
+    @GetMapping(value = "/create-spouse", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<String>>> getUserCustomerIds() {
+        return ApiUtil.buildResponse(usersService.getUserCustomerIds(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_user.user_id')")
+    @GetMapping(value = "/user-id/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<Long>> getUserId(@PathVariable String customerId) {
+        return ApiUtil.buildResponse(usersService.getUserId(customerId), HttpStatus.OK.toString(), "Successful");
     }
 }
