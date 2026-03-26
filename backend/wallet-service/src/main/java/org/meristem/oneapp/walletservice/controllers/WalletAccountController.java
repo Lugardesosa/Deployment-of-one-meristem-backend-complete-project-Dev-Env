@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(ApiConstants.CONTEXT_PATH + "accounts")
-@Tag(name = "Middleware Wallet Accounts API", description = "Middleware wallet health and account endpoints.")
+@Tag(name = "Wallet Accounts API", description = "wallet health and account endpoints.")
 public class WalletAccountController {
 
     private final IWalletAccountService middleWareWalletAccountService;
