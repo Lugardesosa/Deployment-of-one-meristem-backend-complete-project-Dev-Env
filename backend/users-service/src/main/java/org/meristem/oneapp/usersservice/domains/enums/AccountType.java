@@ -12,7 +12,6 @@ public enum AccountType {
 
     INDIVIDUAL(0),
     JOINT(1),
-    BOTH_INDIVIDUAL_AND_JOINT(2),
     MINOR(3),
     CORPORATE(4),
     NOT_SET(100);

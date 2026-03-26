@@ -247,4 +247,12 @@ public final class AppUtil {
         names.add(lastName);
         return names;
     }
+
+    public static boolean allNamesMatch(List<String> ninNames, List<String> names) {
+
+        Set<String> caseInsensitiveSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        caseInsensitiveSet.addAll(ninNames);
+        names.forEach(caseInsensitiveSet::remove);
+        return caseInsensitiveSet.isEmpty();
+    }
 }

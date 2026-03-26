@@ -33,21 +33,18 @@ public class KafkaListenerService implements IKafkaListenerService {
     @Override
     public void createCustomer(ConsumerRecord<String, CreateCustomerDto> record) {
         log.info("Received CreateCustomerDto event: {}", record.value());
-        usersService.createCustomer(record.value());
     }
 
     @KafkaListener(topicPattern = KafkaTopics.KAFKA_DEPENDENT_CREATE_TOPIC)
     @Override
     public void createDependent(ConsumerRecord<String, CreateCustomerDto> record) {
-        log.info("Received CreateCustomerDto event: {}", record.value());
-        usersService.createDependent(record.value());
+        log.info("Received CreateCustomerDto dependent event: {}", record.value());
     }
 
     @KafkaListener(topicPattern = KafkaTopics.KAFKA_JOINT_CUSTOMER_CREATE_TOPIC)
     @Override
     public void createJointCustomer(ConsumerRecord<String, CreateJointCustomerDto> record) {
         log.info("Received CreateJointCustomerDto event: {}", record.value());
-        usersService.createJointCustomer(record.value());
     }
 
     @KafkaListener(topicPattern = KafkaTopics.KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC)

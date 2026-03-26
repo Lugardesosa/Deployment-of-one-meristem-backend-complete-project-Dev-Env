@@ -16,7 +16,6 @@ public interface IKafkaListenerService {
 
     void createCustomer(ConsumerRecord<String, CreateCustomerDto> record);
 
-    @KafkaListener(topicPattern = KafkaTopics.KAFKA_DEPENDENT_CREATE_TOPIC)
     void createDependent(ConsumerRecord<String, CreateCustomerDto> record);
 
     void createJointCustomer(ConsumerRecord<String, CreateJointCustomerDto> record);

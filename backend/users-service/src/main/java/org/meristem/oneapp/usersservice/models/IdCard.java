@@ -42,9 +42,11 @@ public class IdCard extends BaseModel<String> {
     @NotNull(message = "User id cannot be null")
     private Long userId;
 
+    private Integer accountType;
+
     @Builder
     public IdCard(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                  String idCardType, String idValue, LocalDate issuedDate, LocalDate expiryDate, Long userId, String idValueHashed) {
+                  String idCardType, String idValue, LocalDate issuedDate, LocalDate expiryDate, Long userId, String idValueHashed, Integer accountType) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.idCardType = idCardType;
         this.idValue = idValue;
@@ -52,17 +54,18 @@ public class IdCard extends BaseModel<String> {
         this.expiryDate = expiryDate;
         this.userId = userId;
         this.idValueHashed = idValueHashed;
+        this.accountType = accountType;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         IdCard idCard = (IdCard) o;
-        return Objects.equals(getId(), idCard.getId()) && Objects.equals(getIdValueHashed(), idCard.getIdValueHashed());
+        return Objects.equals(getId(), idCard.getId()) && Objects.equals(getIdValueHashed(), idCard.getIdValueHashed()) && Objects.equals(getAccountType(), idCard.getAccountType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getIdValueHashed());
+        return Objects.hash(getId(), getIdValueHashed(), getAccountType());
     }
 }

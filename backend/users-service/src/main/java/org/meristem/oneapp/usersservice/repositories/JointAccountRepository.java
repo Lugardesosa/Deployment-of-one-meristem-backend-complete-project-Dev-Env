@@ -24,4 +24,8 @@ public interface JointAccountRepository extends BaseRepository<JointAccount, Lon
 
     @Query("SELECT COUNT(customer_id) FROM joint_account WHERE account_id = :accountId ")
     Integer findCustomerIdByAccountId(String accountId);
+
+    @Cacheable(value = AppConstants.JOINT_ACCOUNT_CUSTOMER_ID_CACHE_NAME, key = "#a0", unless = "#result == null")
+    @Query("SELECT customer_id FROM joint_account WHERE user_id = :loggedInUserId")
+    String getCustomerIdByUserId(Long loggedInUserId);
 }

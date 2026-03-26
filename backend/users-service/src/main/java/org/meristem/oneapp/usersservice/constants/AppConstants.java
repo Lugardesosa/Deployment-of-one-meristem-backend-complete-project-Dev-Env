@@ -46,13 +46,13 @@ public final class AppConstants {
     public static final String SETTINGS_CACHE_NAME = "settings";
     public static final String USER_ROLE = "USER";
     public static final List<String> MOBILE_N_WEB_ROLES = List.of("user.read", "user.write", "send_otp", "verify_otp", "create_user",
-            "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage", "share_all_data", "get.occupation", "get.source_of_income", "get.existing_intrument", "instruments.get");
+            "password_reset", "device.register", "users.email.update", "id.query", "users.onboarding.stage", "share_all_data", "get.occupation", "get.source_of_income", "get.existing_intrument", "instruments.get", "smile_id");
     public static final Integer MAX_PIN_FAILED_ATTEMPTS_B4_LOCK = 5;
     public static final long PIN_LOCKED_MAX_TIME_IN_MINS = 20;
     public static final String VENDOR_PASTEL = "PASTEL";
     public static final String VENDOR_SMILE_ID = "SMILE_ID";
     public static final int OUTBOX_MAX_RETRY_COUNT = 3;
-    public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 5;
+    public static final long ID_VERIFICATION_CACHE_EXPIRES_IN = 2;
     public static final String OTP_CACHE_NAME = "otp-cache-name";
 
     public static final String DEEP_LINK = "meristem://";
@@ -64,4 +64,6 @@ public final class AppConstants {
     public static final String ALL_INVESTMENT_INSTRUMENT_CACHE_NAME = "all_investment_instruments";
     public static final String ALL_INVESTMENT_OPTIONS_CACHE_NAME = "all_investment_options";
     public static final String APP_JOINT_SIGN_UP_CACHE_NAME = "app-joint-sign-ups";
+    public static final String INDIVIDUAL_ACCOUNT_CACHE_NAME = "individual-account-name";
+    public static final String JOINT_ACCOUNT_CUSTOMER_ID_CACHE_NAME = "joint-account--customer-id-cache-name";
 }

@@ -1,11 +1,14 @@
 package org.meristem.oneapp.usersservice.services;
 
 import jakarta.validation.Valid;
+import org.meristem.oneapp.usersservice.domains.requests.FacialVerificationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.responses.BvnQueryResponse;
 import org.meristem.oneapp.usersservice.domains.responses.IdValidationResponse;
+import org.meristem.oneapp.usersservice.domains.responses.UpdateResponse;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -28,4 +31,6 @@ public interface IKycDelegatingService {
     IdValidationResponse validateNin(NinValidationRequest request);
 
     IdQueryDetailsDto ninQuery(String nin);
+
+    UpdateResponse facialVerification(@RequestParam("file") MultipartFile file, FacialVerificationRequest request);
 }

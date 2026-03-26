@@ -46,8 +46,6 @@ public class UsersResponse implements Serializable {
     )
     private List<DependentAccounts> dependents;
 
-    private List<JointAccountDetailsResponse> jointAccountDetailsResponse;
-
     @AllArgsConstructor
     @NoArgsConstructor
     @Data

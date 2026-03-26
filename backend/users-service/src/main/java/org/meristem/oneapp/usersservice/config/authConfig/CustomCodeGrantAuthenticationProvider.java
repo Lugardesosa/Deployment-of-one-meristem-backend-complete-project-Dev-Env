@@ -69,12 +69,17 @@ public class CustomCodeGrantAuthenticationProvider implements AuthenticationProv
         String username = token.getUsername();
         String password = token.getPassword();
         Set<String> scopes = token.getScopes();
+        AccountType accountType = token.getAccountType();
 
         AuthenticatedUser user;
         try {
             user = (AuthenticatedUser) userDetailsService.loadUserByUsername(username);
         } catch (UsernameNotFoundException e) {
             throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_USERNAME, null));
+        }
+
+        if (!Objects.equals(user.getAccountType(), accountType.getValue())) {
+            throw new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, ErrorMessages.INVALID_USERNAME + ".", null));
         }
 
         if (!user.isEmailVerified()) {

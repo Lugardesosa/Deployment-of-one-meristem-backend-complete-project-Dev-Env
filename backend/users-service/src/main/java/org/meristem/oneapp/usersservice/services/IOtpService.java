@@ -20,7 +20,6 @@ public interface IOtpService {
      * @param sendOtpRequest the request containing recipient details and OTP type
      * @return a {@link SendOtpResponse} containing the OTP expiration time and recipient details
      */
-    SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest, String cacheKey);
     SendOtpResponse sendOtp(SendOtpRequest sendOtpRequest);
 
     /**
