@@ -57,6 +57,16 @@ spring:
                 maxAge: 3600
 
           routes:
+            - id: ${one-app.users-service.application-name}-websocket-info
+              uri: lb://${one-app.users-service.application-name}
+              predicates:
+                - Path=${one-app.users-service.context-path}/ws/info,${one-app.users-service.context-path}/ws/info/**
+
+            - id: ${one-app.users-service.application-name}-websocket
+              uri: lb:ws://${one-app.users-service.application-name}
+              predicates:
+                - Path=${one-app.users-service.context-path}/ws,${one-app.users-service.context-path}/ws/**
+
             - id: ${one-app.users-service.application-name}
               uri: lb://${one-app.users-service.application-name}
               predicates:
@@ -82,10 +92,30 @@ spring:
               predicates:
                 - Path=${one-app.trustees-service.context-path}/**
 
+            - id: ${one-app.notification-service.application-name}-websocket-info
+              uri: lb://${one-app.notification-service.application-name}
+              predicates:
+                - Path=${one-app.notification-service.context-path}/ws/info,${one-app.notification-service.context-path}/ws/info/**
+
+            - id: ${one-app.notification-service.application-name}-websocket
+              uri: lb:ws://${one-app.notification-service.application-name}
+              predicates:
+                - Path=${one-app.notification-service.context-path}/ws,${one-app.notification-service.context-path}/ws/**
+
             - id: ${one-app.notification-service.application-name}
               uri: lb://${one-app.notification-service.application-name}
               predicates:
                 - Path=${one-app.notification-service.context-path}/**
+
+            - id: ${one-app.core-services.application-name}-websocket-info
+              uri: lb://${one-app.core-services.application-name}
+              predicates:
+                - Path=${one-app.core-services.context-path}/ws/info,${one-app.core-services.context-path}/ws/info/**
+
+            - id: ${one-app.core-services.application-name}-websocket
+              uri: lb:ws://${one-app.core-services.application-name}
+              predicates:
+                - Path=${one-app.core-services.context-path}/ws,${one-app.core-services.context-path}/ws/**
 
             - id: ${one-app.core-services.application-name}
               uri: lb://${one-app.core-services.application-name}
@@ -98,4 +128,3 @@ whitelisted:
 server:
   error:
     include-stacktrace: never
-
