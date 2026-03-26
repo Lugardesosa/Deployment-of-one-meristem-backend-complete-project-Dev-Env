@@ -8,10 +8,7 @@ import jakarta.validation.Valid;
 import org.meristem.oneapp.usersservice.constants.ApiConstants;
 import org.meristem.oneapp.usersservice.domains.requests.OkHiWebhookRequest;
 import org.meristem.oneapp.usersservice.domains.requests.PastelAmlWebhookRequest;
-import org.meristem.oneapp.usersservice.domains.responses.AppResponse;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookNotification;
-import org.meristem.oneapp.usersservice.domains.responses.SmileIdWebhookResponse;
-import org.meristem.oneapp.usersservice.domains.responses.WebhookResponse;
+import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.services.IAmlService;
 import org.meristem.oneapp.usersservice.services.implementations.OnboardingService;
 import org.meristem.oneapp.usersservice.services.implementations.SmileIdService;
@@ -43,7 +40,7 @@ public class CallbackController {
             @ApiResponse(responseCode = "200", description = "Allows Smile Id to send webhook notifications to us")
     })
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<SmileIdWebhookResponse>> smileIdWebhook(@RequestBody @Valid SmileIdWebhookNotification request) {
+    public ResponseEntity<AppResponse<UpdateResponse>> smileIdWebhook(@RequestBody @Valid SmileIdWebhookNotification request) {
         return ApiUtil.buildResponse(smileIdService.handleWebhook(request), HttpStatus.OK.toString(), "Request successful");
     }
 

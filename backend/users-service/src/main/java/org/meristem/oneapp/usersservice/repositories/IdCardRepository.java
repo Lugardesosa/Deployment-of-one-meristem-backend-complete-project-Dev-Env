@@ -35,4 +35,8 @@ public interface IdCardRepository extends BaseRepository<IdCard, Long> {
 
     @Query("SELECT u.* FROM users u LEFT JOIN id_card idc ON idc.user_id = u.id WHERE idc.id_value_hashed = :decrypt AND idc.id_card_type = :idType ")
     Users findUsersByIdCardNumberHashedAndType(String decrypt, String idType);
+
+    boolean existsByIdValueHashedAndIdCardTypeAndAccountType(String idValueHashed, String idCardType, Integer accountType);
+
+    Optional<IdCard> findByIdValueHashedAndIdCardTypeAndAccountType(String idValueHashed, String idCardType, Integer accountType);
 }

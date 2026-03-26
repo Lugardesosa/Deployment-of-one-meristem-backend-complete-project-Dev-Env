@@ -60,6 +60,8 @@ public class OnboardingService implements IOnboardingService {
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
     private final CountryStatesRepository countryStatesRepository;
+    private final IndividualAccountRepository individualAccountRepository;
+    private final JointAccountRepository jointAccountRepository;
 
     @Value("${one-app.users-service.okhi.header-value}")
     private String okhiHeaderId;
@@ -157,35 +159,40 @@ public class OnboardingService implements IOnboardingService {
                         address.setStatus(AddressStatus.APPROVED.getValue());
                         userOnboardingRepository.updateUserOnboardingStatus(users.getId(), requirements.getId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
                         addressRepository.save(address);
-                        usersService.completeUserOnboarding(users.getEmail(), request.data().metadata().productId(), OnboardingRequirements.PROOF_OF_ADDRESS);
+                        usersService.completeUserOnboarding(usersRepository.getUserKyc2(users.getEmail()), true, users.getEmail(), request.data().metadata().productId(), OnboardingRequirements.PROOF_OF_ADDRESS);
 
                         Countries countries = countriesRepositories.findById(address.getCountryId()).orElseThrow(() -> new BadRequestException("Invalid country"));
 
                         CountryStates states = countryStatesRepository.findCountryStatesByCodeOrNameIgnoreCase(address.getState(), address.getState());
-                        if (AccountType.INDIVIDUAL.getValue().equals(users.getAccountType()) || AccountType.BOTH_INDIVIDUAL_AND_JOINT.getValue().equals(users.getAccountType())) {
-                            CustomerAddressVerifiedDto dto = CustomerAddressVerifiedDto.builder()
-                                    .primaryStreet(address.getHouseAddress())
-                                    .primaryCity(address.getCity())
-                                    .primaryStateCd(states.getCode())
-                                    .primaryCountryCd(countries.getCodeLong())
-                                    .postalAddress(address.getZipOrPostalCode())
-                                    .customerId(users.getMiddlewareCustomerId())
-                                    .build();
 
-                            try {
-                                OutboxEvent addressOutbox = OutboxEvent.builder()
-                                        .aggregateId(users.getId())
-                                        .aggregateType(AggregateType.USER.getValue())
-                                        .eventType(KafkaTopics.KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC)
-                                        .outboxStatus(OutboxStatus.PENDING.getValue())
-                                        .eventClass(CustomerAddressVerifiedDto.class.getName())
-                                        .eventKey(users.getId().toString())
-                                        .payload(objectMapper.writeValueAsString(dto))
-                                        .build();
-                                outboxEventRepository.save(addressOutbox);
-                            } catch (JsonProcessingException e) {
-                                throw new RuntimeException(e);
-                            }
+                        String customerId = null;
+                        if (AccountType.INDIVIDUAL.getValue().equals(users.getAccountType())) {
+                            customerId = individualAccountRepository.getCustomerIdByUserId(users.getId());
+                        } else if (AccountType.JOINT.getValue().equals(users.getAccountType())) {
+                            customerId = jointAccountRepository.getCustomerIdByUserId(users.getId());
+                        }
+                        CustomerAddressVerifiedDto dto = CustomerAddressVerifiedDto.builder()
+                                .primaryStreet(address.getHouseAddress())
+                                .primaryCity(address.getCity())
+                                .primaryStateCd(states.getCode())
+                                .primaryCountryCd(countries.getCodeLong())
+                                .postalAddress(address.getZipOrPostalCode())
+                                .customerId(customerId)
+                                .build();
+
+                        try {
+                            OutboxEvent addressOutbox = OutboxEvent.builder()
+                                    .aggregateId(users.getId())
+                                    .aggregateType(AggregateType.USER.getValue())
+                                    .eventType(KafkaTopics.KAFKA_KYC_CUSTOMER_ADDRESS_VERIFIED_TOPIC)
+                                    .outboxStatus(OutboxStatus.PENDING.getValue())
+                                    .eventClass(CustomerAddressVerifiedDto.class.getName())
+                                    .eventKey(users.getId().toString())
+                                    .payload(objectMapper.writeValueAsString(dto))
+                                    .build();
+                            outboxEventRepository.save(addressOutbox);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
                         }
                     });
                 } else {

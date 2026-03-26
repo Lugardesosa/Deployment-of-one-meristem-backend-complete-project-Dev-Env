@@ -1,14 +1,12 @@
 package org.meristem.oneapp.usersservice.services;
 
 import jakarta.validation.Valid;
+import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.kafka.dtos.CreateJointCustomerDto;
 import org.meristem.oneapp.kafka.dtos.CustomerAddressVerifiedDto;
-import org.meristem.oneapp.kafka.dtos.KycCompletedDto;
-import org.meristem.oneapp.usersservice.domains.enums.AccountType;
 import org.meristem.oneapp.usersservice.domains.enums.OnboardingRequirements;
 import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
-import org.meristem.oneapp.kafka.dtos.CreateCustomerDto;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.meristem.oneapp.usersservice.models.Users;
@@ -22,7 +20,7 @@ import java.util.List;
  *
  * @author Kingsley
  */
-public interface IUsersService {
+public interface IJointUsersService {
 
     /**
      * Creates initial user registration details.
@@ -46,7 +44,7 @@ public interface IUsersService {
      * @param user the user entity
      * @return a {@link UsersResponse} containing the created user's details
      */
-    UserProfile save(Users user, IdQueryDetailsDto IdQueryDetailsDto, Boolean emailVerified, AccountType accountType);
+    UserProfile save(Users user, IdQueryDetailsDto IdQueryDetailsDto, Boolean emailVerified);
 
     void createJointCustomer(CreateJointCustomerDto value);
 
@@ -128,7 +126,7 @@ public interface IUsersService {
      *
      * @param userId the user identifier
      */
-    void completeUserOnboarding(KycCompletedDto dto, boolean kyc, String userId, Long productId, OnboardingRequirements onboardingRequirements);
+    void completeUserOnboarding(String userId, Long productId, OnboardingRequirements onboardingRequirements);
 
     /**
      * Resets onboarding for the specified user.
@@ -237,7 +235,7 @@ public interface IUsersService {
 
     UpdateResponse setJointPassword(@Valid SetPasswordRequest request);
 
-    UpdateResponse onboardOnProduct(Long userId, String email);
+    UpdateResponse onboardOnProduct();
 
     List<JointAccountDetailsResponse> getJointAccountDetails();
 
@@ -267,9 +265,9 @@ public interface IUsersService {
 
     UsersResponse getInstruments();
 
-//    UpdateResponse createAppJoint(CreateInAppJointAccountRequest request);
+    UpdateResponse createAppJoint(CreateInAppJointAccountRequest request);
 
-//    UpdateResponse createAppIndividual();
+    UpdateResponse createAppIndividual();
 
     List<String> getUserCustomerIds();
     Long getUserId(String customerId);

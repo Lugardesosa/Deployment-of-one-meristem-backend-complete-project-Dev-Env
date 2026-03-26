@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 
 /**
@@ -114,16 +115,18 @@ public class DojahService implements IKycService {
         }
 
 
-        Optional<IdCard> idCard = idCardRepository.findByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.BVN.getName());
-        if (idCard.isPresent()) {
-            if (request.isPrimary()) {
-                throw new BadRequestException("Looks like you already have an account with us. Try logging in .");
-            } else {
-                IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
-                dto.setExisting(true);
-                dto.setIdType(IdCardType.BVN.getName());
-                return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
-            }
+//        Optional<IdCard> idCard = idCardRepository.findByIdValueHashedAndIdCardType(hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), IdCardType.BVN.getName());
+//        if (idCard.isPresent()) {
+//
+//            IdQueryDetailsDto dto = usersRepository.findIdUserDetailById(idCard.get().getUserId());
+//            dto.setExisting(true);
+//            dto.setIdType(IdCardType.BVN.getName());
+//            return getBvnQueryResponse(cacheManager, request, dto, encryptionUtil, hashingUtil, idHashKey);
+//        }
+
+        BvnQueryResponse resp = getBvnResponse(cacheManager, encryptionUtil, request, idCardRepository, hashingUtil, idHashKey, usersRepository);
+        if (nonNull(resp)) {
+            return resp;
         }
         DojahBvnLookUpResponse response = dojahClient.dojahBvnLookUp(request.idNumber());
 
@@ -172,7 +175,7 @@ public class DojahService implements IKycService {
                 kycQuery.setStatus(KycQueryStatus.COMPLETED.getValue());
                 kycQueryRepository.save(kycQuery);
                 userOnboardingRepository.updateUserOnboardingStatus(loggedInUserId, kycQuery.getInvestmentRequirementId(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
-                usersService.completeUserOnboarding(loggedInUserEmail, AppUtil.getInvestmentId(httpRequest), OnboardingRequirements.BVN);
+                usersService.completeUserOnboarding(usersRepository.getUserKyc2(loggedInUserEmail), true, loggedInUserEmail, AppUtil.getInvestmentId(httpRequest), OnboardingRequirements.BVN);
                 cache.evict(loggedInUserEmail.concat(OnboardingRequirements.BVN.getName()));
                 return IdValidationResponse.builder().message("Successful").success(true).build();
             } else {
@@ -216,7 +219,7 @@ public class DojahService implements IKycService {
         List<String> names = AppUtil.buildNames(bvn.getFirstName(), bvn.getMiddleName(), bvn.getLastName());
 
         UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(dto, loggedInUser);
-        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), AppUtil.getInvestmentId(httpRequest));
+        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, usersRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), AppUtil.getInvestmentId(httpRequest));
     }
 
     @Override

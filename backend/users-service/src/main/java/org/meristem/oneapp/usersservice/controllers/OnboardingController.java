@@ -48,7 +48,7 @@ public class OnboardingController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
     })
-    @PreAuthorize("hasRole('ROLE_1037')")
+    @PreAuthorize("hasRole('ROLE_1037') OR hasAuthority('SCOPE_smile_id')")
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> saveIdTask(@RequestBody @Valid IdVerificationRequest smileRequest) {
         return ApiUtil.buildResponse(smileIdService.saveIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
@@ -142,6 +142,16 @@ public class OnboardingController {
     @PostMapping(value = "/validate-bvn", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AppResponse<IdValidationResponse>> validateNin(@RequestParam("photo") MultipartFile file) {
         return ApiUtil.buildResponse(kycDelegatingService.validateBvn(file), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Validate BVN with facial verification")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Validate BVN with facial verification")
+    })
+    @PreAuthorize("hasRole('ROLE_1004') OR hasAuthority('SCOPE_id.query')")
+    @PostMapping(value = "/validate-bvn-facial", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> validateNin(@RequestPart("file") MultipartFile file, @Valid @RequestPart("data") FacialVerificationRequest request) {
+        return ApiUtil.buildResponse(kycDelegatingService.facialVerification(file, request), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get occupations")

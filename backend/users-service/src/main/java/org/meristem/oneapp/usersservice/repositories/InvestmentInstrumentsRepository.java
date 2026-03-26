@@ -10,10 +10,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Transactional(readOnly = true)
 public interface InvestmentInstrumentsRepository extends BaseRepository<InvestmentInstruments, Long> {
@@ -49,4 +46,7 @@ public interface InvestmentInstrumentsRepository extends BaseRepository<Investme
             " LEFT JOIN investment_options_accessed ioa ON ioa.option_id = io.id " +
             "WHERE ii.status = 1 ORDER BY ii.id", resultSetExtractorClass = UserInvestmentOptionsResultSetExtractor.class)
     Map<String, Set<UsersResponse.UserOptionResponse>> findAllUserInstrumentOptions();
+
+    @Query("SELECT code FROM investment_instruments WHERE id = :instrumentId")
+    String findCodeById(Long instrumentId);
 }

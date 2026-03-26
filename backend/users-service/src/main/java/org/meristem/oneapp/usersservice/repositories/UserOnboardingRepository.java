@@ -27,7 +27,7 @@ public interface UserOnboardingRepository extends BaseRepository<UserOnboarding,
     boolean existsByUserIdAndInvestmentRequirementIdAndCompleted(Long userId, Long investmentRequirementId, boolean completed);
 
     @Query("SELECT COUNT(uo.id) = SUM(CASE WHEN uo.completed = TRUE THEN 1 ELSE 0 END) FROM user_onboarding uo LEFT JOIN investment_requirement ir on ir.id = uo.investment_requirement_id WHERE uo.user_id = :userId AND ir.mandatory = TRUE AND ir.investment_id = :investmentId")
-    boolean allRequirementsSubmitted(Long userId, Long investmentId);
+    Boolean allRequirementsSubmitted(Long userId, Long investmentId);
 
     @Modifying
     @Transactional
