@@ -25,7 +25,7 @@ public interface MiddleWareClient {
     WalletApiResponse<List<WalletTransactionResponse>> getRecentTransactions(@PathVariable String accountNo);
 
     @GetExchange("/transactions/{accountNo}")
-    WalletApiResponse<List<WalletTransactionResponse>> getTransactions(@PathVariable String accountNo);
+    WalletApiResponse<List<WalletTransactionResponse>> getTransactions(@PathVariable String accountNo, @RequestParam String startDate, @RequestParam String endDate);
 
     @PostExchange("/transfer")
     WalletApiResponse<WalletTransferResponse> transferFunds(@RequestBody WalletTransferRequest request);

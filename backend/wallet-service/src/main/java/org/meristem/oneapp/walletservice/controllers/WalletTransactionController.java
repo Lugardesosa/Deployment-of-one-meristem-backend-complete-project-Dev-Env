@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
+import org.meristem.oneapp.walletservice.domains.requests.TransactionRequest;
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.TransactionResponse;
 import org.meristem.oneapp.walletservice.services.IWalletTransactionService;
@@ -15,16 +16,13 @@ import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(ApiConstants.CONTEXT_PATH + "middleware/wallet/transactions")
+@RequestMapping(ApiConstants.CONTEXT_PATH + "transactions")
 @Tag(name = "Middleware Wallet Transactions API", description = "Middleware wallet transaction endpoints.")
 public class WalletTransactionController {
 
@@ -36,9 +34,9 @@ public class WalletTransactionController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionResponse.class)))
     })
-    @GetMapping(value = "/recent/{accountNo}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<TransactionResponse>>> getRecentTransactions(@PathVariable String accountNo) {
-        return ApiUtil.buildResponse(middleWareWalletTransactionService.getRecentTransactions(accountNo), HttpStatus.OK.toString(), "Successful");
+    @GetMapping(value = "/recent/{walletId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<TransactionResponse>>> getRecentTransactions(@PathVariable String walletId) {
+        return ApiUtil.buildResponse(middleWareWalletTransactionService.getRecentTransactions(walletId), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get wallet transaction history")
@@ -47,8 +45,8 @@ public class WalletTransactionController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionResponse.class)))
     })
-    @GetMapping(value = "/{accountNo}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<TransactionResponse>>> getTransactions(@PathVariable String accountNo) {
-        return ApiUtil.buildResponse(middleWareWalletTransactionService.getTransactions(accountNo), HttpStatus.OK.toString(), "Successful");
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<TransactionResponse>>> getTransactions(@RequestBody TransactionRequest request) {
+        return ApiUtil.buildResponse(middleWareWalletTransactionService.getTransactions(request), HttpStatus.OK.toString(), "Successful");
     }
 }

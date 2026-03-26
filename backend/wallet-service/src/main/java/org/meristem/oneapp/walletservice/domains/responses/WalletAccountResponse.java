@@ -9,7 +9,6 @@ import java.util.List;
 @Builder
 public record WalletAccountResponse(
         String walletId,
-        String accountNumber,
         String symplusAccountNo,
         List<Nuban> bankAccountDetails,
         String status,

@@ -1,6 +1,7 @@
 package org.meristem.oneapp.walletservice.services.implementations;
 
 import lombok.RequiredArgsConstructor;
+import org.meristem.oneapp.walletservice.domains.requests.TransactionRequest;
 import org.meristem.oneapp.walletservice.domains.responses.TransactionResponse;
 import org.meristem.oneapp.walletservice.integrations.MiddleWareClient;
 import org.meristem.oneapp.walletservice.integrations.responses.WalletTransactionResponse;
@@ -24,8 +25,8 @@ public class WalletTransactionService implements IWalletTransactionService {
     }
 
     @Override
-    public List<TransactionResponse> getTransactions(String accountNo) {
-        return transactionsMapper.walletTransactionResponseToTransactionResponse(normalizeList(middleWareClient.getTransactions(accountNo).data()));
+    public List<TransactionResponse> getTransactions(TransactionRequest request) {
+        return transactionsMapper.walletTransactionResponseToTransactionResponse(normalizeList(middleWareClient.getTransactions(request.walletId(), request.startDate().toString(), request.endDate().toString()).data()));
     }
 
     private <T> List<T> normalizeList(List<T> response) {
