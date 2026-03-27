@@ -234,7 +234,8 @@ public class SmileIdService implements IKycService {
         dto.setBvn(encryptionUtil.encrypt(smileRequest.idNumber()));
         dto.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, smileRequest.idNumber()));
         requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(dto.getBvnHashed(), dto);
-        kycQueryRepository.findKycQueryByJobId(smileRequest.jobId()).ifPresentOrElse(k -> {},
+        kycQueryRepository.findKycQueryByJobId(smileRequest.jobId()).ifPresentOrElse(k -> {
+                },
                 () -> kycQueryRepository.save(KycQuery.builder().jobId(smileRequest.jobId()).investmentRequirementId(requirements.getId()).userId(hashingUtil.hmacWithSha256(idHashKey, smileRequest.idNumber()))
                         .status(KycQueryStatus.PENDING.getValue()).vendorId(vendor.getId()).build()));
         return UpdateResponse.builder().message("Success").success(true).build();
@@ -469,10 +470,9 @@ public class SmileIdService implements IKycService {
 
         IdInfo idInfo = new IdInfo(null, null, null, "NG", IdCardType.BVN.getName(), smileRequest.getBvn(), null, null);
         try {
+            saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
             JobStatusResponse response = connection.submitJob(params, imageDetails, idInfo, options);
-            log.info("------> {}", response);
             if (response.isJobSuccess()) {
-                saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
                 return new UpdateResponse(jobId, true);
             }
             return new UpdateResponse("Failed", false);
