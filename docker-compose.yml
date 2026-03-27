@@ -229,6 +229,8 @@ services:
       - PASTEL_API_KEY=${PASTEL_API_KEY}
       - PASTEL_API_SECRET=${PASTEL_API_SECRET}
       - PASTEL_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/pastel
+      - CORE_CLIENT_ID=core-services
+      - CORE_CLIENT_SECRET=secret
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
