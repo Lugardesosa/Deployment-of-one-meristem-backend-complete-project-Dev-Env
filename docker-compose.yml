@@ -231,6 +231,7 @@ services:
       - PASTEL_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/pastel
       - CORE_CLIENT_ID=core-services
       - CORE_CLIENT_SECRET=secret
+      - CORE_SECRET=secret
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -683,7 +684,7 @@ services:
       - GATEWAY_SERVICE_HOSTNAME=cloud-gateway
       - GATEWAY_SERVICE_PORT=20010
       - CONSUL_HOST=consul
-      - ALLOWED_ORIGINS=http://localhost:3000,https://onemeristemwebdev.meristemng.com
+      - ALLOWED_ORIGINS=http://localhost:3000,https://onemeristemwebdev.meristemng.com,http://127.0.0.1:5500
       - ENC_SALT=${ENC_SALT}
       - ENC_ALGORITHM=AES
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
