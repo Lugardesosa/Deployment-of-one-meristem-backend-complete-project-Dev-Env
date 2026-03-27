@@ -364,7 +364,7 @@ public class UsersService implements IUsersService {
 
     private void createWalletOutbox(UsersResponse.UsersDetails user) {
         try {
-            UserCreatedDto userCreatedDto = new UserCreatedDto(user.getMiddlewareCustomerId());
+            UserCreatedDto userCreatedDto = UserCreatedDto.builder().middleWareCustomerId(user.getMiddlewareCustomerId()).build();
             OutboxEvent createWalletOutbox = OutboxEvent.builder()
                     .aggregateId(user.getId()).aggregateType(AggregateType.USER.getValue())
                     .eventType(KafkaTopics.KAFKA_WALLET_CREATE_TOPIC)
@@ -462,7 +462,7 @@ public class UsersService implements IUsersService {
                     .userId(users.getId()).idValueHashed(hashingUtil.hmacWithSha256(idHashKey, userRequest.nin()))
                     .build());
             String customerId = individualAccountRepository.getCustomerIdByUserId(parentUser.getId());
-            saveToOutbox(users, response, userProfile, users.getId(), KafkaTopics.KAFKA_DEPENDENT_CREATE_TOPIC, customerId);
+            saveToOutbox(users, response, userProfile, users.getId(), KafkaTopics.KAFKA_DEPENDENT_CREATE_TOPIC, customerId, parentUser.getId());
         }
         return UpdateResponse.builder().success(done).message(stringBuilder.toString()).build();
     }
@@ -592,10 +592,10 @@ public class UsersService implements IUsersService {
     }
 
     private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, String kafkaTopics, Long userId) {
-        saveToOutbox(user, bvnQueryResponse, profile, userId, kafkaTopics, null);
+        saveToOutbox(user, bvnQueryResponse, profile, userId, kafkaTopics, null, null);
     }
 
-    private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, Long userId, String kafkaTopics, String parentCustomerId) {
+    private void saveToOutbox(Users user, IdQueryDetailsDto bvnQueryResponse, UserProfile profile, Long userId, String kafkaTopics, String parentCustomerId, Long parentUserId) {
         String address, city, countryCode;
 
         Optional<Countries> countries = countriesRepositories.findCountriesByCodeLongOrCodeShortOrNameIgnoreCase(bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality(), bvnQueryResponse.getNationality());
@@ -622,6 +622,7 @@ public class UsersService implements IUsersService {
 //                .bankBvnNo(nonNull(bvnQueryResponse.getBvn()) ? encryptionUtil.decrypt(bvnQueryResponse.getBvn()) : null)
                 .phoneNumber(user.getPhoneNumber())
                 .parentCustomerId(parentCustomerId)
+                .parentUserId(parentUserId)
                 .addressStreet(address).addressCity(city)
                 .addressCountryCd(countryCode).build();
 
@@ -744,7 +745,8 @@ public class UsersService implements IUsersService {
             dependentAccount.setCustomerId(response.data().customerId());
             dependentAccountRepository.save(dependentAccount);
             users.setMiddlewareCustomerId(dependentAccount.getCustomerId());
-            customRepository.save(UserCustomerIds.builder().customerId(dependentAccount.getCustomerId()).userId(value.userId()).build());
+            users.setParentId(dependentAccount.getParentUserId());
+            customRepository.save(UserCustomerIds.builder().customerId(dependentAccount.getCustomerId()).userId(value.parentUserId()).build());
             createWalletOutbox(users);
         } else {
             throw new BadRequestException("Could not create customer");
@@ -789,7 +791,7 @@ public class UsersService implements IUsersService {
                 cache.evict(id);
             });
             try {
-                UserCreatedDto userCreatedDto = new UserCreatedDto(response.data().customerId());
+                UserCreatedDto userCreatedDto = UserCreatedDto.builder().middleWareCustomerId(response.data().customerId()).build();
                 OutboxEvent customer = OutboxEvent.builder()
                         .aggregateId(userIds.getFirst()).aggregateType(AggregateType.USER.getValue())
                         .eventType(KafkaTopics.KAFKA_WALLET_CREATE_TOPIC)

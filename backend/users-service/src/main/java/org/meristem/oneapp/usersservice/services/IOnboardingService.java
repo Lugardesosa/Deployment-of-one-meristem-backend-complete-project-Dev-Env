@@ -70,4 +70,6 @@ public interface IOnboardingService {
     OccupationResponse getOccupations();
 
     SourceOfIncomeResponse getsourceOfIncome();
+
+    List<RequirementResponse> getRequirements();
 }

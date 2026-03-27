@@ -1,6 +1,8 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.kafka.dtos.WebSocketDto;
@@ -10,10 +12,7 @@ import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.domains.enums.*;
 import org.meristem.oneapp.usersservice.domains.enums.Vendor;
-import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
-import org.meristem.oneapp.usersservice.domains.requests.IdVerificationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
-import org.meristem.oneapp.usersservice.domains.requests.TaxIdQueryRequest;
+import org.meristem.oneapp.usersservice.domains.requests.*;
 import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
@@ -41,6 +40,10 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import smile.identity.core.WebApi;
+import smile.identity.core.enums.ImageType;
+import smile.identity.core.enums.JobType;
+import smile.identity.core.models.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -78,14 +81,15 @@ public class SmileIdService implements IKycService {
     private final AmlVendorRepository amlVendorRepository;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper;
     @Value("${one-app.users-service.smile-id.server-ips}")
     private List<String> smileIps;
 
-    @Value("${one-app.users-service.smile-id.partner-id}")
-    private String partnerId;
-
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
+
+    @Value("${spring.cloud.config.profile}")
+    private String profile;
 
     private static final String DOCUMENT_APPROVED_STATUS = "0810";
     private static final Integer ENHANCED_JOB_TYPE = 5;
@@ -122,7 +126,7 @@ public class SmileIdService implements IKycService {
             SmileIdClient smileIdClient,
             HashingUtil hashingUtil,
             EncryptionUtil encryptionUtil,
-            IIdDetailsService idDetailsService, SimpMessagingTemplate messagingTemplate) {
+            IIdDetailsService idDetailsService, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
         this.customRepository = customRepository;
         this.smileIdProperties = smileIdProperties;
         this.amlVendorRepository = amlVendorRepository;
@@ -141,6 +145,7 @@ public class SmileIdService implements IKycService {
         this.encryptionUtil = encryptionUtil;
         this.idDetailsService = idDetailsService;
         this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
     }
 
     List<String> dataStatus = List.of(ID_APPROVED_STATUS, DOCUMENT_APPROVED_STATUS);
@@ -206,7 +211,7 @@ public class SmileIdService implements IKycService {
                 .user_id(UUID.randomUUID().toString())
                 .build();
         String timestamp = AppUtil.getSmileIdTimestamp();
-        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.idNumber(), request.idType(), partnerId, partnerParams, getSignature(timestamp), timestamp, request.country());
+        SmileIdEnhancedKycRequest smileIdEnhancedKycRequest = SmileIdEnhancedKycRequest.newRequest(request.idNumber(), request.idType(), smileIdProperties.partnerId(), partnerParams, getSignature(timestamp), timestamp, request.country());
 
         return smileIdClient.enhancedBvnQuery(smileIdEnhancedKycRequest);
     }
@@ -439,6 +444,40 @@ public class SmileIdService implements IKycService {
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new BadRequestException("Bad request: invalid request");
+        }
+    }
+
+    public UpdateResponse saveIdTask(@Valid WebIdVerificationRequest smileRequest) {
+
+        String sidServer = "prod".equalsIgnoreCase(profile) ? "1" : "0";  // Use '0' for the sandbox server
+
+        Map<String, Object> optionalInfo = new HashMap<>();
+//        optionalInfo.put("product_id", 1);
+        WebApi connection = new WebApi(smileIdProperties.partnerId(), smileIdProperties.apiKey(), smileIdProperties.callbackUrl(), sidServer);
+        String jobId = UUID.randomUUID().toString();
+        String userId = UUID.randomUUID().toString();
+        PartnerParams params = new PartnerParams(JobType.fromValue(smileRequest.getPartnerParams().getJobType()), userId, jobId, optionalInfo);
+        List<ImageDetail> imageDetails = new ArrayList<>();
+        smileRequest.getImages().forEach(image -> {
+            imageDetails.add(new ImageDetail(ImageType.fromValue(image.imageTypeId()), image.image(), null));
+        });
+        boolean returnJobStatus = false; // Set to true if you want to get
+        boolean returnHistory = false; // Set to true to receive all of the
+        boolean returnImageLinks = false; // Set to true to receive links to
+
+        Options options = new Options(returnHistory, returnImageLinks, returnJobStatus, smileIdProperties.callbackUrl());
+
+        IdInfo idInfo = new IdInfo(null, null, null, "NG", IdCardType.BVN.getName(), smileRequest.getBvn(), null, null);
+        try {
+            JobStatusResponse response = connection.submitJob(params, imageDetails, idInfo, options);
+            log.info("------> {}", response);
+            if (response.isJobSuccess()) {
+                saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
+                return new UpdateResponse(jobId, true);
+            }
+            return new UpdateResponse("Failed", false);
+        } catch (Exception e) {
+            throw new RuntimeException("Bad request: invalid request");
         }
     }
 }

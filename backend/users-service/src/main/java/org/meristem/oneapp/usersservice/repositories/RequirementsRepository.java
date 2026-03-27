@@ -1,5 +1,6 @@
 package org.meristem.oneapp.usersservice.repositories;
 
+import org.meristem.oneapp.usersservice.domains.responses.RequirementResponse;
 import org.meristem.oneapp.usersservice.dtos.sql.InvestmentReqIdReqName;
 import org.meristem.oneapp.usersservice.models.InvestmentRequirement;
 import org.meristem.oneapp.usersservice.models.Requirements;
@@ -58,4 +59,7 @@ public interface RequirementsRepository extends BaseRepository<Requirements, Lon
                     WHERE r.requirement_name = :requirementName AND ii.id != :investmentId
             """)
     List<Long> findAllInvestmentInstrumentIdByRequirementName(String requirementName, Long investmentId);
+
+    @Query("SELECT r.id, r.requirement_name FROM requirements r")
+    List<RequirementResponse> findAllRequirement();
 }

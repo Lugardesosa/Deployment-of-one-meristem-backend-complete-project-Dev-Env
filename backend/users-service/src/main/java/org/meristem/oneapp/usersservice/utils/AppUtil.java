@@ -202,18 +202,36 @@ public final class AppUtil {
 
     public static Long getInvestmentId(HttpServletRequest request) {
         try {
-            return Long.valueOf(request.getHeader("SUBSIDIARY_ID"));
+            return Long.valueOf(request.getHeader("X-MERISTEM-SUBSIDIARY-ID"));
         } catch (NumberFormatException e) {
-            throw new BadRequestException("Kindly pass SUBSIDIARY_ID in the Header");
+            throw new BadRequestException("Kindly pass X-MERISTEM-SUBSIDIARY-ID in the Header");
         }
     }
 
     public static @NonNull String getCustomerId(HttpServletRequest request) {
-        String id = request.getHeader("CUSTOMER_ID");
+        String id = request.getHeader("X-MERISTEM-CUSTOMER-ID");
         if (StringUtils.isBlank(id)) {
-            throw new BadRequestException("Kindly pass CUSTOMER_ID in the Header");
+            throw new BadRequestException("Kindly pass X-MERISTEM-CUSTOMER-ID in the Header");
         }
-        return request.getHeader("CUSTOMER_ID");
+        return id;
+    }
+
+    public static @NonNull String getPlatform(HttpServletRequest request) {
+        String platform = request.getHeader("X-MERISTEM-PLATFORM");
+        if (StringUtils.isBlank(platform)) {
+            throw new BadRequestException("Kindly pass X-MERISTEM-PLATFORM in the Header");
+        }
+        return platform;
+    }
+
+    public static @NonNull List<String> getCustomerId() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return jwt.getClaim("customerIds");
+        }
+        throw new BadRequestException("User is not logged in");
     }
 
     public static String generateCscs() {
