@@ -1,4 +1,7 @@
 package org.meristem.oneapp.kafka.dtos;
 
-public record UserCreatedDto(String middleWareCustomerId) {
+import lombok.Builder;
+
+@Builder
+public record UserCreatedDto(String middleWareCustomerId, Long parentUserId) {
 }

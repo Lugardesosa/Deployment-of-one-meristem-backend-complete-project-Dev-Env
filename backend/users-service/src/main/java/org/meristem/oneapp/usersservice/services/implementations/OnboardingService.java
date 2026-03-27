@@ -329,4 +329,9 @@ public class OnboardingService implements IOnboardingService {
     public SourceOfIncomeResponse getsourceOfIncome() {
         return new SourceOfIncomeResponse(sourceOfIncomeRepository.findAllSourceOfIncome());
     }
+
+    @Override
+    public List<RequirementResponse> getRequirements() {
+         return requirementsRepository.findAllRequirement();
+    }
 }

@@ -70,14 +70,14 @@ public class UsersController {
 
     @Operation(summary = "Creates a minor account.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created a minor account.",
+            @ApiResponse(responseCode = "201", description = "Create a minor account.",
                     content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UpdateResponse.class))
                     }),
             @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
 
     })
-    @PreAuthorize("hasRole('ROLE_1000') AND authentication.principal.claims['accountType'] == 0")
+    @PreAuthorize("hasRole('ROLE_1000') AND authentication.principal.claims['accountType'] == 0 AND @authz.ownsCustomerId()")
     @PostMapping(value = "/minor", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> createUserDependent(@RequestBody @Valid CreateUserDependentRequest userRequest) {
         return ApiUtil.buildResponse(usersService.createUserDependent(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
@@ -160,7 +160,7 @@ public class UsersController {
             @ApiResponse(responseCode = "400", description = "Bad request - Cscs and Chn number could not be updated")
 
     })
-    @PreAuthorize("hasRole('ROLE_1048')")
+    @PreAuthorize("hasRole('ROLE_1048') AND @authz.ownsCustomerId()")
     @PutMapping(value = "/cscs-chn-update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> updateCscs(@RequestBody @Valid UpdateCscsRequest request) {
         return ApiUtil.buildResponse(usersService.updateCscs(request), HttpStatus.OK.toString(), "Successful.");
