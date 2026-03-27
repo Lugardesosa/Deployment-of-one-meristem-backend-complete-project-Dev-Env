@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.AuthScopes;
+import org.meristem.oneapp.usersservice.repositories.IndividualAccountRepository;
+import org.meristem.oneapp.usersservice.repositories.JointAccountRepository;
+import org.meristem.oneapp.usersservice.repositories.UserCustomerIdsRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -136,10 +139,10 @@ public class AuthorizationServerConfig {
 
 
     @Bean
-    OAuth2TokenGenerator<OAuth2Token> tokenGenerator(JdbcTemplate jdbcTemplate, RsaKeys rsaKeys) {
+    OAuth2TokenGenerator<OAuth2Token> tokenGenerator(JdbcTemplate jdbcTemplate, RsaKeys rsaKeys, UserCustomerIdsRepository userCustomerIdsRepository) {
         JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource(rsaKeys));
         JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
-        OAuth2AccessTokenCustomizer customizer = new OAuth2AccessTokenCustomizer(clientRepository(jdbcTemplate));
+        OAuth2AccessTokenCustomizer customizer = new OAuth2AccessTokenCustomizer(clientRepository(jdbcTemplate), userCustomerIdsRepository);
         jwtGenerator.setJwtCustomizer(customizer);
         OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
         OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();

@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 
-@Schema(name = "SmileIdIdRequest", description = "Request payload containing identifiers required to start or fetch a Smile Identity verification job.")
 @Builder
 public record IdVerificationRequest(
         @Schema(description = "Internal requirement identifier associated with the verification flow.", example = "12345")

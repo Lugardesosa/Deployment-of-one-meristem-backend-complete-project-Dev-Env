@@ -60,6 +60,9 @@ public class UsersResponse implements Serializable {
         @Schema(description = "Unique identifier of the user.", example = "123456789", format = "int64")
         private Long id;
 
+        @JsonIgnore
+        private Long parentId;
+
         @Schema(description = "Email address of the user.", example = "jane.doe@example.com")
         private String email;
 

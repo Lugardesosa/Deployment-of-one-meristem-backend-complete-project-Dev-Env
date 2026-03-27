@@ -144,6 +144,14 @@
             <scope>compile</scope>
         </dependency>
 
+<!--        SDK-->
+        <!-- Source: https://mvnrepository.com/artifact/com.smileidentity/smile-identity-core -->
+        <dependency>
+            <groupId>com.smileidentity</groupId>
+            <artifactId>smile-identity-core</artifactId>
+            <version>2.1.7</version>
+            <scope>compile</scope>
+        </dependency>
 <!--        STORAGE-->
         <dependency>
             <groupId>com.h2database</groupId>

@@ -44,6 +44,16 @@ public class OnboardingController {
         return ApiUtil.buildResponse(onboardingService.getOnboardingDetails(), HttpStatus.OK.toString(), "User onboarding details request successful");
     }
 
+    @Operation(summary = "Get all requirements")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Get all requirements ")
+    })
+    @PreAuthorize("hasAuthority('SCOPE_requirements.get')")
+    @GetMapping(value = "/all-requirements", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<List<RequirementResponse>>> getRequirements() {
+        return ApiUtil.buildResponse(onboardingService.getRequirements(), HttpStatus.OK.toString(), "User onboarding details request successful");
+    }
+
     @Operation(summary = "Get smile id token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
@@ -51,6 +61,17 @@ public class OnboardingController {
     @PreAuthorize("hasRole('ROLE_1037') OR hasAuthority('SCOPE_smile_id')")
     @PostMapping(value = "/smile-id", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<UpdateResponse>> saveIdTask(@RequestBody @Valid IdVerificationRequest smileRequest) {
+        return ApiUtil.buildResponse(smileIdService.saveIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
+    }
+
+
+    @Operation(summary = "Get smile id token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Allows the users to get smile id token for smile id verifications")
+    })
+    @PreAuthorize("hasRole('ROLE_1037') OR hasAuthority('SCOPE_smile_id')")
+    @PostMapping(value = "/smile-id/web", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> saveIdTask(@RequestBody @Valid WebIdVerificationRequest smileRequest) {
         return ApiUtil.buildResponse(smileIdService.saveIdTask(smileRequest), HttpStatus.OK.toString(), "Request successful");
     }
 
