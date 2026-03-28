@@ -38,6 +38,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import smile.identity.core.WebApi;
@@ -224,7 +225,7 @@ public class SmileIdService implements IKycService {
      * @throws BadRequestException      If the ID card already exists or the requirement is already completed.
      * @throws UpstreamServiceException If the token generation fails.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public UpdateResponse saveIdTask(IdVerificationRequest smileRequest) {
 
         org.meristem.oneapp.usersservice.models.Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(Vendor.SMILE_ID.getValue());
@@ -448,6 +449,7 @@ public class SmileIdService implements IKycService {
         }
     }
 
+    @Transactional
     public UpdateResponse saveIdTask(@Valid WebIdVerificationRequest smileRequest) {
 
         String sidServer = "prod".equalsIgnoreCase(profile) ? "1" : "0";  // Use '0' for the sandbox server
@@ -455,7 +457,7 @@ public class SmileIdService implements IKycService {
         Map<String, Object> optionalInfo = new HashMap<>();
 //        optionalInfo.put("product_id", 1);
         WebApi connection = new WebApi(smileIdProperties.partnerId(), smileIdProperties.apiKey(), smileIdProperties.callbackUrl(), sidServer);
-        String jobId = UUID.randomUUID().toString();
+        String jobId = smileRequest.getJobId();
         String userId = UUID.randomUUID().toString();
         PartnerParams params = new PartnerParams(JobType.fromValue(smileRequest.getPartnerParams().getJobType()), userId, jobId, optionalInfo);
         List<ImageDetail> imageDetails = new ArrayList<>();
@@ -470,10 +472,10 @@ public class SmileIdService implements IKycService {
 
         IdInfo idInfo = new IdInfo(null, null, null, "NG", IdCardType.BVN.getName(), smileRequest.getBvn(), null, null);
         try {
-            saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
             JobStatusResponse response = connection.submitJob(params, imageDetails, idInfo, options);
             if (response.isJobSuccess()) {
-                return new UpdateResponse(jobId, true);
+            saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
+                return new UpdateResponse("Success", true);
             }
             return new UpdateResponse("Failed", false);
         } catch (Exception e) {
