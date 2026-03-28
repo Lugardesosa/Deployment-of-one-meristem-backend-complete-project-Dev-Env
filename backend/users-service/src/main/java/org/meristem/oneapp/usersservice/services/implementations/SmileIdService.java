@@ -456,6 +456,10 @@ public class SmileIdService implements IKycService {
 
         Map<String, Object> optionalInfo = new HashMap<>();
 //        optionalInfo.put("product_id", 1);
+
+        if (!"prod".equalsIgnoreCase(profile)) {
+            optionalInfo.put("sandbox_result", smileRequest.getPartnerParams().getSandboxResult());
+        }
         WebApi connection = new WebApi(smileIdProperties.partnerId(), smileIdProperties.apiKey(), smileIdProperties.callbackUrl(), sidServer);
         String jobId = smileRequest.getJobId();
         String userId = UUID.randomUUID().toString();
