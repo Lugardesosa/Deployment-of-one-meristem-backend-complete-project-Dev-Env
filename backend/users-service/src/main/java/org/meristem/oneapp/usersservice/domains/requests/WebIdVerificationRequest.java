@@ -31,7 +31,7 @@ public class WebIdVerificationRequest {
     @RequiredArgsConstructor
     public static class PartnerParams {
 
-        private String jobId;
+        private String sandboxResult;
         private String userId;
         @NotNull(message = "Cannot be null") private Integer jobType;
     }
