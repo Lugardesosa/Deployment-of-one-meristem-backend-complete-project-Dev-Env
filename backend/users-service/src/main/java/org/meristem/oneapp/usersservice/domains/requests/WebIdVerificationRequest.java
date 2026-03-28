@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class WebIdVerificationRequest {
 
-    private @NotBlank(message = "Cannot be blank") String jobId;
+//    private @NotBlank(message = "Cannot be blank") String jobId;
     private @NotBlank(message = "Cannot be blank") String bvn;
     private @NotEmpty(message = "Cannot be empty") List<@Valid Image> images;
     private PartnerParams partnerParams;
