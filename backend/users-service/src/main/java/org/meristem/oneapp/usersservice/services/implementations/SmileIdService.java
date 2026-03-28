@@ -82,7 +82,6 @@ public class SmileIdService implements IKycService {
     private final AmlVendorRepository amlVendorRepository;
     private final UserIdDetailsMapper userIdDetailsMapper = UserIdDetailsMapper.INSTANCE;
     private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectMapper objectMapper;
     @Value("${one-app.users-service.smile-id.server-ips}")
     private List<String> smileIps;
 
@@ -127,7 +126,7 @@ public class SmileIdService implements IKycService {
             SmileIdClient smileIdClient,
             HashingUtil hashingUtil,
             EncryptionUtil encryptionUtil,
-            IIdDetailsService idDetailsService, SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
+            IIdDetailsService idDetailsService, SimpMessagingTemplate messagingTemplate) {
         this.customRepository = customRepository;
         this.smileIdProperties = smileIdProperties;
         this.amlVendorRepository = amlVendorRepository;
@@ -146,7 +145,6 @@ public class SmileIdService implements IKycService {
         this.encryptionUtil = encryptionUtil;
         this.idDetailsService = idDetailsService;
         this.messagingTemplate = messagingTemplate;
-        this.objectMapper = objectMapper;
     }
 
     List<String> dataStatus = List.of(ID_APPROVED_STATUS, DOCUMENT_APPROVED_STATUS);
@@ -461,7 +459,7 @@ public class SmileIdService implements IKycService {
             optionalInfo.put("sandbox_result", smileRequest.getPartnerParams().getSandboxResult());
         }
         WebApi connection = new WebApi(smileIdProperties.partnerId(), smileIdProperties.apiKey(), smileIdProperties.callbackUrl(), sidServer);
-        String jobId = smileRequest.getJobId();
+        String jobId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
         PartnerParams params = new PartnerParams(JobType.fromValue(smileRequest.getPartnerParams().getJobType()), userId, jobId, optionalInfo);
         List<ImageDetail> imageDetails = new ArrayList<>();
