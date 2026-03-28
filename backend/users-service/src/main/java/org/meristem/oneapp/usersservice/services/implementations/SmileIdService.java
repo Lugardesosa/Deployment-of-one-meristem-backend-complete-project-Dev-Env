@@ -477,7 +477,7 @@ public class SmileIdService implements IKycService {
             }
             return new UpdateResponse("Failed", false);
         } catch (Exception e) {
-            throw new RuntimeException("Bad request: invalid request");
+            throw new RuntimeException(e.getMessage());
         }
     }
 }
