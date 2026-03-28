@@ -18,13 +18,14 @@ metadata:
     kubernetes.io/elb.http2-enable: "true"
     kubernetes.io/elb.gzip-enabled: "true"
     kubernetes.io/elb.x-real-ip: "true"
-    kubernetes.io/elb.member_timeout: "300"
-    kubernetes.io/elb.client_timeout: "300"
-    kubernetes.io/elb.keepalive_timeout: "300"
+    kubernetes.io/elb.member_timeout: "3600" # Increased this to allow web socket connection time limit
+    kubernetes.io/elb.client_timeout: "3600"
+    kubernetes.io/elb.keepalive_timeout: "3600"
     kubernetes.io/elb.health-check-flag: "on"
     kubernetes.io/elb.health-check-option: |
       {"protocol":"HTTP","port":"20010","uri":"/actuator/health","interval":5,"timeout":10,"rise":2,"fall":2}
     kubernetes.io/elb.backend-protocol: "HTTP"
+    kubernetes.io/elb.websocket-enable: "true"     # THIS allows WS upgrade
     kubernetes.io/elb.backend-port: "20010"
     # Ensure ELB passes the real client IP and other standard proxy headers
     kubernetes.io/elb.x-forwarded-host: "true"
