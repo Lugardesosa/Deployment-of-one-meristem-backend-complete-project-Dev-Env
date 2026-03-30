@@ -68,6 +68,7 @@ public class RequestResponseLogging extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         String requestUri = request.getRequestURI();
-        return Stream.of("/actuator", "/h2-console", "/swagger-ui", "/api-docs", "/webjars", "/ws").anyMatch(url -> requestUri.startsWith(contextPath.concat(url)));
+        return Stream.of("/actuator", "/h2-console", "/swagger-ui", "/api-docs", "/webjars", "/ws", "/ws-stomp")
+                .anyMatch(url -> requestUri.startsWith(contextPath.concat(url)));
     }
 }

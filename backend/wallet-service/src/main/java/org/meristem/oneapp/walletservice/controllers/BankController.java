@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
 import org.meristem.oneapp.walletservice.domains.enums.ProviderCode;
 import org.meristem.oneapp.walletservice.domains.requests.BankAccountRequest;
+import org.meristem.oneapp.walletservice.domains.requests.BankDetailsQueryRequest;
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.BankAccountResponse;
 import org.meristem.oneapp.walletservice.domains.responses.BankCodeResponse;
@@ -39,8 +40,8 @@ public class BankController {
     )})
     @PreAuthorize("hasAuthority('ROLE_1010')")
     @PostMapping(value = "/resolve-account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<BankAccountResponse>> resolveAccount(@RequestBody @Valid BankAccountRequest request) {
-        return ApiUtil.buildResponse(bankService.resolveAccount(request), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<BankAccountResponse>> resolveAccount(@RequestBody @Valid BankDetailsQueryRequest request) {
+        return ApiUtil.buildResponse(bankService.bankDetailsQuery(request), HttpStatus.OK.toString(), "Successful");
     }
 
 
