@@ -13,9 +13,12 @@ import org.springframework.web.service.annotation.PostExchange;
 @HttpExchange(contentType = MediaType.APPLICATION_JSON_VALUE)
 public interface SmileIdClient {
 
-    @PostExchange(url = "/smile_links")
+    @PostExchange(url = "/v1/smile_links")
     SmileIdSmileLinkResponse createSmileLink(@RequestBody SmileIdSmileLinkRequest request);
 
-    @PostExchange(url = "/id_verification")
+    @PostExchange(url = "/v1/id_verification")
     SmileIdWebhookNotification enhancedBvnQuery(@RequestBody SmileIdEnhancedKycRequest request);
+
+    @PostExchange(url = "/v2/verify")
+    SmileIdWebhookNotification basicIdQuery(@RequestBody SmileIdEnhancedKycRequest request);
 }

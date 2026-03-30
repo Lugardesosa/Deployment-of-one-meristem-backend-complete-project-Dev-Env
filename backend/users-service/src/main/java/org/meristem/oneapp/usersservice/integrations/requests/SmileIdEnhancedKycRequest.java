@@ -13,6 +13,8 @@ public record SmileIdEnhancedKycRequest(
         String gender,
         @JsonProperty("id_number")
         String idNumber,
+        @JsonProperty("bank_code")
+        String bankCode,
         @JsonProperty("id_type")
         String idType,
         String last_name,
@@ -31,7 +33,7 @@ public record SmileIdEnhancedKycRequest(
 ) {
 
     public static SmileIdEnhancedKycRequest newRequest(String idNumber, String idType, String partnerId, PartnerParams partnerParams, String signature, String timestamp, String country) {
-        return new SmileIdEnhancedKycRequest(null, country, null, null, null, idNumber, idType, null, null, partnerId,
+        return new SmileIdEnhancedKycRequest(null, country, null, null, null, idNumber, null, idType, null, null, partnerId,
                 partnerParams, null, signature, "rest_api", null, timestamp);
     }
 

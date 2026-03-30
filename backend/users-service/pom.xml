@@ -200,12 +200,6 @@
             <version>6.2.5</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-websocket</artifactId>
-            <version>6.2.12</version>
-            <scope>compile</scope>
-        </dependency>
 
 <!--        TEST-->
         <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->

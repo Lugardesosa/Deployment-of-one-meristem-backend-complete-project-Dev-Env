@@ -12,6 +12,7 @@ public enum IdCardType {
     DRIVERS_LICENSE("DRIVERS_LICENSE", "Driver's License"),
     INTERNATIONAL_PASSPORT("PASSPORT", "International Passport"),
     VOTERS_CARD("VOTER_ID", "Voter's Card"),
+    BANK_ACCOUNT("BANK_ACCOUNT", "Bank Account"),
     NONE("", "");
 
     private final String name;

@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.domains.enums.*;
-import org.meristem.oneapp.usersservice.domains.enums.Vendor;
 import org.meristem.oneapp.usersservice.domains.requests.IdQueryRequest;
 import org.meristem.oneapp.usersservice.domains.requests.NinValidationRequest;
 import org.meristem.oneapp.usersservice.domains.requests.TaxIdQueryRequest;
@@ -19,7 +18,10 @@ import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnLookUpRes
 import org.meristem.oneapp.usersservice.integrations.responses.DojahBvnVerificationResponse;
 import org.meristem.oneapp.usersservice.integrations.responses.DojahNinLookUpResponse;
 import org.meristem.oneapp.usersservice.mappers.UserIdDetailsMapper;
-import org.meristem.oneapp.usersservice.models.*;
+import org.meristem.oneapp.usersservice.models.KycQuery;
+import org.meristem.oneapp.usersservice.models.UserIdDetails;
+import org.meristem.oneapp.usersservice.models.UserProfile;
+import org.meristem.oneapp.usersservice.models.Users;
 import org.meristem.oneapp.usersservice.repositories.*;
 import org.meristem.oneapp.usersservice.services.IIdDetailsService;
 import org.meristem.oneapp.usersservice.services.IKycService;
@@ -42,7 +44,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Objects.isNull;

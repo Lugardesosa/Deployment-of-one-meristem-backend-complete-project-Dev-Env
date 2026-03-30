@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.meristem.oneapp.usersservice.config.configProperties.RsaKeys;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.AuthScopes;
-import org.meristem.oneapp.usersservice.repositories.IndividualAccountRepository;
-import org.meristem.oneapp.usersservice.repositories.JointAccountRepository;
 import org.meristem.oneapp.usersservice.repositories.UserCustomerIdsRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -124,7 +122,7 @@ public class AuthorizationServerConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/oauth/token", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**", "/ws/**").permitAll()
+                .authorizeHttpRequests(requests -> requests.requestMatchers("/h2-console/**", "/oauth/token", "/webjars/**", "/swagger-ui/**", "/actuator/**", "/api-docs/**", "/ws/**", "/ws-stomp").permitAll()
                         .requestMatchers(HttpMethod.POST, "/notification/otp", "/notification/otp/verify", "/base", "/base/password-reset", "/callback/**").permitAll()
                         .requestMatchers(PathPatternRequestMatcher.withDefaults().matcher("/admin/**")).hasAnyRole("ADMIN", "SYSTEM_ADMIN", "AUDITOR", "COMPLIANCE_OFFICER")
                         .anyRequest().authenticated())

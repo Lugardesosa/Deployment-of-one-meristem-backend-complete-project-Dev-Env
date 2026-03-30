@@ -70,7 +70,6 @@ public class KycQuery extends BaseModel<String> {
      * @param version the version of the record
      * @param jobId the job ID of the Smile ID record
      * @param userId the user ID associated with the Smile ID record
-     * @param requirementId the requirement id associated with this job
      */
 
     @Builder
