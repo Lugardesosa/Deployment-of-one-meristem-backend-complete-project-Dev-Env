@@ -1,10 +1,8 @@
 package org.meristem.oneapp.usersservice.services.implementations;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.meristem.oneapp.kafka.dtos.WebSocketDto;
 import org.meristem.oneapp.usersservice.config.MaskingUtils;
 import org.meristem.oneapp.usersservice.config.configProperties.SmileIdProperties;

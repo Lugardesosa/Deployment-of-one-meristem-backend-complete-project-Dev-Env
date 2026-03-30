@@ -65,7 +65,7 @@ spring:
             - id: ${one-app.users-service.application-name}-websocket
               uri: lb:ws://${one-app.users-service.application-name}
               predicates:
-                - Path=${one-app.users-service.context-path}/ws,${one-app.users-service.context-path}/ws/**
+                - Path=${one-app.users-service.context-path}/ws,${one-app.users-service.context-path}/ws/**,${one-app.users-service.context-path}/ws-stomp,${one-app.users-service.context-path}/ws-stomp/**
 
             - id: ${one-app.users-service.application-name}
               uri: lb://${one-app.users-service.application-name}
