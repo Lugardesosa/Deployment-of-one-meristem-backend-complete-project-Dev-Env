@@ -160,13 +160,14 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SMILE_ID_PARTNER_ID=7496
-      - SMILE_ID_PROD_API_KEY=ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI=
-      - SMILE_ID_DEV_API_KEY=3d64d61d-6d64-402d-a5f0-fa288507ec8f
+      - SMILE_ID_PROD_API_KEY=${SMILE_ID_PROD_API_KEY}
+      - SMILE_ID_DEV_API_KEY=${SMILE_ID_DEV_API_KEY}
       - SMILE_ID_PROD_LAMBDA_URL=https://api.smileidentity.com
       - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com
       - SMILE_ID_PROD_WHITELIST_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
-      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141,102.88.54.120,192.168.48.13
-      - SMILE_ID_PROD_CALLBACK_URL='https://onemeristemdev.meristemng.com/api/users/callback/smile-id'
+      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141,0:0:0:0:0:0:0:1,192.168.48.13
+      - SMILE_ID_DEV_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
+      - SMILE_ID_PROD_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -174,6 +175,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - USER=System
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
       - USERS_DB_NAME=${DB_NAME_USERS_SERVICE}
@@ -270,6 +272,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -355,6 +358,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -425,6 +429,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -503,6 +508,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -576,6 +582,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
