@@ -16,6 +16,7 @@ import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class WalletTransactionController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionResponse.class)))
     })
+    @PreAuthorize("hasAuthority('ROLE_1050')")
     @GetMapping(value = "/recent/{walletId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<TransactionResponse>>> getRecentTransactions(@PathVariable String walletId) {
         return ApiUtil.buildResponse(middleWareWalletTransactionService.getRecentTransactions(walletId), HttpStatus.OK.toString(), "Successful");
@@ -45,6 +47,7 @@ public class WalletTransactionController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionResponse.class)))
     })
+    @PreAuthorize("hasAuthority('ROLE_1050')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<TransactionResponse>>> getTransactions(@RequestBody TransactionRequest request) {
         return ApiUtil.buildResponse(middleWareWalletTransactionService.getTransactions(request), HttpStatus.OK.toString(), "Successful");

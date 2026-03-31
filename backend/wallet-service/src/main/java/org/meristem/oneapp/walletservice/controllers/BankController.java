@@ -10,11 +10,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
 import org.meristem.oneapp.walletservice.domains.enums.ProviderCode;
+import org.meristem.oneapp.walletservice.domains.requests.AddAccountRequest;
 import org.meristem.oneapp.walletservice.domains.requests.BankAccountRequest;
 import org.meristem.oneapp.walletservice.domains.requests.BankDetailsQueryRequest;
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.BankAccountResponse;
 import org.meristem.oneapp.walletservice.domains.responses.BankCodeResponse;
+import org.meristem.oneapp.walletservice.integrations.responses.UpdateResponse;
 import org.meristem.oneapp.walletservice.services.IBankService;
 import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
@@ -42,6 +44,18 @@ public class BankController {
     @PostMapping(value = "/resolve-account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<BankAccountResponse>> resolveAccount(@RequestBody @Valid BankDetailsQueryRequest request) {
         return ApiUtil.buildResponse(bankService.bankDetailsQuery(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+
+    @Operation(summary = "Add account number")
+    @ApiResponses(value = {@ApiResponse(
+            responseCode = "200", description = "Resolves bank account details",
+            content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BankAccountResponse.class))}
+    )})
+    @PreAuthorize("hasAuthority('ROLE_1010')")
+    @PostMapping(value = "/add-account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> addAccount(@RequestBody @Valid AddAccountRequest request) {
+        return ApiUtil.buildResponse(bankService.addAccount(request), HttpStatus.OK.toString(), "Successful");
     }
 
 

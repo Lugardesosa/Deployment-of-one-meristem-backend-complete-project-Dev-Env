@@ -12,16 +12,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import javax.crypto.Mac;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 
 @UtilityClass
 public final class AppUtil {
@@ -30,7 +37,7 @@ public final class AppUtil {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            return jwt.getClaimAsString("sub");
+            return requireNonNull(jwt, "user not logged in").getClaimAsString("sub");
         }
         return "SYSTEM.AUTO";
     }
@@ -39,7 +46,7 @@ public final class AppUtil {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            return jwt.getClaim("id");
+            return requireNonNull(jwt, "user not logged in").getClaim("id");
         }
         throw new BadRequestException("User is not logged in");
     }
@@ -127,5 +134,70 @@ public final class AppUtil {
             throw new BadRequestException("Kindly pass CUSTOMER_ID in the Header");
         }
         return request.getHeader("CUSTOMER_ID");
+    }
+
+    public static @NonNull List<String> getCustomerId() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return requireNonNull(jwt, "user not logged in").getClaim("customerIds");
+        }
+        throw new BadRequestException("User is not logged in");
+    }
+
+
+    public static Mac getHmacSHA256() throws NoSuchAlgorithmException {
+        return Mac.getInstance("HmacSHA256");
+    }
+
+
+    public static String getSmileIdTimestamp() {
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        OffsetDateTime offsetDateTime = localDateTime.atOffset(ZoneOffset.UTC);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        return offsetDateTime.format(formatter);
+    }
+
+    public static boolean allNamesMatch(List<String> names1, List<String> names2) {
+
+        Set<String> caseInsensitiveSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        caseInsensitiveSet.addAll(names1);
+        names2.forEach(caseInsensitiveSet::remove);
+        return caseInsensitiveSet.isEmpty();
+    }
+
+    public static String getFirstName() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return requireNonNull(jwt, "user not logged in").getClaimAsString("firstName");
+        }
+        return null;
+    }
+
+    public static String getLastName() {
+
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return requireNonNull(jwt, "user not logged in").getClaimAsString("middleName");
+        }
+        return null;
+    }
+
+    public static String getMiddleName() {
+
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return requireNonNull(jwt, "user not logged in").getClaimAsString("lastName");
+        }
+        return null;
     }
 }

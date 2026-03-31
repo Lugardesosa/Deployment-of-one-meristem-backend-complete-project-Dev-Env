@@ -1,5 +1,6 @@
 package org.meristem.oneapp.walletservice.constants;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -10,4 +11,6 @@ public final class AppConstants {
 
     public static final int OUTBOX_MAX_RETRY_COUNT = 3;
     public static final String BANK_ACCOUNT = "BANK_ACCOUNT";
+    public static final String WALLET_CACHE_NAME = "wallets-wallet-cache-name";
+    public static final String NG = "NG";
 }

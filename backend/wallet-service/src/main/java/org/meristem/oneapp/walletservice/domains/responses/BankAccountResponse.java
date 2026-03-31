@@ -1,4 +1,6 @@
 package org.meristem.oneapp.walletservice.domains.responses;
 
-public record BankAccountResponse(String accountName) {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public record BankAccountResponse(String accountName, @JsonIgnore String firstName, @JsonIgnore String lastName, @JsonIgnore String middleName) {
 }
