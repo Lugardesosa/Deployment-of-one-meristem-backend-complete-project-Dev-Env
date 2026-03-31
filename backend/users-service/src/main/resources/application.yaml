@@ -33,3 +33,5 @@ resilience4j:
         waitDurationInOpenState: 5s
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
+
+logging.level.redis.clients: TRACE
