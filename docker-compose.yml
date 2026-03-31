@@ -629,9 +629,9 @@ services:
     container_name: cloud-gateway
     expose:
       - "20010"
-      #ports:
+    ports:
       #- "443:8443"
-      #- "8080:20010"  # Exposed for HTTP
+      - "8080:20010"  # Exposed for HTTP
         #- "443:20010" # Exposed for HTTPS
     networks:
       - meristem-network
