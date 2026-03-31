@@ -100,13 +100,13 @@ public class SmileIdWebhookNotification implements Serializable {
     private String firstName;
 
     @JsonProperty("IDNumberPreviouslyRegistered")
-    private boolean idNumberPreviouslyRegistered;
+    private Boolean idNumberPreviouslyRegistered;
 
     @JsonProperty("IDStatus")
     private String idStatus;
 
     @JsonProperty("IsAlive")
-    private boolean isAlive;
+    private Boolean isAlive;
 
     @JsonProperty("LastName")
     private String lastName;
@@ -140,11 +140,6 @@ public class SmileIdWebhookNotification implements Serializable {
 
     @JsonProperty("UserIDsOfPreviousRegistrants")
     private List<String> userIdsOfPreviousRegistrants;
-
-    private String bvn;
-    private String bvnHashed;
-    private boolean emailVerified;
-    private boolean passwordSet;
 
     public record PartnerParams(
             @JsonProperty("job_id")
