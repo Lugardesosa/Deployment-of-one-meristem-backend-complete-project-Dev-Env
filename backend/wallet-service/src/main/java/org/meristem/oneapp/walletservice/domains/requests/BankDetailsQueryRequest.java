@@ -1,11 +1,13 @@
 package org.meristem.oneapp.walletservice.domains.requests;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 
-public record BankDetailsQueryRequest(@JsonProperty("id_number") @Schema(pattern = "^[0-9]{11}$", example = "12345678901") @Pattern(regexp = "^[0-9]{11}$", message = "Pass a valid bvn") @NotBlank(message = "Pass a valid bvn") String idNumber,
-                                      @JsonProperty("country") @NotBlank(message = "Pass a valid country code") String country,
-                                      @JsonProperty("bank_code") @NotBlank(message = "Pass a valid bank code") String bankCode) {
+@Builder
+public record BankDetailsQueryRequest(
+        @Schema(pattern = "^[0-9]{10}$", example = "1234567890") @Pattern(regexp = "^[0-9]{10}$", message = "Pass a valid bank account number") @NotBlank(message = "Pass a valid bvn") String idNumber,
+        @NotBlank(message = "Pass a valid country code") String country,
+        @NotBlank(message = "Pass a valid bank code") String bankCode) {
 }

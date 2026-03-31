@@ -1,22 +1,23 @@
 package org.meristem.oneapp.walletservice.config.authConfig;
 
 
-import org.meristem.oneapp.walletservice.domains.enums.UserStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import jakarta.servlet.http.HttpServletRequest;
+import org.meristem.oneapp.walletservice.utils.AppUtil;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component("authz")
 public class AuthorizationService {
 
-    public Boolean hasStatus(Authentication authentication, UserStatus status) {
+    private final HttpServletRequest request;
 
-        if (authentication instanceof JwtAuthenticationToken authenticationToken) {
-            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
-            Long status1 = jwt.getClaim("status");
-            return status.getValue().equals(status1.intValue());
-        }
-        return false;
+    public AuthorizationService(HttpServletRequest request) {
+        this.request = request;
+    }
+
+    public Boolean ownsCustomerId() {
+        List<String> customerIds = AppUtil.getCustomerId();
+        return customerIds.contains(AppUtil.getCustomerId(request));
     }
 }

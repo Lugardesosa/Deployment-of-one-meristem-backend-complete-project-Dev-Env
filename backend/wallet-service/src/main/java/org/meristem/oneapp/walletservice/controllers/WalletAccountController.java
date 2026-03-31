@@ -15,6 +15,7 @@ import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +38,7 @@ public class WalletAccountController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = WalletAccountResponse.class)))
     })
+    @PreAuthorize("hasAuthority('ROLE_1050')")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<WalletAccountResponse>>> getAccounts() {
         return ApiUtil.buildResponse(middleWareWalletAccountService.getAccounts(), HttpStatus.OK.toString(), "Successful");
