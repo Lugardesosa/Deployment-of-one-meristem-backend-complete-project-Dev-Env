@@ -41,7 +41,7 @@ public interface MiddleWareClient {
     MiddlewareAppResponse<List<MiddlewareFundStatementResponse>> getFundsStatements();
 
     @GetExchange("/investments/products")
-    MiddlewareAppResponse<List<MiddlewareInvestmentProductResponse>> getInvestmentProducts();
+    MiddlewareInvestmentProductListResponse getInvestmentProducts();
 
     @GetExchange("/investments/placements/products")
     MiddlewareAppResponse<List<MiddlewarePlacementProductResponse>> getPlacementProducts();
