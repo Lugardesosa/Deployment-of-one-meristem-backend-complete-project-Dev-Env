@@ -12,6 +12,7 @@ on:
     paths:
       - 'backend/**'
       - 'docker-compose.yml'
+      - 'custom_headers.conf'
 
 env:
   REPO_NAME: mit-meristem/one_meristem_app
