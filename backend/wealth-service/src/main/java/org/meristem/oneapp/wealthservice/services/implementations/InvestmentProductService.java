@@ -18,6 +18,6 @@ public class InvestmentProductService implements IInvestmentProductService {
 
     @Override
     public List<InvestmentProductResponse> getInvestmentProducts() {
-        return middlewareMapper.middlewareInvestmentProductResponseToInvestmentProductResponse(middleWareClient.getInvestmentProducts().data());
+        return middlewareMapper.middlewareInvestmentProductResponseToInvestmentProductResponse(middleWareClient.getInvestmentProducts().data().data());
     }
 }
