@@ -129,6 +129,11 @@ public class UsersResponse implements Serializable {
         private Boolean marketingDataSharing;
         @Schema(description = "States whether user allows all data sharing for ai and analytics.", example = "true")
         private Boolean aiAndAnalyticsDataSharing;
+
+        public UsersDetails(String phoneNumber, Long userId) {
+            this.phoneNumber = phoneNumber;
+            this.id = userId;
+        }
     }
 
     @Schema(name = "UserInstrumentResponse", description = "Instrument access information for the user.")

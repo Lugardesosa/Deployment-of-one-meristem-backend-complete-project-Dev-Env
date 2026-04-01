@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record OneAppProperties(
 
         String serverUrl,
+        String webUrl,
         String email,
         String serverVersion,
         String serverAppName,

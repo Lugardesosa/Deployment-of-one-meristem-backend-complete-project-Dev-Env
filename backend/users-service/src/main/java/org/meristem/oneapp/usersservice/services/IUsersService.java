@@ -229,6 +229,8 @@ public interface IUsersService {
 
     UpdateResponse createSpouse(@Valid CreateSpouseRequest request);
 
+    UpdateResponse getSecondaryUserDetails(SecondaryUserRegRequest request);
+
     void createCustomer(CreateCustomerDto value);
 
     UpdateResponse createJoint(@Valid CreateJointUserRequest userRequest);
@@ -273,4 +275,6 @@ public interface IUsersService {
 
     List<String> getUserCustomerIds();
     Long getUserId(String customerId);
+
+    UpdateResponse resendSec();
 }

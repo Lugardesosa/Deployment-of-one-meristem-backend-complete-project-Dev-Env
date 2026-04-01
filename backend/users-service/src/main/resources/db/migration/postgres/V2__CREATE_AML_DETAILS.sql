@@ -64,6 +64,7 @@ CREATE TABLE aml_result
 
 CREATE INDEX idx_aml_result_entity_id_entity_type_status ON aml_result (entity_id, entity_type, status);
 CREATE INDEX idx_aml_result_entity_id_search_id_status ON aml_result (entity_id, search_id, status);
+CREATE INDEX idx_vendor_name ON vendor (vendor_name);
 
 
 CREATE TABLE aml_decision
