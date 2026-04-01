@@ -2425,6 +2425,9 @@ $$
     BEGIN
 
         INSERT INTO requirements (created_by, last_modified_by, display_name, requirement_name)
+        VALUES ('SYSTEM', 'SYSTEM', 'Sign Up BVN Verification', 'BVN_SIGN_UP');
+
+        INSERT INTO requirements (created_by, last_modified_by, display_name, requirement_name)
         VALUES ('SYSTEM', 'SYSTEM', 'BVN Verification', 'BVN')
         RETURNING id INTO BvnId;
 
@@ -2496,15 +2499,15 @@ $$
 
         INSERT INTO investment_requirement(created_by, last_modified_by, investment_id, requirement_id, requirement_type, mandatory)
         VALUES
-            ('SYSTEM', 'SYSTEM', WealthId, BvnId, 2, TRUE),
+            ('SYSTEM', 'SYSTEM', WealthId, BvnId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', WealthId, NinId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', WealthId, AddressId, 1, TRUE),
                
-               ('SYSTEM', 'SYSTEM', MFLid, BvnId, 2, TRUE),
+               ('SYSTEM', 'SYSTEM', MFLid, BvnId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', MFLid, NinId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', MFLid, AddressId, 1, TRUE),
 
-               ('SYSTEM', 'SYSTEM', StockId, BvnId, 2, TRUE),
+               ('SYSTEM', 'SYSTEM', StockId, BvnId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', StockId, NinId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', StockId, AddressId, 1, TRUE),
                ('SYSTEM', 'SYSTEM', StockId, ChnId, 1, TRUE),
