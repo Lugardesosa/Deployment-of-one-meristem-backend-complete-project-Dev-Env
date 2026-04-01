@@ -25,6 +25,7 @@ public class RedisConfig {
                 .withCacheConfiguration(AppConstants.SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
                 .withCacheConfiguration(AppConstants.JOINT_SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
                 .withCacheConfiguration(AppConstants.EXISTING_USER_SIGN_UP_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
+                .withCacheConfiguration(AppConstants.SEC_USERS_VERIFICATION_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(30)))
                 .withCacheConfiguration(AppConstants.SETTINGS_CACHE_NAME, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)));
     }
 

@@ -81,6 +81,37 @@ public class UsersController {
         return ApiUtil.buildResponse(usersService.createUserDependent(userRequest), HttpStatus.CREATED.toString(), "Created successfully.");
     }
 
+    @Operation(summary = "Resend Invite to sec user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Resend Invite to sec user.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasRole('ROLE_1000') AND authentication.principal.claims['accountType'] == 1 AND @authz.ownsCustomerId()")
+    @PostMapping(value = "/resend-sec")
+    public ResponseEntity<AppResponse<UpdateResponse>> resendSec() {
+        return ApiUtil.buildResponse(usersService.resendSec(), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
+
+    @Operation(summary = "Get sec user details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Get sec user details.",
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UpdateResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Bad request - The request could not be processed")
+
+    })
+    @PreAuthorize("hasAuthority('SCOPE_create_user')")
+    @GetMapping(value = "/sec-details")
+    public ResponseEntity<AppResponse<UpdateResponse>> getSecondaryUserDetails(@RequestBody @Valid SecondaryUserRegRequest request) {
+        return ApiUtil.buildResponse(usersService.getSecondaryUserDetails(request), HttpStatus.CREATED.toString(), "Created successfully.");
+    }
+
     @Operation(summary = "Verifies users email.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Verifies users email.",

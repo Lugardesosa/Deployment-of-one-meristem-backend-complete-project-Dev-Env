@@ -43,6 +43,8 @@ public class OAuth2AccessTokenCustomizer implements OAuth2TokenCustomizer<JwtEnc
                     claim.put("isAdmin", roles.stream().noneMatch(role -> role.equals(AppConstants.USER_ROLE)));
                     claim.put("sub", users.getEmail());
                     claim.put("firstName", users.getFirstName());
+                    claim.put("lastName", users.getLastName());
+                    claim.put("middleName", users.getMiddleName());
                     claim.put("id", users.getId());
                     claim.put("customerIds", customerIds);
                     claim.put("status", users.getStatus());

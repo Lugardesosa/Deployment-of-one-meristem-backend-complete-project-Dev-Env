@@ -112,6 +112,8 @@ public class IdQueryDetailsDto implements Serializable {
     private String loginId;
     private String careOfficerId;
     private String introducerId;
+    private boolean isSecondary;
+    private boolean isExistingUser;
 
 
     public String getMiddleName() {

@@ -227,13 +227,25 @@ public class SmileIdService implements IKycService {
         org.meristem.oneapp.usersservice.models.Vendor vendor = amlVendorRepository.findAmlVendorByVendorCode(Vendor.SMILE_ID.getValue());
 
         InvestmentRequirement requirements = requirementsRepository.findInvestmentRequirementsByRequirementName(OnboardingRequirements.BVN.getName(), EntityStatus.ACTIVE.getValue(), AppUtil.getInvestmentId(httpServletRequest)).orElseThrow(() -> new BadRequestException("Requirement not found"));
-        IdQueryDetailsDto dto = new IdQueryDetailsDto();
-        dto.setBvn(encryptionUtil.encrypt(smileRequest.idNumber()));
-        dto.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, smileRequest.idNumber()));
-        requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(dto.getBvnHashed(), dto);
-        kycQueryRepository.findKycQueryByJobId(smileRequest.jobId()).ifPresentOrElse(k -> {
+
+        String hmacWithSha256 = hashingUtil.hmacWithSha256(idHashKey, smileRequest.getIdNumber());
+        if (!smileRequest.isExistingUser()) {
+            IdQueryDetailsDto dto = new IdQueryDetailsDto();
+            dto.setBvn(encryptionUtil.encrypt(smileRequest.getIdNumber()));
+            dto.setBvnHashed(hmacWithSha256);
+            dto.setSecondary(smileRequest.isSecondary());
+            requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(dto.getBvnHashed(), dto);
+        } else {
+            IdQueryDetailsDto dto = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME), "Cannot complete request").get(hmacWithSha256, IdQueryDetailsDto.class);
+            if (Objects.isNull(dto)) {
+                throw new BadRequestException("Initial setup not found.");
+            }
+            dto.setExistingUser(smileRequest.isExistingUser());
+            requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME)).put(hmacWithSha256, dto);
+        }
+        kycQueryRepository.findKycQueryByJobId(smileRequest.getJobId()).ifPresentOrElse(k -> {
                 },
-                () -> kycQueryRepository.save(KycQuery.builder().jobId(smileRequest.jobId()).investmentRequirementId(requirements.getId()).userId(hashingUtil.hmacWithSha256(idHashKey, smileRequest.idNumber()))
+                () -> kycQueryRepository.save(KycQuery.builder().jobId(smileRequest.getJobId()).investmentRequirementId(requirements.getId()).userId(hmacWithSha256)
                         .status(KycQueryStatus.PENDING.getValue()).vendorId(vendor.getId()).build()));
         return UpdateResponse.builder().message("Success").success(true).build();
     }
@@ -337,12 +349,32 @@ public class SmileIdService implements IKycService {
         if (OnboardingRequirements.of(notification.getIdType()) == OnboardingRequirements.BVN) {
             Optional<IdCard> idCard = idCardRepository.findByIdValueHashedAndIdCardType(hashedIdNumber, IdCardType.BVN.getName());
             idCard.ifPresent(card -> userProfileRepository.updateBvnVerified(card.getUserId(), true));
-            dto = userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(notification);
+            if (!dto.isSecondary() && !dto.isExistingUser()) {
+                dto = userIdDetailsMapper.smileIdBvnLookupResponseToIdQueryDetailsDto(notification);
+            }
             dto.setBvn(encryptionUtil.encrypt(notification.getIdNumber()));
             dto.setBvnHashed(hashedIdNumber);
             dto.setBvnFacialVerified(true);
             cache.put(hashedIdNumber, dto);
 
+            if (dto.isSecondary()) {
+
+                UsersResponse.UsersDetails details = userProfileRepository.findUserPhoneNumberByHashedBvn(kycQuery.getUserId());
+                userProfileRepository.updateBvnVerified(details.getId(), true);
+                BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
+                        .phoneNumber(details.getPhoneNumber())
+                        .build();
+                cache.evict(hashedIdNumber);
+                return new SmileIdWebhookResponse("Success", true, bvnQueryResponse);
+            }
+
+            if (dto.isExistingUser()) {
+                BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder()
+                        .phoneNumber(dto.getPhoneNumber())
+                        .email(dto.getEmail())
+                        .build();
+                return new SmileIdWebhookResponse("Success", true, bvnQueryResponse);
+            }
             BvnQueryResponse bvnQueryResponse = BvnQueryResponse.builder().middleName(MaskingUtils.maskMiddleName(dto.getMiddleName()))
                     .email(dto.getEmail()).firstName(MaskingUtils.maskFirstName(dto.getFirstName()))
                     .lastName(MaskingUtils.maskLastName(dto.getLastName()))
@@ -474,7 +506,7 @@ public class SmileIdService implements IKycService {
         try {
             JobStatusResponse response = connection.submitJob(params, imageDetails, idInfo, options);
             if (response.isJobSuccess()) {
-            saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
+                saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
                 return new UpdateResponse(jobId, true);
             }
             return new UpdateResponse("Failed", false);

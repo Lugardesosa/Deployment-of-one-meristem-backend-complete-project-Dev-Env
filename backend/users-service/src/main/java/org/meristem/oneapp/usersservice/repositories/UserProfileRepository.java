@@ -1,8 +1,8 @@
 package org.meristem.oneapp.usersservice.repositories;
 
 
-import jakarta.validation.constraints.NotNull;
-import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
+import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
+import org.meristem.oneapp.usersservice.dtos.sql.SecUserDetails;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -92,4 +92,10 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Transactional
     @Query("UPDATE user_profile SET bvn_verified = :value WHERE user_id = :userId ")
     void updateBvnVerified(Long userId, boolean value);
+
+    @Query("SELECT u.phone_number, u.id FROM users u LEFT JOIN id_card idc ON idc.user_id = u.id WHERE idc.id_value_hashed = :hashedValued")
+    UsersResponse.UsersDetails findUserPhoneNumberByHashedBvn(String hashedValued);
+
+    @Query("SELECT up.bvn_verified, up.user_id FROM joint_account ja_me JOIN joint_account ja_other ON ja_other.customer_id = ja_me.customer_id AND ja_other.user_id <> ja_me.user_id AND ja_other.role = '2' JOIN user_profile up ON up.user_id = ja_other.user_id WHERE ja_me.user_id = :userId")
+    SecUserDetails getSecUserDetails(Long userId);
 }
