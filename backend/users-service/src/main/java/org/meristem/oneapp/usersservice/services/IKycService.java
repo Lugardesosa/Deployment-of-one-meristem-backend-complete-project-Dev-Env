@@ -107,7 +107,6 @@ public interface IKycService {
                                         .userId(nin.getUserId()).idValueHashed(ninValueHashed)
                                         .build());
                             });
-
             cache.evict(loggedInUser.getEmail().concat(OnboardingRequirements.NIN.getName()));
 
         } else {

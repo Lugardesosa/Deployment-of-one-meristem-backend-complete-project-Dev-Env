@@ -20,6 +20,7 @@ import org.meristem.oneapp.usersservice.dtos.CreateJointAccountDtos;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.dtos.OtpVerificationDto;
 import org.meristem.oneapp.usersservice.dtos.sql.SecUserDetails;
+import org.meristem.oneapp.usersservice.dtos.sql.VerificationDetails;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
@@ -564,7 +565,9 @@ public class UsersService implements IUsersService {
         try {
 
             Long instrumentId = AppUtil.getInvestmentId(httpServletRequest);
+            VerificationDetails details = userProfileRepository.verificationDetails(userId);
 
+            Boolean dataSharing = userProfileRepository.findDataSharingByUserId(userId);
             if (nonNull(userInstrumentRepository.findUserInstrumentByInstrumentIdAndUserId(instrumentId, userId))) {
                 throw new BadRequestException("Already onboarded on this subsidiary");
             }
@@ -576,6 +579,14 @@ public class UsersService implements IUsersService {
                         if (rId.requirementName().equals(OnboardingRequirements.BVN.getName())) {
                             userOnboardingRepository.updateUserOnboardingStatus(userId, rId.id(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
                         }
+
+                        if (dataSharing && OnboardingRequirements.PROOF_OF_ADDRESS.getName().equals(rId.requirementName()) && details.addressVerified()) {
+                            userOnboardingRepository.updateUserOnboardingStatus(userId, rId.id(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+                        }
+
+                        if (dataSharing && (OnboardingRequirements.NIN.getName().compareTo(rId.requirementName()) == 0) && details.ninVerified()) {
+                            userOnboardingRepository.updateUserOnboardingStatus(userId, rId.id(), OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);
+                        }
                     });
             InvestmentInstruments investmentInstruments = investmentInstrumentsRepository.findById(instrumentId).orElseThrow(() -> new BadRequestException("Instrument not found"));
             customRepository.save(UserInstrument.builder().userId(userId).instrumentId(investmentInstruments.getId()).build());
@@ -585,12 +596,6 @@ public class UsersService implements IUsersService {
                 userProfileRepository.updateUsersCscs(userId, cscs);
                 requireNonNull(cacheManager.getCache(AppConstants.USERS_CACHE_NAME)).evict(userId);
             }
-
-            KycCompletedDto kycCompletedDto = usersRepository.getUserKyc2(email);
-
-            completeUserOnboarding(kycCompletedDto, false, email, investmentInstruments.getId(), OnboardingRequirements.PROOF_OF_ADDRESS);
-            completeUserOnboarding(kycCompletedDto, false, email, investmentInstruments.getId(), OnboardingRequirements.NIN);
-            completeUserOnboarding(kycCompletedDto, false, email, investmentInstruments.getId(), OnboardingRequirements.BVN);
 
             customRepository.saveAll(investmentInstrumentsRepository.findInvestmentOptionsByInvestmentId(investmentInstruments.getId())
                     .stream().map(i -> InvestmentOptionsAccessed.builder().userId(userId).optionId(i.getId()).build()).toList());
@@ -1264,8 +1269,7 @@ public class UsersService implements IUsersService {
         if (kyc)
             completeOnboarding(investmentId, kycCompletedDto);
 
-        Boolean dataSharing = userProfileRepository.findDataSharingByUserId(kycCompletedDto.userId());
-        if (dataSharing) {
+        if (kycCompletedDto.dataSharing()) {
             List<Long> requirements = requirementsRepository.findAllInvestmentRequirementIdByRequirementNameAndNotInvestmentId(onboardingRequirements.getName(), investmentId);
             List<Long> investmentIds = requirementsRepository.findAllInvestmentInstrumentIdByRequirementName(onboardingRequirements.getName(), investmentId);
             userOnboardingRepository.updateAllUserOnboardingStatus(kycCompletedDto.userId(), requirements, OnboardingStatus.APPROVED.getValue(), UserOnboardingNotes.APPROVED.note, true);

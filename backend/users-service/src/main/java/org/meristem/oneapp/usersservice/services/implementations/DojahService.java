@@ -220,7 +220,15 @@ public class DojahService implements IKycService {
         List<String> names = AppUtil.buildNames(bvn.getFirstName(), bvn.getMiddleName(), bvn.getLastName());
 
         UserIdDetails nin = idDetailsService.buildAndSaveIdDetails(dto, loggedInUser);
-        return compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, usersRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), AppUtil.getInvestmentId(httpRequest));
+
+
+
+        IdValidationResponse idValidationResponse = compareNinAndBvnDetailsSaveAndReturn(cache, nin, names, bvn, loggedInUser, requirementsRepository, usersRepository, userOnboardingRepository, usersService, customRepository, idCardRepository, encryptionUtil.encrypt(request.idNumber()), hashingUtil.hmacWithSha256(idHashKey, request.idNumber()), AppUtil.getInvestmentId(httpRequest));
+
+        if (idValidationResponse.success()) {
+            userProfileRepository.updateNinVerified(loggedInUser.getId(), true);
+        }
+        return idValidationResponse;
     }
 
     @Override

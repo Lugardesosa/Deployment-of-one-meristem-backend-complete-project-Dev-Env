@@ -3,6 +3,7 @@ package org.meristem.oneapp.usersservice.repositories;
 
 import org.meristem.oneapp.usersservice.domains.responses.UsersResponse;
 import org.meristem.oneapp.usersservice.dtos.sql.SecUserDetails;
+import org.meristem.oneapp.usersservice.dtos.sql.VerificationDetails;
 import org.meristem.oneapp.usersservice.models.UserProfile;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -88,6 +89,18 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
     @Query("SELECT bvn_verified FROM user_profile up LEFT JOIN id_card ic ON up.user_id = ic.user_id WHERE ic.id_value_hashed = :key")
     boolean bvnVerified(String key);
 
+    @Query("SELECT bvn_verified FROM user_profile up WHERE user_id = :userId")
+    boolean bvnVerified(Long userId);
+
+    @Query("SELECT nin_verified FROM user_profile up WHERE user_id = :userId")
+    boolean ninVerified(Long userId);
+
+    @Query("SELECT address_verified FROM user_profile up WHERE user_id = :userId")
+    boolean addressVerified(Long userId);
+
+    @Query("SELECT bvn_verified, nin_verified, address_verified FROM user_profile up WHERE user_id = :userId")
+    VerificationDetails verificationDetails(Long userId);
+
     @Modifying
     @Transactional
     @Query("UPDATE user_profile SET bvn_verified = :value WHERE user_id = :userId ")
@@ -98,4 +111,16 @@ public interface UserProfileRepository extends BaseRepository<UserProfile, Long>
 
     @Query("SELECT up.bvn_verified, up.user_id FROM joint_account ja_me JOIN joint_account ja_other ON ja_other.customer_id = ja_me.customer_id AND ja_other.user_id <> ja_me.user_id AND ja_other.role = '2' JOIN user_profile up ON up.user_id = ja_other.user_id WHERE ja_me.user_id = :userId")
     SecUserDetails getSecUserDetails(Long userId);
+
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET nin_verified = :value WHERE user_id = :userId ")
+    void updateNinVerified(Long userId, boolean value);
+
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE user_profile SET address_verified = :value WHERE user_id = :userId ")
+    void updateAddressVerified(Long userId, boolean value);
 }
