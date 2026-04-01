@@ -825,7 +825,8 @@ ALTER TABLE kyc_query
 ALTER TABLE kyc_query
     ADD CONSTRAINT uc_kyc_query_job UNIQUE (job_id);
 
-CREATE INDEX idx_kyc_query_job_id ON kyc_query (job_id, user_id);
+CREATE INDEX idx_kyc_query_job_id_user ON kyc_query (job_id, user_id);
+CREATE INDEX idx_kyc_query_job_id ON kyc_query (job_id);
 
 ALTER TABLE address
     ADD CONSTRAINT FK_ADDRESS_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);

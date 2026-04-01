@@ -56,8 +56,11 @@ public final class AppConstants {
     public static final String OTP_CACHE_NAME = "otp-cache-name";
 
     public static final String DEEP_LINK = "meristem://";
+    public static final String WEB_LINK = "meristem://";
     public static final String DEEP_LINK_SECONDARY = DEEP_LINK.concat("join-secondary");
     public static final String DEEP_LINK_EXISTING = DEEP_LINK.concat("join-existing");
+    public static final String WEB_LINK_SECONDARY = "secondary";
+    public static final String WEB_LINK_EXISTING = "existing";
     public static final String JOINT_ACCOUNT_CACHE_NAME = "joint-account";
     public static final String DEPENDENT_ACCOUNT_CACHE_NAME = "dependent-account";
     public static final int MINOR_AGE = 30;
@@ -67,4 +70,5 @@ public final class AppConstants {
     public static final String INDIVIDUAL_ACCOUNT_CACHE_NAME = "individual-account-name";
     public static final String JOINT_ACCOUNT_CUSTOMER_ID_CACHE_NAME = "joint-account--customer-id-cache-name";
     public static final String USER_CUSTOMER_ID_CACHE_NAME = "user-customer-id-cache-name";
+    public static final String SEC_USERS_VERIFICATION_CACHE_NAME = "sec-users-verification-cache-name";
 }

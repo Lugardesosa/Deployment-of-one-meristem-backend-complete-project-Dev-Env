@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.meristem.oneapp.kafka.dtos.*;
+import org.meristem.oneapp.usersservice.config.configProperties.OneAppProperties;
 import org.meristem.oneapp.usersservice.constants.AppConstants;
 import org.meristem.oneapp.usersservice.constants.KafkaTopics;
 import org.meristem.oneapp.usersservice.constants.MessageSubjects;
@@ -18,6 +19,7 @@ import org.meristem.oneapp.usersservice.domains.responses.*;
 import org.meristem.oneapp.usersservice.dtos.CreateJointAccountDtos;
 import org.meristem.oneapp.usersservice.dtos.IdQueryDetailsDto;
 import org.meristem.oneapp.usersservice.dtos.OtpVerificationDto;
+import org.meristem.oneapp.usersservice.dtos.sql.SecUserDetails;
 import org.meristem.oneapp.usersservice.exception.exceptions.BadRequestException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ContextException;
 import org.meristem.oneapp.usersservice.exception.exceptions.ResourceNotFoundException;
@@ -51,7 +53,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -110,6 +114,7 @@ public class UsersService implements IUsersService {
     private final DependentAccountRepository dependentAccountRepository;
     private final AddressRepository addressRepository;
     private final IndividualAccountRepository individualAccountRepository;
+    private final OneAppProperties oneAppProperties;
 
     @Value("${hashing.id-hash-key}")
     private String idHashKey;
@@ -395,7 +400,36 @@ public class UsersService implements IUsersService {
 
     @Override
     public UpdateResponse queryExistingUser(QueryExistingUserRequest request) {
-        return existingCustomer(request, middleWareClient, usersRepository, cacheManager, otpService, idCardRepository, hashingUtil, idHashKey);
+
+        MiddlewareResponse<MiddlewareCustomerResponse> middleWareResponse = middleWareClient.getCustomerByBvn(request.idNumber());
+        if (nonNull(middleWareResponse.success()) && !middleWareResponse.success()) {
+            return UpdateResponse.builder().success(false).message("success").build();
+        }
+        MiddlewareCustomerResponse middleWareResponseData = middleWareResponse.data();
+        AtomicBoolean success = new AtomicBoolean(false);
+        if (!middleWareResponseData.data().isEmpty()) {
+            middleWareResponseData.data().stream().filter(c -> "Individual".equalsIgnoreCase(c.getCustomerType()))
+                    .findFirst().ifPresent(r -> {
+                // TODO: Reconcile existing account on core with one on this platform
+                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
+                    throw new BadRequestException("Email or Phone number already exists.");
+                }
+
+                if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()))) {
+                    throw new BadRequestException("You can't continue with this BVN.");
+                }
+
+                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+
+                IdQueryDetailsDto idQueryDetailsDto = usersMapper.middlewareCustomerResponseToIdQueryDetailsDto(r);
+                idQueryDetailsDto.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()));
+                cache.put(idQueryDetailsDto.getBvnHashed(), idQueryDetailsDto);
+
+                success.set(true);
+            });
+            return UpdateResponse.builder().success(success.get()).message("success").build();
+        }
+        return UpdateResponse.builder().success(success.get()).message("success").build();
     }
 
     @Transactional
@@ -499,7 +533,7 @@ public class UsersService implements IUsersService {
         profile.setPhoneNumberVerified(idQueryDetailsDto.isPhoneNumberVerified());
 
         profile.setGender(Gender.getGender(idQueryDetailsDto.getGender()).getCaps());
-        profile.setDateOfBirth(LocalDate.parse(idQueryDetailsDto.getDateOfBirth()));
+        profile.setDateOfBirth(LocalDateTime.parse(idQueryDetailsDto.getDateOfBirth()).toLocalDate());
         profile.setCountryOfOrigin(idQueryDetailsDto.getCountry());
         profile.setLgOfOrigin(idQueryDetailsDto.getLocalAreaOfOrigin());
         profile.setStateOfOrigin(idQueryDetailsDto.getPlaceOfBirth());
@@ -698,6 +732,79 @@ public class UsersService implements IUsersService {
 
         idDetailsService.buildAndSaveIdDetails(jointAccountDtos.getPrimary(), primary);
         idDetailsService.buildAndSaveIdDetails(jointAccountDtos.getSecondary(), secondary);
+
+        inviteSecUser(secondary.getEmail(), secondary.getFirstName(), secondary.getId(), ConfirmationType.SECONDARY_ACCOUNT);
+    }
+
+    private void inviteSecUser(String email, String firstName, Long userId, ConfirmationType confirmationType) {
+        Cache secCache = cacheManager.getCache(AppConstants.SEC_USERS_VERIFICATION_CACHE_NAME);
+        SecondaryUserRegRequest request = SecondaryUserRegRequest.builder().email(email).key(UUID.randomUUID().toString()).userId(userId).build();
+        requireNonNull(secCache, "could not be completed..").put(email, request);
+
+        // 2. Add query parameters safely
+        URI webUri = UriComponentsBuilder.fromUriString(oneAppProperties.webUrl())
+                .path(AppConstants.WEB_LINK_SECONDARY)
+                .queryParam("email", email)
+                .queryParam("key", request.key())
+                .build()
+                .toUri();
+
+        URI deepUri = UriComponentsBuilder.fromUriString(AppConstants.DEEP_LINK_SECONDARY)
+                .queryParam("email", email)
+                .queryParam("key", request.key())
+                .build()
+                .toUri();
+
+        String[] recipients = {email};
+        EmailConfirmationDto emailConfirmationDto = EmailConfirmationDto.builder()
+                .deepLink(AppConstants.DEEP_LINK_SECONDARY)
+                .webLink(webUri.toString())
+                .deepLink(deepUri.toString())
+                .firstName(firstName)
+                .recipient(recipients)
+                .subject(MessageSubject.SECONDARY_EMAIL_VERIFICATION.getMessage())
+                .confirmationType(ConfirmationType.SECONDARY_ACCOUNT)
+                .build();
+        MessageDto messageDto = MessageDto.builder().medium(MessageMedium.EMAIL).type(MessageType.OTP).message(emailConfirmationDto).classSimpleName(EmailConfirmationDto.class.getSimpleName()).isHtml(true).build();
+
+        try {
+
+            OutboxEvent otpMessage = OutboxEvent.builder()
+                    .aggregateId(0L).aggregateType(AggregateType.OTP.getValue())
+                    .eventType(KafkaTopics.KAFKA_OTP_TOPIC)
+                    .outboxStatus(OutboxStatus.PENDING.getValue())
+                    .eventClass(MessageDto.class.getName())
+                    .eventKey(email)
+                    .payload(objectMapper.writeValueAsString(messageDto)).build();
+            outboxEventRepository.save(otpMessage);
+        } catch (JsonProcessingException e) {
+            throw new BadRequestException("Could not complete request");
+        }
+    }
+
+    @Override
+    public UpdateResponse getSecondaryUserDetails(SecondaryUserRegRequest request) {
+        Cache secCache = cacheManager.getCache(AppConstants.SEC_USERS_VERIFICATION_CACHE_NAME);
+        SecondaryUserRegRequest sec = requireNonNull(secCache, "could not be completed..").get(request.email(), SecondaryUserRegRequest.class);
+        String bvn = idCardRepository.findIdCardValueByUserId(requireNonNull(sec, "cannot be completed").userId(), IdCardType.BVN.getName());
+        if (sec.equals(request)) {
+            return UpdateResponse.builder().success(true).message(encryptionUtil.decrypt(bvn)).build();
+        }
+        return UpdateResponse.builder().success(false).message("Invalid request").build();
+    }
+
+
+    @Override
+    public UpdateResponse resendSec() {
+
+        Long userId = AppUtil.getLoggedInUserId();
+        SecUserDetails secUserDetails = userProfileRepository.getSecUserDetails(userId);
+        if (secUserDetails.bvnVerified()) {
+            return UpdateResponse.builder().success(false).message("BVN already verified").build();
+        }
+        Users user = usersRepository.findById(secUserDetails.userId()).orElseThrow(() -> new BadRequestException("User not found"));
+        inviteSecUser(user.getEmail(), user.getFirstName(), user.getId(), ConfirmationType.SECONDARY_ACCOUNT);
+        return UpdateResponse.builder().success(true).message("Invite sent.").build();
     }
 
     @Override
@@ -1141,7 +1248,8 @@ public class UsersService implements IUsersService {
      *
      * @param userId the user identifier
      */
-    public void completeUserOnboarding(KycCompletedDto kycCompletedDto, boolean kyc, String userId, Long investmentId, OnboardingRequirements onboardingRequirements) {
+    public void completeUserOnboarding(KycCompletedDto kycCompletedDto, boolean kyc, String userId, Long
+            investmentId, OnboardingRequirements onboardingRequirements) {
 
         if (kyc)
             completeOnboarding(investmentId, kycCompletedDto);
@@ -1523,35 +1631,6 @@ public class UsersService implements IUsersService {
         }
     }
 
-    private static UpdateResponse existingCustomer(QueryExistingUserRequest request, MiddleWareClient middleWareClient, UsersRepository usersRepository, CacheManager cacheManager, OtpService otpService, IdCardRepository idCardRepository, HashingUtil hashingUtil, String idHashKey) {
-
-
-        MiddlewareResponse<MiddlewareCustomerResponse> middleWareResponse = middleWareClient.getCustomerByBvn(request.idNumber());
-        if (nonNull(middleWareResponse.success()) && !middleWareResponse.success()) {
-            return UpdateResponse.builder().success(false).message("success").build();
-        }
-        MiddlewareCustomerResponse middleWareResponseData = middleWareResponse.data();
-        AtomicBoolean success = new AtomicBoolean(false);
-        if (!middleWareResponseData.data().isEmpty()) {
-            middleWareResponseData.data().stream().filter(c -> "Individual".equalsIgnoreCase(c.getCustomerType())).findFirst().ifPresent(r -> {
-                // TODO: Reconcile existing account on core with one on this platform
-                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
-                    throw new BadRequestException("Email or Phone number already exists.");
-                }
-                if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()))) {
-                    throw new BadRequestException("You can't continue with this BVN.");
-                }
-                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
-                IdQueryDetailsDto idQueryDetailsDto = usersMapper.middlewareCustomerResponseToIdQueryDetailsDto(r);
-                idQueryDetailsDto.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()));
-                cache.put(idQueryDetailsDto.getBvnHashed(), idQueryDetailsDto);
-                success.set(true);
-            });
-            return UpdateResponse.builder().success(success.get()).message("success").build();
-        }
-        return UpdateResponse.builder().success(success.get()).message("success").build();
-    }
-
     /**
      * Retrieves the country of origin from the webhook notification.
      *
@@ -1575,6 +1654,6 @@ public class UsersService implements IUsersService {
      * @return The local government area of origin as a string.
      */
     private String getLgo(IdQueryDetailsDto request) {
-            return request.getLocalAreaOfOrigin();
+        return request.getLocalAreaOfOrigin();
     }
 }
