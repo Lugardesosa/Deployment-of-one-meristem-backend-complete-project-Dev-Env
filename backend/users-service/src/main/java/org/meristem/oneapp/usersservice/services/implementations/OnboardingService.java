@@ -42,6 +42,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class OnboardingService implements IOnboardingService {
 
+    private final UserProfileRepository userProfileRepository;
     private final UsersRepository usersRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final AddressRepository addressRepository;
@@ -171,6 +172,8 @@ public class OnboardingService implements IOnboardingService {
                         } else if (AccountType.JOINT.getValue().equals(users.getAccountType())) {
                             customerId = jointAccountRepository.getCustomerIdByUserId(users.getId());
                         }
+
+                        userProfileRepository.updateAddressVerified(users.getId(), true);
                         CustomerAddressVerifiedDto dto = CustomerAddressVerifiedDto.builder()
                                 .primaryStreet(address.getHouseAddress())
                                 .primaryCity(address.getCity())
@@ -332,6 +335,6 @@ public class OnboardingService implements IOnboardingService {
 
     @Override
     public List<RequirementResponse> getRequirements() {
-         return requirementsRepository.findAllRequirement();
+        return requirementsRepository.findAllRequirement();
     }
 }

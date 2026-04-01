@@ -91,7 +91,7 @@ public class UserProfile extends BaseModel<String> {
     public UserProfile(Integer status, Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy,
                        Integer version, Long userId, String avatarUrl, LocalDate dateOfBirth, String gender, String referralCode,
                        Boolean interestFreeInvestment, String cscsNumber, String chnNumber, Integer maritalStatus, String taxId, String occupation, String sourceOfIncome, String employerName, Boolean emailVerified,
-                       Boolean dataSharing, Boolean marketingDataSharing, Boolean aiAndAnalyticsDataSharing, Boolean phoneNumberVerified) {
+                       Boolean dataSharing, Boolean marketingDataSharing, Boolean aiAndAnalyticsDataSharing, Boolean phoneNumberVerified, Boolean bvnVerified, Boolean ninVerified, Boolean addressVerified) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.userId = userId;
         this.imageKey = avatarUrl;
@@ -113,6 +113,9 @@ public class UserProfile extends BaseModel<String> {
         this.dataSharing = nonNull(dataSharing) && dataSharing;
         this.marketingDataSharing = nonNull(marketingDataSharing) && marketingDataSharing;
         this.aiAndAnalyticsDataSharing = nonNull(aiAndAnalyticsDataSharing) && aiAndAnalyticsDataSharing;
+        this.bvnVerified = nonNull(bvnVerified) && bvnVerified;
+        this.ninVerified = nonNull(ninVerified) && ninVerified;
+        this.addressVerified = nonNull(addressVerified) && addressVerified;
     }
 
     /**
