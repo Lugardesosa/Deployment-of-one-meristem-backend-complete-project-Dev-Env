@@ -506,7 +506,9 @@ public class SmileIdService implements IKycService {
         try {
             JobStatusResponse response = connection.submitJob(params, imageDetails, idInfo, options);
             if (response.isJobSuccess()) {
-                saveIdTask(IdVerificationRequest.builder().jobId(jobId).idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
+                saveIdTask(IdVerificationRequest.builder().jobId(jobId)
+                        .secondary(smileRequest.isSecondary()).existingUser(smileRequest.isExistingUser())
+                        .idNumber(smileRequest.getBvn()).investmentRequirementId(smileRequest.getInvestmentRequirementId()).build());
                 return new UpdateResponse(jobId, true);
             }
             return new UpdateResponse("Failed", false);
