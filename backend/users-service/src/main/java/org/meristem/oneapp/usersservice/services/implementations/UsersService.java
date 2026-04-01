@@ -115,7 +115,6 @@ public class UsersService implements IUsersService {
     private final UserInstrumentRepository userInstrumentRepository;
     private final KycDelegatingService kycDelegatingService;
     private final DependentAccountRepository dependentAccountRepository;
-    private final AddressRepository addressRepository;
     private final IndividualAccountRepository individualAccountRepository;
     private final OneAppProperties oneAppProperties;
 
@@ -826,8 +825,8 @@ public class UsersService implements IUsersService {
     public void createCustomer(CreateCustomerDto value) {
 
         String customerId = individualAccountRepository.getCustomerIdByUserId(value.userId());
-        if (nonNull(customerId)) {
-            return;
+        if (StringUtils.hasText(customerId)) {
+            throw new BadRequestException("customer with id already exists");
         }
         CreateIndividualCustomerRequest request = CreateIndividualCustomerRequest.builder()
                 .primaryEmailAddress(value.email()).firstName(value.firstName()).lastName(value.lastName()).otherNames(value.middleName())
