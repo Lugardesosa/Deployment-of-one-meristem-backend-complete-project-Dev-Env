@@ -60,6 +60,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -410,23 +412,23 @@ public class UsersService implements IUsersService {
         if (!middleWareResponseData.data().isEmpty()) {
             middleWareResponseData.data().stream().filter(c -> "Individual".equalsIgnoreCase(c.getCustomerType()))
                     .findFirst().ifPresent(r -> {
-                // TODO: Reconcile existing account on core with one on this platform
-                if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
-                    throw new BadRequestException("Email or Phone number already exists.");
-                }
+                        // TODO: Reconcile existing account on core with one on this platform
+                        if (usersRepository.existsByEmailOrPhoneNumber(r.getEmailAddress(), r.getPhoneNumbers())) {
+                            throw new BadRequestException("Email or Phone number already exists.");
+                        }
 
-                if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()))) {
-                    throw new BadRequestException("You can't continue with this BVN.");
-                }
+                        if (idCardRepository.existsByIdValueHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()))) {
+                            throw new BadRequestException("You can't continue with this BVN.");
+                        }
 
-                Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
+                        Cache cache = requireNonNull(cacheManager.getCache(AppConstants.SIGN_UP_CACHE_NAME));
 
-                IdQueryDetailsDto idQueryDetailsDto = usersMapper.middlewareCustomerResponseToIdQueryDetailsDto(r);
-                idQueryDetailsDto.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()));
-                cache.put(idQueryDetailsDto.getBvnHashed(), idQueryDetailsDto);
+                        IdQueryDetailsDto idQueryDetailsDto = usersMapper.middlewareCustomerResponseToIdQueryDetailsDto(r);
+                        idQueryDetailsDto.setBvnHashed(hashingUtil.hmacWithSha256(idHashKey, r.getBankBvn()));
+                        cache.put(idQueryDetailsDto.getBvnHashed(), idQueryDetailsDto);
 
-                success.set(true);
-            });
+                        success.set(true);
+                    });
             return UpdateResponse.builder().success(success.get()).message("success").build();
         }
         return UpdateResponse.builder().success(success.get()).message("success").build();
@@ -533,7 +535,15 @@ public class UsersService implements IUsersService {
         profile.setPhoneNumberVerified(idQueryDetailsDto.isPhoneNumberVerified());
 
         profile.setGender(Gender.getGender(idQueryDetailsDto.getGender()).getCaps());
-        profile.setDateOfBirth(LocalDateTime.parse(idQueryDetailsDto.getDateOfBirth()).toLocalDate());
+        try {
+            profile.setDateOfBirth(LocalDate.parse(idQueryDetailsDto.getDateOfBirth()));
+        } catch (DateTimeParseException exception) {
+            try {
+                profile.setDateOfBirth(LocalDateTime.parse(idQueryDetailsDto.getDateOfBirth()).toLocalDate());
+            } catch (DateTimeParseException ignore) {
+            }
+        }
+
         profile.setCountryOfOrigin(idQueryDetailsDto.getCountry());
         profile.setLgOfOrigin(idQueryDetailsDto.getLocalAreaOfOrigin());
         profile.setStateOfOrigin(idQueryDetailsDto.getPlaceOfBirth());
