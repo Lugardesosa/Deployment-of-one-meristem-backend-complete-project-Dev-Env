@@ -43,7 +43,7 @@ spring:
           globalcors:
             add-to-simple-url-handler-mapping: true
             cors-configurations:
-              '[${one-app.users-service.context-path}/ws]':
+              '[/api/users/ws]':
                 allowedOriginPatterns: "*"
                 allowedMethods:
                   - GET
@@ -55,7 +55,7 @@ spring:
                   - "*"
                 allowCredentials: true
                 maxAge: 3600
-              '[${one-app.users-service.context-path}/ws/**]':
+              '[/api/users/ws/**]':
                 allowedOriginPatterns: "*"
                 allowedMethods:
                   - GET
@@ -67,7 +67,7 @@ spring:
                   - "*"
                 allowCredentials: true
                 maxAge: 3600
-              '[${one-app.users-service.context-path}/ws-stomp]':
+              '[/api/users/ws-stomp]':
                 allowedOriginPatterns: "*"
                 allowedMethods:
                   - GET
@@ -79,7 +79,7 @@ spring:
                   - "*"
                 allowCredentials: true
                 maxAge: 3600
-              '[${one-app.users-service.context-path}/ws-stomp/**]':
+              '[/api/users/ws-stomp/**]':
                 allowedOriginPatterns: "*"
                 allowedMethods:
                   - GET
