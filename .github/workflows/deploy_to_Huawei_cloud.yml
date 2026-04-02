@@ -1,0 +1,353 @@
+# =====================================================
+# GitHub Actions Workflow: Deploy One_Meristem_App to Huawei Cloud ECS
+# Stages: Build changed microservices → Deploy with rollback support
+# =====================================================
+
+name: Deployment of One_Meristem_App to Huawei Cloud
+
+on:
+  push:
+    branches:
+      - dev_env
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - 'custom_headers.conf'
+
+env:
+  REPO_NAME: mit-meristem/one_meristem_app
+  SERVICES_DIR: backend
+  GH_PAT: ${{ secrets.GH_PAT }}
+
+  # =====================================================
+  # SERVICE JAVA VERSION MAPPING
+  # =====================================================
+  JAVA_21_SERVICES: "config-server cloud-gateway users-service report-service trustees-service"
+  JAVA_25_SERVICES: "wealth-service wallet-service notification-service"
+
+jobs:
+  # =====================================================
+  # JOB 1: Detect Changed Microservices
+  # =====================================================
+  detect_changes:
+    name: Detect Changed Microservices
+    runs-on: self-hosted
+
+    outputs:
+      changed_services: ${{ steps.check_change.outputs.changed_services }}
+      compose_changed: ${{ steps.check_change.outputs.compose_changed }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Show Commit History
+        run: git log --oneline -n 5
+
+      - name: Detect Changed Microservices
+        id: check_change
+        run: |
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          if echo "$CHANGED_FILES" | grep -q "^docker-compose.yml$"; then
+            echo "docker-compose.yml has changed!"
+            echo "compose_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "compose_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          CHANGED=$(echo "$CHANGED_FILES" \
+            | grep -E "${{ env.SERVICES_DIR }}/(cloud-gateway|users-service|config-server|notification-service|wallet-service|trustees-service|wealth-service|report-service|observability|meriapp-config|platform)/" \
+            | cut -d'/' -f2 | sort -u | xargs || true)
+          echo "Changed services: $CHANGED"
+
+          if [ -z "$CHANGED" ]; then
+            echo "changed_services=none" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed_services=$CHANGED" >> "$GITHUB_OUTPUT"
+          fi
+
+  # =====================================================
+  # JOB 2: Deploy Stage
+  # =====================================================
+  deploy:
+    name: Deploy to Huawei Cloud ECS
+    runs-on: self-hosted
+    needs: detect_changes
+
+    steps:
+      - name: Debug SSH vars (partial)
+        env:
+          ECS_USER: ${{ secrets.ECS_USER }}
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+        run: |
+          echo "ECS_USER: ${ECS_USER:0:3}***"
+          echo "ECS_HOST: ${ECS_HOST:0:5}***"
+
+      - name: Log Changed Services
+        run: |
+          echo "Changed services: ${{ needs.detect_changes.outputs.changed_services }}"
+          echo "Compose changed: ${{ needs.detect_changes.outputs.compose_changed }}"
+
+      - name: Start SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.ECS_SSH_KEY }}
+
+      - name: SSH and Deploy with Rollback Support
+        env:
+          REPO_NAME: ${{ env.REPO_NAME }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          CHANGED_SERVICES: ${{ needs.detect_changes.outputs.changed_services }}
+          COMPOSE_CHANGED: ${{ needs.detect_changes.outputs.compose_changed }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }} bash -s <<ENDSSH
+          set -e
+
+          # ============================================================
+          # SECTION 1: Variables and Repository Sync
+          # ============================================================
+          REPO_NAME="${REPO_NAME:-mit-meristem/one_meristem_app}"
+          CHANGED_SERVICES="${CHANGED_SERVICES}"
+          COMPOSE_CHANGED="${COMPOSE_CHANGED}"
+          GH_PAT="${GH_PAT}"
+
+          export GH_PAT="${GH_PAT}"
+          export REPO_NAME="${REPO_NAME}"
+
+          echo "================================================"
+          echo "Repository: \$REPO_NAME"
+          echo "Changed Services: \$CHANGED_SERVICES"
+          echo "Docker-compose Changed: \$COMPOSE_CHANGED"
+          echo "================================================"
+
+          sudo apt update || echo "apt update failed, continuing..."
+
+          echo "Checking if Repo Exists Locally on Server..."
+          if [ ! -d "one_meristem_app/.git" ]; then
+            echo "Repo not found locally, cloning for the first time..."
+            git clone https://\$GH_PAT@github.com/\$REPO_NAME.git one_meristem_app
+          fi
+
+          echo "Changing Directory into the one_meristem_app..."
+          cd one_meristem_app
+
+          echo "Current commit:"
+          git log --oneline -n 1
+          echo "================================================"
+
+          echo "Updating remote URL to: \${REPO_NAME}"
+          git remote set-url origin https://\$GH_PAT@github.com/\$REPO_NAME.git
+
+          echo "Remote URL:"
+          git remote -v
+          echo "================================================"
+
+          echo "============================================================"
+          echo "Syncing with Remote Repository"
+          echo "============================================================"
+          git fetch origin dev_env
+          git checkout dev_env 2>/dev/null || git checkout -b dev_env origin/dev_env
+          git reset --hard origin/dev_env
+
+          echo "============================================================"
+          echo "Repository synced successfully!"
+          echo "Latest commit: \$(git log --oneline -n 1)"
+          echo "============================================================"
+
+          # ============================================================
+          # SECTION 2: Enter Backend Directory
+          # ============================================================
+          echo "Changing into backend directory..."
+          cd backend || { echo "Backend folder not found. Check repo structure."; exit 1; }
+
+          # ============================================================
+          # SECTION 3: Backup Current Docker State
+          # ============================================================
+          echo "Backing up Docker state..."
+          rm -f ../docker-compose.backup.*.yml || true
+          sudo docker-compose -f ../docker-compose.yml config > ../docker-compose.backup.yml || {
+            echo "Failed to create rollback config. Aborting deployment."
+            exit 1
+          }
+
+          # ============================================================
+          # SECTION 4: Build Changed Microservices
+          # ============================================================
+          BUILT_SERVICES=""
+
+          if [ "\$CHANGED_SERVICES" != "none" ]; then
+            echo "Building changed microservices..."
+
+            if ! command -v pack &> /dev/null; then
+              echo "pack CLI not found. Installing..."
+              curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.35.0/pack-v0.35.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+            fi
+
+            # -------------------------------------------------------
+            # Noble-tiny services (Java 25) — require --volume for /cache
+            # Add any new Java 25 noble-tiny service here
+            # -------------------------------------------------------
+            NOBLE_TINY_SERVICES="wealth-service wallet-service notification-service"
+
+            # -------------------------------------------------------
+            # Returns builder image and Java version for a given service
+            # -------------------------------------------------------
+            get_build_config() {
+              local service="\$1"
+              case "\$service" in
+                wealth-service|wallet-service|notification-service)
+                  echo "paketobuildpacks/builder-noble-java-tiny:latest 25"
+                  ;;
+                *)
+                  echo "paketobuildpacks/builder-jammy-base 21"
+                  ;;
+              esac
+            }
+
+            # -------------------------------------------------------
+            # Builds a single service using pack
+            # noble-tiny services get --volume for /cache
+            # jammy-base services get --cache bind mount
+            # -------------------------------------------------------
+            build_service() {
+              local svc="\$1"
+              cd "\$svc" || { echo "Missing directory: \$svc"; return 1; }
+
+              local config=\$(get_build_config "\$svc")
+              local builder=\$(echo "\$config" | awk '{print \$1}')
+              local java_version=\$(echo "\$config" | awk '{print \$2}')
+
+              echo "============================================"
+              echo "Building \$svc"
+              echo "  Builder: \$builder"
+              echo "  Java Version: \$java_version"
+              echo "============================================"
+
+              if [ ! -d "/opt/buildpack-cache/\$svc" ]; then
+                echo "Creating cache directory for \$svc"
+                sudo mkdir -p "/opt/buildpack-cache/\$svc"
+                sudo chmod -R 777 "/opt/buildpack-cache/\$svc"
+              else
+                echo "Cache directory already exists for \$svc"
+              fi
+
+              if echo "\$NOBLE_TINY_SERVICES" | grep -qw "\$svc"; then
+                # noble-tiny builder has no /cache dir — bind-mount via --volume
+                sudo mkdir -p "/opt/buildpack-cache/\$svc/launch"
+                sudo pack build "\$svc" \
+                  --builder "\$builder" \
+                  --env BP_JVM_VERSION="\$java_version" \
+                  --path . \
+                  --tag "\$svc" \
+                  --volume "/opt/buildpack-cache/\$svc/launch:/cache" \
+                  --pull-policy if-not-present
+              else
+                sudo pack build "\$svc" \
+                  --builder "\$builder" \
+                  --env BP_JVM_VERSION="\$java_version" \
+                  --path . \
+                  --cache "type=build;format=bind;source=/opt/buildpack-cache/\$svc" \
+                  --pull-policy if-not-present
+              fi
+
+              local status=\$?
+              cd ..
+              return \$status
+            }
+
+            for svc in \$CHANGED_SERVICES; do
+              case \$svc in
+                cloud-gateway|users-service|config-server|notification-service|wallet-service|report-service|wealth-service|trustees-service)
+                  if [ -d "\$svc" ]; then
+                    if build_service "\$svc"; then
+                      echo "Build successful: \$svc"
+                      BUILT_SERVICES="\$BUILT_SERVICES \$svc"
+                    else
+                      echo "Build failed: \$svc"
+                      exit 1
+                    fi
+                  else
+                    echo "Directory \$svc not found!"
+                  fi
+                  ;;
+                *)
+                  echo "Skipping untracked service: \$svc"
+                  ;;
+              esac
+            done
+
+            BUILT_SERVICES=\$(echo "\$BUILT_SERVICES" | xargs)
+            echo "Built services: \$BUILT_SERVICES"
+          else
+            echo "No service code changes detected. Skipping build step."
+          fi
+
+          # ============================================================
+          # SECTION 5: Return to Project Root
+          # ============================================================
+          echo "Returning to project root..."
+          cd ..
+
+          # ============================================================
+          # SECTION 6: Deploy Services with Rollback
+          # ============================================================
+          set +e
+
+          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis"
+
+          if [ "\$COMPOSE_CHANGED" = "true" ]; then
+            echo "docker-compose.yml changed → restarting ALL services"
+            sudo docker-compose stop \$ALL_SERVICES
+            sudo docker-compose rm -f \$ALL_SERVICES
+            sudo docker-compose up -d \$ALL_SERVICES
+            DEPLOY_STATUS=\$?
+
+          elif [ -n "\$BUILT_SERVICES" ]; then
+            echo "Code changed → deploying ONLY built services: \$BUILT_SERVICES"
+            sudo docker-compose stop \$BUILT_SERVICES
+            sudo docker-compose rm -f \$BUILT_SERVICES
+            sudo docker-compose up -d \$BUILT_SERVICES
+            DEPLOY_STATUS=\$?
+
+          else
+            echo "No changes detected. Skipping deployment."
+            DEPLOY_STATUS=0
+          fi
+
+          set -e
+
+          # ============================================================
+          # SECTION 7: Health Check and Rollback if Needed
+          # ============================================================
+          if [[ "\$DEPLOY_STATUS" -ne 0 ]]; then
+            echo "Deployment failed. Rolling back..."
+            set +e
+            sudo docker-compose -f docker-compose.yml stop \
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service
+            sudo docker-compose -f ../docker-compose.backup.yml up -d \
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service || {
+                echo "Rollback failed. Manual intervention required."
+                exit 1
+            }
+            echo "Rollback successful."
+            exit 1
+          else
+            echo "Verifying health of core services..."
+            sudo docker ps --filter "health=unhealthy" --format '{{.Names}}' | grep . && {
+              echo "Some containers are unhealthy. Investigate logs."
+              sudo docker ps --filter "health=unhealthy"
+            } || echo "All containers healthy."
+
+            echo "================================================"
+            echo "Deployment completed successfully!"
+            echo "================================================"
+
+            echo "Running containers:"
+            sudo docker-compose -f docker-compose.yml ps
+          fi
+          ENDSSH
