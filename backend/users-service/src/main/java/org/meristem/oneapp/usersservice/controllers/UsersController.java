@@ -107,7 +107,7 @@ public class UsersController {
 
     })
     @PreAuthorize("hasAuthority('SCOPE_create_user')")
-    @GetMapping(value = "/sec-details")
+    @PostMapping(value = "/sec-details")
     public ResponseEntity<AppResponse<UpdateResponse>> getSecondaryUserDetails(@RequestBody @Valid SecondaryUserRegRequest request) {
         return ApiUtil.buildResponse(usersService.getSecondaryUserDetails(request), HttpStatus.CREATED.toString(), "Created successfully.");
     }
