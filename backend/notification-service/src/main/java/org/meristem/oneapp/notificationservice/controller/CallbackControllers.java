@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.notificationservice.constants.ApiConstants;
 import org.meristem.oneapp.notificationservice.domains.requests.HollaTagsCallbackRequest;
-import org.meristem.oneapp.notificationservice.domains.requests.TransferPaymentRequest;
+import org.meristem.oneapp.notificationservice.domains.requests.MiddlewareCallbackRequest;
 import org.meristem.oneapp.notificationservice.domains.responses.HollaTagsCallbackResponse;
-import org.meristem.oneapp.notificationservice.domains.responses.MiddlewareTransactionResponse;
+import org.meristem.oneapp.notificationservice.domains.responses.MiddlewareCallbackResponse;
 import org.meristem.oneapp.notificationservice.services.ICallbackService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,8 +40,8 @@ public class CallbackControllers {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Middleware transfer callback")
     })
-    @PostMapping(value = "/transaction", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public MiddlewareTransactionResponse transactionCallback(@RequestBody TransferPaymentRequest request) {
-        return callbackService.transactionCallback(request);
+    @PostMapping(value = "/middleware", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public MiddlewareCallbackResponse middlewareCallback(@RequestBody MiddlewareCallbackRequest request) {
+        return callbackService.middlewareCallback(request);
     }
 }

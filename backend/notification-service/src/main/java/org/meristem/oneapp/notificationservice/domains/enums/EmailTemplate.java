@@ -11,6 +11,8 @@ public enum EmailTemplate {
     BIRTHDAY_GREETING_EMAIL("birthday-greeting-email.html"),
     BVN_VERIFICATION_FAILED_EMAIL("bvn-verification-failed-email.html"),
     CONFIRM_EMAIL_ADDRESS("confirm-email-address.html"),
+    EXISTING_CONFIRM_EMAIL_ADDRESS("existing-user-email-address.html"),
+    SECONDARY_CONFIRM_EMAIL_ADDRESS("secondary-user-confirm-email.html"),
     CONFIRM_VERIFICATION_CODE("confirm-verification-code.html"),
     DEPOSIT_SUCCESSFUL("deposit-successful.html"),
     FORGOT_PASSWORD("forgot-password.html"),

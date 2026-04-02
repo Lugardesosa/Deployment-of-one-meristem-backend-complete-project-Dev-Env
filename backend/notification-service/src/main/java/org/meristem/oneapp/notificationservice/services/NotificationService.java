@@ -60,11 +60,15 @@ public interface NotificationService<T> {
         }  else if (request.classSimpleName().equals(EmailConfirmationDto.class.getSimpleName())) {
             EmailConfirmationDto emailConfirmationDto = mapper.convertValue(request.message(), EmailConfirmationDto.class);
             message = messageMapper.emailConfirmationDtoDtoToMessage(emailConfirmationDto);
-            message.setEmailTemplate(EmailTemplate.CONFIRM_EMAIL_ADDRESS);
+            switch (emailConfirmationDto.getConfirmationType()) {
+                case SECONDARY_ACCOUNT -> message.setEmailTemplate(EmailTemplate.SECONDARY_CONFIRM_EMAIL_ADDRESS);
+                case EXISTING_ACCOUNT -> message.setEmailTemplate(EmailTemplate.EXISTING_CONFIRM_EMAIL_ADDRESS);
+            }
             Map<String, Object> context = new HashMap<>();
             context.put("code", emailConfirmationDto.getCode());
             context.put("firstName", nonNull(emailConfirmationDto.getFirstName()) ? emailConfirmationDto.getFirstName() : "");
-            context.put("DEEP_LINK", nonNull(emailConfirmationDto.getLink()) ? emailConfirmationDto.getLink() : "");
+            context.put("DEEP_LINK", nonNull(emailConfirmationDto.getDeepLink()) ? emailConfirmationDto.getDeepLink() : "");
+            context.put("WEB_LINK", nonNull(emailConfirmationDto.getWebLink()) ? emailConfirmationDto.getWebLink() : "");
             message.setContext(context);
         }
         return message;
