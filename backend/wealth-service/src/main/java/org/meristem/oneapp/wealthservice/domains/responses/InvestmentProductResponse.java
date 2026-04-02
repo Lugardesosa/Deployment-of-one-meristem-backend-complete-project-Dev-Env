@@ -1,7 +1,29 @@
 package org.meristem.oneapp.wealthservice.domains.responses;
 
-public record InvestmentProductResponse(String productId,
-                                        String name,
-                                        String category,
-                                        String currency) {
-}
+public record InvestmentProductResponse(
+        String bookOfAccountId,
+        String fundId,
+        String fundDescription,
+        String productId,
+        String productDescription,
+        String productDisplayDescription,
+        String currencyId,
+        String currencyDescription,
+        Double minimumInvestAmount,
+        Double maximumInvestAmount,
+        Integer investTenorDays,
+        String taxYn,
+        Double taxRate,
+        String allowNewInvestmentYesno,
+        String allowInvestmentRolloverYesno,
+        String allowPrematureLiquidationYesno,
+        Double preLiquidationPenaltyRate,
+        String preLiquidationPenaltyBasis,
+        String preLiquidationPenaltyDomain,
+        String allowPrematureWithdrawalYesno,
+        Double withdrawalPenaltyRate,
+        String withdrawalPenaltyBasis,
+        String withdrawalPenaltyDomain,
+        String inUseYesno,
+        Object metaData
+) {}

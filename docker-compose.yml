@@ -10,7 +10,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=AHjsoie67&8*
     volumes:
-      - ./data/redis:/data   #persistent host path
+      - ./data/redis:/data   #persistent host path..
     networks:
       - meristem-network
     restart: unless-stopped
@@ -101,6 +101,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: postgres
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -158,13 +160,14 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - SMILE_ID_PARTNER_ID=7496
-      - SMILE_ID_PROD_API_KEY=ugXtYHgdgqYtNEkMGnKBkhTUeN4ZKx7dhN4D5rn1vAIVUh1uVmJpW1heUy6MvXOKpUxIcnVBnaVU7bZ4PrGdocNcFmuf2m9ZRQeLW2wGQosotIfZEyRLdq9wgYFlgkBeszKoG98wPGvrNLAXP9Txehvid202jfaQtH5KCz5x0FI=
-      - SMILE_ID_DEV_API_KEY=3d64d61d-6d64-402d-a5f0-fa288507ec8f
-      - SMILE_ID_PROD_LAMBDA_URL=https://api.smileidentity.com/v1/
-      - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com/v1/
+      - SMILE_ID_PROD_API_KEY=${SMILE_ID_PROD_API_KEY}
+      - SMILE_ID_DEV_API_KEY=${SMILE_ID_DEV_API_KEY}
+      - SMILE_ID_PROD_LAMBDA_URL=https://api.smileidentity.com
+      - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com
       - SMILE_ID_PROD_WHITELIST_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
-      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141
-      - SMILE_ID_DEV_CALLBACK_URL=https://www.onemerristem.merristem.com/api/users/onboard/smile-id/webhook
+      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141,0:0:0:0:0:0:0:1,192.168.48.13,102.88.55.50
+      - SMILE_ID_DEV_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
+      - SMILE_ID_PROD_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -172,6 +175,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - USER=System
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
       - USERS_DB_NAME=${DB_NAME_USERS_SERVICE}
@@ -212,6 +216,24 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WEB_SECRET=${WEB_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - WEALTH_CLIENT_ID=wealth-service
+      - WEALTH_CLIENT_SECRET=${WEALTH_CLIENT_SECRET}
+      - WEALTH_SECRET=${WEALTH_SECRET}
+      - MIDDLEWARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
+      - MIDDLEWARE_API_KEY=${MIDDLEWARE_API_KEY}
+      - DOJAH_BASE_URL=https://sandbox.dojah.io
+      - DOJAH_APP_ID=69982bc9cab03cc55e59ba33
+      - DOJAH_SECRET_KEY=${DOJAH_SECRET_KEY}
+      - DOJAH_PRIVATE_KEY=${DOJAH_PRIVATE_KEY}
+      - PASTEL_BASE_URL=https://sigmaaml.sabipay.com/api/v1
+      - PASTEL_API_KEY=${PASTEL_API_KEY}
+      - PASTEL_API_SECRET=${PASTEL_API_SECRET}
+      - PASTEL_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/pastel
+      - CORE_CLIENT_ID=core-services
+      - CORE_CLIENT_SECRET=secret
+      - CORE_SECRET=secret
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=users-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -250,6 +272,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -280,12 +303,12 @@ services:
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - TRUSTEES_CLIENT_ID=trustees-service
       - TRUSTEES_CLIENT_SECRET=${TRUSTEES_CLIENT_SECRET}
-      - MAIL_SENDER=no-reply@onemeristem.meristemng.com
+      - MAIL_SENDER=hello@wealthbuddy.ng
       - SUPPORT_PHONE=0700-MERISTEM
       - SUPPORT_EMAIL=support@onemeristem.com
       - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
       - MAIL_SENDER_NAME=One Meristem
-      - MAILER_PORT=2525
+      - MAILER_PORT=587
       - EXPO_URL=https://exp.host/--/api/v2 
       - EXPO_PUSH_TOKEN=${EXPO_PUSH_TOKEN}
       - ENC_SALT=${ENC_SALT}
@@ -294,6 +317,9 @@ services:
       - HOLLA_TAGS_FROM=maijamaa190
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - MIDDLEWARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
+      - MIDDLEWARE_API_KEY=${MIDDLEWARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=notification-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -308,7 +334,7 @@ services:
     restart: unless-stopped
 
 
-   # ======================
+  # ======================
   # REPORT SERVICE (Internal only)
   # ======================
   report-service:
@@ -332,6 +358,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -362,6 +389,9 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - MIDDLEWARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
+      - MIDDLEWARE_API_KEY=${MIDDLEWARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=report-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -399,6 +429,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -436,6 +467,9 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - MIDDLEWARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
+      - MIDDLEWARE_API_KEY=${MIDDLEWARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=wallet-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -448,7 +482,81 @@ services:
     # volumes:
     #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
     restart: unless-stopped
-    
+  
+  # ======================
+  # WEALTH SERVICE (Internal Only)
+  # ======================
+  wealth-service:
+    image: wealth-service
+    container_name: wealth-service
+    networks:
+      - meristem-network
+    depends_on:
+      - config-server
+      - postgres
+      - kafka
+      - redis
+      - consul
+      - users-service
+        #- otel-collector
+    environment:
+      - COMPANY_NAME=Meristem Securities Limited
+      - DATA_PRIVACY_POLICY_URL=https://www.onemerristem.merristem.com
+      - GREEN_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
+      - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
+      - GITHUB_BRANCH=dev_env
+      - APP_PROFILE=dev
+      - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
+      - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=jdbc:postgresql://postgres:5432 # input the private ip here
+      - WEALTH_DB_NAME=${DB_NAME_WEALTH_SERVICE}
+      - WEALTH_DB_PASSWORD=${DB_WEALTH_PASSWORD}
+      - WEALTH_DB_USERNAME=${DB_WEALTH_USERNAME}
+      - WEALTH_CLIENT_ID=wealth-service
+      - WEALTH_CLIENT_SECRET=${WEALTH_CLIENT_SECRET}
+      - WEALTH_SERVICE_HOSTNAME=wealth-service
+      - WEALTH_SERVICE_PORT=20070
+      - CONFIG_SERVER_URI=${CONFIG_SERVER_URI}
+      - KAFKA_HOST_URL=${KAFKA_HOST}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD} 
+      - H2_PASSWORD=${H2_PASSWORD}
+      - CONSUL_HOST=consul
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - USER_SERVICE_HOSTNAME=users-service
+      - WEALTH_SERVICE_URI=${WEALTH_SERVICE_URI}
+      - HUAWEI_OBS_UNSTRUCTURED_BUCKET=obs-unstructured-logo-one-meristem-dev-env
+      - SUPPORT_PHONE=0700-MERISTEM
+      - SUPPORT_EMAIL=support@onemeristem.com
+      - MERISTEM_GREEN_LOGO=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Green_Logo.png
+      - ENC_SALT=${ENC_SALT}
+      - ENC_ALGORITHM=AES
+      - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
+      - ENC_SALT=${ENC_SALT}
+      - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - WEALTH_SECRET=${WEALTH_SECRET}
+      - MIDDLEWARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
+      - MIDDLEWARE_API_KEY=${MIDDLEWARE_API_KEY}
+      # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
+      # - OTEL_SERVICE_NAME=wealth-service
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      # - OTEL_LOGS_EXPORTER=otlp # --- otlp is the default value if not set
+      # - OTEL_TRACES_EXPORTER=otlp #---
+      # - OTEL_METRICS_EXPORTER=otlp
+      # - OTEL_RESOURCE_ATTRIBUTES=service.name=wealth-service,env=local
+      # - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      # - OTEL_JAVAAGENT_ENABLED=true
+    # volumes:
+    #   - /one_meristem_app/logs_collector/opentelemetry-javaagent.jar:/etc/opentelemetry-javaagent.jar
+    restart: unless-stopped
+
+  
   # ======================
   # TRUSTEES SERVICE (Internal Only)
   # ======================
@@ -474,6 +582,7 @@ services:
       - GITHUB_BRANCH=dev_env
       - APP_PROFILE=dev
       - ONE_APP_SERVER_URL=https://110.238.74.43
+      - ONE_APP_WEB_URL=https://onemeristemwebdev.meristemng.com
       - ONE_APP_EMAIL=hello@onemeristem.meristemng.com
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -504,6 +613,9 @@ services:
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
       - ENC_SALT=${ENC_SALT}
       - ID_HASHING_SECRET=${ID_HASHING_SECRET}
+      - WALLET_SECRET=${WALLET_SECRET}
+      - MIDDLEWARE_BASE_URL=https://onemeristemmiddlewaredev.meristemng.com/api
+      - MIDDLEWARE_API_KEY=${MIDDLEWARE_API_KEY}
       # - JAVA_TOOL_OPTIONS=-javaagent:/etc/opentelemetry-javaagent.jar
       # - OTEL_SERVICE_NAME=trustees-service
       # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
@@ -524,7 +636,7 @@ services:
     container_name: cloud-gateway
     expose:
       - "20010"
-      #ports:
+    #ports:
       #- "443:8443"
       #- "8080:20010"  # Exposed for HTTP
         #- "443:20010" # Exposed for HTTPS
@@ -549,7 +661,7 @@ services:
       - WHITE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_White_Logo.png
       - FINANCE_LOGO_URL=https://obs-unstructured-logo-one-meristem-dev-env.obs.af-south-1.myhuaweicloud.com/Meristem_Finance_Logo.png
       - GITHUB_BRANCH=dev_env
-      - APP_PROFILE=devlocal
+      - APP_PROFILE=dev
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -562,6 +674,7 @@ services:
       - TRUSTEES_SERVICE_URI=${TRUSTEES_SERVICE_URI}
       - NOTIFICATION_SERVICE_URI=${NOTIFICATION_SERVICE_URI}
       - REPORT_SERVICE_URI=${REPORT_SERVICE_URI} 
+      - WEALTH_SERVICE_URI=${WEALTH_SERVICE_URI}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
         #- SSL_KEY_ALIAS=one-meristem-app
@@ -570,6 +683,7 @@ services:
       - VIRTUAL_PORT=20010
       - LETSENCRYPT_HOST=onemeristemdev.meristemng.com
       - LETSENCRYPT_EMAIL=esosamumen@meristemng.com
+      - SPRING_SERVER_SSL_ENABLED=false #to force ssl enabled on the app
       - GATEWAY_REPLENISH_RATE=10
       - GATEWAY_BURST_CAPACITY=20
       - GATEWAY_REQUESTED_TOKENS=2
@@ -577,7 +691,7 @@ services:
       - GATEWAY_SERVICE_HOSTNAME=cloud-gateway
       - GATEWAY_SERVICE_PORT=20010
       - CONSUL_HOST=consul
-      - ALLOWED_ORIGINS=http://localhost:3000,https://onemeristemwebdev.meristemng.com
+      - ALLOWED_ORIGINS=http://localhost:3000,https://onemeristemwebdev.meristemng.com,http://127.0.0.1:5500,http://192.168.100.9:8081
       - ENC_SALT=${ENC_SALT}
       - ENC_ALGORITHM=AES
       - ENC_ALGORITHM_GCM=AES/GCM/NoPadding
@@ -614,6 +728,7 @@ services:
       - ./certs:/etc/nginx/certs
       - ./vhost:/etc/nginx/vhost.d
       - ./html:/usr/share/nginx/html
+      - ./custom_headers.conf:/etc/nginx/conf.d/custom_headers.conf:ro
     depends_on:
       - cloud-gateway
     networks:
