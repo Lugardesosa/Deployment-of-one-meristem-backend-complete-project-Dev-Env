@@ -5,6 +5,5 @@ public record MiddlewarePlacementPreviewRequest(
         String productId,
         String effectiveDate,
         Double amount,
-        Integer tenorDays,
-        String customerId
+        Integer tenorDays
 ) {}
