@@ -65,7 +65,7 @@ CREATE TABLE investment_plans
     name                  VARCHAR(255)                            NOT NULL,
     uuid                  VARCHAR(255)                            NOT NULL,
     slug                  VARCHAR(255)                            NOT NULL,
-    short_name            VARCHAR(255)                            NOT NULL,
+    short_name            VARCHAR(255),
     description           TEXT,
     video_url             TEXT,
     position              INTEGER                                 NOT NULL,
