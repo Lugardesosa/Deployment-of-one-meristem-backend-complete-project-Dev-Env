@@ -108,4 +108,18 @@ public final class AppUtil {
         }
         return false;
     }
+
+    public static String getLoggedInCustomerId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            if (nonNull(jwt)) {
+                List<String> customerIds = jwt.getClaim("customerIds");
+                if (nonNull(customerIds) && !customerIds.isEmpty()) {
+                    return customerIds.getFirst();
+                }
+            }
+        }
+        throw new BadRequestException("Customer ID not found in token");
+    }
 }

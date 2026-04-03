@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -34,5 +35,15 @@ public class InvestmentPlansController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<InvestmentProductWithPlansResponse>>> getAllProductsWithPlans() {
         return ApiUtil.buildResponse(investmentPlansService.getAllProductsWithPlans(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Get plan details", description = "Returns a plan and its settings by uuid")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Plan details returned successfully"),
+            @ApiResponse(responseCode = "404", description = "Plan not found")
+    })
+    @GetMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<InvestmentProductWithPlansResponse.PlanResponse>> getPlanByUuid(@RequestParam String uuid) {
+        return ApiUtil.buildResponse(investmentPlansService.getPlanByUuid(uuid), HttpStatus.OK.toString(), "Successful");
     }
 }

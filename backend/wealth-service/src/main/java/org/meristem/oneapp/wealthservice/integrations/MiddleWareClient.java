@@ -1,5 +1,7 @@
 package org.meristem.oneapp.wealthservice.integrations;
 
+import org.meristem.oneapp.wealthservice.integrations.requests.MiddlewarePlacementCreateFixedDepositRequest;
+import org.meristem.oneapp.wealthservice.integrations.requests.MiddlewarePlacementLiquidateRequest;
 import org.meristem.oneapp.wealthservice.integrations.requests.*;
 import org.meristem.oneapp.wealthservice.integrations.responses.*;
 import org.springframework.http.MediaType;
@@ -96,4 +98,20 @@ public interface MiddleWareClient {
 
     @PostExchange("/portfolio/statement/request")
     MiddlewareAppResponse<MiddlewarePortfolioStatementResponse> requestPortfolioStatement(@RequestBody MiddlewarePortfolioStatementRequest request);
+
+    @PostExchange("/investments/placements/rate/calculate")
+    MiddlewareAppResponse<MiddlewarePlacementRateCalculateResponse> calculatePlacementRate(@RequestBody MiddlewarePlacementPreviewRequest request);
+    @PostExchange("/investments/placements/create")
+    MiddlewareAppResponse<MiddlewarePlacementCreateFixedDepositResponse> createFixedDeposit(@RequestBody MiddlewarePlacementCreateFixedDepositRequest request);
+
+    @GetExchange("/investments/placements/{customerId}")
+    MiddlewareFixedDepositListResponse getFixedDepositsByCustomer(@PathVariable String customerId);
+
+    @GetExchange("/investments/placements/transactions/{fundAccountId}")
+    MiddlewareFixedDepositTransactionListResponse getFixedDepositTransactions(@PathVariable String fundAccountId);
+
+    @PostExchange("/investments/placements/liquidate")
+    MiddlewareAppResponse<MiddlewarePlacementLiquidateResponse> liquidateFixedDeposit(@RequestBody MiddlewarePlacementLiquidateRequest request);
+
 }
+

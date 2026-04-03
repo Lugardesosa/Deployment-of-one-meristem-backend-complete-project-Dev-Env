@@ -21,7 +21,9 @@ public interface MiddlewareMapper {
 
     MiddlewarePlacementCreateRequest placementCreateRequestToMiddlewarePlacementCreateRequest(PlacementCreateRequest request);
 
-    MiddlewarePlacementPreviewRequest placementPreviewRequestToMiddlewarePlacementPreviewRequest(PlacementPreviewRequest request);
+    default MiddlewarePlacementPreviewRequest placementPreviewRequestToMiddlewarePlacementPreviewRequest(PlacementPreviewRequest request) {
+        return null;
+    }
 
     MiddlewarePlacementTopupRequest placementTopupRequestToMiddlewarePlacementTopupRequest(PlacementTopupRequest request);
 

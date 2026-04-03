@@ -24,6 +24,8 @@ public record InvestmentProductWithPlansResponse(
             String videoUrl,
             Integer position,
             Boolean isActive,
+            String aboutDescription,
+            List<String> aboutHighlights,
             PlanSettingsResponse settings
     ) {}
 
@@ -61,4 +63,6 @@ public record InvestmentProductWithPlansResponse(
             String investmentStartDate,
             String investmentEndDate
     ) {}
+
+    public record About(String description, List<String> highlights) {}
 }

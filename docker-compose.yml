@@ -165,7 +165,7 @@ services:
       - SMILE_ID_PROD_LAMBDA_URL=https://api.smileidentity.com
       - SMILE_ID_TEST_LAMBDA_URL=https://testapi.smileidentity.com
       - SMILE_ID_PROD_WHITELIST_IPS=34.240.137.52,44.230.128.108,52.36.32.43,52.213.46.74
-      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141,0:0:0:0:0:0:0:1,192.168.48.13,102.88.55.50
+      - SMILE_ID_DEV_WHITELIST_IPS=35.166.227.53,44.246.19.66,54.246.37.255,99.81.237.141,0:0:0:0:0:0:0:1,192.168.48.13,102.88.54.77
       - SMILE_ID_DEV_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
       - SMILE_ID_PROD_CALLBACK_URL=https://onemeristemdev.meristemng.com/api/users/callback/smile-id
       - ADMIN_USERNAME=${ADMIN_USERNAME}
