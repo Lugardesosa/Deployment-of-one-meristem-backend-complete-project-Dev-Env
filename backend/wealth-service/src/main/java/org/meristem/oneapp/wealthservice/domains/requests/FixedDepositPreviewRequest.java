@@ -1,6 +1,6 @@
-package org.meristem.oneapp.wealthservice.integrations.requests;
+package org.meristem.oneapp.wealthservice.domains.requests;
 
-public record MiddlewarePlacementPreviewRequest(
+public record FixedDepositPreviewRequest(
         String fundId,
         String productId,
         String effectiveDate,
