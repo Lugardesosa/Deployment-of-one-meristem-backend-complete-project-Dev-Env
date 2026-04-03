@@ -1,0 +1,110 @@
+[
+  {
+    "uuid": "e39c16aa-96b3-4c2e-8984-9a0c66b36b9f",
+    "about": {
+      "description": "The Fixed Term Investment Portfolio (FIX-TIP) is a short to medium-term investment product designed to provide stable and competitive returns. Funds are invested in high-quality fixed income instruments including treasury bills, commercial papers, and corporate bonds.",
+      "highlights": [
+        "Capital preservation focused",
+        "Competitive fixed returns",
+        "Flexible tenor options",
+        "Low risk profile"
+      ]
+    }
+  },
+  {
+    "uuid": "4df9e110-2b01-4078-869b-d76e0d61714d",
+    "about": {
+      "description": "The Meristem Money Market Fund (MMMF) is a low-risk, open-ended mutual fund that invests in short-term money market instruments. It offers investors easy liquidity and competitive returns above traditional savings accounts.",
+      "highlights": [
+        "High liquidity — withdraw anytime",
+        "Low risk, stable returns",
+        "Quarterly dividend payments",
+        "Ideal for short-term parking of funds"
+      ]
+    }
+  },
+  {
+    "uuid": "99255092-bdf9-4fe8-8b1b-9177abb3fdf3",
+    "about": {
+      "description": "The Meristem Fixed Income Fund (MFIF) invests primarily in government and corporate bonds, providing investors with bi-annual dividend income and the potential for capital appreciation over the medium to long term.",
+      "highlights": [
+        "Bi-annual dividend payments",
+        "Government and corporate bond exposure",
+        "Medium risk with stable income",
+        "Suitable for long-term wealth preservation"
+      ]
+    }
+  },
+  {
+    "uuid": "5a77240f-3050-448a-ac46-174d030b08b3",
+    "about": {
+      "description": "The Commercial Paper product offers investors access to short-term debt instruments issued by highly rated corporations. It provides attractive discounted returns over a fixed tenor with medium risk exposure.",
+      "highlights": [
+        "Discounted investment returns",
+        "Short-term fixed tenor",
+        "Access to top-rated corporate instruments",
+        "Medium risk profile"
+      ]
+    }
+  },
+  {
+    "uuid": "7f142d21-d19a-4844-9b41-6ecb6704b4ee",
+    "about": {
+      "description": "The Meristem Equity Market Fund (MEMF) provides investors with diversified exposure to the Nigerian Stock Exchange. It is designed for investors seeking long-term capital appreciation through equity market participation.",
+      "highlights": [
+        "Diversified equity market exposure",
+        "Annual dividend distributions",
+        "Long-term capital appreciation potential",
+        "Professionally managed portfolio"
+      ]
+    }
+  },
+  {
+    "uuid": "c3158068-ee82-4052-a0ac-44fe50455eda",
+    "about": {
+      "description": "The Treasury Linked Investment (T-Bills) product mirrors the returns on Federal Government of Nigeria Treasury Bills. It is ideal for conservative investors seeking low-risk, government-backed returns over short to medium tenors.",
+      "highlights": [
+        "Government-backed instrument",
+        "Returns mirror FGN Treasury Bills",
+        "Low risk profile",
+        "Short to medium tenor options"
+      ]
+    }
+  },
+  {
+    "uuid": "fced68f5-dd06-4c2f-9ea6-598f24f1e5a9",
+    "about": {
+      "description": "The Ethical Earnings Portfolio (EEP) is a Shariah-compliant investment product that invests in ethically screened instruments. It is designed for investors who seek competitive returns while adhering to Islamic finance principles and ethical investment standards.",
+      "highlights": [
+        "Shariah-compliant investments",
+        "Ethically screened instruments",
+        "Bi-annual returns in April and October",
+        "Competitive halal returns"
+      ]
+    }
+  },
+  {
+    "uuid": "45dede92-2405-4811-9724-45e4638e742f",
+    "about": {
+      "description": "The Meristem Dollar Mutual Fund (MDMF) is a USD-denominated open-ended mutual fund that provides investors with exposure to dollar-denominated assets. It is ideal for investors looking to hedge against naira depreciation and grow wealth in foreign currency.",
+      "highlights": [
+        "USD-denominated investment",
+        "Natural hedge against naira depreciation",
+        "Capital appreciation focused",
+        "Medium risk profile"
+      ]
+    }
+  },
+  {
+    "uuid": "e45f42bb-89f0-4ed5-a87a-fdaa49684cca",
+    "about": {
+      "description": "The Meristem Dollar Investment Portfolio (MDIP) is a USD-denominated fixed term investment product offering competitive dollar returns. It is designed for investors seeking stable foreign currency income over a fixed investment period.",
+      "highlights": [
+        "USD-denominated fixed returns",
+        "Competitive dollar interest rates",
+        "Low risk profile",
+        "Flexible tenor from 90 to 365 days"
+      ]
+    }
+  }
+]
