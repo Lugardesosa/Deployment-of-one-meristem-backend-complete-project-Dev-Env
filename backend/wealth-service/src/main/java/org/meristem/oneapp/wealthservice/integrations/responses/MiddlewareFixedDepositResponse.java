@@ -1,0 +1,39 @@
+package org.meristem.oneapp.wealthservice.integrations.responses;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record MiddlewareFixedDepositResponse(
+        String accountType,
+        Double accruedInterestAmount,
+        String bookOfAccountId,
+        String currencyDescription,
+        String currencyId,
+        Double currentBalanceAmount,
+        String customerId,
+        String customerName,
+        String dateClosed,
+        Integer daysToMaturity,
+        String debitAccountDescription,
+        String debitAccountId,
+        String effectiveDate,
+        Double expectedGrossInterestAmount,
+        Double expectedNetInterestAmount,
+        String fundDescription,
+        String fundId,
+        Double interestRate,
+        Double investmentAdditionAmount,
+        Double investmentAmount,
+        String isClosedYesNo,
+        String lastAccruedDate,
+        String maturityDate,
+        String maturityMandate,
+        String placementId,
+        Double preLiquidationPenaltyRate,
+        String productDescription,
+        String productId,
+        Integer rolloverSequence,
+        String status,
+        Integer tenorDays,
+        Double totalInterestPaidAmount,
+        Double totalTaxPaidAmount
+) {}
