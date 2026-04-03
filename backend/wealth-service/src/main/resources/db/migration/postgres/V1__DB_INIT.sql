@@ -229,7 +229,7 @@ $$
 
         INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
                                       name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('', 'SYSTEM', 'SYSTEM', MutualFundsId, 'Money Market Fund',
+        VALUES ('MWM-MF-000004', 'SYSTEM', 'SYSTEM', MutualFundsId, 'Money Market Fund',
                 '4df9e110-2b01-4078-869b-d76e0d61714d', 'meristem-money-market-fund', 'MMMF', NULL,
                 'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630618/wb2videos/MONEY_MARKET_FUND_wzfhcu.mp4',
                 1,
@@ -238,7 +238,7 @@ $$
 
         INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
                                       name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('','SYSTEM', 'SYSTEM', MutualFundsId, 'Fixed Income Fund',
+        VALUES ('MWM-MF-000002','SYSTEM', 'SYSTEM', MutualFundsId, 'Fixed Income Fund',
                 '99255092-bdf9-4fe8-8b1b-9177abb3fdf3', 'meristem-fixed-income-fund', 'MFIF', NULL,
                 'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630687/wb2videos/MFIF_cay6o7.mp4', 3, true)
         RETURNING id INTO FixedIncomeFundId;
@@ -254,7 +254,7 @@ $$
 
         INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
                                       name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('','SYSTEM', 'SYSTEM', MutualFundsId, 'Equity Market Fund',
+        VALUES ('MWM-MF-000001','SYSTEM', 'SYSTEM', MutualFundsId, 'Equity Market Fund',
                 '7f142d21-d19a-4844-9b41-6ecb6704b4ee', 'meristem-equity-market-fund', 'MEMF', NULL,
                 'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630649/wb2videos/MEMF_vqijvz.mp4', 2, true)
         RETURNING id INTO EquityMarketFundId;
@@ -276,7 +276,7 @@ $$
 
         INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
                                       name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('','SYSTEM', 'SYSTEM', MutualFundsId, 'Meristem Dollar Mutual Fund',
+        VALUES ('MWM-MF-000003','SYSTEM', 'SYSTEM', MutualFundsId, 'Meristem Dollar Mutual Fund',
                 '45dede92-2405-4811-9724-45e4638e742f', 'meristem-dollar-fund', 'MDMF', NULL,
                 'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630618/wb2videos/MONEY_MARKET_FUND_wzfhcu.mp4',
                 3,
