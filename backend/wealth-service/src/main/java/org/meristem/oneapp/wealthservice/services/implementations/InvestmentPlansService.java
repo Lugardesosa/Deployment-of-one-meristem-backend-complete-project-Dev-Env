@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.wealthservice.domains.responses.InvestmentProductWithPlansResponse;
+import org.meristem.oneapp.wealthservice.integrations.MiddleWareClient;
+import org.meristem.oneapp.wealthservice.integrations.responses.MiddlewareFixedDepositResponse;
 import org.meristem.oneapp.wealthservice.models.InvestmentPlanSettings;
 import org.meristem.oneapp.wealthservice.models.InvestmentPlans;
 import org.meristem.oneapp.wealthservice.models.InvestmentProducts;
@@ -11,14 +13,13 @@ import org.meristem.oneapp.wealthservice.repositories.InvestmentPlanSettingsRepo
 import org.meristem.oneapp.wealthservice.repositories.InvestmentPlansRepository;
 import org.meristem.oneapp.wealthservice.repositories.InvestmentProductsRepository;
 import org.meristem.oneapp.wealthservice.services.IInvestmentPlansService;
+import org.meristem.oneapp.wealthservice.utils.AppUtil;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +29,15 @@ public class InvestmentPlansService implements IInvestmentPlansService {
     private final InvestmentPlansRepository investmentPlansRepository;
     private final InvestmentPlanSettingsRepository investmentPlanSettingsRepository;
     private final ObjectMapper objectMapper;
+    private final MiddleWareClient middleWareClient;
 
     @Override
     public List<InvestmentProductWithPlansResponse> getAllProductsWithPlans() {
+
+        String customerId = AppUtil.getLoggedInCustomerId();
+        Set<String> subscribedProductIds = getSubscribedProductIds(customerId);
+
+
         List<InvestmentProducts> products = (List<InvestmentProducts>) investmentProductsRepository.findAll();
         List<InvestmentProductWithPlansResponse> result = new ArrayList<>();
 
@@ -92,6 +99,8 @@ public class InvestmentPlansService implements IInvestmentPlansService {
                         plan.getVideoUrl(),
                         plan.getPosition(),
                         plan.getIsActive(),
+                        plan.getIsUnique(),
+                        subscribedProductIds.contains(plan.getCoreProductId()),
                         loadAboutDescription(plan.getUuid()),
                         loadAboutHighlights(plan.getUuid()),
                         settingsResponse
@@ -116,6 +125,11 @@ public class InvestmentPlansService implements IInvestmentPlansService {
 
     @Override
     public InvestmentProductWithPlansResponse.PlanResponse getPlanByUuid(String uuid) {
+
+        String customerId = AppUtil.getLoggedInCustomerId();
+        Set<String> subscribedProductIds = getSubscribedProductIds(customerId);
+
+
         InvestmentPlans plan = investmentPlansRepository.findByUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("Plan not found: " + uuid));
 
@@ -172,6 +186,8 @@ public class InvestmentPlansService implements IInvestmentPlansService {
                 plan.getVideoUrl(),
                 plan.getPosition(),
                 plan.getIsActive(),
+                plan.getIsUnique(),
+                subscribedProductIds.contains(plan.getCoreProductId()),
                 loadAboutDescription(plan.getUuid()),
                 loadAboutHighlights(plan.getUuid()),
                 settingsResponse
@@ -211,5 +227,16 @@ public class InvestmentPlansService implements IInvestmentPlansService {
                 .map(String::trim)
                 .map(Integer::parseInt)
                 .toList();
+    }
+
+    private Set<String> getSubscribedProductIds(String customerId) {
+        try {
+            return middleWareClient.getFixedDepositsByCustomer(customerId).data()
+                    .stream()
+                    .map(MiddlewareFixedDepositResponse::productId)
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            return Set.of();
+        }
     }
 }

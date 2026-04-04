@@ -26,6 +26,8 @@ public record InvestmentProductWithPlansResponse(
             String videoUrl,
             Integer position,
             Boolean isActive,
+            Boolean isUnique,
+            Boolean isSubscribed,
             String aboutDescription,
             List<String> aboutHighlights,
             PlanSettingsResponse settings
