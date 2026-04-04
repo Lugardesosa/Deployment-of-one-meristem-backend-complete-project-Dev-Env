@@ -9,7 +9,7 @@ management:
       show-details: always
       access: read_only
     prometheus:
-      access: none
+      access: read_only
   health:
     mail:
       enabled: false
