@@ -44,6 +44,7 @@ public class FixedDepositService implements IFixedDepositService {
                 request.amount(),
                 request.tenorDays()
         );
+        //todo: carter for reInvestmentPercentage
         MiddlewarePlacementRateCalculateResponse response = middleWareClient.calculatePlacementRate(middlewareRequest).data();
         return new FixedDepositPreviewResponse(
                 response.matures(),
@@ -51,7 +52,8 @@ public class FixedDepositService implements IFixedDepositService {
                 response.maturity(),
                 response.rate(),
                 response.netInterest(),
-                response.grossInterest()
+                response.grossInterest(),
+                request.reInvestmentPercentage()
         );
     }
 

@@ -6,5 +6,6 @@ public record FixedDepositPreviewResponse(
         String maturity,
         String rate,
         String netInterest,
-        String grossInterest
+        String grossInterest,
+        String reInvestmentPercentage
 ) {}
