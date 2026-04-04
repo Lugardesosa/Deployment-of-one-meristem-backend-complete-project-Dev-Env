@@ -276,7 +276,7 @@ $$
         INSERT INTO investment_plans (core_product_id, core_fund_id, created_by, last_modified_by,
                                       investment_product_id,
                                       name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('EEP', '', 'SYSTEM', 'SYSTEM', EthicalEarningsId, 'Ethical Earnings Portfolio',
+        VALUES ('EEP', 'MWM-CF-000004', 'SYSTEM', 'SYSTEM', EthicalEarningsId, 'Ethical Earnings Portfolio',
                 'fced68f5-dd06-4c2f-9ea6-598f24f1e5a9',
                 'meristem-ethical-earnings-portfolio', NULL, NULL, NULL, 1, true)
         RETURNING id INTO EthicalEarningsPortfolioId;
@@ -313,7 +313,7 @@ $$
                                               penalty_on_early_withdrawal, penalty_on_interest, penalty_percentage,
                                               fund_with_other_investments, minimum_topup_amount, minimum_topup_units)
         VALUES (FixedTermDepositPortFolioId, 20, NULL, NULL, 0,
-                NULL, 20000000, 30, 365,
+                NULL, 20000, 30, 365,
                 '10.75% - 16.39%', 'Naira', 'Low', 100000,
                 'End of tenor', 'percentage', NULL, NULL, NULL, NULL,
                 TRUE, TRUE, FALSE,
@@ -322,7 +322,7 @@ $$
 
 
                (MoneyMarketFundId, NULL, 20.41, 21.99, 0,
-                NULL, 1000000, 30, 365,
+                NULL, 20000, 30, 365,
                 NULL, 'Naira', 'Low', 100000,
                 'Quarterly', 'percentage', NULL, NULL, NULL, NULL,
                 TRUE, TRUE, TRUE,
@@ -354,7 +354,7 @@ $$
                 NULL, NULL, 10),
 
                (TreasuryLinkedInvestmentId, NULL, NULL, NULL, 0.25,
-                NULL, 100000000, 91, 364,
+                NULL, 20000, 91, 364,
                 'Mirrors return on FGN Treasury Bills', 'Naira', 'Low', NULL,
                 'End of tenor', NULL, NULL, NULL, NULL, NULL,
                 FALSE, NULL, FALSE,
@@ -362,7 +362,7 @@ $$
                 TRUE, NULL, NULL),
 
                (EthicalEarningsPortfolioId, 7, NULL, NULL, 0,
-                NULL, 100000, 182, NULL,
+                NULL, 20000, 182, NULL,
                 '8% per anum', 'Naira', 'Low', 10000000,
                 'Bi-annual (April & October)', 'percentage', NULL, NULL, NULL, NULL,
                 FALSE, TRUE, TRUE,
