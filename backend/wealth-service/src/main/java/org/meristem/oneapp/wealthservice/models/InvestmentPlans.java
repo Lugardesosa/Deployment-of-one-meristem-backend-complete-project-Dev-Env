@@ -21,12 +21,13 @@ public class InvestmentPlans extends BaseModel<String> {
     private String shortName;
     private String videoUrl;
     private String coreProductId;
+    private String coreFundId;
     private String description;
     private Integer position;
     private Boolean isActive;
 
     @Builder
-    public InvestmentPlans(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, String name, String uuid, String slug, String shortName, String videoUrl, String description, Integer position, Boolean isActive, String coreProductId) {
+    public InvestmentPlans(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, String name, String uuid, String slug, String shortName, String videoUrl, String description, Integer position, Boolean isActive, String coreProductId, String coreFundId) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.name = name;
         this.uuid = uuid;
@@ -37,6 +38,7 @@ public class InvestmentPlans extends BaseModel<String> {
         this.position = position;
         this.isActive = isActive;
         this.coreProductId = coreProductId;
+        this.coreFundId = coreFundId;
     }
 
     @Override

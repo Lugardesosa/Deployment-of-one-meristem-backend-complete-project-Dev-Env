@@ -6,5 +6,6 @@ public record FixedDepositPreviewRequest(
         String effectiveDate,
         Double amount,
         Integer tenorDays,
-        String customerId
+        String customerId,
+        String reInvestmentPercentage
 ) {}

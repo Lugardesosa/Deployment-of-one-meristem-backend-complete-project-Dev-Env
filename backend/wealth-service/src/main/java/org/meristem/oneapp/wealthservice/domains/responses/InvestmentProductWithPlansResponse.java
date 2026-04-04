@@ -18,6 +18,8 @@ public record InvestmentProductWithPlansResponse(
             Long id,
             String name,
             String uuid,
+            String coreProductId,
+            String coreFundId,
             String slug,
             String shortName,
             String description,
