@@ -1,0 +1,57 @@
+# prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  - job_name: 'cloud-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['cloud-gateway:20010']
+
+  - job_name: 'users-service'
+    metrics_path: '/api/users/actuator/prometheus'
+    static_configs:
+      - targets: ['users-service:20020']
+
+  - job_name: 'notification-service'
+    metrics_path: '/api/notification/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:20030']
+
+  - job_name: 'wallet-service'
+    metrics_path: '/api/wallets/actuator/prometheus'
+    static_configs:
+      - targets: ['wallet-service:20040']
+
+  - job_name: 'report-service'
+    metrics_path: '/api/reports/actuator/prometheus'
+    static_configs:
+      - targets: ['report-service:20050']
+
+  - job_name: 'trustees-service'
+    metrics_path: '/api/trustees/actuator/prometheus'
+    static_configs:
+      - targets: ['trustees-service:20060']
+
+  - job_name: 'wealth-service'
+    metrics_path: '/api/wealths/actuator/prometheus'
+    static_configs:
+      - targets: ['wealth-service:20070']
+
+  - job_name: 'config-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config-server:20000']
