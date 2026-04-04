@@ -887,12 +887,14 @@ services:
       - GF_SERVER_DOMAIN=monitoring.onemeristemdev.meristemng.com
       - GF_SERVER_ROOT_URL=https://monitoring.onemeristemdev.meristemng.com
       - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
-      - VIRTUAL_HOST=monitoring.onemeristemdev.meristemng.com
-      - VIRTUAL_PORT=3000
-      - LETSENCRYPT_HOST=monitoring.onemeristemdev.meristemng.com
-      - LETSENCRYPT_EMAIL=esosamumen@meristemng.com
-    expose:
-      - "3000"
+      # - VIRTUAL_HOST=monitoring.onemeristemdev.meristemng.com #Since we are not going to be managing with subdomains
+      # - VIRTUAL_PORT=3000
+      # - LETSENCRYPT_HOST=monitoring.onemeristemdev.meristemng.com
+      # - LETSENCRYPT_EMAIL=esosamumen@meristemng.com
+    # expose:
+    #   - "3000"
+    ports:
+    - "3000:3000"    # change from expose to ports inorder to access directly
     depends_on:
       - prometheus
       - loki
