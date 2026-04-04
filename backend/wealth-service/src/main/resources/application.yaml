@@ -45,3 +45,7 @@ encrypt:
 #          endpoint: ${OTEL_LOGGING_EXPORTER_OTLP_ENDPOINT}
 #          headers:
 #            application: ${spring.application.name}
+#  endpoint:
+#    prometheus:
+#      access: read_only
+
