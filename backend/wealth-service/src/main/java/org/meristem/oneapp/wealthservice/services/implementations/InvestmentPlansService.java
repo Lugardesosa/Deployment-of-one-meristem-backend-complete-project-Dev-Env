@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +76,8 @@ public class InvestmentPlansService implements IInvestmentPlansService {
                                 settings.getOfferOpenDate(),
                                 settings.getOfferCloseDate(),
                                 settings.getInvestmentStartDate(),
-                                settings.getInvestmentEndDate()
+                                settings.getInvestmentEndDate(),
+                                parseDaysArray(settings.getDaysArray())
                         );
 
                 planResponses.add(new InvestmentProductWithPlansResponse.PlanResponse(
@@ -154,7 +156,8 @@ public class InvestmentPlansService implements IInvestmentPlansService {
                         settings.getOfferOpenDate(),
                         settings.getOfferCloseDate(),
                         settings.getInvestmentStartDate(),
-                        settings.getInvestmentEndDate()
+                        settings.getInvestmentEndDate(),
+                        parseDaysArray(settings.getDaysArray())
                 );
 
         return new InvestmentProductWithPlansResponse.PlanResponse(
@@ -201,5 +204,12 @@ public class InvestmentPlansService implements IInvestmentPlansService {
     private List<String> loadAboutHighlights(String uuid) {
         InvestmentProductWithPlansResponse.About about = loadAbout(uuid);
         return about != null ? about.highlights() : null;
+    }
+    private List<Integer> parseDaysArray(String daysArray) {
+        if (daysArray == null || daysArray.isBlank()) return List.of();
+        return Arrays.stream(daysArray.split(","))
+                .map(String::trim)
+                .map(Integer::parseInt)
+                .toList();
     }
 }

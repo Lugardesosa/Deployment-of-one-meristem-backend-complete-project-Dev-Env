@@ -65,10 +65,11 @@ public class InvestmentPlanSettings extends BaseModel<String>{
     private String offerCloseDate;
     private String investmentStartDate;
     private String investmentEndDate;
+    private String daysArray;
 
 
     @Builder
-    public InvestmentPlanSettings(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, Long investmentPlanId, BigDecimal interest, BigDecimal effectiveYield, BigDecimal grossYield, BigDecimal processingFeePercentage, Integer interestPeriod, Long minimumInvestment, Integer minimumTenureDays, Integer maximumTenureDays, String rateOfReturn, String investmentDenomination, String riskLevel, Long minimumRecurringAmount, String returnsType, String computeType, BigDecimal bid, BigDecimal offer, BigDecimal minimumUnits, BigDecimal minimumRecurringUnits, Boolean canWithdrawActive, Boolean canSetupRecurringDebits, Boolean canFundActive, Boolean penaltyOnEarlyWithdrawal, Boolean penaltyOnInterest, BigDecimal penaltyPercentage, Boolean fundWithOtherInvestments, Long minimumTopupAmount, BigDecimal minimumTopupUnits) {
+    public InvestmentPlanSettings(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version, Integer status, Long investmentPlanId, BigDecimal interest, BigDecimal effectiveYield, BigDecimal grossYield, BigDecimal processingFeePercentage, Integer interestPeriod, Long minimumInvestment, Integer minimumTenureDays, Integer maximumTenureDays, String rateOfReturn, String investmentDenomination, String riskLevel, Long minimumRecurringAmount, String returnsType, String computeType, BigDecimal bid, BigDecimal offer, BigDecimal minimumUnits, BigDecimal minimumRecurringUnits, Boolean canWithdrawActive, Boolean canSetupRecurringDebits, Boolean canFundActive, Boolean penaltyOnEarlyWithdrawal, Boolean penaltyOnInterest, BigDecimal penaltyPercentage, Boolean fundWithOtherInvestments, Long minimumTopupAmount, BigDecimal minimumTopupUnits,String daysArray) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version, status);
         this.investmentPlanId = investmentPlanId;
         this.interest = interest;
@@ -98,6 +99,7 @@ public class InvestmentPlanSettings extends BaseModel<String>{
         this.fundWithOtherInvestments = fundWithOtherInvestments;
         this.minimumTopupAmount = minimumTopupAmount;
         this.minimumTopupUnits = minimumTopupUnits;
+        this.daysArray = daysArray;
     }
 
 
