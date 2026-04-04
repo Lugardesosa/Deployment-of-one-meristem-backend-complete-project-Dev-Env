@@ -65,6 +65,7 @@ CREATE TABLE investment_plans
     uuid                  VARCHAR(255)                            NOT NULL,
     slug                  VARCHAR(255)                            NOT NULL,
     core_product_id       VARCHAR(255)                            NOT NULL, -- TODO: REPLACE WITH ACTUAL VALUES FROM CORE WHEN THEY ARE CONFIGURED
+    core_fund_id          VARCHAR(255)                            NOT NULL, -- TODO: REPLACE WITH ACTUAL VALUES FROM CORE WHEN THEY ARE CONFIGURED
     short_name            VARCHAR(255),
     description           TEXT,
     video_url             TEXT,
@@ -174,208 +175,208 @@ $$
         EthicalEarningsPortfolioId  INTEGER;
         MeristemDollarFundId        INTEGER;
         MeristemDollarInvestmentId  INTEGER;
-    BEGIN
+BEGIN
 
 
-        INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
-                                         description, position, is_active)
-        VALUES ('SYSTEM', 'SYSTEM', 'Equity', '0b81bfba-f33a-47ae-b538-52b8cc46ad84', 'equity', 'NGN',
-                'Invest in equities', 6,
-                false)
-        RETURNING id INTO EquityId;
+INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
+                                 description, position, is_active)
+VALUES ('SYSTEM', 'SYSTEM', 'Equity', '0b81bfba-f33a-47ae-b538-52b8cc46ad84', 'equity', 'NGN',
+        'Invest in equities', 6,
+        false)
+    RETURNING id INTO EquityId;
 
-        INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
-                                         description, position, is_active)
-        VALUES ('SYSTEM', 'SYSTEM', 'Fixed Deposits', 'b668dd79-b24e-43f2-8d73-bd085cca2cf4', 'fixed-deposits', 'NGN',
-                'Secure your funds with a guaranteed return over a fixed period', 4, true)
-        RETURNING id INTO FixedDepositsId;
+INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
+                                 description, position, is_active)
+VALUES ('SYSTEM', 'SYSTEM', 'Fixed Deposits', 'b668dd79-b24e-43f2-8d73-bd085cca2cf4', 'fixed-deposits', 'NGN',
+        'Secure your funds with a guaranteed return over a fixed period', 4, true)
+    RETURNING id INTO FixedDepositsId;
 
-        INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
-                                         description, position, is_active)
-        VALUES ('SYSTEM', 'SYSTEM', 'Discounted Investment',
-                'a6123bf3-b229-4094-a0fb-c4dc7543a99c', 'discounted-investment', 'NGN',
-                'Maximize your earnings by investing in discounted financial instruments', 2, true)
-        RETURNING id INTO DiscountedInvestmentId;
+INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
+                                 description, position, is_active)
+VALUES ('SYSTEM', 'SYSTEM', 'Discounted Investment',
+        'a6123bf3-b229-4094-a0fb-c4dc7543a99c', 'discounted-investment', 'NGN',
+        'Maximize your earnings by investing in discounted financial instruments', 2, true)
+    RETURNING id INTO DiscountedInvestmentId;
 
-        INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
-                                         description, position, is_active)
-        VALUES ('SYSTEM', 'SYSTEM', 'Mutual Funds',
-                'c12fd583-e88a-48fc-bab7-71f2cf1f56d7', 'mutual-funds', 'NGN',
-                'Diversify your portfolio with professionally managed investment funds', 3, true)
-        RETURNING id INTO MutualFundsId;
+INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
+                                 description, position, is_active)
+VALUES ('SYSTEM', 'SYSTEM', 'Mutual Funds',
+        'c12fd583-e88a-48fc-bab7-71f2cf1f56d7', 'mutual-funds', 'NGN',
+        'Diversify your portfolio with professionally managed investment funds', 3, true)
+    RETURNING id INTO MutualFundsId;
 
-        INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
-                                         description, position, is_active)
-        VALUES ('SYSTEM', 'SYSTEM', 'Ethical Earnings',
-                'ed97db69-2558-4eb2-b4b0-ded42d0b2a4e', 'ethical-earnings', 'NGN',
-                'Invest in socially responsible and Shariah-compliant opportunities', 5, true)
-        RETURNING id INTO EthicalEarningsId;
+INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
+                                 description, position, is_active)
+VALUES ('SYSTEM', 'SYSTEM', 'Ethical Earnings',
+        'ed97db69-2558-4eb2-b4b0-ded42d0b2a4e', 'ethical-earnings', 'NGN',
+        'Invest in socially responsible and Shariah-compliant opportunities', 5, true)
+    RETURNING id INTO EthicalEarningsId;
 
-        INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
-                                         description, position, is_active)
-        VALUES ('SYSTEM', 'SYSTEM', 'Real Estate',
-                'e10d55c9-7510-4041-b3da-adebbb511d4a', 'real-estate', 'NGN', 'Realestate investment oppoturnities', 7,
-                true)
-        RETURNING id INTO RealEstateId;
-
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('FIVP', 'SYSTEM', 'SYSTEM', FixedDepositsId, 'Fixed Term Investment Portfolio',
-                'e39c16aa-96b3-4c2e-8984-9a0c66b36b9f', 'fixed-term-investment-portfolio', 'FIX-TIP', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749582076/wb2videos/iywahqyubziwshkeeluz.mp4', 1,
-                true)
-        RETURNING id INTO FixedTermDepositPortFolioId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('MWM-MF-000004', 'SYSTEM', 'SYSTEM', MutualFundsId, 'Money Market Fund',
-                '4df9e110-2b01-4078-869b-d76e0d61714d', 'meristem-money-market-fund', 'MMMF', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630618/wb2videos/MONEY_MARKET_FUND_wzfhcu.mp4',
-                1,
-                true)
-        RETURNING id INTO MoneyMarketFundId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('MWM-MF-000002', 'SYSTEM', 'SYSTEM', MutualFundsId, 'Fixed Income Fund',
-                '99255092-bdf9-4fe8-8b1b-9177abb3fdf3', 'meristem-fixed-income-fund', 'MFIF', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630687/wb2videos/MFIF_cay6o7.mp4', 3, true)
-        RETURNING id INTO FixedIncomeFundId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('', 'SYSTEM', 'SYSTEM', DiscountedInvestmentId, 'Commercial Paper',
-                '5a77240f-3050-448a-ac46-174d030b08b3', 'commercial-paper', 'CP', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630549/wb2videos/COMMERCIAL_PAPERS_bjkjir.mp4',
-                1,
-                true)
-        RETURNING id INTO CommercialPaperId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('MWM-MF-000001', 'SYSTEM', 'SYSTEM', MutualFundsId, 'Equity Market Fund',
-                '7f142d21-d19a-4844-9b41-6ecb6704b4ee', 'meristem-equity-market-fund', 'MEMF', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630649/wb2videos/MEMF_vqijvz.mp4', 2, true)
-        RETURNING id INTO EquityMarketFundId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('TLIP', 'SYSTEM', 'SYSTEM', DiscountedInvestmentId, 'Treasury Linked Investment',
-                'c3158068-ee82-4052-a0ac-44fe50455eda', 'treasury-linked-investment', 'T-Bills', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749582074/wb2videos/zomkmi7g6y9yl0hazzw8.mp4', 2,
-                true)
-        RETURNING id INTO TreasuryLinkedInvestmentId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('EEP', 'SYSTEM', 'SYSTEM', EthicalEarningsId, 'Ethical Earnings Portfolio',
-                'fced68f5-dd06-4c2f-9ea6-598f24f1e5a9',
-                'meristem-ethical-earnings-portfolio', NULL, NULL, NULL, 1, true)
-        RETURNING id INTO EthicalEarningsPortfolioId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('MWM-MF-000003', 'SYSTEM', 'SYSTEM', MutualFundsId, 'Meristem Dollar Mutual Fund',
-                '45dede92-2405-4811-9724-45e4638e742f', 'meristem-dollar-fund', 'MDMF', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630618/wb2videos/MONEY_MARKET_FUND_wzfhcu.mp4',
-                3,
-                true)
-        RETURNING id INTO MeristemDollarFundId;
-
-        INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
-                                      name, uuid, slug, short_name, description, video_url, position, is_active)
-        VALUES ('', 'SYSTEM', 'SYSTEM', FixedDepositsId, 'Meristem-Dollar Investment Portfolio',
-                'e45f42bb-89f0-4ed5-a87a-fdaa49684cca', 'meristem-dollar-investment-portfolio', 'MDIP', NULL,
-                'https://res.cloudinary.com/dptx3beqe/video/upload/v1749582076/wb2videos/iywahqyubziwshkeeluz.mp4', 1,
-                false)
-        RETURNING id INTO MeristemDollarInvestmentId;
+INSERT INTO investment_products (created_by, last_modified_by, name, uuid, slug, supported_currency,
+                                 description, position, is_active)
+VALUES ('SYSTEM', 'SYSTEM', 'Real Estate',
+        'e10d55c9-7510-4041-b3da-adebbb511d4a', 'real-estate', 'NGN', 'Realestate investment oppoturnities', 7,
+        true)
+    RETURNING id INTO RealEstateId;
 
 
-        INSERT INTO investment_plan_settings (investment_plan_id, interest, effective_yield, gross_yield,
-                                              processing_fee_percentage,
-                                              interest_period, minimum_investment, minimum_tenure_days,
-                                              maximum_tenure_days,
-                                              rate_of_return, investment_denomination, risk_level,
-                                              minimum_recurring_amount,
-                                              returns_type, compute_type, bid, offer, minimum_units,
-                                              minimum_recurring_units,
-                                              can_withdraw_active, can_setup_recurring_debits, can_fund_active,
-                                              penalty_on_early_withdrawal, penalty_on_interest, penalty_percentage,
-                                              fund_with_other_investments, minimum_topup_amount, minimum_topup_units)
-        VALUES (FixedTermDepositPortFolioId, 20, NULL, NULL, 0,
-                NULL, 20000000, 30, 365,
-                '10.75% - 16.39%', 'Naira', 'Low', 100000,
-                'End of tenor', 'percentage', NULL, NULL, NULL, NULL,
-                TRUE, TRUE, FALSE,
-                TRUE, TRUE, 20,
-                NULL, NULL, NULL),
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('FIVP','MWM-CF-000002', 'SYSTEM', 'SYSTEM', FixedDepositsId, 'Fixed Term Investment Portfolio',
+        'e39c16aa-96b3-4c2e-8984-9a0c66b36b9f', 'fixed-term-investment-portfolio', 'FIX-TIP', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749582076/wb2videos/iywahqyubziwshkeeluz.mp4', 1,
+        true)
+    RETURNING id INTO FixedTermDepositPortFolioId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('', '','SYSTEM', 'SYSTEM', MutualFundsId, 'Money Market Fund',
+        '4df9e110-2b01-4078-869b-d76e0d61714d', 'meristem-money-market-fund', 'MMMF', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630618/wb2videos/MONEY_MARKET_FUND_wzfhcu.mp4',
+        1,
+        true)
+    RETURNING id INTO MoneyMarketFundId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('','','SYSTEM', 'SYSTEM', MutualFundsId, 'Fixed Income Fund',
+        '99255092-bdf9-4fe8-8b1b-9177abb3fdf3', 'meristem-fixed-income-fund', 'MFIF', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630687/wb2videos/MFIF_cay6o7.mp4', 3, true)
+    RETURNING id INTO FixedIncomeFundId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('','SYSTEM', 'SYSTEM', DiscountedInvestmentId, 'Commercial Paper',
+        '5a77240f-3050-448a-ac46-174d030b08b3', 'commercial-paper', 'CP', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630549/wb2videos/COMMERCIAL_PAPERS_bjkjir.mp4',
+        1,
+        true)
+    RETURNING id INTO CommercialPaperId;
+
+INSERT INTO investment_plans (core_product_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('','','SYSTEM', 'SYSTEM', MutualFundsId, 'Equity Market Fund',
+        '7f142d21-d19a-4844-9b41-6ecb6704b4ee', 'meristem-equity-market-fund', 'MEMF', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630649/wb2videos/MEMF_vqijvz.mp4', 2, true)
+    RETURNING id INTO EquityMarketFundId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('TLIP','', 'SYSTEM', 'SYSTEM', DiscountedInvestmentId, 'Treasury Linked Investment',
+        'c3158068-ee82-4052-a0ac-44fe50455eda', 'treasury-linked-investment', 'T-Bills', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749582074/wb2videos/zomkmi7g6y9yl0hazzw8.mp4', 2,
+        true)
+    RETURNING id INTO TreasuryLinkedInvestmentId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('EEP','', 'SYSTEM', 'SYSTEM', EthicalEarningsId, 'Ethical Earnings Portfolio',
+        'fced68f5-dd06-4c2f-9ea6-598f24f1e5a9',
+        'meristem-ethical-earnings-portfolio', NULL, NULL, NULL, 1, true)
+    RETURNING id INTO EthicalEarningsPortfolioId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('','','SYSTEM', 'SYSTEM', MutualFundsId, 'Meristem Dollar Mutual Fund',
+        '45dede92-2405-4811-9724-45e4638e742f', 'meristem-dollar-fund', 'MDMF', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749630618/wb2videos/MONEY_MARKET_FUND_wzfhcu.mp4',
+        3,
+        true)
+    RETURNING id INTO MeristemDollarFundId;
+
+INSERT INTO investment_plans (core_product_id,core_fund_id, created_by, last_modified_by, investment_product_id,
+                              name, uuid, slug, short_name, description, video_url, position, is_active)
+VALUES ('','','SYSTEM', 'SYSTEM', FixedDepositsId, 'Meristem-Dollar Investment Portfolio',
+        'e45f42bb-89f0-4ed5-a87a-fdaa49684cca', 'meristem-dollar-investment-portfolio', 'MDIP', NULL,
+        'https://res.cloudinary.com/dptx3beqe/video/upload/v1749582076/wb2videos/iywahqyubziwshkeeluz.mp4', 1,
+        false)
+    RETURNING id INTO MeristemDollarInvestmentId;
 
 
-               (MoneyMarketFundId, NULL, 20.41, 21.99, 0,
-                NULL, 1000000, 30, 365,
-                NULL, 'Naira', 'Low', 100000,
-                'Quarterly', 'percentage', NULL, NULL, NULL, NULL,
-                TRUE, TRUE, TRUE,
-                NULL, NULL, NULL,
-                NULL, 100000, NULL),
+INSERT INTO investment_plan_settings (investment_plan_id, interest, effective_yield, gross_yield,
+                                      processing_fee_percentage,
+                                      interest_period, minimum_investment, minimum_tenure_days,
+                                      maximum_tenure_days,
+                                      rate_of_return, investment_denomination, risk_level,
+                                      minimum_recurring_amount,
+                                      returns_type, compute_type, bid, offer, minimum_units,
+                                      minimum_recurring_units,
+                                      can_withdraw_active, can_setup_recurring_debits, can_fund_active,
+                                      penalty_on_early_withdrawal, penalty_on_interest, penalty_percentage,
+                                      fund_with_other_investments, minimum_topup_amount, minimum_topup_units)
+VALUES (FixedTermDepositPortFolioId, 20, NULL, NULL, 0,
+        NULL, 20000000, 30, 365,
+        '10.75% - 16.39%', 'Naira', 'Low', 100000,
+        'End of tenor', 'percentage', NULL, NULL, NULL, NULL,
+        TRUE, TRUE, FALSE,
+        TRUE, TRUE, 20,
+        NULL, NULL, NULL),
 
-               (FixedIncomeFundId, NULL, NULL, NULL, 0,
-                NULL, NULL, 90, NULL,
-                NULL, 'Naira', 'Medium', NULL,
-                'Price Appreciation/Bi-Annual dividends', 'bid-offer', 130.02, 110.02, 100, 10,
-                TRUE, TRUE, TRUE,
-                NULL, NULL, NULL,
-                NULL, NULL, 50),
 
-               (CommercialPaperId, NULL, NULL, NULL, NULL,
-                NULL, NULL, NULL, NULL,
-                NULL, NULL, 'Medium', NULL,
-                'End of tenor', NULL, NULL, NULL, NULL, NULL,
-                FALSE, NULL, FALSE,
-                NULL, NULL, NULL,
-                NULL, NULL, NULL),
+       (MoneyMarketFundId, NULL, 20.41, 21.99, 0,
+        NULL, 1000000, 30, 365,
+        NULL, 'Naira', 'Low', 100000,
+        'Quarterly', 'percentage', NULL, NULL, NULL, NULL,
+        TRUE, TRUE, TRUE,
+        NULL, NULL, NULL,
+        NULL, 100000, NULL),
 
-               (EquityMarketFundId, NULL, NULL, NULL, 0,
-                NULL, NULL, 30, NULL,
-                NULL, 'Naira', 'Medium', NULL,
-                'Price Appreciation/Annual dividends', 'bid-offer', 90.9032, 50.4423, 1000, 10,
-                TRUE, TRUE, TRUE,
-                NULL, NULL, NULL,
-                NULL, NULL, 10),
+       (FixedIncomeFundId, NULL, NULL, NULL, 0,
+        NULL, NULL, 90, NULL,
+        NULL, 'Naira', 'Medium', NULL,
+        'Price Appreciation/Bi-Annual dividends', 'bid-offer', 130.02, 110.02, 100, 10,
+        TRUE, TRUE, TRUE,
+        NULL, NULL, NULL,
+        NULL, NULL, 50),
 
-               (TreasuryLinkedInvestmentId, NULL, NULL, NULL, 0.25,
-                NULL, 100000000, 91, 364,
-                'Mirrors return on FGN Treasury Bills', 'Naira', 'Low', NULL,
-                'End of tenor', NULL, NULL, NULL, NULL, NULL,
-                FALSE, NULL, FALSE,
-                TRUE, TRUE, NULL,
-                TRUE, NULL, NULL),
+       (CommercialPaperId, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL,
+        NULL, NULL, 'Medium', NULL,
+        'End of tenor', NULL, NULL, NULL, NULL, NULL,
+        FALSE, NULL, FALSE,
+        NULL, NULL, NULL,
+        NULL, NULL, NULL),
 
-               (EthicalEarningsPortfolioId, 7, NULL, NULL, 0,
-                NULL, 100000, 182, NULL,
-                '8% per anum', 'Naira', 'Low', 10000000,
-                'Bi-annual (April & October)', 'percentage', NULL, NULL, NULL, NULL,
-                FALSE, TRUE, TRUE,
-                TRUE, TRUE, 40,
-                NULL, 10000000, NULL),
+       (EquityMarketFundId, NULL, NULL, NULL, 0,
+        NULL, NULL, 30, NULL,
+        NULL, 'Naira', 'Medium', NULL,
+        'Price Appreciation/Annual dividends', 'bid-offer', 90.9032, 50.4423, 1000, 10,
+        TRUE, TRUE, TRUE,
+        NULL, NULL, NULL,
+        NULL, NULL, 10),
 
-               (MeristemDollarFundId, NULL, NULL, NULL, 0,
-                NULL, NULL, 180, NULL,
-                NULL, 'USD', 'Medium', NULL,
-                'Price Appreciation', 'bid-offer', 29.4957, 29.6522, 50, 10,
-                TRUE, TRUE, TRUE,
-                NULL, NULL, NULL,
-                NULL, NULL, 10),
+       (TreasuryLinkedInvestmentId, NULL, NULL, NULL, 0.25,
+        NULL, 100000000, 91, 364,
+        'Mirrors return on FGN Treasury Bills', 'Naira', 'Low', NULL,
+        'End of tenor', NULL, NULL, NULL, NULL, NULL,
+        FALSE, NULL, FALSE,
+        TRUE, TRUE, NULL,
+        TRUE, NULL, NULL),
 
-               (MeristemDollarInvestmentId, NULL, NULL, NULL, 0,
-                NULL, 200000, 90, 365,
-                '3.5% - 5%', 'USD', 'Low', 50000,
-                'End of tenor', 'percentage', NULL, NULL, NULL, NULL,
-                FALSE, FALSE, TRUE,
-                TRUE, TRUE, 25,
-                NULL, NULL, NULL);
+       (EthicalEarningsPortfolioId, 7, NULL, NULL, 0,
+        NULL, 100000, 182, NULL,
+        '8% per anum', 'Naira', 'Low', 10000000,
+        'Bi-annual (April & October)', 'percentage', NULL, NULL, NULL, NULL,
+        FALSE, TRUE, TRUE,
+        TRUE, TRUE, 40,
+        NULL, 10000000, NULL),
 
-    END
+       (MeristemDollarFundId, NULL, NULL, NULL, 0,
+        NULL, NULL, 180, NULL,
+        NULL, 'USD', 'Medium', NULL,
+        'Price Appreciation', 'bid-offer', 29.4957, 29.6522, 50, 10,
+        TRUE, TRUE, TRUE,
+        NULL, NULL, NULL,
+        NULL, NULL, 10),
+
+       (MeristemDollarInvestmentId, NULL, NULL, NULL, 0,
+        NULL, 200000, 90, 365,
+        '3.5% - 5%', 'USD', 'Low', 50000,
+        'End of tenor', 'percentage', NULL, NULL, NULL, NULL,
+        FALSE, FALSE, TRUE,
+        TRUE, TRUE, 25,
+        NULL, NULL, NULL);
+
+END
 $$;
 
