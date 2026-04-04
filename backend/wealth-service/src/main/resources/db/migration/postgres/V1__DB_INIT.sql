@@ -160,7 +160,7 @@ VALUES ('SYSTEM', 'SYSTEM', 'Personal Target Savings', '3bae42c6-4479-4bf5-9e00-
 DO
 $$
     DECLARE
-EquityId                    INTEGER;
+        EquityId                    INTEGER;
         FixedDepositsId             INTEGER;
         DiscountedInvestmentId      INTEGER;
         MutualFundsId               INTEGER;

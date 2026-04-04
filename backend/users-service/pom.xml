@@ -38,12 +38,12 @@
     </properties>
     <dependencies>
 
-<!--        THIRD PARTY-->
+        <!--        THIRD PARTY-->
 
 
-<!--        INTEGRATION-->
+        <!--        INTEGRATION-->
 
-<!--        DEV TOOLS-->
+        <!--        DEV TOOLS-->
         <!-- Source: https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-spring-boot3 -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
@@ -144,7 +144,7 @@
             <scope>compile</scope>
         </dependency>
 
-<!--        SDK-->
+        <!--        SDK-->
         <!-- Source: https://mvnrepository.com/artifact/com.smileidentity/smile-identity-core -->
         <dependency>
             <groupId>com.smileidentity</groupId>
@@ -152,7 +152,7 @@
             <version>2.1.7</version>
             <scope>compile</scope>
         </dependency>
-<!--        STORAGE-->
+        <!--        STORAGE-->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -183,7 +183,7 @@
             <version>3.25.5</version>
         </dependency>
 
-<!--        MESSAGING AND EVENT-->
+        <!--        MESSAGING AND EVENT-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-websocket</artifactId>
@@ -201,7 +201,7 @@
             <scope>compile</scope>
         </dependency>
 
-<!--        TEST-->
+        <!--        TEST-->
         <!-- https://mvnrepository.com/artifact/net.datafaker/datafaker -->
         <dependency>
             <groupId>net.datafaker</groupId>
@@ -241,7 +241,7 @@
             <scope>test</scope>
         </dependency>
 
-<!--        OBSERVABILITY-->
+        <!--        OBSERVABILITY-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -252,7 +252,7 @@
             <scope>runtime</scope>
         </dependency>
 
-<!--        SECURITY-->
+        <!--        SECURITY-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
