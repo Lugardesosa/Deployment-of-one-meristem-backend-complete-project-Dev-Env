@@ -813,7 +813,7 @@ services:
   # TEMPO - Distributed tracing
   # ======================
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.6.1
     container_name: tempo
     restart: unless-stopped
     networks:
