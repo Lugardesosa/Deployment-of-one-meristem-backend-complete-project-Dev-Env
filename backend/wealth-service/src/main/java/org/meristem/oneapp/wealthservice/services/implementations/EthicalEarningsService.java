@@ -52,12 +52,13 @@ public class EthicalEarningsService implements IEthicalEarningsService {
     public EthicalEarningsCreateResponse create(EthicalEarningsCreateRequest request) {
         String customerId = AppUtil.getLoggedInCustomerId();
         String reference = java.util.UUID.randomUUID().toString().replace("-", "");
+        String investmentDate = "2025-12-31"; //todo:remove in future once the date has been configured on core
 
         MiddlewarePlacementCreateFixedDepositRequest middlewareRequest = new MiddlewarePlacementCreateFixedDepositRequest(
                 request.productId(),
                 customerId,
                 request.symplusAccountNo(),
-                request.date(),
+                investmentDate,
                 request.tenorInDays(),
                 request.amount(),
                 request.rollover(),
