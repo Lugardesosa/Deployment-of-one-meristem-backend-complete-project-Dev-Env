@@ -24,3 +24,24 @@ spring:
 
 encrypt:
   key: '${ENCRYPTION_KEY}'
+
+#management:
+#  opentelemetry:
+#    tracing:
+#      export:
+#        otlp:
+#          headers:
+#            x-b3-traceid: ${OTEL_TRACE_ID}
+#            x-b3-spanid: ${OTEL_SPAN_ID}
+#            x-b3-sampled: ${OTEL_SAMPLED}
+#            x-b3-flags: ${OTEL_FLAGS}
+#            application: ${spring.application.name}
+#          endpoint: ${OTEL_TRACE_EXPORTER_OTLP_ENDPOINT}
+#          compression: gzip
+#    logging:
+#      export:
+#        otlp:
+#          compression: gzip
+#          endpoint: ${OTEL_LOGGING_EXPORTER_OTLP_ENDPOINT}
+#          headers:
+#            application: ${spring.application.name}
