@@ -63,7 +63,8 @@ public record InvestmentProductWithPlansResponse(
             String offerOpenDate,
             String offerCloseDate,
             String investmentStartDate,
-            String investmentEndDate
+            String investmentEndDate,
+            List<Integer> daysArray
     ) {}
 
     public record About(String description, List<String> highlights) {}
