@@ -17,4 +17,7 @@ public interface InvestmentPlansRepository extends BaseRepository<InvestmentPlan
 
     @Query("SELECT * FROM investment_plans WHERE core_product_id = :coreProductId LIMIT 1")
     Optional<InvestmentPlans> findByCoreProductId(@Param("coreProductId") String coreProductId);
+
+    @Query("SELECT * FROM investment_plans WHERE core_fund_id = :coreFundId LIMIT 1")
+    Optional<InvestmentPlans> findByCoreFundId(@Param("coreFundId") String coreFundId);
 }
