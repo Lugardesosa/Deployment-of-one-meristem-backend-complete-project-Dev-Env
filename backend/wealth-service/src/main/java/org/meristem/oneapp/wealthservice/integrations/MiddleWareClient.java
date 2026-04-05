@@ -113,5 +113,6 @@ public interface MiddleWareClient {
     @PostExchange("/investments/placements/liquidate")
     MiddlewareAppResponse<MiddlewarePlacementLiquidateResponse> liquidateFixedDeposit(@RequestBody MiddlewarePlacementLiquidateRequest request);
 
+
 }
 

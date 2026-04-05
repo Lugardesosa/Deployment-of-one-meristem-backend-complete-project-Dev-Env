@@ -1,6 +1,6 @@
 package org.meristem.oneapp.wealthservice.domains.responses;
 
-public record FundSubscriptionResponse(
+public record MoneyMarketFundSubscribeResponse(
         String transactionId,
         String fundId,
         String customerId,

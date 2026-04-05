@@ -5,8 +5,10 @@ import org.meristem.oneapp.wealthservice.domains.requests.FundRedemptionRequest;
 import org.meristem.oneapp.wealthservice.domains.requests.FundSubscriptionRequest;
 import org.meristem.oneapp.wealthservice.domains.responses.*;
 import org.meristem.oneapp.wealthservice.integrations.MiddleWareClient;
+import org.meristem.oneapp.wealthservice.integrations.requests.MiddlewareFundSubscriptionRequest;
 import org.meristem.oneapp.wealthservice.mappers.MiddlewareMapper;
 import org.meristem.oneapp.wealthservice.services.IFundService;
+import org.meristem.oneapp.wealthservice.utils.AppUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,8 +32,14 @@ public class FundService implements IFundService {
 
     @Override
     public FundSubscriptionResponse subscribeToFund(String fundId, FundSubscriptionRequest request) {
+        String customerId = AppUtil.getLoggedInCustomerId();
         return middlewareMapper.middlewareFundSubscriptionResponseToFundSubscriptionResponse(
-                middleWareClient.subscribeToFund(fundId, middlewareMapper.fundSubscriptionRequestToMiddlewareFundSubscriptionRequest(request)).data()
+                middleWareClient.subscribeToFund(fundId,
+                        new MiddlewareFundSubscriptionRequest(
+                                customerId,
+                                request.accountName(),
+                                request.amount()
+                        )).data()
         );
     }
 
