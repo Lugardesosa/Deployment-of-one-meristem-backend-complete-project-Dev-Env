@@ -5,5 +5,5 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record TransactionRequest(@NotBlank(message = "Cannot be blank") String walletId, @NotNull(message = "Cannot be null") LocalDate startDate, @NotNull(message = "Cannot be null") LocalDate endDate) {
+public record TransactionRequest(@NotNull(message = "Cannot be null") LocalDate startDate, @NotNull(message = "Cannot be null") LocalDate endDate) {
 }

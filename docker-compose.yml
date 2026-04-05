@@ -756,73 +756,167 @@ services:
       - meristem-network
     restart: unless-stopped
 
-  #OBSERVABILITY
-  # otel-collector:
-  #   container_name: otel-collector
-  #   image: otel/opentelemetry-collector-contrib:0.123.0
-  #   command: [ "--config=/etc/otel-collector-config.yaml" ]
-  #   ports:
-  #     - "4317:4317" # OTLP gRPC receiver
-  #   volumes:
-  #     - /one_meristem_app/logs_collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-  #   networks:
-  #     - meristem-network
-  #   restart: unless-stopped
 
-  # grafana:
-  #   image: grafana/grafana
-  #   container_name: grafana
-  #   ports:
-  #     - 3000:3000
-  #   environment:
-  #     - GF_USERS_DEFAULT_THEME=dark
-  #     - GF_SECURITY_ADMIN_USER=admin
-  #     - GF_SECURITY_ADMIN_PASSWORD=password
-  #   volumes:
-  #     - /one_meristem_app/logs_collector/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/provisioning-datasources.yaml:ro
-  #   depends_on:
-  #     - tempo
-  #     - loki
-  #     - prometheus
-  #   restart: unless-stopped
-  #   networks:
-  #     - meristem-network
+  # ======================
+  # NODE EXPORTER - Host system metrics
+  # ======================
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
 
+  # ======================
+  # CADVISOR - Per container metrics
+  # ======================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - meristem-network
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /mnt/data/docker:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
 
-  # tempo:
-  #   image: grafana/tempo:latest
-  #   container_name: tempo
-  #   volumes:
-  #     - /one_meristem_app/logs_collector/tempo/tempo-local.yaml:/etc/tempo-local.yaml:ro
-  #   command: "-config.file=/etc/tempo-local.yaml" 
-  #   restart: unless-stopped
-  #   networks:
-  #     - meristem-network
+  # ======================
+  # LOKI - Log aggregation
+  # ======================
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - /mnt/data/monitoring/loki:/tmp/loki
+    command: -config.file=/etc/loki/local-config.yaml
 
+  # ======================
+  # TEMPO - Distributed tracing
+  # ======================
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: tempo
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - ./monitoring/tempo/tempo-config.yml:/etc/tempo-local.yaml:ro
+      - /mnt/data/monitoring/tempo:/tmp/tempo
+    command: -config.file=/etc/tempo-local.yaml
 
-  # loki:
-  #   image: grafana/loki:latest
-  #   container_name: loki
-  #   command: -config.file=/etc/loki/local-config.yaml
-  #   networks:
-  #     - meristem-network
-  #   restart: unless-stopped
+  # ======================
+  # OTEL COLLECTOR - Telemetry routing
+  # ======================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - ./monitoring/otel-collector/otel-collector-config.yml:/etc/otel-collector-config.yaml:ro
+    command: --config=/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+    depends_on:
+      - loki
+      - tempo
 
+  # ======================
+  # PROMETHEUS - Metrics collection
+  # ======================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /mnt/data/monitoring/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-remote-write-receiver'
+      - '--enable-feature=exemplar-storage'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    expose:
+      - "9090"
+    depends_on:
+      - otel-collector
 
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   container_name: prometheus
-  #   command:
-  #     - --config.file=/etc/prometheus/prometheus.yaml
-  #     - --web.enable-remote-write-receiver
-  #     - --enable-feature=exemplar-storage
-  #   volumes:
-  #     - /one_meristem_app/monitoring/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
-  #   restart: unless-stopped
-  #   ports:
-  #     - "9090:9090"
-  #   networks:
-  #     - meristem-network
+  # ======================
+  # GRAFANA - Visualization
+  # ======================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - /mnt/data/monitoring/grafana:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - /mnt/data/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      #- GF_SERVER_DOMAIN=monitoring.onemeristemdev.meristemng.com
+      #- GF_SERVER_ROOT_URL=https://monitoring.onemeristemdev.meristemng.com
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+      - GF_FEATURE_TOGGLES_DISABLE=kubernetesDashboards
+      # - VIRTUAL_HOST=monitoring.onemeristemdev.meristemng.com #Since we are not going to be managing with subdomains
+      # - VIRTUAL_PORT=3000
+      # - LETSENCRYPT_HOST=monitoring.onemeristemdev.meristemng.com
+      # - LETSENCRYPT_EMAIL=esosamumen@meristemng.com
+    # expose:
+    #   - "3000"
+    ports:
+    - "3000:3000"    # change from expose to ports inorder to access directly
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  # ======================
+  # PROMTAIL - Log shipper to Loki
+  # ======================
+  promtail:
+    image: grafana/promtail:2.6.1
+    container_name: promtail
+    restart: unless-stopped
+    networks:
+      - meristem-network
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /mnt/data/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
 
 # ======================
 # INFRASTRUCTURE

@@ -35,10 +35,10 @@ public class WalletTransactionController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionResponse.class)))
     })
-    @PreAuthorize("hasAuthority('ROLE_1050')")
+    @PreAuthorize("hasAuthority('ROLE_1050') AND @authz.ownsWalletId()")
     @GetMapping(value = "/recent/{walletId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppResponse<List<TransactionResponse>>> getRecentTransactions(@PathVariable String walletId) {
-        return ApiUtil.buildResponse(middleWareWalletTransactionService.getRecentTransactions(walletId), HttpStatus.OK.toString(), "Successful");
+    public ResponseEntity<AppResponse<List<TransactionResponse>>> getRecentTransactions() {
+        return ApiUtil.buildResponse(middleWareWalletTransactionService.getRecentTransactions(), HttpStatus.OK.toString(), "Successful");
     }
 
     @Operation(summary = "Get wallet transaction history")
@@ -47,7 +47,7 @@ public class WalletTransactionController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionResponse.class)))
     })
-    @PreAuthorize("hasAuthority('ROLE_1050')")
+    @PreAuthorize("hasAuthority('ROLE_1050') AND @authz.ownsWalletId()")
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<TransactionResponse>>> getTransactions(@RequestBody TransactionRequest request) {
         return ApiUtil.buildResponse(middleWareWalletTransactionService.getTransactions(request), HttpStatus.OK.toString(), "Successful");

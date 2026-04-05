@@ -8,18 +8,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.meristem.oneapp.walletservice.constants.ApiConstants;
+import org.meristem.oneapp.walletservice.domains.requests.AddAccountNumberRequest;
 import org.meristem.oneapp.walletservice.domains.responses.AppResponse;
 import org.meristem.oneapp.walletservice.domains.responses.WalletAccountResponse;
+import org.meristem.oneapp.walletservice.integrations.requests.WithdrawalRequest;
+import org.meristem.oneapp.walletservice.integrations.responses.UpdateResponse;
 import org.meristem.oneapp.walletservice.services.IWalletAccountService;
 import org.meristem.oneapp.walletservice.utils.ApiUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -42,5 +42,29 @@ public class WalletAccountController {
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppResponse<List<WalletAccountResponse>>> getAccounts() {
         return ApiUtil.buildResponse(middleWareWalletAccountService.getAccounts(), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Add customer's bank account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Customer wallet accounts returned",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = WalletAccountResponse.class)))
+    })
+    @PreAuthorize("hasAuthority('ROLE_1050') AND @authz.ownsWalletId()")
+    @GetMapping(value = "/add-account", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> addAccount(@RequestBody AddAccountNumberRequest request) {
+        return ApiUtil.buildResponse(middleWareWalletAccountService.addAccountNo(request), HttpStatus.OK.toString(), "Successful");
+    }
+
+    @Operation(summary = "Withdraw to bank account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Withdraw to bank account",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = WalletAccountResponse.class)))
+    })
+    @PreAuthorize("hasAuthority('ROLE_1050') AND @authz.ownsWalletId()")
+    @GetMapping(value = "/withdraw", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AppResponse<UpdateResponse>> withdraw(@RequestBody WithdrawalRequest request) {
+        return ApiUtil.buildResponse(middleWareWalletAccountService.withdraw(request), HttpStatus.OK.toString(), "Successful");
     }
 }

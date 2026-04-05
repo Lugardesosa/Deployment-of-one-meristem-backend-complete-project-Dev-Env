@@ -31,7 +31,7 @@ public class Schedulers {
     private final ObjectMapper objectMapper;
 
     @Scheduled(fixedRateString = "${outbox.cron.fix-rate}", timeUnit = TimeUnit.SECONDS)
-    @SchedulerLock(name = "OutboxTaskLock", lockAtMostFor = "5s", lockAtLeastFor = "4s")
+    @SchedulerLock(name = "OutboxTaskLock", lockAtMostFor = "2s", lockAtLeastFor = "1s")
     public void publishOutbox() {
 
         List<OutboxEvent> events = outboxEventRepository.findAllByOutboxStatus(OutboxStatus.PENDING.getValue(), Sort.by(Sort.Order.asc("created_date")), Limit.of(100));
@@ -58,8 +58,8 @@ public class Schedulers {
                     } else {
                         event.setOutboxStatus(OutboxStatus.PENDING.getValue());
                     }
-                    toUpdate.add(event);
                     log.error("Error sending outbox event with id: {}", event.getId(), e);
+                    toUpdate.add(event);
                 }
             }
             outboxEventRepository.saveAll(toUpdate);

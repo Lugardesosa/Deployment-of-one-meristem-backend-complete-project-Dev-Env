@@ -33,6 +33,9 @@ import static java.util.Objects.requireNonNull;
 @UtilityClass
 public final class AppUtil {
 
+    private static final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     public static String getLoggedInSubject() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
@@ -129,11 +132,11 @@ public final class AppUtil {
     }
 
     public static @NonNull String getCustomerId(HttpServletRequest request) {
-        String id = request.getHeader("CUSTOMER_ID");
+        String id = request.getHeader("X-MERISTEM-CUSTOMER-ID");
         if (StringUtils.isBlank(id)) {
-            throw new BadRequestException("Kindly pass CUSTOMER_ID in the Header");
+            throw new BadRequestException("Kindly pass X-MERISTEM-CUSTOMER-ID in the Header");
         }
-        return request.getHeader("CUSTOMER_ID");
+        return id;
     }
 
     public static @NonNull List<String> getCustomerId() {
@@ -142,6 +145,16 @@ public final class AppUtil {
         if (auth instanceof JwtAuthenticationToken authenticationToken) {
             Jwt jwt = (Jwt) authenticationToken.getPrincipal();
             return requireNonNull(jwt, "user not logged in").getClaim("customerIds");
+        }
+        throw new BadRequestException("User is not logged in");
+    }
+
+    public static @NonNull List<String> getWalletIds() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken authenticationToken) {
+            Jwt jwt = (Jwt) authenticationToken.getPrincipal();
+            return requireNonNull(jwt, "user not logged in").getClaim("walletIds");
         }
         throw new BadRequestException("User is not logged in");
     }
@@ -199,5 +212,22 @@ public final class AppUtil {
             return requireNonNull(jwt, "user not logged in").getClaimAsString("lastName");
         }
         return null;
+    }
+
+    public static String getWalletId(HttpServletRequest httpServletRequest) {
+
+        String id = httpServletRequest.getHeader("X-MERISTEM-WALLET-ID");
+        if (StringUtils.isBlank(id)) {
+            throw new BadRequestException("Kindly pass X-MERISTEM-WALLET-ID in the Header");
+        }
+        return id;
+    }
+
+    public static String generateReference(int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
+        }
+        return sb.toString();
     }
 }

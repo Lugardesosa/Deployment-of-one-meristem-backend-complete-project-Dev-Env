@@ -20,4 +20,9 @@ public class AuthorizationService {
         List<String> customerIds = AppUtil.getCustomerId();
         return customerIds.contains(AppUtil.getCustomerId(request));
     }
+
+    public Boolean ownsWalletId() {
+        List<String> customerIds = AppUtil.getWalletIds();
+        return customerIds.contains(AppUtil.getWalletId(request));
+    }
 }

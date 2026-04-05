@@ -12,4 +12,5 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public interface WalletRepository extends BaseRepository<Wallets, Long> {
 
+    Optional<Wallets> findWalletsByWalletId(String walletId);
 }
