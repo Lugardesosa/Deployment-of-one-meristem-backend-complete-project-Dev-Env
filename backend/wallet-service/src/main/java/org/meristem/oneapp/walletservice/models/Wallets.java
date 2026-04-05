@@ -19,15 +19,21 @@ public class Wallets extends BaseModel<String> {
     private String customerId;
     private String walletId;
     private String symplusAccountNo;
+    private String withdrawalBankAccountNo;
+    private String withdrawalBankAccountCode;
+    private String withdrawalBankAccountName;
 
     @Builder
     public Wallets(Long id, LocalDateTime createdDate, String createdBy, LocalDateTime lastModifiedDate, String lastModifiedBy, Integer version,
-                   String customerId, String walletId, String symplusAccountNo) {
+                   String customerId, String walletId, String symplusAccountNo, String withdrawalBankAccountNo, String withdrawalBankAccountCode, String withdrawalBankAccountName) {
         super(id, createdDate, createdBy, lastModifiedDate, lastModifiedBy, version);
         this.balance = BigDecimal.ZERO;
         this.customerId = customerId;
         this.walletId = walletId;
         this.symplusAccountNo = symplusAccountNo;
+        this.withdrawalBankAccountNo = withdrawalBankAccountNo;
+        this.withdrawalBankAccountCode = withdrawalBankAccountCode;
+        this.withdrawalBankAccountName = withdrawalBankAccountName;
     }
 
     @Override

@@ -1,10 +1,11 @@
 package org.meristem.oneapp.walletservice.integrations;
 
 
+import org.meristem.oneapp.walletservice.integrations.requests.MiddlewareWithdrawalRequest;
+import org.meristem.oneapp.walletservice.integrations.requests.NameInquiryRequest;
 import org.meristem.oneapp.walletservice.integrations.requests.WalletCreateRequest;
 import org.meristem.oneapp.walletservice.integrations.requests.WalletTransferRequest;
 import org.meristem.oneapp.walletservice.integrations.responses.*;
-import org.meristem.oneapp.walletservice.integrations.responses.MiddlewareWalletAccountResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,4 +33,16 @@ public interface MiddleWareClient {
 
     @PostExchange("/new")
     WalletApiResponse<MiddlewareWalletAccountResponse> createWallet(@RequestBody WalletCreateRequest request);
+
+    @PostExchange("/payout")
+    WalletApiResponse<MiddlewareWithdrawalResponse> withdraw(@RequestBody MiddlewareWithdrawalRequest request);
+
+    @PostExchange("/payout/{transactionId}/status")
+    WalletApiResponse<MiddlewareWithdrawalStatusResponse> withdrawalStatus(@PathVariable String transactionId );
+
+    @PostExchange("/payout/banks")
+    WalletApiResponse<List<MiddlewareBanksResponse>> banks();
+
+    @PostExchange("/payout/name-inquiry")
+    WalletApiResponse<NameInquiryResponse> nameInquiry(@RequestBody NameInquiryRequest request);
 }
