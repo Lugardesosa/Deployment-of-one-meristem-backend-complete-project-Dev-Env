@@ -299,7 +299,7 @@ jobs:
           # ============================================================
           set +e
 
-          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis promtail"
+          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis"
 
           if [ "\$COMPOSE_CHANGED" = "true" ]; then
             echo "docker-compose.yml changed → restarting ALL services"
@@ -350,5 +350,15 @@ jobs:
 
             echo "Running containers:"
             sudo docker-compose -f docker-compose.yml ps
+
+            # ============================================================
+            # SECTION 8: Sync Monitoring Configs and Restart Promtail
+            # ============================================================
+            echo "Syncing monitoring configs..."
+            cp -r monitoring-one-meristem/. monitoring/
+
+            echo "Restarting promtail to rediscover new container IDs..."
+            sudo docker-compose restart promtail
+            echo "Promtail restarted successfully."
           fi
           ENDSSH
