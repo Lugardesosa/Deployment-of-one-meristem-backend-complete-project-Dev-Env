@@ -13,6 +13,7 @@ on:
       - 'backend/**'
       - 'docker-compose.yml'
       - 'custom_headers.conf'
+      - 'monitoring-one-meristem/**'
 
 env:
   REPO_NAME: mit-meristem/one_meristem_app
@@ -298,7 +299,7 @@ jobs:
           # ============================================================
           set +e
 
-          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis"
+          ALL_SERVICES="config-server users-service notification-service report-service wallet-service trustees-service wealth-service cloud-gateway redis promtail"
 
           if [ "\$COMPOSE_CHANGED" = "true" ]; then
             echo "docker-compose.yml changed → restarting ALL services"
@@ -328,9 +329,9 @@ jobs:
             echo "Deployment failed. Rolling back..."
             set +e
             sudo docker-compose -f docker-compose.yml stop \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service promtail
             sudo docker-compose -f ../docker-compose.backup.yml up -d \
-              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service || {
+              config-server users-service notification-service report-service wallet-service trustees-service cloud-gateway wealth-service promtail || {
                 echo "Rollback failed. Manual intervention required."
                 exit 1
             }
